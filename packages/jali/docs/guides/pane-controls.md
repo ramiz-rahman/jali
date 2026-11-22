@@ -1,10 +1,10 @@
 # Choose what people can do with panes
 
-Turn a pane's controls on or off, close, tuck, maximise, full screen, move, resize, pin and pop out, for a kind, a whole workspace, or a layout.
+Turn a pane's controls on or off, close, tuck, maximise, full screen, move, resize, pin and pop out, for a kind, for every pane, or for one layout.
 
-A pane can be closed, tucked, maximised, put full screen, moved, resized and pinned, and popped out into its own window. Not every app wants every one of these everywhere. With `allow`, your app decides, for a kind of pane, for the whole workspace, or depending on the layout:
+A pane can be closed, tucked, maximised, put full screen, moved, resized and pinned, and popped out into its own window. Not every app wants every one of these everywhere. With `allow`, your app decides, for a kind of pane, for every pane, or depending on the layout:
 
-`src/workspace.tsx`
+`src/jali.tsx`
 
 ```tsx
 import { createJali, row } from "jali";
@@ -29,7 +29,7 @@ export const jali = createJali({
     { id: "free", label: "Free", layout: () => row(report({ id: 1 }), report({ id: 2 })) },
   ],
   allow: {
-    // For the whole workspace: maximise, but not full screen.
+    // For every pane: maximise, but not full screen.
     fullScreen: false,
     // It depends: on the Review layout, people arrange panes as they like but never remove one.
     when: ({ action, presetId }) =>
@@ -49,21 +49,21 @@ export const jali = createJali({
 | `move` | Dragging it, the move keys, swapping, merging into tabs, pulling a tab out, reordering tabs |
 | `resize` | The dividers beside it |
 | `pin` | Pinning its tab |
-| `popOut` | Popping it out into a floating window (experimental, off by default) |
+| `popOut` | Popping it out into a floating window (with the `popOut()` feature) |
 
-Folding isn't a control: it is how a layout fits the room it has, so it always happens. Renaming has its own switch, `createJali({ rename: { can } })`.
+Folding isn't a control: it is how a layout fits the room it has, so it always happens. Renaming has its own switch: the `rename({ can, run })` feature.
 
 ## Who decides
 
 Three levels, and each can only take away. A control is allowed when none of them says `false`:
 
 1. **Jali's own rules.** A lone pane has nothing to maximise into; a phone shows one pane at a time and has nothing to drag; a curated page has rules of its own.
-2. **The kind**, `definePane({ allow })`, for what its content can handle.
-3. **The workspace**, `createJali({ allow })`: its defaults, and `when`, a function asked for each action, with the pane, the preset the layout came from and the curated page, if one is open.
+2. **The kind**, `definePane("chart", { allow })`, for what its content can handle.
+3. **Every pane**, `createJali({ allow })`: defaults for all panes, and `when`, a function asked for each action, with the pane, the preset the layout came from and the curated page, if one is open.
 
 Everything is allowed by default. Pop out comes with its feature, `popOut()` from `jali/pop-out`: adding it also adds a Pop out button to the header, before Close, and **Pop out pane** (`pane.pop_out`) to ⌘K, with no key until you bind one.
 
-Because the levels only take away, a workspace's `true` can't turn back on what a kind turned off. `when` is your code, not part of the layout, so the rule itself never travels in a link. What it reads can: a layout's preset and its panes come from the address. These controls shape what people are offered; they are not a security boundary. A rule that must hold, such as who may delete a record, belongs in your app's own checks too.
+Because the levels only take away, `createJali({ allow })`'s `true` can't turn back on what a kind turned off. `when` is your code, not part of the layout, so the rule itself never travels in a link. What it reads can: a layout's preset and its panes come from the address. These controls shape what people are offered; they are not a security boundary. A rule that must hold, such as who may delete a record, belongs in your app's own checks too.
 
 ## What people see
 
@@ -82,14 +82,22 @@ For a decision that depends on the moment, such as unsaved work in your app's ow
 
 You don't have to set `buttons`. Jali's choice is Tuck, Maximise, Pop out (where it is allowed) and Close, with Full screen in Maximise's place on a lone pane, and only Close on a phone. A ⋯ button shows whenever the menu offers more than the buttons do, so nothing is out of reach on a touch screen.
 
-To change them, give a list, which replaces Jali's, or a function, which adjusts them. A kind's `buttons` win over the workspace's:
+To change them, give a list, which replaces Jali's, or a function, which adjusts them. A kind's `buttons` win over `createJali`'s:
 
 ```tsx
-// Every pane: no Tuck button (Tuck stays in the menu).
-createJali({ panes, buttons: ["maximise", "close"] });
+import { createJali } from "jali";
+import { definePane } from "jali/react";
+import { Chart } from "./chart-view";
 
-// Charts: Jali's buttons, without Tuck.
-definePane("chart", { buttons: (defaults) => defaults.filter((b) => b !== "tuck"), /* ... */ });
+// Charts: Jali's buttons, without Tuck (Tuck stays in the menu).
+const chart = definePane("chart", {
+  title: "Chart",
+  buttons: (defaults) => defaults.filter((b) => b !== "tuck"),
+  Component: Chart,
+});
+
+// Every other pane: only Maximise and Close.
+const jali = createJali({ panes: [chart], layout: chart(), buttons: ["maximise", "close"] });
 ```
 
 `allow` still filters the list: a button for something that isn't allowed isn't drawn. And the way out of a state always shows, whatever the list says: Restore while a pane is maximised, Exit full screen while it is full screen.

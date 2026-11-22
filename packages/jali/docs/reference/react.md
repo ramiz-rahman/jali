@@ -2,13 +2,13 @@
 
 Every component, hook and type jali/react exports, with its props, defaults and what it returns.
 
-React components and hooks for a workspace made with [jali](core.md). React 18.2 or later (18 or 19) is a peer dependency; nothing else is. Jali's icons are in the package. See [Icons](#icons).
+React components and hooks for an instance made with [jali](core.md). React 18.2 or later (18 or 19) is a peer dependency; nothing else is. Jali's icons are in the package. See [Icons](#icons).
 
 ```sh
 npm install jali
 ```
 
-Styles: `jali/styles.css` is Jali's default theme and the workspace's styles; `jali/theme.css` is the theme alone; `jali/tailwind.css` points the tokens at your Tailwind theme. See [Tokens](tokens.md).
+Styles: `jali/styles.css` is Jali's default theme and the instance's styles; `jali/theme.css` is the theme alone; `jali/tailwind.css` points the tokens at your Tailwind theme. See [Tokens](tokens.md).
 
 ## Start here
 
@@ -20,29 +20,49 @@ Styles: `jali/styles.css` is Jali's default theme and the workspace's styles; `j
 <JaliRoot jali={jali} icons? overlays? settingsExtra?>{children?}</JaliRoot>
 ```
 
-Draws a workspace: its panes, "Discard unsaved changes?", the live region, and the dialogs of the features it has: the command palette (`palette()`), Settings (`settings()`) and the "Add to tabs of…" chooser (`chooser()`). See [Features](features.md). While it is mounted, it starts the workspace's keys, Back and Forward, theme and saving ([`Jali`](core/types.md#Jali)'s `start`), and stops them when it unmounts.
+Example, `App.tsx`:
+
+```tsx
+import { JaliRoot, JaliView, PageBar } from "jali/react";
+import { store } from "./store";
+
+// <JaliRoot> draws the panes and their dialogs. Your chrome goes inside it, with <JaliView /> where the panes go.
+export function App() {
+  return (
+    <JaliRoot jali={store} className="app" overlays={<div id="toasts" />}>
+      <header className="topbar" data-jali-chrome="">
+        <strong>Sales desk</strong>
+        <PageBar />
+      </header>
+      <JaliView />
+    </JaliRoot>
+  );
+}
+```
+
+Draws an instance: its panes, "Discard unsaved changes?", the live region, and the dialogs of the features it has: the command palette (`palette()`), Settings (`settings()`) and the "Add to tabs of…" chooser (`chooser()`). See [Features](features.md). While it is mounted, it starts the instance's keys, Back and Forward, theme and saving ([`Jali`](core/types.md#jali)'s `start`), and stops them when it unmounts.
 
 `<JaliRoot jali={jali} />` is a whole app. To add your own chrome, pass children and put `<JaliView />` where the panes go.
 
-The root is a `<div data-jali>` that the workspace attaches to, so focus, drag and F6 stay inside it. The dialogs render after it, in a `<div data-jali-layer>` (styled `display: contents`), which counts as the workspace's for its keys. Each dialog is modal: focus goes into it, Tab stays inside it, the root is `inert` while it is open, and focus goes back where it was when it closes. Mark your own chrome inside it with `data-jali-chrome` and Jali never pulls focus out of it.
+The root is a `<div data-jali>` that the instance attaches to, so focus, drag and F6 stay inside it. The dialogs render after it, in a `<div data-jali-layer>` (styled `display: contents`), which counts as the instance's for its keys. Each dialog is modal: focus goes into it, Tab stays inside it, the root is `inert` while it is open, and focus goes back where it was when it closes. Mark your own chrome inside it with `data-jali-chrome` and Jali never pulls focus out of it.
 
 Two things are yours to render. **The shelf** (tucked panes as chips): put `Shelf` in your status line or footer, or tucked panes have nowhere to come back from but ⌘K "Show a pane from the shelf". **Toasts**: Jali sends them as the `toast` event, `useJaliEvent("toast", show)` (closes and tucks come with Undo, which ⌘K ⌘Z also runs) and shows none itself; render them with your toaster in `overlays`.
 
 **Props**
 
-- **`workspace`** (`Jali`, required): From `createJali`.
+- **`jali`** (`Jali`, required): The instance, from `createJali`.
 
 - **`children`** (`ReactNode`): Rendered inside the root: `<JaliView>` and your chrome.
 
-- **`overlays`** (`ReactNode`): Rendered after the root: things that must sit outside the workspace, such as a toaster. Focus is never pulled back from outside the root. While one of Jali's dialogs is open they are inert, as the workspace behind it is, so a toast's Undo can't be reached until it closes; Jali's own announcements are still heard. They sit in an element of their own (`[data-jali-overlays]`, `display: contents`), so a toaster lays out as it would without it.
+- **`overlays`** (`ReactNode`): Rendered after the root: things that must sit outside the instance, such as a toaster. Focus is never pulled back from outside the root. While one of Jali's dialogs is open they are inert, as the instance behind it is, so a toast's Undo can't be reached until it closes; Jali's own announcements are still heard. They sit in an element of their own (`[data-jali-overlays]`, `display: contents`), so a toaster lays out as it would without it.
 
 - **`icons`** (`Partial<JaliIcons>`): Your own icons for any of the names Jali draws (`{ close: MyClose }`); the others stay Jali's. See [Icons](#icons).
 
 - **`settingsExtra`** (`ReactNode`): Your own settings, as `<fieldset>`s with a `<legend>`, shown at the end of the Settings panel. Store their values yourself. A row that is a radio or checkbox and its words matches Jali's as `<label className="jali-setting">` (the `settingRow` part).
 
-- **`aria-label`** (`string`): The workspace's name, over `createJali({ label })`, read at every render. It names the workspace landmark, and each landmark inside carries it.
+- **`aria-label`** (`string`): The instance's name, over `createJali({ label })`, read at every render. It names Jali's landmark, and each landmark inside carries it.
 
-- **`aria-labelledby`** (`string`): The id of a visible heading that names the workspace; the landmarks inside carry its text.
+- **`aria-labelledby`** (`string`): The id of a visible heading that names the instance; the landmarks inside carry its text.
 
 - **`onError`** (`(error: unknown) => void`): Hears a throw in your code inside the root or in Jali's own parts. The root shows "… could not be shown" with Retry in place of what failed, and your app around it stays. A pane's own failures go to `onPaneError`.
 
@@ -54,6 +74,26 @@ Two things are yours to render. **The shelf** (tucked panes as chips): put `Shel
 
 ```ts
 <JaliView />
+```
+
+Example, `App.tsx`:
+
+```tsx
+import { JaliRoot, JaliView, Shelf } from "jali/react";
+import { store } from "./store";
+
+// Chrome of your own: children of <JaliRoot>, with <JaliView /> where the panes go. The root still renders the
+// dialogs, the live region and the full-screen layer, and starts and stops the instance.
+export function App() {
+  return (
+    <JaliRoot jali={store} className="app">
+      <JaliView />
+      <footer className="status">
+        <Shelf />
+      </footer>
+    </JaliRoot>
+  );
+}
 ```
 
 The panes, or the curated page while one is open. Takes no props. `<JaliRoot>` renders it when it has no children; place it yourself when you add chrome.
@@ -68,9 +108,67 @@ The panes, or the curated page while one is open. Takes no props. `<JaliRoot>` r
 definePane(kind: string, options: PaneOptionsReact): Pane
 ```
 
+Example, `kinds.tsx`:
+
+```tsx
+import { definePane, useLauncher } from "jali/react";
+
+// A list of orders, and one order. Each says what it shows, its title and the narrowest it works at.
+export const ordersKind = definePane("orders", {
+  title: "Orders",
+  width: { min: 320 },
+  height: { min: 200 },
+
+  // A native list of buttons: Tab reaches each order, Enter or a click selects it, and a double-click opens it.
+  Component: ({ select, openBeside }) => (
+    <ul aria-label="Orders">
+      {[1041, 1042, 1043].map((id) => (
+        <li key={id}>
+          <button
+            type="button"
+            onClick={() => select(orderKind({ id }))}
+            onDoubleClick={() => openBeside(orderKind({ id }))}
+          >
+            Order {id}
+          </button>
+        </li>
+      ))}
+    </ul>
+  ),
+});
+
+export const orderKind = definePane("order", {
+  params: { id: Number },
+  title: ({ id }) => `Order ${id}`,
+  width: { min: 280, comfortable: 420, max: 720 },
+  height: { min: 200 },
+
+  Component: ({ params }) => <article>Order {params.id}</article>,
+});
+
+// What Split and "New tab here" open until the person chooses: the `launcher`.
+export const launcherKind = definePane("launcher", {
+  title: "New pane",
+  scratch: true,
+
+  Component: ({ openHere }) => {
+    const { recent, titleOf } = useLauncher();
+    return (
+      <ul aria-label="Recent">
+        {recent.map((ref, i) => (
+          <li key={i}>
+            <button onClick={() => openHere(ref)}>{titleOf(ref)}</button>
+          </li>
+        ))}
+      </ul>
+    );
+  },
+});
+```
+
 Defines a kind of pane: what it shows (its params), its title and sizes, and the component that renders it. Pass your kinds to `createJali({ panes })`.
 
-The result is also how you name an object of the kind: `orderKind({ id: 1041 })` is the [ref](../get-started/key-concepts.md#ref) `{ kind: "order", params: { id: 1041 } }`, to open, peek, select or put in a layout. When the kind declares `params`, the call is typed: a missing required param, a wrongly typed one or one the kind doesn't declare is a type error. Params are declared with `Number`, `String`, `Boolean`, [`oneOf`](core.md#oneOf) and [`optional`](core.md#optional), which `jali/react` also exports.
+The result is also how you name an object of the kind: `orderKind({ id: 1041 })` is the [ref](../get-started/key-concepts.md#ref) `{ kind: "order", params: { id: 1041 } }`, to open, peek, select or put in a layout. When the kind declares `params`, the call is typed: a missing required param, a wrongly typed one or one the kind doesn't declare is a type error. Params are declared with `Number`, `String`, `Boolean`, [`oneOf`](core.md#oneof) and [`optional`](core.md#optional), imported from `jali`.
 
 **Parameters**
 
@@ -78,7 +176,7 @@ The result is also how you name an object of the kind: `orderKind({ id: 1041 })`
 
 - **`options`** (`PaneOptionsReact`, required):
 
-Everything in [`PaneOptions`](core/types.md#PaneOptions) (`params`, `title`, `width`, `height`, `shows`, `identity`, `scratch`, `inRecent`, `holdWhileResizing`, `follow`, `selects`), and:
+Everything in [`PaneOptions`](core/types.md#paneoptions) (`params`, `title`, `width`, `height`, `shows`, `identity`, `scratch`, `inRecent`, `holdWhileResizing`, `follow`, `selects`), and:
 
 **view fields**
 
@@ -149,9 +247,53 @@ It renders inside the pane, so the pane's hooks (`useTitle`, `useCommands`, `use
 interface PaneProps<P = Params>
 ```
 
+Example, `order-note.tsx`:
+
+```tsx
+import { useState } from "react";
+import { definePane, useActivity, useCommands, useUnsaved, type PaneProps } from "jali/react";
+import { FileTextIcon } from "@phosphor-icons/react";
+
+// Declared before the component, so the component is typed from it: params is { id: number }.
+const orderNoteParams = { id: Number };
+
+function OrderNote({ params, paused }: PaneProps<typeof orderNoteParams>) {
+  const [draft, setDraft] = useState("");
+  // Unsaved work: closing or replacing this pane asks first while it is set.
+  useUnsaved(draft && "a note that is not saved");
+  // Commands in ⌘K while the pane is focused.
+  useCommands([
+    {
+      id: "save",
+      title: "Save note",
+      keys: "Mod+S",
+      disabled: draft ? false : "Nothing to save",
+      run: () => setDraft(""),
+    },
+  ]);
+  // What the pane is doing, for its header, tab and the shelf.
+  useActivity(paused ? "idle" : "working");
+  return (
+    <textarea
+      aria-label={`Note on order ${params.id}`}
+      value={draft}
+      onChange={(e) => setDraft(e.target.value)}
+    />
+  );
+}
+
+export const orderNoteKind = definePane("order-note", {
+  params: orderNoteParams,
+  title: ({ id }) => `Note on order ${id}`,
+  icon: FileTextIcon,
+  width: { min: 280, max: 640 },
+  Component: OrderNote,
+});
+```
+
 What a kind's `Component` gets. Components below it read the same with `usePane`. To type a component written apart from its kind, declare the params first and pass their declaration: `const orderParams = { id: Number }`, then `PaneProps<typeof orderParams>` (`params` is `{ id: number }`). `PaneProps<{ id: number }>`, the params' own type, also works.
 
-Keys: content first. Claim the keys you use with `event.preventDefault()` (J and K, Space, Enter, ⌘Z for your own undo, the first Esc) and let the rest bubble; single character keys must act only while your content has focus. Content that needs every key (an editor) marks itself `data-pane-keys="content"`; the workspace then takes only F6 and Shift+F6 there.
+Keys: content first. Claim the keys you use with `event.preventDefault()` (J and K, Space, Enter, ⌘Z for your own undo, the first Esc) and let the rest bubble; single character keys must act only while your content has focus. Content that needs every key (an editor) marks itself `data-pane-keys="content"`; the instance then takes only F6 and Shift+F6 there.
 
 **Props**
 
@@ -161,15 +303,15 @@ Keys: content first. Claim the keys you use with `event.preventDefault()` (J and
 
 - **`paused`** (`boolean`, required): The pane is hidden: tabbed away, tucked, folded, or behind a maximised pane. Pause subscriptions and timers; keep state.
 
-- **`focused`** (`boolean`, required): The pane has workspace focus.
+- **`focused`** (`boolean`, required): The pane has focus.
 
 - **`inPeek`** (`boolean`, required): Rendered in the peek sheet rather than a pane.
 
-- **`openBeside`** (`(ref: ObjectRef, options?: OpenBesideOptions) => ActionResult`, required): Open `ref` beside this pane; focus stays here. The selected item opens a following detail (kept if one already follows); another link replaces this pane's earlier plain link of the same kind. `{ edge: "bottom" }` opens it below this pane; any edge, as on screen (see [`OpenBesideOptions`](core/types.md#OpenBesideOptions)). Returns what `jali.actions.openBeside` does: `pane` is the pane that shows `ref`.
+- **`openBeside`** (`(ref: ObjectRef, options?: OpenBesideOptions) => ActionResult`, required): Open `ref` beside this pane; focus stays here. The selected item opens a following detail (kept if one already follows); another link replaces this pane's earlier plain link of the same kind. `{ edge: "bottom" }` opens it below this pane; any edge, as on screen (see [`OpenBesideOptions`](core/types.md#openbesideoptions)). Returns what `jali.actions.openBeside` does: `pane` is the pane that shows `ref`.
 
 - **`openHere`** (`(ref: ObjectRef) => ActionResult`, required): Show `ref` in this pane. If it is open elsewhere, that pane is focused instead. In the peek sheet, which has no pane of its own, `{ ok: false, reason: "unavailable" }`.
 
-- **`peek`** (`(ref: ObjectRef | null) => ActionResult`, required): Open or move the peek sheet; `null` closes it. When this pane has a following detail of the ref's kind on screen, the detail shows the item instead of the peek sheet, and no sheet opens (see [`JaliActions`](core/types.md#JaliActions)).
+- **`peek`** (`(ref: ObjectRef | null) => ActionResult`, required): Open or move the peek sheet; `null` closes it. When this pane has a following detail of the ref's kind on screen, the detail shows the item instead of the peek sheet, and no sheet opens (see [`JaliActions`](core/types.md#jaliactions)).
 
 - **`select`** (`(ref: ObjectRef | null, options?: { inResults?: boolean }) => ActionResult`, required): Report the item a list is on. An open peek from this pane follows it at once; this pane's following detail once it rests. `{ inResults: false }`: the filter no longer shows `ref`. Report the selection before opening it, so the opened pane is linked to it.
 
@@ -183,7 +325,70 @@ Keys: content first. Claim the keys you use with `event.preventDefault()` (J and
 definePage(page: Page): Page
 ```
 
-Defines a curated page: one item at a time (a loan application, a customer), its views as tabs, the item's header above the tabs (`Header`) and, optionally, a list of items at the left (`Rail`, which calls `showItem(item)` to show another). Pass it to `createJali({ page })`. It returns a copy of `page` that carries the code that runs a page and the parts that draw it. That code comes only with `definePage`, so an app without a curated page ships none of it. (`jali` exports a `definePage` too, for a page without React; this one calls it.)
+Example, `loan-review.tsx`:
+
+```tsx
+import { FileTextIcon, UserIcon } from "@phosphor-icons/react";
+import { pane, row } from "jali";
+import { definePage } from "jali/page";
+import { definePane } from "jali/react";
+
+const borrower = definePane("borrower", {
+  params: { application: Number },
+  title: "Borrower",
+  Component: () => null,
+});
+const documents = definePane("documents", {
+  params: { application: Number },
+  title: "Documents",
+  Component: () => null,
+});
+
+// A curated page about one loan application: two views, a queue at the left and a header over the tabs.
+export const loanReview = definePage({
+  id: "loan-review",
+  name: "Loan review",
+  itemNoun: "application",
+  viewers: { full: "credit reviewer", limited: "loan officer" },
+  roles: [
+    { id: "borrower", label: "Borrower", priority: "primary", icon: UserIcon },
+    { id: "documents", label: "Documents", priority: "supporting", icon: FileTextIcon },
+  ],
+  home: "borrower",
+  firstItem: 1,
+  // What each view shows for an application.
+  bind: (item) => ({
+    borrower: borrower({ application: item }),
+    documents: documents({ application: item }),
+  }),
+  // Split view's designed layout. A view's pane has the view's id as its id and its role.
+  build: (item) =>
+    row(
+      pane(borrower({ application: item }), {
+        id: "borrower",
+        role: "borrower",
+        priority: "primary",
+      }),
+      pane(documents({ application: item }), {
+        id: "documents",
+        role: "documents",
+        priority: "supporting",
+      }),
+    ),
+  Rail: ({ item, showItem }) => (
+    <nav aria-label="Applications">
+      {[1, 2, 3].map((n) => (
+        <button key={n} aria-current={n === item} onClick={() => showItem(n)}>
+          Application {n}
+        </button>
+      ))}
+    </nav>
+  ),
+  Header: ({ item }) => <h1>Application {item}</h1>,
+});
+```
+
+Defines a curated page: one item at a time (a loan application, a customer), its views as tabs, the item's header above the tabs (`Header`) and, optionally, a list of items at the left (`Rail`, which calls `showItem(item)` to show another). Pass it to `createJali({ page })`. It returns a copy of `page` that carries the code that runs a page and the parts that draw it. That code comes only with `definePage`, so an app without a curated page ships none of it.
 
 **Returns** `Page`:
 
@@ -193,12 +398,12 @@ Defines a curated page: one item at a time (a loan application, a customer), its
 
 ```ts
 interface Page<I extends ItemId = any> extends ProfileBase<PageView, I> {
-  Rail?: ComponentType<{ item: I; activate: (item: I) => void }>;
+  Rail?: ComponentType<{ item: I; showItem: (item: I) => void }>;
   Header: ComponentType<{ item: I }>;
 }
 ```
 
-A curated page for React: [`ProfileBase`](core/types.md#ProfileBase) with its header and, if it has one, its rail. Without a `Rail`, the header, tabs and panes take the whole width. `I` is the item id's type, `number` or `string`, as in `firstItem`.
+A curated page for React: [`ProfileBase`](core/types.md#profilebase) with its header and, if it has one, its rail. Without a `Rail`, the header, tabs and panes take the whole width. `I` is the item id's type, `number` or `string`, as in `firstItem`.
 
 ### PageView
 
@@ -314,7 +519,7 @@ Several components in a pane may each add commands: they are listed in render or
 useLauncher(): LauncherSources
 ```
 
-For the workspace's launcher: what the person can choose from.
+For the instance's launcher: what the person can choose from.
 
 **Returns** `LauncherSources`:
 
@@ -340,7 +545,26 @@ Recent (newest first), whether an object is already open in another pane, and an
 usePaneState<T>(key: string, initial: T, options?: PaneStateOptions<T>): [T, (next: T | ((prev: T) => T)) => void]
 ```
 
-State the workspace keeps for a pane: it survives the pane being tabbed, folded, tucked or moved, and a reload (saved on this device 400 ms after it changes). It is dropped when the pane closes for good or shows another object, and when the person discards the pane's unsaved work. It belongs to the object the pane shows, not to the pane's id: a pane that shows another object under the same id (after a reload, or a new pane under a closed pane's id) starts from `initial`, and an undo that brings the pane back brings its state back. Use it for what a person expects back (a sort, a draft, a scroll position) and React state for the rest.
+Example, `OrdersTable.tsx`:
+
+```tsx
+import { usePaneState } from "jali/react";
+
+type Sort = { column: "id" | "total"; dir: "asc" | "desc" };
+
+// Kept by Jali: through folds, tabs and reloads. Dropped when the pane closes or shows another object.
+export function OrdersTable() {
+  const [sort, setSort] = usePaneState<Sort>("sort", { column: "id", dir: "asc" });
+  const flip = () => setSort((s) => ({ ...s, dir: s.dir === "asc" ? "desc" : "asc" }));
+  return (
+    <button onClick={flip}>
+      Sorted by {sort.column}, {sort.dir}
+    </button>
+  );
+}
+```
+
+State the instance keeps for a pane: it survives the pane being tabbed, folded, tucked or moved, and a reload (saved on this device 400 ms after it changes). It is dropped when the pane closes for good or shows another object, and when the person discards the pane's unsaved work. It belongs to the object the pane shows, not to the pane's id: a pane that shows another object under the same id (after a reload, or a new pane under a closed pane's id) starts from `initial`, and an undo that brings the pane back brings its state back. Use it for what a person expects back (a sort, a draft, a scroll position) and React state for the rest.
 
 In the peek sheet there is no pane, so the state is local and goes with the sheet.
 
@@ -374,7 +598,26 @@ How `usePaneState` reads a stored value. Stored state was written by an earlier 
 useActiveItemPort(mapping: ActiveItemMapping): ActiveItemPort | null
 ```
 
-The active-item port for the pane this content is in (see [`activeItemPort`](core.md#activeItemPort)). Re-renders when the pane's selection changes, so `itemId` reads fresh.
+Example, `OrdersPane.tsx`:
+
+```tsx
+import type { ActiveItemPort } from "jali";
+import { useActiveItemPort } from "jali/react";
+import { orderKind } from "./kinds";
+
+// Any list that keeps its current item through an ActiveItemPort.
+declare function OrderList(props: { activeItem: ActiveItemPort | null }): React.ReactNode;
+
+export function OrdersPane() {
+  const port = useActiveItemPort({
+    toRef: (itemId) => orderKind({ id: Number(itemId) }),
+    idOf: (ref) => (ref.kind === "order" ? String(ref.params.id) : null),
+  });
+  return <OrderList activeItem={port} />;
+}
+```
+
+The active-item port for the pane this content is in (see [`activeItemPort`](core.md#activeitemport)). Re-renders when the pane's selection changes, so `itemId` reads fresh.
 
 **Parameters**
 
@@ -382,7 +625,7 @@ The active-item port for the pane this content is in (see [`activeItemPort`](cor
 
 **Returns** `ActiveItemPort | null`: `null` in the peek sheet.
 
-## The workspace in React
+## The instance in React
 
 ### useJali
 
@@ -392,7 +635,7 @@ The active-item port for the pane this content is in (see [`activeItemPort`](cor
 useJali(): Jali
 ```
 
-The workspace from the nearest `<JaliRoot>`: its `actions`, `on`, `getLayout` and `setLayout`, `keymap`, `env` (kinds, presets, page) and state. Reading it does not subscribe; use `useJaliState` or `useJaliModel` for values that change. Throws outside `<JaliRoot>`.
+The instance from the nearest `<JaliRoot>`: its `actions`, `on`, `getLayout` and `setLayout`, `keymap`, `env` (kinds, presets, page) and state. Reading it does not subscribe; use `useJaliState` or `useJaliModel` for values that change. Throws outside `<JaliRoot>`.
 
 **Returns** `Jali`:
 
@@ -402,6 +645,28 @@ The workspace from the nearest `<JaliRoot>`: its `actions`, `on`, `getLayout` an
 
 ```ts
 useJaliState<T>(select: (s: JaliState) => T, isEqual?: (a: T, b: T) => boolean): T
+```
+
+Example, `StatusLine.tsx`:
+
+```tsx
+import { useJaliShortcut, useJali, useJaliModel, useJaliState } from "jali/react";
+
+// A status line: reads exactly what it shows, so it re-renders only when that changes.
+export function StatusLine() {
+  const focused = useJaliState((s) => s.view.focused);
+  const m = useJaliModel();
+  const { actions } = useJali();
+  const keys = useJaliShortcut("pane.zoom");
+  return (
+    <footer>
+      {m.visible.length} panes on screen · {m.title(focused)}
+      <button title={keys ? `Maximise · ${keys}` : "Maximise"} onClick={() => actions.toggleZoom()}>
+        Maximise
+      </button>
+    </footer>
+  );
+}
 ```
 
 Subscribes to one value of the state. The component re-renders when that value changes, compared with `isEqual` (`Object.is` unless given). A selector may return a new object or array; pass `shallow` to re-render only when one of its values changed.
@@ -423,7 +688,28 @@ useJaliModel(): JaliModel
 useJaliModel<T>(select: (m: JaliModel) => T, isEqual?: (a: T, b: T) => boolean): T
 ```
 
-The workspace as it is on screen, subscribed: the panes, their boxes and titles, the groups, the shelf. A new object only when something it depends on changed (the layout, the maximised pane, the area, the kinds, the page or the pane cap); focus alone does not change it. With a selector, only what it picks, re-rendering when that changes by `isEqual`.
+Example, `OpenPanes.tsx`:
+
+```tsx
+import { Activity, KindIcon, useJaliModel, useJaliState } from "jali/react";
+
+// Your own list of open panes, with Jali's icon and activity marks.
+export function OpenPanes() {
+  const m = useJaliModel();
+  const activity = useJaliState((s) => s.activity);
+  return (
+    <ul>
+      {m.panes.map((p) => (
+        <li key={p.id}>
+          <KindIcon kind={p.ref.kind} size={14} /> {m.title(p.id)} <Activity a={activity[p.id]} />
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+The instance as it is on screen, subscribed: the panes, their boxes and titles, the groups, the shelf. A new object only when something it depends on changed (the layout, the maximised pane, the area, the kinds, the page or the pane cap); focus alone does not change it. With a selector, only what it picks, re-rendering when that changes by `isEqual`.
 
 **Returns** `JaliModel`:
 
@@ -435,7 +721,7 @@ The workspace as it is on screen, subscribed: the panes, their boxes and titles,
 useJaliEvent(event: JaliEvent, handler: (e: JaliEvents[event]) => void): void
 ```
 
-Hear one of the workspace's events while the component is mounted: `useJaliEvent("open", ({ ref }) => …)`, `useJaliEvent("toast", show)`. It always calls the latest `handler`, so an inline function is fine, and stops listening on unmount. Typed by the app's workspace once it is registered (`Register`). See [`JaliEvents`](core/types.md#JaliEvents).
+Hear one of the instance's events while the component is mounted: `useJaliEvent("open", ({ ref }) => …)`, `useJaliEvent("toast", show)`. It always calls the latest `handler`, so an inline function is fine, and stops listening on unmount. Typed by the app's instance once it is registered (`Register`). See [`JaliEvents`](core/types.md#jalievents).
 
 ### shallow
 
@@ -465,7 +751,7 @@ The theme in use: the person's setting, or the system's when they chose "System"
 useJaliCommands(): ListedCommand[]
 ```
 
-Jali's commands for your app's own command menu, when the workspace has no `palette()` feature: [`listCommands`](core.md#listCommands), re-rendering whenever the list can change (focus, the layout, what panes report). See [Commands and keys](../guides/commands-and-keys.md#inside-an-app-with-its-own-k-and-keys).
+Jali's commands for your app's own command menu, when the instance has no `palette()` feature: [`listCommands`](core.md#listcommands), re-rendering whenever the list can change (focus, the layout, what panes report). See [Commands and keys](../guides/commands-and-keys.md#inside-an-app-with-its-own-k-and-keys).
 
 **Returns** `ListedCommand[]`:
 
@@ -477,7 +763,7 @@ Jali's commands for your app's own command menu, when the workspace has no `pale
 useJaliShortcut(id: string): string
 ```
 
-A command's keys in this workspace's keymap, for a tooltip ("⌘K ⌘[" or "Ctrl+K Ctrl+["); `""` when unbound. Safe to prerender: on a server and while the page hydrates it prints keys for `"other"` ("Ctrl+K Ctrl+["), since a server can't know the reader's platform, then React renders it again with the reader's. A page rendered only in the browser gets the reader's keys on its first render.
+A command's keys in this instance's keymap, for a tooltip ("⌘K ⌘[" or "Ctrl+K Ctrl+["); `""` when unbound. Safe to prerender: on a server and while the page hydrates it prints keys for `"other"` ("Ctrl+K Ctrl+["), since a server can't know the reader's platform, then React renders it again with the reader's. A page rendered only in the browser gets the reader's keys on its first render.
 
 **Parameters**
 
@@ -527,6 +813,27 @@ The panes the person tucked, as chips grouped by home (with Put back), for a sta
 <KindIcon kind={kind} size={16} />
 ```
 
+Example, `OpenPanes.tsx`:
+
+```tsx
+import { Activity, KindIcon, useJaliModel, useJaliState } from "jali/react";
+
+// Your own list of open panes, with Jali's icon and activity marks.
+export function OpenPanes() {
+  const m = useJaliModel();
+  const activity = useJaliState((s) => s.activity);
+  return (
+    <ul>
+      {m.panes.map((p) => (
+        <li key={p.id}>
+          <KindIcon kind={p.ref.kind} size={14} /> {m.title(p.id)} <Activity a={activity[p.id]} />
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
 A kind's icon at `size`, `aria-hidden`; the `defaultKind` icon (a square unless you replaced it) for an unknown kind or one without an icon.
 
 **Props**
@@ -561,9 +868,12 @@ A pane's activity mark. Renders nothing for `idle` or `undefined`.
 <IconButton label="Copy link" onClick={copy}>{icon}</IconButton>
 ```
 
-A button that is only an icon, drawn as Jali's header buttons are (the `iconButton` part, `.jali-icon-btn`): for your top bar, a pane's own controls or a sheet's close, so they match the workspace in every theme. It is held down like Jali's controls (`data-pressed`) inside a workspace.
+A button that is only an icon, drawn as Jali's header buttons are (the `iconButton` part, `.jali-icon-btn`): for your top bar, a pane's own controls or a sheet's close, so they match the instance in every theme. It is held down like Jali's controls (`data-pressed`) inside an instance.
 
 ```tsx
+import { IconButton, JaliRoot } from "jali/react";
+import { defaultIcons } from "jali/icons";
+import { GearSixIcon } from "@phosphor-icons/react";
 
 <IconButton label="Settings" onClick={() => jali.dialogs.openSettings()}>
   <GearSixIcon size={16} aria-hidden />
@@ -582,7 +892,7 @@ A button that is only an icon, drawn as Jali's header buttons are (the `iconButt
 
 - **`type`** (`"button" | "submit" | "reset"`): The button's type.
 
-Every other prop of a `<button>` (`onClick`, `disabled`, `aria-pressed`, `ref`…) is passed on.
+- **`...rest`** (`ButtonHTMLAttributes<HTMLButtonElement>`): Every other prop of a `<button>` (`onClick`, `disabled`, `aria-pressed`, `ref`), passed on.
 
 ### IconButtonProps
 
@@ -600,8 +910,10 @@ The props of `IconButton`.
 
 ```ts
 interface JaliRootProps extends HTMLAttributes<HTMLDivElement> {
-  workspace: Jali; icons?: Partial<JaliIcons>; children?: ReactNode;
-  overlays?: ReactNode; settings?: boolean;
+  jali: Jali; children?: ReactNode; overlays?: ReactNode;
+  settingsExtra?: ReactNode; icons?: Partial<JaliIcons>;
+  onError?: (error: unknown) => void;
+  "aria-label"?: string; "aria-labelledby"?: string;
 }
 ```
 
@@ -742,4 +1054,4 @@ Jali's icon for every name: Phosphor's regular weight, copied into the package. 
 useJaliIcons(): JaliIcons
 ```
 
-The icons this workspace draws with, for chrome of your own that should match Jali's: `const { close } = useJaliIcons()`. Inside `<JaliRoot>`.
+The icons this instance draws with, for chrome of your own that should match Jali's: `const { close } = useJaliIcons()`. Inside `<JaliRoot>`.

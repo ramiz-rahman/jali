@@ -1,16 +1,18 @@
 # Commands and keys
 
-Rebind the workspace's keys, share ⌘K and the keyboard with your app, let your content keep the keys it needs, and show the right shortcut.
+Rebind Jali's keys, share ⌘K and the keyboard with your app, let your content keep the keys it needs, and show the right shortcut.
 
-Every workspace action is a command with an id, such as `pane.close` or `pane.zoom`. ⌘K opens the palette, which lists them all. A keymap binds ids to keys, and each workspace has its own.
+Every action on panes is a command with an id, such as `pane.close` or `pane.zoom`. A keymap binds ids to keys, and each instance has its own. With the `palette()` feature, ⌘K opens a palette that lists them all.
+
+Every key option lives in one group, `createJali({ keyboard })`: `scope`, `keymap`, `prefix`, `reserved`, `platform`, `onInvalid` and `words`.
 
 ## The default keys
 
-⌘K (Ctrl+K on Windows and Linux) opens the palette and starts a two-step chord: hold ⌘, press K, then the second key. Most pane commands are ⌘K then a second key with ⌘ still held, so the second key never types into the palette's search.
+⌘K (Ctrl+K on Windows and Linux) starts a two-step chord, and opens the palette when it has one: hold ⌘, press K, then the second key. Most pane commands are ⌘K then a second key with ⌘ still held, so the second key never types into the palette's search.
 
 | Command | Keys on a Mac | Elsewhere |
 |---|---|---|
-| Open the palette | ⌘K | Ctrl+K |
+| Open the palette (with `palette()`) | ⌘K | Ctrl+K |
 | Focus next / previous pane | F6 / ⇧F6 | F6 / Shift+F6 |
 | Focus the pane left, right, up, down | ⌘K ⌘←, ⌘→, ⌘↑, ⌘↓ | Ctrl+K Ctrl+Left, … |
 | Move the pane | ⌘K ⇧⌘← and so on | Ctrl+K Ctrl+Shift+Left, … |
@@ -20,9 +22,9 @@ Every workspace action is a command with an id, such as `pane.close` or `pane.zo
 | Split right / down | ⌘\\ / ⌘K ⌘\\ | Ctrl+\\ / Ctrl+K Ctrl+\\ |
 | Tuck / put back | ⌘K ⌘[ / ⌘K ⌘] | Ctrl+K Ctrl+[ / Ctrl+K Ctrl+] |
 | Resize mode (arrows, then Esc) | ⌘K ⌘R | Ctrl+K Ctrl+R |
-| Add to tabs of… / Move out of tabs | ⌘K ⌘G / ⌘K ⇧⌘G | Ctrl+K Ctrl+G / Ctrl+K Ctrl+Shift+G |
+| Add to tabs of… (with `chooser()`) / Move out of tabs | ⌘K ⌘G / ⌘K ⇧⌘G | Ctrl+K Ctrl+G / Ctrl+K Ctrl+Shift+G |
 | Move tab left / right | ⌘K ⇧PageUp / ⌘K ⇧PageDown | Ctrl+K Shift+PageUp / Ctrl+K Shift+PageDown |
-| Rename (with `rename`) | F2 | F2 |
+| Rename (with `rename()`) | F2 | F2 |
 
 Every command and its id is in the [Commands reference](../reference/commands.md). Esc closes the peek sheet, then restores a maximised pane, once the content has had its turn.
 
@@ -30,9 +32,9 @@ In a tab strip, ← and → move focus between the tabs (Home and End to the end
 
 ## Rebind and unbind
 
-Pass `keymap` to `createJali`. Each entry is a command id and its new bindings:
+Pass `keyboard.keymap` to `createJali`. Each entry is a command id and its new bindings:
 
-`src/workspace.ts`
+`src/jali.ts`
 
 ```tsx
 import { createJali } from "jali";
@@ -80,10 +82,10 @@ Avoid keys the browser keeps for itself, such as ⌘W, ⌘T and ⌘N: the browse
 
 ## Content first
 
-A key goes to the focused content before the workspace. That way a list can use J and K, and an editor can use Enter and ⌘Z.
+A key goes to the focused content before Jali. That way a list can use J and K, and an editor can use Enter and ⌘Z.
 
-1. **Your content sees the key first.** To keep it, call `event.preventDefault()` (or stop it bubbling). The workspace then leaves it alone.
-2. **The workspace acts on what's left:** the keymap's bindings, then Esc.
+1. **Your content sees the key first.** To keep it, call `event.preventDefault()` (or stop it bubbling). Jali then leaves it alone.
+2. **Jali acts on what's left:** the keymap's bindings, then Esc.
 
 So claim the keys you use and let the rest through. The orders list in [Define a pane kind](pane-kinds.md) does this:
 
@@ -126,7 +128,7 @@ function OrderList({ select, peek, openBeside, paused }: PaneProps) {
     select(orderKind({ id: ORDERS[next]!.id })); // a following detail shows it once the cursor rests
   };
 
-  // Content first: claim the keys you use with preventDefault, and let the rest reach the workspace.
+  // Content first: claim the keys you use with preventDefault, and let the rest reach Jali.
   const onKeyDown = (e: KeyboardEvent) => {
     const order = orderKind({ id: ORDERS[at]!.id });
     if (e.metaKey || e.ctrlKey) return;
@@ -218,7 +220,7 @@ export const scratchNote = definePane("scratch", {
   Component: () => <textarea aria-label="Scratch note" />,
 });
 
-/** What Split and "New tab here" open until the person chooses: the workspace's `launcher`. */
+/** What Split and "New tab here" open until the person chooses: the `launcher`. */
 export const launcher = definePane("launcher", {
   title: "New pane",
   icon: PlusIcon,
@@ -251,6 +253,7 @@ Single character keys (J, K, Space) must act only while your content has focus. 
 Jali binds no single keys. By convention its lists use Space or Shift+Space to peek, each in its own `onKeyDown`. An app that wants Space for itself (play and pause, say) should listen on `window` in the bubble phase, so content has had its turn, and skip the key when `keyBelongsToContent(event)` is true. That check is true in text fields, editable regions, comboboxes, dialogs, and on buttons, tabs and other controls that Space presses.
 
 ```ts
+import { keyBelongsToContent } from "jali";
 
 window.addEventListener("keydown", (e) => {
   if (e.key === " " && !e.defaultPrevented && !keyBelongsToContent(e)) togglePlayback();
@@ -261,7 +264,7 @@ If a list in your app should keep peek, move the app's key to another one, as St
 
 ## Content that needs every key
 
-An editor or a terminal needs every key, ⌘K included. Mark it `data-pane-keys="content"`. Inside it, the workspace takes only F6 and ⇧F6, so a keyboard user can always move focus out.
+An editor or a terminal needs every key, ⌘K included. Mark it `data-pane-keys="content"`. Inside it, Jali takes only F6 and ⇧F6, so a keyboard user can always move focus out.
 
 `src/panes/reply.tsx`
 
@@ -269,7 +272,7 @@ An editor or a terminal needs every key, ⌘K included. Mark it `data-pane-keys=
 import { definePane } from "jali/react";
 
 /**
- * An editor needs every key, so it marks itself: inside it, the workspace takes only F6 and Shift+F6, so focus can
+ * An editor needs every key, so it marks itself: inside it, Jali takes only F6 and Shift+F6, so focus can
  * always leave. Here ⌘K goes to the editor and does not open the palette.
  */
 export const replyKind = definePane("reply", {
@@ -288,14 +291,14 @@ export const replyKind = definePane("reply", {
 
 ## Show the right shortcut
 
-Your keymap may differ from the defaults, and the keys print differently on each platform. Read the label from the workspace instead of writing it by hand:
+Your keymap may differ from the defaults, and the keys print differently on each platform. Read the label from the keymap instead of writing it by hand:
 
 `src/CloseButton.tsx`
 
 ```tsx
 import { useJaliShortcut, useJali } from "jali/react";
 
-/** A button in your own chrome that runs a workspace action and shows the workspace's key for it. */
+/** A button in your own chrome that runs one of Jali's actions and shows its key from the keymap. */
 export function CloseButton() {
   const { actions } = useJali();
   const keys = useJaliShortcut("pane.close"); // "⌘K ⌘⌫", or "" when unbound
@@ -314,9 +317,9 @@ For keys your content handles itself, `keyHint("Mod+Enter")` prints them the sam
 
 ## Your app's own commands
 
-Commands that belong to your app rather than to one pane, such as "Refresh orders", go in `createJali({ commands })`. They are listed in ⌘K after the workspace's, and `keymap` binds them like any other:
+Commands that belong to your app rather than to one pane, such as "Refresh orders", go in `createJali({ commands })`. They are listed in ⌘K after Jali's, and `keyboard.keymap` binds them like any other:
 
-`src/workspace.ts`
+`src/jali.ts`
 
 ```tsx
 import { createJali, type Command } from "jali";
@@ -353,7 +356,7 @@ Give them ids of your own (`orders.refresh`), not one of Jali's prefixes. If an 
 
 ### Commands that ask for something
 
-Some commands need an argument first: "Open chart for…", "Open latest order for…". Call `jali.actions.choose` in the command's `run`, with the items to choose from. Jali's chooser opens over the workspace, the same dialog as "Add to tabs of…": the person types to filter, moves with the arrow keys, presses Enter to choose and Esc to close. Screen readers hear a field over a list of choices, as in ⌘K.
+Some commands need an argument first: "Open chart for…", "Open latest order for…". Call `jali.dialogs.choose` in the command's `run`, with the items to choose from. It needs the `chooser()` feature. Jali's chooser opens over the panes, the same dialog as "Add to tabs of…": the person types to filter, moves with the arrow keys, presses Enter to choose and Esc to close. Screen readers hear a field over a list of choices, as in ⌘K.
 
 `src/commands.ts`
 
@@ -399,7 +402,7 @@ export const openLatestOrder: Command = {
 
 Most apps already have a command menu on ⌘K and shortcuts of their own. Three options let Jali fit in, and the rule below says who gets a key when both want it.
 
-`src/workspace.ts`
+`src/jali.ts`
 
 ```tsx
 import { createJali } from "jali";
@@ -428,7 +431,7 @@ export const jali = createJali({
 
 ### One command menu: yours
 
-Leaving `palette()` out of the workspace's features tells Jali your app has the command menu. Jali renders no palette and leaves ⌘K alone. `useJaliCommands()` gives your menu everything Jali's palette would have listed: the focused pane's own commands first, then the workspace's and your own `commands`, each with its `title`, `group`, `keys` label, whether it is `disabled` now and the `reason`, and `run`.
+Leaving `palette()` out of `features` tells Jali your app has the command menu. Jali renders no palette and leaves ⌘K alone. `useJaliCommands()` gives your menu everything Jali's palette would have listed: the focused pane's own commands first, then Jali's and your own `commands`, each with its `title`, `group`, `keys` label, whether it is `disabled` now and the `reason`, and `run`.
 
 `src/HostCommandMenu.tsx`
 
@@ -437,11 +440,12 @@ import { useState } from "react";
 import { useJaliCommands } from "jali/react";
 
 /**
- * Jali's commands inside your app's own command menu. This is a plain list; with cmdk, each entry becomes a
- * <Command.Item> and `run` goes in `onSelect`. Render it inside <JaliRoot>, next to your app's own commands.
+ * Jali's commands inside your app's own command menu: a field and a list of buttons, which Tab and Enter reach with
+ * no extra roles. With cmdk, each entry becomes a <Command.Item> and `run` goes in `onSelect`; cmdk then provides the
+ * combobox's keys and roles. Render it inside <JaliRoot>, next to your app's own commands.
  */
 export function HostCommandMenu({ onClose }: { onClose: () => void }) {
-  const commands = useJaliCommands(); // the focused pane's own first, then the workspace's
+  const commands = useJaliCommands(); // the focused pane's own first, then Jali's
   const [query, setQuery] = useState("");
   const shown = commands.filter((c) =>
     `${c.title} ${c.group}`.toLowerCase().includes(query.toLowerCase()),
@@ -454,17 +458,13 @@ export function HostCommandMenu({ onClose }: { onClose: () => void }) {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
-      <ul role="listbox" aria-label="Commands">
+      <ul aria-label="Commands">
         {shown.map((c) => (
-          <li
-            key={c.key}
-            role="option"
-            aria-selected={false}
-            aria-disabled={c.disabled}
-            title={c.reason}
-          >
+          <li key={c.key}>
             <button
+              type="button"
               disabled={c.disabled}
+              title={c.reason}
               onClick={() => {
                 onClose(); // close first: some commands move focus into a pane
                 c.run();
@@ -486,7 +486,7 @@ Close your menu before calling `run`: some commands move focus into a pane. Outs
 
 Jali's two-step keys all start with one prefix, ⌘K by default. `keyboard: { prefix: "Mod+J" }` moves every one of them at once, so ⌘K ⌘Z becomes ⌘J ⌘Z, and the palette's own key with them. Bindings you write in `keymap` are used as you wrote them. Without `palette()`, the prefix still starts a chord; it just opens nothing on its own.
 
-`keyboard.reserved` lists keys your app uses for itself. Jali drops any of its bindings that is one of them or starts with one, and reports each to `keyboard.onInvalid` when the workspace is made. So a clash shows up once, in the console at start-up, instead of when someone presses the key. Jali can't see your app's shortcuts, so name them here.
+`keyboard.reserved` lists keys your app uses for itself. Jali drops any of its bindings that is one of them or starts with one, and reports each to `keyboard.onInvalid` when the instance is made. So a clash shows up once, in the console at start-up, instead of when someone presses the key. Jali can't see your app's shortcuts, so name them here.
 
 ### Who gets a key
 
@@ -502,5 +502,5 @@ A pane can add its own commands to ⌘K while it is focused, such as "Save note"
 
 ## Next
 
-- [Two workspaces on one page](two-workspaces.md): keep each workspace's keys inside it.
+- [Two instances on one page](two-workspaces.md): keep each one's keys inside it.
 - [Commands reference](../reference/commands.md)

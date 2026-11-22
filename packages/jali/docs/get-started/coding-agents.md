@@ -12,7 +12,7 @@ To give an agent the workflow as well, add Jali's skill, `skills/jali` in Jali's
 
 ### 1. A kind is data plus a component
 
-Define each kind of pane with `definePane("kind", { params, title, width, height, Component })` in its own module, and pass the app's kinds to `createJali({ panes })`. Nothing about a kind is global, so two workspaces on one page never share kinds. Name objects with the kind itself, `ticket({ id: 101 })`, never with a hand-written `{ kind, params }`.
+Define each kind of pane with `definePane("kind", { params, title, width, height, Component })` in its own module, and pass the app's kinds to `createJali({ panes })`. Nothing about a kind is global, so two instances on one page never share kinds. Name objects with the kind itself, `ticket({ id: 101 })`, never with a hand-written `{ kind, params }`.
 
 Set `width.min` to the narrowest width the content still works at once it adapts, not the width it looks best at. Jali folds a pane into a tab rather than squeeze it below its minimum, so a minimum that is too large folds panes early. Use `width.comfortable` and `width.max` for the rest ([How a layout fits](../learn/fitting.md)).
 
@@ -22,11 +22,11 @@ What a pane shows arrives as `params`, read with the kind's `params` types: `par
 
 ### 3. Claim your keys, let the rest bubble
 
-Keys reach the pane's content first. Handle the keys your content uses and call `event.preventDefault()` on each one. The workspace leaves a claimed key alone. Let every other key bubble, so ⌘K, F6 and the workspace's commands keep working inside your pane.
+Keys reach the pane's content first. Handle the keys your content uses and call `event.preventDefault()` on each one. Jali leaves a claimed key alone. Let every other key bubble, so ⌘K, F6 and Jali's commands keep working inside your pane.
 
 - Never stop propagation of every key in a container. It cuts off ⌘K and F6.
 - Letter keys (J, K) must only act while your content has focus.
-- Content that needs every key, such as a code editor, marks its element `data-pane-keys="content"`. The workspace then takes only F6 and Shift+F6 there, so focus can always leave.
+- Content that needs every key, such as a code editor, marks its element `data-pane-keys="content"`. Jali then takes only F6 and Shift+F6 there, so focus can always leave.
 
 `ticket-list.tsx`
 
@@ -36,11 +36,12 @@ import { definePane, type PaneProps } from "jali/react";
 import { tickets } from "./data";
 import { ticket } from "./ticket";
 
-function TicketList({ select, peek, openBeside }: PaneProps) {
+function TicketList({ node, select, peek, openBeside }: PaneProps) {
   const [index, setIndex] = useState<number | null>(null);
   const current = index === null ? undefined : tickets[index];
+  const optionId = (id: number) => `${node.id}-ticket-${id}`; // unique per pane
 
-  // Move the cursor and tell the workspace what is selected. A following detail shows it once it rests.
+  // Move the cursor and tell Jali what is selected. A following detail shows it once it rests.
   const selectAt = (i: number) => {
     const next = Math.max(0, Math.min(tickets.length - 1, i));
     setIndex(next);
@@ -53,20 +54,28 @@ function TicketList({ select, peek, openBeside }: PaneProps) {
   };
 
   const onKeyDown = (e: KeyboardEvent) => {
-    if (e.metaKey || e.ctrlKey) return; // ⌘K and the workspace's keys bubble on
+    if (e.metaKey || e.ctrlKey) return; // ⌘K and Jali's keys bubble on
     if ((e.key === "j" || e.key === "ArrowDown") && !e.altKey) selectAt((index ?? -1) + 1);
     else if ((e.key === "k" || e.key === "ArrowUp") && !e.altKey) selectAt((index ?? 1) - 1);
     else if (e.key === " " && current) peek(ticket({ id: current.id }));
     else if (e.key === "Enter" && e.altKey && index !== null) openAt(index);
     else return; // not ours: let it bubble
-    e.preventDefault(); // claimed: the workspace leaves this key alone
+    e.preventDefault(); // claimed: Jali leaves this key alone
   };
 
   return (
-    <ul role="listbox" aria-label="Tickets" tabIndex={0} onKeyDown={onKeyDown}>
+    // One tab stop; the cursor is the active option, which screen readers follow (aria-activedescendant).
+    <ul
+      role="listbox"
+      aria-label="Tickets"
+      tabIndex={0}
+      aria-activedescendant={current ? optionId(current.id) : undefined}
+      onKeyDown={onKeyDown}
+    >
       {tickets.map((t, i) => (
         <li
           key={t.id}
+          id={optionId(t.id)}
           role="option"
           aria-selected={i === index}
           onClick={() => selectAt(i)}
@@ -89,7 +98,7 @@ export const ticketList = definePane("tickets", {
 
 ### 4. Select before you open
 
-A list reports its selected item with `select(ref)` as the cursor moves (J/K, arrows, a click). To open a row, select it first, then call `openBeside(ref)`. The workspace then knows the pane came from the selection, so it becomes a [following detail](key-concepts.md#selection) that follows the list.
+A list reports its selected item with `select(ref)` as the cursor moves (J/K, arrows, a click). To open a row, select it first, then call `openBeside(ref)`. Jali then knows the pane came from the selection, so it becomes a [following detail](key-concepts.md#selection) that follows the list.
 
 If the list's filter no longer shows the selected item, say so with `select(ref, { inResults: false })`. A following detail keeps the item, with a note.
 
@@ -103,7 +112,7 @@ Don't build your own "are you sure" for these. Moving, tabbing, folding and tuck
 
 ### 6. Use `usePaneState` for what the person expects back
 
-A draft, a sort, a scroll position: keep these with `usePaneState(key, initial)` instead of `useState`. The workspace keeps the value through folds, tabs, tucks and reloads, and drops it when the pane closes for good or shows another object. Values must be JSON. Use React state for everything else.
+A draft, a sort, a scroll position: keep these with `usePaneState(key, initial)` instead of `useState`. Jali keeps the value through folds, tabs, tucks and reloads, and drops it when the pane closes for good or shows another object. Values must be JSON. Use React state for everything else.
 
 `note-editor.tsx`
 
@@ -205,28 +214,16 @@ With TanStack Query, pass `enabled: !paused` (or `subscribed: !paused`) so hidde
 
 Jali has no Tailwind in it. Its styles are plain CSS on `--jali-*` tokens, in the `jali` cascade layer, so it works the same in apps with and without Tailwind. Don't add Tailwind classes to Jali's parts, don't copy its parts to restyle them, and don't use `!important`. To change how Jali looks, set its tokens, or import the Tailwind bridge (below). The content inside your panes is yours: style it the way your app styles everything else.
 
-## Retheming
+Name the layer order once, at the top of your CSS (`@layer base, jali;`, or with Tailwind `@layer theme, base, jali, components, utilities;`), then set tokens by hand or import `jali/tailwind.css` to take your Tailwind theme. [Theming](../guides/theming.md) has the details.
 
-Declare the layer order once, at the top of your CSS, so your styles win over Jali's:
+## Before you write code
 
-```css
-@layer theme, base, jali, components, utilities;
-```
-
-Then pick one way in:
-
-- **From a Tailwind theme:** also import `jali/tailwind.css`. It points Jali's tokens at your theme's (`--color-primary`, `--color-card`, `--color-border`, `--radius-card` and others).
-- **By hand:** set `--jali-*` tokens on `:root` or on any subtree. Setting `--jali-accent` is enough to change the accent; its tints follow.
-
-```css
-:root { --jali-accent: #0f766e; }
-```
-
-Dark mode follows `prefers-color-scheme`, a `.dark` class or `[data-theme="dark"]`. Jali's parts carry their state as attributes (`data-pane`, `data-focused`, `aria-selected`, `data-drop-zone`) and every class starts with `jali-`, so a host rule can target them without fighting specificity.
+Turn on only the features the app uses, each from its own entry: `createJali({ features: [urlSync(), palette()] })`, or `defaultFeatures()` from `jali/features` for Jali's usual set. Without `urlSync()` the layout isn't in the address; without `palette()` there is no ⌘K. See [Features](../guides/features.md).
 
 ## A checklist for a review
 
 - Every kind is defined with `definePane` and listed in `createJali({ panes })`.
+- The features the app needs are in `createJali({ features })`, and no others.
 - Every `width.min` is the narrowest the content works at.
 - Refs are made with the kind (`ticket({ id })`), and params are declared, not cast.
 - Refs hold ids, not data.

@@ -1,8 +1,8 @@
-# Let an agent use the workspace
+# Let an agent arrange panes
 
-Give an AI agent the workspace as tools, so it can read what is open and open, arrange and pin panes through Jali's own actions, within the limits your app sets.
+Give an AI agent your panes as tools, so it can read what is open and open, arrange and pin panes through Jali's own actions, within the limits your app sets.
 
-An agent working beside a person can use the workspace the way the person does: read what is open, open an object beside the pane it relates to, put panes in tabs, pin one, or leave the arranging to Jali. It does all of this through `jali.actions`, the same actions a click or a key runs, so the workspace stays consistent, and a close that would lose unsaved work still asks the person.
+An agent working beside a person can use the panes the way the person does: read what is open, open an object beside the pane it relates to, put panes in tabs, pin one, or leave the arranging to Jali. It does all of this through `jali.actions`, the same actions a click or a key runs, so the layout stays consistent, and a close that would lose unsaved work still asks the person.
 
 This is for an agent inside your app. For a coding agent that writes Jali code, see [Using Jali with coding agents](../get-started/coding-agents.md).
 
@@ -55,17 +55,20 @@ export function connectAgent(jali: Jali) {
 
 ## What the agent sees
 
-`agent.snapshot()` is the workspace as data, the same as the `jali_snapshot` tool returns:
+`agent.snapshot()` is the layout as data, the same as the `jali_snapshot` tool returns:
 
 - **Panes:** each pane's id, kind, title and params, and where it is: `shown`, `tab` (behind another tab), `folded` (folded for lack of room), `tucked` or `hidden`. Also its tab group, whether it is focused, pinned or kept, the pane it was opened from, and any unsaved work or activity.
-- **Kinds:** the kinds of pane the workspace can open, each with its params (`number`, `string`, `boolean` or `one of: …`, with `?` for one a ref may leave out) and its widths.
-- **Presets**, the **actions** this agent may use with what each does, and the workspace's size and view (`split`, or `single` on a phone).
+- **Kinds:** the kinds of pane the app can open, each with its params (`number`, `string`, `boolean` or `one of: …`, with `?` for one a ref may leave out) and its widths.
+- **Presets**, the **actions** this agent may use with what each does, and the size and view under `workspace` (`split`, or `single` when a phone shows one pane at a time).
 
 ## What the agent does
 
 `agent.act({ steps })` runs steps in order: each an action and its arguments. A pane argument is a pane's id, or the ref of the object it shows. A ref is `{ kind, params }`, checked against its kind before anything runs, so an agent that invents a kind or misses a param hears what is wrong instead of breaking the layout.
 
 ```ts
+import { createAgent } from "jali/agent";
+
+const agent = createAgent(jali);
 agent.act({
   steps: [
     { action: "openBeside", args: ["orders", { kind: "order", params: { id: 1048 } }] },
@@ -85,7 +88,9 @@ Steps stop at the first refusal. The result says, for each step, whether it ran,
 Every change the agent makes carries `input: "agent"` in Jali's events, so your app can tell it from the person's:
 
 ```ts
-jali.on("open", ({ ref, input }) => input === "agent" && log("the agent opened", ref));
+jali.on("open", ({ ref, input }) => {
+  if (input === "agent") console.info("the agent opened", ref);
+});
 ```
 
 ## Tools for a model
@@ -93,3 +98,5 @@ jali.on("open", ({ ref, input }) => input === "agent" && log("the agent opened",
 `agent.tools()` gives two tools, `jali_snapshot` and `jali_act`, each with a description, a JSON Schema for its input and an `execute` that returns MCP-style text content. Hand them to your model client. The descriptions list the actions you allowed, with their arguments.
 
 `agent.registerTools()` offers the same two tools to the browser's own agent through WebMCP (`navigator.modelContext`), an experimental browser API, and returns a function that withdraws them. Where the browser has no such agent, it does nothing.
+
+Every option, result and type is in the [`jali/agent` reference](../reference/agent.md).

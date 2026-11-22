@@ -1,6 +1,6 @@
 # Theming
 
-Make the workspace match your app by setting a few tokens, mapping them from your Tailwind theme, or styling its parts.
+Make Jali match your app by setting a few tokens, mapping them from your Tailwind theme, or styling its parts.
 
 Everything Jali draws reads `--jali-*` CSS variables, called tokens. Change a token and every part that uses it follows, in light and in dark. Jali's own rules sit in a cascade layer called `jali`, so your rules can win without `!important`.
 
@@ -10,7 +10,7 @@ Everything Jali draws reads `--jali-*` CSS variables, called tokens. Change a to
 import "jali/styles.css";
 ```
 
-This brings Jali's default theme and the workspace's styles. It is plain CSS: no Tailwind or build step needed. From a stylesheet, `@import "jali/styles.css";` does the same, as the next section does; it works in Vite and any bundler that reads a package's `exports`. `theme.css` and `tailwind.css` import the same way.
+This brings Jali's default theme and the panes' styles. It is plain CSS: no Tailwind or build step needed. From a stylesheet, `@import "jali/styles.css";` does the same, as the next section does; it works in Vite and any bundler that reads a package's `exports`. `theme.css` and `tailwind.css` import the same way.
 
 ## The layer line
 
@@ -45,7 +45,7 @@ Import only `app.css` from your code. Rules in a layer after `jali` (here `compo
 
 ## Set tokens by hand
 
-Set any public token on `:root`, or on any element to theme just that part of the page: an element around a workspace, or the workspace's root (`[data-jali]`) itself. Jali declares each token once, on the root, with zero specificity, so your declaration wins in any order, and it still wins inside a `.dark` or `.light` element below it.
+Set any public token on `:root`, or on any element to theme just that part of the page: an element around Jali's root, or the root (`[data-jali]`) itself. Jali declares each token once, on the root, with zero specificity, so your declaration wins in any order, and it still wins inside a `.dark` or `.light` element below it.
 
 The tokens you are most likely to change:
 
@@ -69,9 +69,9 @@ Every token, with its light and dark values, is in the [Tokens reference](../ref
 
 ## Spacing
 
-The space between panes, and between the workspace's edges and its panes, are options, because the layout measures with them: `createJali({ gap: 3, inset: 20 })`. The gap defaults to 6px and the inset to the gap. Jali writes them on its root as `--jali-gap` and `--jali-inset`, so your own bars can line up with the panes (`padding-inline: var(--jali-inset)`).
+The space between panes, and between Jali's edges and its panes, are options, because the layout measures with them: `createJali({ gap: 3, inset: 20 })`. The gap defaults to 6px and the inset to the gap. Jali writes them on its root as `--jali-gap` and `--jali-inset`, so your own bars can line up with the panes (`padding-inline: var(--jali-inset)`).
 
-The accent's tints (`--jali-accent-weak`, `--jali-accent-mid`, `--jali-drop` and the focus ring) are mixed from `--jali-accent` on each workspace. Change the accent and they follow, on the whole page or on one workspace. For one workspace, set it on an element around `<JaliRoot>`: the palette, the other dialogs and the tab menus render in a layer beside the workspace's root (`[data-jali-layer]`), not inside it, so an accent set on the root itself reaches the panes but not them.
+The accent's tints (`--jali-accent-weak`, `--jali-accent-mid`, `--jali-drop` and the focus ring) are mixed from `--jali-accent` on each instance's root. Change the accent and they follow, on the whole page or on one instance. For one instance, set it on an element around `<JaliRoot>`: the palette, the other dialogs and the tab menus render in a layer beside Jali's root (`[data-jali-layer]`), not inside it, so an accent set on the root itself reaches the panes but not them.
 
 ## Example: retheme to teal
 
@@ -106,7 +106,7 @@ Jali's default palette switches to dark (Jali sets `color-scheme: dark`, and eve
 
 A theme scope switches only Jali's defaults. A token you set yourself, on `:root` or any element above the scope, is kept inside it. If your app sets `color-scheme` itself, Jali's defaults follow yours.
 
-Jali also has its own theme setting (System, Light or Dark, in its settings panel), and a started workspace writes the result to `data-theme` on `<html>` (unless it was made with `pageTheme: false`). It writes the same on the workspace's root (`[data-jali]`) and dialog layer (`[data-jali-layer]`), so a rule can follow the theme inside the workspace without reaching for `<html>`. That matters for what `light-dark()` can't switch, such as an image: `[data-jali][data-theme="dark"] .grain { background-image: url(grain-dark.svg); }`. The copy is not a theme scope of its own: whatever sits between `<html>` and the workspace still decides Jali's colours. If your app has its own light and dark switch, either pass the choice to Jali as well, so the two never disagree, or make the workspace with `pageTheme: false` so it never writes `data-theme` (on `<html>`, its root or its layer) and follows your scopes:
+Jali also has its own theme setting (System, Light or Dark, in its settings panel), and a started instance writes the result to `data-theme` on `<html>` (unless it was made with `pageTheme: false`). It writes the same on Jali's root (`[data-jali]`) and dialog layer (`[data-jali-layer]`), so a rule can follow the theme inside Jali without reaching for `<html>`. That matters for what `light-dark()` can't switch, such as an image: `[data-jali][data-theme="dark"] .grain { background-image: url(grain-dark.svg); }`. The copy is not a theme scope of its own: whatever sits between `<html>` and Jali's root still decides Jali's colours. If your app has its own light and dark switch, either pass the choice to Jali as well, so the two never disagree, or make the instance with `pageTheme: false` so it never writes `data-theme` (on `<html>`, its root or its layer) and follows your scopes:
 
 `src/theme.ts`
 
@@ -123,7 +123,7 @@ export function setTheme(jali: Jali, theme: ThemeChoice) {
 }
 ```
 
-For a dark-first app, give the workspace its first theme with `createJali({ settings: { theme: "dark" } })`. A person who has never chosen gets it; once they choose a theme in the settings panel, their choice is saved and wins.
+For a dark-first app, give Jali its first theme with `createJali({ settings: { theme: "dark" } })`. A person who has never chosen gets it; once they choose a theme in the settings panel, their choice is saved and wins.
 
 ## From your Tailwind theme
 
@@ -274,19 +274,19 @@ export const myIcons: JaliIcons = {
 
 A kind's own icon is set on the kind (`definePane("order", { icon })`), and the default for a kind without one is `defaultKind`. For chrome of your own that should match, `useJaliIcons()` returns the set in use.
 
-## Your chrome inside the workspace
+## Your chrome inside `<JaliRoot>`
 
 A top bar or status line you render inside `<JaliRoot>` is yours to style. Mark it `data-jali-chrome`. After a layout change Jali moves keyboard focus back to the focused pane, but not out of an element marked this way, so a person using your top bar stays there.
 
 ## Right to left
 
-For Arabic, Hebrew, Persian or Urdu, set `dir="rtl"` on the page (or on an element around the workspace). Jali reads the direction where it renders and follows it if it changes later, so a language switch needs nothing more.
+For Arabic, Hebrew, Persian or Urdu, set `dir="rtl"` on the page (or on an element around Jali's root). Jali reads the direction where it renders and follows it if it changes later, so a language switch needs nothing more.
 
 ```html filename="index.html"
 <html lang="ar" dir="rtl">
 ```
 
-Right to left, the workspace is the mirror of the same layout:
+Right to left, Jali shows the mirror of the same layout:
 
 - A row starts at the right, so reading order, F6 and "Focus next pane" go from right to left.
 - Left and right still mean the screen. "Focus pane left" (⌘K ⌘←) goes to the pane on the left of the screen, a drop on a pane's left edge puts the pane on its left, and "Split right" opens the new pane on the right.
@@ -299,7 +299,7 @@ Jali's styles use logical properties (`margin-inline-start`, `inset-inline-end`)
 
 ## Drawing with the tokens on a canvas
 
-A custom property keeps its `light-dark()` pair unresolved: `getComputedStyle(el).getPropertyValue("--jali-text")` returns the string `light-dark(…)`, and a canvas ignores a `fillStyle` it can't parse. To get a colour a canvas can use, let the browser resolve it. Set `color: var(--jali-text)` on an element inside the workspace and read its computed `color`:
+A custom property keeps its `light-dark()` pair unresolved: `getComputedStyle(el).getPropertyValue("--jali-text")` returns the string `light-dark(…)`, and a canvas ignores a `fillStyle` it can't parse. To get a colour a canvas can use, let the browser resolve it. Set `color: var(--jali-text)` on an element inside Jali's root and read its computed `color`:
 
 ```ts
 function resolve(el: HTMLElement, token: string): string {

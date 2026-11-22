@@ -1,8 +1,8 @@
 # jali/testing
 
-A workspace for tests, keys, and what a rendered pane would report, without the adapter's internals.
+An instance for tests, keys, and what a rendered pane would report, without the adapter's internals.
 
-What your app's own tests need. See [Test a workspace](../guides/testing.md).
+What your app's own tests need. See [Test an instance](../guides/testing.md).
 
 ### createTestJali
 
@@ -22,7 +22,7 @@ createTestJali(options: TestJaliOptions): { jali: Jali; location: TestLocation }
 testJaliOptions(options?: { search?: string; size?: { width: number; height: number } }): { options: Partial<JaliOptions>; location: TestLocation }
 ```
 
-The same options, for an app that makes its workspace in a function of its own: pass `options` to it, and put your own features before its `features` (`[...defaultFeatures(), ...(options.features ?? [])]`), so its memory address takes the place of `urlSync()`.
+The same options, for an app that makes its instance in a function of its own: pass `options` to it, and put your own features before its `features` (`[...defaultFeatures(), ...(options.features ?? [])]`), so its memory address takes the place of `urlSync()`.
 
 ### reportUnsaved
 
@@ -92,7 +92,7 @@ What `jali.dialogs.choose` is asking the person now, or `null`. Choose by callin
 lastAnnouncement(jali: AnyJali): string
 ```
 
-The last thing the workspace said to assistive technology.
+The last thing the instance said to assistive technology.
 
 ### pressKeys
 
@@ -102,7 +102,7 @@ The last thing the workspace said to assistive technology.
 pressKeys(keys: string, options?: { target?: EventTarget; platform?: "mac" | "other" }): boolean
 ```
 
-Presses keys as a person would: `"Mod+K Mod+W"` is ⌘K then ⌘W on a Mac (the default) and Ctrl elsewhere, dispatched at `target` (default: the focused element). A started workspace hears them. Returns whether the last was taken.
+Presses keys as a person would: `"Mod+K Mod+X"` is ⌘K then ⌘X on a Mac (the default) and Ctrl elsewhere, dispatched at `target` (default: the focused element). A started instance hears them. Returns whether the last was taken.
 
 ### TestJaliOptions
 
@@ -112,7 +112,7 @@ Presses keys as a person would: `"Mod+K Mod+W"` is ⌘K then ⌘W on a Mac (the 
 interface TestJaliOptions extends JaliOptions { search?: string }
 ```
 
-`createTestJali`'s options: a workspace's, and the link it opens on.
+`createTestJali`'s options: an instance's, and the link it opens on.
 
 ### TestLocation
 

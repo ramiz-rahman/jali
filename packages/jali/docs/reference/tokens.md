@@ -4,11 +4,11 @@ Every public --jali-* token, what reads it, its light and dark values, and how t
 
 Jali's styles read only `--jali-*` custom properties. Set any of them on `:root` or on a subtree to retheme; the derived tokens follow the accent. Names starting `--jali-default-` are the theme's internal palette: don't set or read them. The theme is in the `jali` layer, so set tokens outside any layer or in a layer after `jali`.
 
-Every token but the few read in place (below) is declared once, on the root, inside `:where()`, so your own declaration wins at any specificity and in any import order, wherever you set it: on `:root`, on any element around a workspace, or on its root (`[data-jali]`), with any theme scope in between. Jali's defaults are `light-dark()` pairs, resolved by the `color-scheme` where they are used: dark under `prefers-color-scheme: dark` and inside a `.dark` or `[data-theme="dark"]` scope, light inside `.light` or `[data-theme="light"]`. A started workspace sets `data-theme` on `<html>` from the theme setting, unless it was made with `pageTheme: false`.
+Every token but the few read in place (below) is declared once, on the root, inside `:where()`, so your own declaration wins at any specificity and in any import order, wherever you set it: on `:root`, on any element around Jali's root, or on the root itself (`[data-jali]`), with any theme scope in between. Jali's defaults are `light-dark()` pairs, resolved by the `color-scheme` where they are used: dark under `prefers-color-scheme: dark` and inside a `.dark` or `[data-theme="dark"]` scope, light inside `.light` or `[data-theme="light"]`. A started instance sets `data-theme` on `<html>` from the theme setting, unless it was made with `pageTheme: false`.
 
 ```css
 :root { --jali-accent: #0f766e; }                  /* the whole page */
-.orders-workspace { --jali-radius: 0.25rem; }      /* one workspace */
+.orders { --jali-radius: 0.25rem; }                 /* one instance, around its <JaliRoot> */
 ```
 
 Each row below gives the token, what it is for, and the `jali-*` classes whose rules read it (taken from the package's styles). Its swatches are drawn from the variable itself, in a light and a dark scope.
@@ -17,7 +17,7 @@ Each row below gives the token, what it is for, and the `jali-*` classes whose r
 
 | Token | Used for | Light | Dark |
 | --- | --- | --- | --- |
-| `--jali-canvas` | The ground behind the panes. Jali paints nothing with it except the selected button of the Single / Split view switch; give your page this background to match. | `#efeae2` | `#0e0d0b` |
+| `--jali-canvas` | The ground behind the panes. Jali paints nothing with it except the selected button of the Single view / Split view switch; give your page this background to match. | `#efeae2` | `#0e0d0b` |
 | `--jali-surface` | Panes, the peek sheet, dialogs, menus, the page tabs and the phone's pane switcher. | `#fdfcfa` | `#1a1815` |
 | `--jali-surface-raised` | Dialogs and menus: the palette, the chooser, Settings, the discard dialog, the tab overflow menu and the shelf's menu. | `#ffffff` | `#221f1b` |
 | `--jali-border` | Hairlines: pane edges, pane headers, shelf chips, dialog and palette borders. | `#e4ded4` | `#2d2a25` |
@@ -118,8 +118,8 @@ One set for both themes.
 | `--jali-text-sm` | Small type: the shelf, tab menus, palette groups, the chooser's heading, notes in a pane, the drag chip and a divider's size tip. The investigation chips on a curated page are this + 0.0312rem (12.5px). | `0.75rem` | `0.75rem` |
 | `--jali-text-md` | A pane's title, the phone's pane switcher and a popped-out pane's note. | `0.8125rem` | `0.8125rem` |
 | `--jali-text-lg` | The palette's field, the titles of Settings and the discard question, and the drop label. | `0.875rem` | `0.875rem` |
-| `--jali-tracking` | Letter spacing for the workspace and its dialogs (a length, such as `0.01em`). Read in place with no default: until you set it, they inherit yours. Settings' small capitals keep their own 0.04em. | `inherited` | `inherited` |
-| `--jali-font` | The workspace's typeface: the workspace and its dialogs set font-family from it. | `"Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif` | `"Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif` |
+| `--jali-tracking` | Letter spacing for Jali's panes and dialogs (a length, such as `0.01em`). Read in place with no default: until you set it, they inherit yours. Settings' small capitals keep their own 0.04em. | `inherited` | `inherited` |
+| `--jali-font` | Jali's typeface: the panes and dialogs set font-family from it. | `"Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif` | `"Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif` |
 | `--jali-font-mono` | Monospace: the pane cap input in Settings. | `"Atkinson Hyperlegible Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace` | `"Atkinson Hyperlegible Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace` |
 
 ## Spacing
@@ -129,7 +129,7 @@ Written by Jali, not set by you. The layout measures in pixels, so the space bet
 | Token | What it is | Default |
 |---|---|---|
 | `--jali-gap` | The space between panes, and the gutter a strip's scrollbar sits in (`createJali({ gap })`). | `6px` |
-| `--jali-inset` | The space between the workspace's edges and its panes (`createJali({ inset })`, else the gap). | the gap |
+| `--jali-inset` | The space between the edges of Jali's root and its panes (`createJali({ inset })`, else the gap). | the gap |
 
 ## Derived
 

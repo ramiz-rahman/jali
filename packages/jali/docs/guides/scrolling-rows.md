@@ -2,17 +2,20 @@
 
 Keep a sequence of panes at a width you can read, a board's stages or a week of days, in a row that scrolls instead of folding.
 
-A workspace is the size its page gives it. When panes don't fit, Jali folds some into tabs, which suits a workspace of different things: a fifth table beside four others is clutter. It suits a sequence of like things less well. Stages of a pipeline, days of a trip or columns of a board are something people move along, not pick from a menu. Give that row `scroll: "x"` and each pane keeps its own width, and the row scrolls to the rest.
+Jali's root is the size its page gives it. When panes don't fit, Jali folds some into tabs, which suits a layout of different things: a fifth table beside four others is clutter. It suits a sequence of like things less well. Stages of a pipeline, days of a trip or columns of a board are something people move along, not pick from a menu. Give that row `scroll: "x"` and each pane keeps its own width, and the row scrolls to the rest.
 
 *Live demo on the site: Six orders in a row that scrolls, beside the list they came from. Swipe sideways over them, or hold Shift and use the wheel.*
 
 ```ts
-row({ scroll: "x" }, stage("Lead"), stage("Qualified"), stage("Demo") /* … */);
+import { row } from "jali";
+import { stage } from "./pipeline";
+
+row({ scroll: "x" }, stage({ name: "Lead" }), stage({ name: "Qualified" }), stage({ name: "Demo" }));
 ```
 
 The panes in it are ordinary panes, of any kind: headers, menus, tabs, following, Keep, links and undo all work as anywhere else. Here is a pipeline whose stages scroll while the deal beside them stays put:
 
-`src/workspace.tsx`
+`src/jali.tsx`
 
 ```tsx
 import { column, createJali, pane, row } from "jali";
@@ -65,7 +68,7 @@ To the panes around it, the row asks for one of its panes, whole, at its comfort
 
 Inside the row, nothing folds, and the pane cap counts the whole row as one pane. A row that scrolls inside another row that scrolls is a plain row.
 
-Make the whole workspace scroll by making the row at its root scroll. Mix the two by putting fixed panes beside it, outside the row: in Trips, the trip's overview and the map stay where they are, and the week scrolls between them.
+Make the whole layout scroll by making the row at its root scroll. Mix the two by putting fixed panes beside it, outside the row: in Trips, the trip's overview and the map stay where they are, and the week scrolls between them.
 
 ## Scrolling
 
@@ -94,19 +97,26 @@ Moving a pane in is the same in reverse: drag it onto a pane in the row, or move
 If your app has its own drag, a card or a list row, give it the same edge scrolling with `edgeScroll`:
 
 ```ts
+import { edgeScroll } from "jali";
 
-const edge = edgeScroll(jali, () => findDropTarget(lastX, lastY));
-// On every pointer move:
-edge.move(event.clientX, event.clientY);
-// When the drag ends:
-edge.stop();
+let last = { x: 0, y: 0 };
+// Runs after each step of scrolling, so your drag can find what is under the pointer again.
+const edge = edgeScroll(jali, () => findDropTarget(last.x, last.y));
+
+window.addEventListener("pointermove", (event) => {
+  last = { x: event.clientX, y: event.clientY };
+  edge.move(event.clientX, event.clientY);
+});
+window.addEventListener("pointerup", () => edge.stop());
+
+declare function findDropTarget(x: number, y: number): void; // your drag's own
 ```
 
 The function you pass runs after each step of scrolling, so the drag can find what is under the pointer again as the panes slide past it.
 
 ## On a phone
 
-On a phone, the workspace shows one pane at a time, and its switcher lists every pane in the row.
+On a phone, Jali shows one pane at a time, and its switcher lists every pane in the row.
 
 ## Reading it from your code
 

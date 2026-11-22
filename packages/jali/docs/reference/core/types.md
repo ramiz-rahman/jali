@@ -1,6 +1,6 @@
 # jali types
 
-Every type jali exports, with its fields, and every workspace action.
+Every type jali exports, with its fields, and every instance action.
 
 Import any of these with `import type { … } from "jali";`. Functions that use them are on [jali](../core.md) and [The layout namespace](layout.md).
 
@@ -14,7 +14,7 @@ Import any of these with `import type { … } from "jali";`. Functions that use 
 interface Layout { version: 1; root: LayoutNode; overlay?: Overlay }
 ```
 
-A workspace's arrangement: a tree of rows, columns and tab stacks of panes. The tree is the arrangement the person made; folds, tucks, tab choices and hidden panes are recorded in `overlay`, so they can be undone without losing a slot. This is what `?l=` holds.
+An instance's arrangement: a tree of rows, columns and tab stacks of panes. The tree is the arrangement the person made; folds, tucks, tab choices and hidden panes are recorded in `overlay`, so they can be undone without losing a slot. This is what `?l=` holds.
 
 **Fields**
 
@@ -149,7 +149,7 @@ A side of a pane: where to open or drop. In actions and commands it is a side of
 type Direction = "ltr" | "rtl"
 ```
 
-The reading direction a workspace lays its panes out in (`jali.get().dir`, `createJali({ dir })`). Right to left, a row's first child is at the right: the same tree, mirrored on screen.
+The reading direction an instance lays its panes out in (`jali.get().dir`, `createJali({ dir })`). Right to left, a row's first child is at the right: the same tree, mirrored on screen.
 
 ### Overlay
 
@@ -183,7 +183,7 @@ What the person is looking at, apart from the layout.
 
 **Fields**
 
-- **`focused`** (`NodeId`): The pane with workspace focus (the accent edge).
+- **`focused`** (`NodeId`): The pane with focus (the accent edge).
 
 - **`zoomed`** (`NodeId`): The maximised pane. In the URL as `zoom`.
 
@@ -201,7 +201,7 @@ What the person is looking at, apart from the layout.
 interface PaneKind { kind; title(ref); minWidth; minHeight; comfortableWidth?; maxWidth?; comfortableHeight?; maxHeight?; checkParams? }
 ```
 
-The part of a kind the layout operations read, from `kinds.registry()`. The sizes are explained under `PaneKindBase`. `checkParams(params)`, set for a kind that declares `params`, says what is wrong with a ref's params (a required param missing, a value its type can't read), or returns `undefined`; [`layout.validate`](layout.md#layout.validate) rejects a layout holding such a ref, so a link to it opens as broken.
+The part of a kind the layout operations read, from `kinds.registry()`. The sizes are explained under `PaneKindBase`. `checkParams(params)`, set for a kind that declares `params`, says what is wrong with a ref's params (a required param missing, a value its type can't read), or returns `undefined`; [`layout.validate`](layout.md#layoutvalidate) rejects a layout holding such a ref, so a link to it opens as broken.
 
 ### KindRegistry
 
@@ -221,7 +221,7 @@ Kinds by name, as the layout operations take them (`kinds.registry()`).
 interface LayoutContext { fit: FitOptions; paneCap: number; dir?: Direction }
 ```
 
-Everything a layout operation needs besides the layout. For a workspace: `{ fit: { ...jali.get().area, gap: GAP, kinds: jali.env.kinds.registry() }, paneCap: jali.get().settings.paneCap, dir: jali.get().dir }`. `paneCap` is the most panes on screen before the oldest folds (the `paneCap` setting). `dir: "rtl"` mirrors the rects `resolve` returns, so they stay screen coordinates; the tree and the fit are the same.
+Everything a layout operation needs besides the layout. For an instance: `{ fit: { ...jali.get().area, gap: GAP, kinds: jali.env.kinds.registry() }, paneCap: jali.get().settings.paneCap, dir: jali.get().dir }`. `paneCap` is the most panes on screen before the oldest folds (the `paneCap` setting). `dir: "rtl"` mirrors the rects `resolve` returns, so they stay screen coordinates; the tree and the fit are the same.
 
 ### FitOptions
 
@@ -231,7 +231,7 @@ Everything a layout operation needs besides the layout. For a workspace: `{ fit:
 interface FitOptions { width: number; height: number; gap: number; kinds: KindRegistry }
 ```
 
-The room: the workspace's inner size in pixels, the gap between panes (6 in a workspace), and the kinds.
+The room: the instance's inner size in pixels, the gap between panes (6 in an instance), and the kinds.
 
 ### Rect
 
@@ -241,7 +241,7 @@ The room: the workspace's inner size in pixels, the gap between panes (6 in a wo
 interface Rect { x: number; y: number; width: number; height: number }
 ```
 
-A box in pixels, relative to the workspace's inner area.
+A box in pixels, relative to the instance's inner area.
 
 ### ResolvedLayout
 
@@ -413,7 +413,7 @@ The same three as `width`, down a column.
 
 - **`allow`** (`PaneAllow`): What may happen to panes of this kind, for what its content can handle: `{ fullScreen: false }`. A kind can only turn controls off. See `PaneAllow`.
 
-- **`buttons`** (`PaneButtons`): The buttons in this kind's header, replacing the workspace's: a list, or a function that adjusts them (`(defaults) => defaults.filter((b) => b !== "tuck")`). Leave it out for the workspace's, or Jali's. See `PaneButtons`.
+- **`buttons`** (`PaneButtons`): The buttons in this kind's header, replacing the instance's: a list, or a function that adjusts them (`(defaults) => defaults.filter((b) => b !== "tuck")`). Leave it out for the instance's, or Jali's. See `PaneButtons`.
 
 - **`phone`** (`{ stack?: boolean; place?: "top" | "bottom" }`): Phones only, in stacked view (`createJali({ phone: { stack: true } })`). `stack: false` keeps panes of this kind out of it, so they show alone. `place` asks for the top or the bottom half; otherwise the pane others were opened from goes above.
 
@@ -459,7 +459,7 @@ A defined kind, callable to make its refs. In React, `Pane<P>`.
 interface PaneKindBase extends PaneOptions { kind: string }
 ```
 
-A kind as a workspace keeps it: its name and its options. What `createJali({ panes })` takes.
+A kind as an instance keeps it: its name and its options. What `createJali({ panes })` takes.
 
 ### Params
 
@@ -489,7 +489,7 @@ One param's value.
 type ParamType = (value: ParamValue) => ParamValue | undefined
 ```
 
-How to read one param back: `Number`, `String`, `Boolean`, [`oneOf`](../core.md#oneOf), or your own function. `Number` reads text that is a finite number; `Boolean` reads `true`, `false`, `"true"`, `"false"`, `1` and `0`. Your function says it can't read a value by returning `undefined` or `NaN`, or by throwing.
+How to read one param back: `Number`, `String`, `Boolean`, [`oneOf`](../core.md#oneof), or your own function. `Number` reads text that is a finite number; `Boolean` reads `true`, `false`, `"true"`, `"false"`, `1` and `0`. Your function says it can't read a value by returning `undefined` or `NaN`, or by throwing.
 
 ### ParamTypes
 
@@ -559,7 +559,7 @@ How an optional param travels, the second argument of [`optional`](../core.md#op
 interface AppOnlyParam<T extends ParamType = ParamType> extends OptionalParam<T> { readonly appOnly: true }
 ```
 
-A param only your app sets, from [`appOnly`](../core.md#appOnly): optional, and never carried or set by a link.
+A param only your app sets, from [`appOnly`](../core.md#apponly): optional, and never carried or set by a link.
 
 ### OneOf
 
@@ -569,7 +569,7 @@ A param only your app sets, from [`appOnly`](../core.md#appOnly): optional, and 
 type OneOf<V extends string | number> = ((value: ParamValue) => V | undefined) & { readonly values: readonly V[] }
 ```
 
-A param that is one of a few values, made by [`oneOf`](../core.md#oneOf).
+A param that is one of a few values, made by [`oneOf`](../core.md#oneof).
 
 ### ParamsOf
 
@@ -609,7 +609,7 @@ A param a ref is missing (`value` is undefined), or holds a value its type can't
 interface PaneKinds<D extends PaneKindBase = PaneKindBase>
 ```
 
-A workspace's kinds, as `jali.env.kinds`.
+An instance's kinds, as `jali.env.kinds`.
 
 - **`PaneKinds.register`**, `register(def: D): void`: Adds or replaces a kind and bumps `version()`.
 
@@ -637,7 +637,7 @@ A workspace's kinds, as `jali.env.kinds`.
 
 - **`PaneKinds.isRecordable`**, `isRecordable(ref: ObjectRef): boolean`: Whether it goes in Recent: the kind's `inRecent`.
 
-- **`PaneKinds.isTransient`**, `isTransient(ref: ObjectRef): boolean`: Whether it is the workspace's launcher.
+- **`PaneKinds.isTransient`**, `isTransient(ref: ObjectRef): boolean`: Whether it is the instance's launcher.
 
 ### PaneCommand
 
@@ -697,7 +697,7 @@ A curated page about one item (a loan application), framework-free. In React, `d
 
 - **`itemNoun`** (`string`, required): The singular noun for an item ("application").
 
-- **`viewers`** (`{ full: string; limited: string }`): Who works with full access (links open beside, Split view available) and who works in Single with links as a peek, in the person's words.
+- **`viewers`** (`{ full: string; limited: string }`): Who works with full access (links open beside, Split view available) and who works in Single view with links as a peek, in the person's words.
 
 - **`roles`** (`R[]`, required): The views, in tab order.
 
@@ -747,7 +747,7 @@ Something that can happen to a pane. `move` covers dragging it, the move keys, s
 type PaneAllow = Partial<Record<PaneControl, boolean>>
 ```
 
-Controls turned off with `false`. Leaving one out, or `true`, leaves it to the other levels. A kind's `allow` and a workspace's are both one.
+Controls turned off with `false`. Leaving one out, or `true`, leaves it to the other levels. A kind's `allow` and an instance's are both one.
 
 ### WorkspaceAllow
 
@@ -757,7 +757,7 @@ Controls turned off with `false`. Leaving one out, or `true`, leaves it to the o
 type WorkspaceAllow = PaneAllow & { when?: AllowRule }
 ```
 
-`createJali({ allow })`: the workspace's defaults, and `when` for rules that depend on context. `popOut` is off until this says `true`.
+`createJali({ allow })`: the instance's defaults, and `when` for rules that depend on context. `popOut` is off until this says `true`.
 
 ### AllowRule
 
@@ -817,13 +817,13 @@ What a `buttons` function is told: the pane, the preset the layout came from, an
 interface PhoneOptions { below?: number; stack?: boolean; stackFloor?: number; fold?: boolean }
 ```
 
-How the workspace behaves on a phone (`createJali({ phone })`).
+How the instance behaves on a phone (`createJali({ phone })`).
 
 **Fields**
 
-- **`below`** (`number`): Below this workspace width, in CSS pixels, the workspace shows Single view: one pane at a time, with a switcher at the top. Default 600, Android's compact width, which covers portrait phones. `0` leaves it to the panes' minimum widths alone: Single view only when even one pane can't fit.
+- **`below`** (`number`): Below this width of Jali's root, in CSS pixels, Jali shows one pane at a time, with a switcher at the top. Default 600, Android's compact width, which covers portrait phones. `0` leaves it to the panes' minimum widths alone: one pane at a time only when even one pane can't fit.
 
-- **`stack`** (`boolean`): On a portrait phone, show two linked panes one above the other instead of one at a time: the focused pane and the pane it was opened from (a list above its detail), else one opened from it. Only with room for both: the workspace at least 480 pixels tall, and each pane at least `stackFloor` and its kind's minimum height. While the on-screen keyboard is up, the focused pane shows alone. Default `false`.
+- **`stack`** (`boolean`): On a portrait phone, show two linked panes one above the other instead of one at a time: the focused pane and the pane it was opened from (a list above its detail), else one opened from it. Only with room for both: the instance at least 480 pixels tall, and each pane at least `stackFloor` and its kind's minimum height. While the on-screen keyboard is up, the focused pane shows alone. Default `false`.
 
 - **`stackFloor`** (`number`): The shortest a stacked pane may be, in CSS pixels. Default 200.
 
@@ -857,9 +857,9 @@ A preset, as `createJali({ presets })` takes it. `saved`, if given, is asked eac
 interface Env { kinds: PaneKinds; profile: ProfileBase | null; presets: readonly Preset[]; commands?: readonly Command[]; name: string; launcher?: string; dir?: Direction; messages?: Messages }
 ```
 
-What a workspace is made of besides its state: `jali.env`. `profile` is its curated page; `launcher` the kind Split opens; `dir` the reading direction `createJali({ dir })` fixed, if any.
+What an instance is made of besides its state: `jali.env`. `profile` is its curated page; `launcher` the kind Split opens; `dir` the reading direction `createJali({ dir })` fixed, if any.
 
-## The workspace
+## The instance
 
 ### Jali
 
@@ -869,9 +869,9 @@ What a workspace is made of besides its state: `jali.env`. `profile` is its cura
 interface Jali<R extends ObjectRef = ObjectRef, P = JaliPage | undefined>
 ```
 
-A workspace, from [`createJali`](../core.md#createJali). It is frozen: these members are all it has. `R` is the refs of its kinds (from `createJali`), so `actions`, events and the model are typed by kind; `P` is its page's actions, or `undefined` without a page.
+An instance, from [`createJali`](../core.md#createjali). It is frozen: these members are all it has. `R` is the refs of its kinds (from `createJali`), so `actions`, events and the model are typed by kind; `P` is its page's actions, or `undefined` without a page.
 
-- **`Jali.actions`**, `actions: JaliActions<R>`: What an app asks the workspace to do with panes and layouts. See `JaliActions`.
+- **`Jali.actions`**, `actions: JaliActions<R>`: What an app asks the instance to do with panes and layouts. See `JaliActions`.
 
 - **`Jali.page`**, `page: P`: The curated page's actions; there only with `createJali({ page })`. See `JaliPage`.
 
@@ -887,11 +887,11 @@ A workspace, from [`createJali`](../core.md#createJali). It is frozen: these mem
 
 - **`Jali.getLayout`**, `getLayout(): DeepReadonly<Layout>`: The layout on screen, to save. It is plain JSON, read-only; `layout.tree.clone` gives a copy to edit.
 
-- **`Jali.setLayout`**, `setLayout(layout: LayoutInput): ActionResult`: Show a layout: anything `createJali({ layout })` takes. It is fitted to the room, focus stays on a pane that is still there, and the address gets a new entry, so Back returns to the layout before. A curated page that is open closes. Refused with `"invalid"` for a pane kind the workspace doesn't have; held with `"unsaved"` when a pane that would go has unsaved work; asks `beforeClose` like a close.
+- **`Jali.setLayout`**, `setLayout(layout: LayoutInput): ActionResult`: Show a layout: anything `createJali({ layout })` takes. It is fitted to the room, focus stays on a pane that is still there, and the address gets a new entry, so Back returns to the layout before. A curated page that is open closes. Refused with `"invalid"` for a pane kind the instance doesn't have; held with `"unsaved"` when a pane that would go has unsaved work; asks `beforeClose` like a close.
 
-- **`Jali.keymap`**, `keymap: Keymap`: This workspace's keys: `label(id)` for a tooltip, `sequences(id)`, `platform`.
+- **`Jali.keymap`**, `keymap: Keymap`: This instance's keys: `label(id)` for a tooltip, `sequences(id)`, `platform`.
 
-- **`Jali.messages`**, `messages: Messages`: Every word it shows or says: `en` with `createJali({ messages })` over it. Use it for your own UI in the same language. A curated page's own words (the `page` area, and the announcements, commands and toast only a page uses) are there when the workspace has a page.
+- **`Jali.messages`**, `messages: Messages`: Every word it shows or says: `en` with `createJali({ messages })` over it. Use it for your own UI in the same language. A curated page's own words (the `page` area, and the announcements, commands and toast only a page uses) are there when the instance has a page.
 
 - **`Jali.env`**, `env: Env`: Its kinds, presets, page, name and launcher.
 
@@ -899,7 +899,7 @@ A workspace, from [`createJali`](../core.md#createJali). It is frozen: these mem
 
 - **`Jali.start`**, `start(): () => void`: Starts its listeners (keys, Back and Forward, theme, saving) and returns their stop; after the stop, `start()` starts them again. `<JaliRoot>` starts it while mounted and stops it on unmount; calling it while started does nothing. The stop saves pane state still waiting to be saved. After `destroy()` it does nothing.
 
-- **`Jali.destroy`**, `destroy(): void`: Stops the workspace for good, when it goes away (a route change, a test's end): its listeners stop, pane state still waiting to be saved is saved, a follow waiting for the selection to rest and a debounced address write are dropped (so nothing lands on the next route's address), and the kind registry stops being listened to. Nothing is scheduled after it, and `start()` does nothing. Its state can still be read. Calling it again does nothing. `<JaliRoot>` doesn't call it: the workspace is yours, and may outlive one mount.
+- **`Jali.destroy`**, `destroy(): void`: Stops the instance for good, when it goes away (a route change, a test's end): its listeners stop, pane state still waiting to be saved is saved, a follow waiting for the selection to rest and a debounced address write are dropped (so nothing lands on the next route's address), and the kind registry stops being listened to. Nothing is scheduled after it, and `start()` does nothing. Its state can still be read. Calling it again does nothing. `<JaliRoot>` doesn't call it: the instance is yours, and may outlive one mount.
 
 To save a person's layout, listen for `"layout"` and store `getLayout()`. To restore it, pass it as `createJali({ layout })`: a link in the address still wins, so shared links keep working. A layout that arrives later goes through `setLayout`.
 
@@ -911,12 +911,14 @@ To save a person's layout, listen for `"layout"` and store `getLayout()`. To res
 interface JaliEvents<R extends ObjectRef = ObjectRef> { open; close; pin; focus; layout; toast }
 ```
 
-What `jali.on` (and `useJaliEvent` in React) tells you. `ref.kind` says which of the workspace's kinds, and narrows `ref.params`. Each fires once per change, after the change is made, and never for the steps inside one action (a drag before it drops, the steps of a preset switch). In one change they come in this order: `close`, `open`, `pin`, `focus`, `layout`.
+What `jali.on` (and `useJaliEvent` in React) tells you. `ref.kind` says which of the instance's kinds, and narrows `ref.params`. Each fires once per change, after the change is made, and never for the steps inside one action (a drag before it drops, the steps of a preset switch). In one change they come in this order: `close`, `open`, `pin`, `focus`, `layout`.
 
 Every event also carries `input`, where the change came from (`JaliInput`), so you can tell a person's close from your own code's, or from an agent's:
 
 ```ts
-jali.on("close", ({ pane, input }) => track("pane closed", { pane, by: input }));
+import { analytics } from "./analytics";
+
+jali.on("close", ({ pane, input }) => analytics.track("pane closed", { pane, by: input }));
 ```
 
 **Events**
@@ -934,6 +936,8 @@ jali.on("close", ({ pane, input }) => track("pane closed", { pane, by: input }))
 - **`layout`** (`{ layout: DeepReadonly<Layout>; source: "action" | "address"; action?: ActionName }`, required): The layout changed. `"action"`: an action, a gesture, a key or `setLayout`. `"address"`: Back, Forward or a link. Fitting to a new window size does not fire it. `action` names the action that made it (`ActionName`), whoever ran it: your code, or the person from Jali's buttons, menus, keys or ⌘K. A change made after a question (Discard, or a later yes from `beforeClose`) names the action that asked. It is undefined for a change no action names: a drag, a divider, a linked pane following its list, and anything from the address.
 
 ```ts
+import { forgetSavedLayouts } from "./saved-layouts";
+
 jali.on("layout", ({ action }) => {
   if (action === "resetLayout") forgetSavedLayouts();
 });
@@ -959,7 +963,7 @@ type JaliInput = "mouse" | "touch" | "pen" | "keyboard" | "virtual" | "agent" | 
 
 Where a change came from. `mouse`, `touch` and `pen` are a person's pointer; `keyboard` a key; `virtual` a click with no pointer or key behind it, as a screen reader sends; `agent` an agent, through the agent bridge; `code` your own code, with nothing a person did behind it.
 
-A person's input is noted from the page while the workspace is started (`<JaliRoot>` starts it), and lasts until the event that caused it is handled. A change your code makes after a timer or an `await` reads as `code`, even if a click started it. Use it for analytics and to tell changes apart, not to make Jali behave differently.
+A person's input is noted from the page while the instance is started (`<JaliRoot>` starts it), and lasts until the event that caused it is handled. A change your code makes after a timer or an `await` reads as `code`, even if a click started it. Use it for analytics and to tell changes apart, not to make Jali behave differently.
 
 ### JaliOptions
 
@@ -969,7 +973,7 @@ A person's input is noted from the page while the workspace is started (`<JaliRo
 interface JaliOptions
 ```
 
-The options of `createJali`. Each one, with its default, is under [`createJali`](../core.md#createJali).
+The options of `createJali`. Each one, with its default, is under [`createJali`](../core.md#createjali).
 
 ### JaliState
 
@@ -979,7 +983,7 @@ The options of `createJali`. Each one, with its default, is under [`createJali`]
 type JaliState<R extends ObjectRef = ObjectRef>
 ```
 
-What a workspace holds that an app reads, read-only. Read it with `jali.get()` or `useJaliState(select)`. Change it through `actions`.
+What an instance holds that an app reads, read-only. Read it with `jali.get()` or `useJaliState(select)`. Change it through `actions`.
 
 **Fields**
 
@@ -987,7 +991,7 @@ What a workspace holds that an app reads, read-only. Read it with `jali.get()` o
 
 - **`view`** (`ViewState`, required): Focus, maximise, peek.
 
-- **`page`** (`PageState | null`, required): The curated page in use, or `null` for the free workspace.
+- **`page`** (`PageState | null`, required): The curated page in use, or `null` for the free layout.
 
 - **`presetId`** (`string | undefined`, required): The preset last chosen; "Reset layout" rebuilds it.
 
@@ -1003,7 +1007,7 @@ What a workspace holds that an app reads, read-only. Read it with `jali.get()` o
 
 - **`recent`** (`readonly R[]`, required): Objects opened this session, newest first, at most 8.
 
-- **`area`** (`{ width: number; height: number }`, required): The workspace's inner size; the panes measure it.
+- **`area`** (`{ width: number; height: number }`, required): The instance's inner size; the panes measure it.
 
 - **`dir`** (`Direction`, required): The reading direction the panes are laid out in. The panes read it from the page, unless `createJali({ dir })` fixed it.
 
@@ -1055,7 +1059,7 @@ A list's selected item. `inResults: false`: the list's filter no longer shows it
 interface UrlWriter { write(state: () => UrlState, mode: HistoryMode): void; href?(): string; cancel?(): void }
 ```
 
-Where a workspace writes its address. Pass one as `url` to write it somewhere of your own. `write` gets a function, so a debounced write reads the latest state: the address's share of it (`UrlState`), as a link carries it, without params only your app sets (`appOnly`). `cancel`, when given, drops a write still waiting: `jali.destroy()` calls it.
+Where an instance writes its address. Pass one as `url` to write it somewhere of your own. `write` gets a function, so a debounced write reads the latest state: the address's share of it (`UrlState`), as a link carries it, without params only your app sets (`appOnly`). `cancel`, when given, drops a write still waiting: `jali.destroy()` calls it.
 
 ### UrlState
 
@@ -1113,7 +1117,9 @@ What is on screen, derived once per change (`jali.model()`, `useJaliModel()`).
 
 - **`onScreen`** (`PaneNode[]`, required): Every pane except hidden ones: what the phone's switcher lists.
 
-- **`single`** (`boolean`, required): Even one pane's minimum is wider than the room, so one pane shows at a time.
+- **`single`** (`boolean`, required): One pane shows at a time: Jali's root is under `phone.below` wide, or even one pane's minimum is wider than the room.
+
+- **`stacked`** (`{ top: NodeId; bottom: NodeId; axis?: "row" | "column" }`): On a portrait phone with `phone.stack`, the two linked panes shown one above the other (`axis: "row"`: either side of a fold).
 
 - **`env`** (`Env`, required):
 - **`layout`** (`Layout`, required):
@@ -1141,6 +1147,8 @@ An action that did not happen. `message` is what Jali read out to screen readers
 A refusal that asks a question carries `settled`, a promise of how the question ended: with `reason: "unsaved"`, once the person answers "Discard unsaved changes?"; with `reason: "pending"`, once `beforeClose` answers. It resolves with `{ ok: true, pane }` when the action went ahead, or with a refusal when it didn't (`"kept"` after Keep editing, or when a newer question took its place). It never rejects. A host's yes that leads to Jali's own question resolves with that `"unsaved"` refusal, whose `settled` says how the person answered.
 
 ```ts
+import { forgetSavedLayouts } from "./saved-layouts";
+
 const result = jali.actions.resetLayout();
 if (result.ok) forgetSavedLayouts();
 else void result.settled?.then((end) => end.ok && forgetSavedLayouts());
@@ -1158,9 +1166,9 @@ type RefusalReason = "not-found" | "invalid" | "unavailable" | "single-view" | "
 
 - **`not-found`**: The pane (by id or by what it shows), preset or view named is not there.
 
-- **`invalid`**: The layout or ref given can't be shown: a pane kind the workspace doesn't have, params that aren't text, numbers or flags, or a malformed tree. An action given such a ref (`openBeside`, `openHere`, `addTab`, `peek`, `select`), or a pane named by something that is neither an id nor a ref, refuses with this and says why in `message`; it never throws.
+- **`invalid`**: The layout or ref given can't be shown: a pane kind the instance doesn't have, params that aren't text, numbers or flags, or a malformed tree. An action given such a ref (`openBeside`, `openHere`, `addTab`, `peek`, `select`), or a pane named by something that is neither an id nor a ref, refuses with this and says why in `message`; it never throws.
 
-- **`unavailable`**: The workspace can't do this: no launcher (split, new tab), no curated page, no free workspace to go back to.
+- **`unavailable`**: The instance can't do this: no launcher (split, new tab), no curated page, no free layout to go back to.
 
 - **`single-view`**: A curated page in Single view has no layout to change.
 
@@ -1188,7 +1196,7 @@ type BeforeClose = (request: CloseRequest) => boolean | Promise<boolean>
 
 The host's close guard, `createJali({ beforeClose })`. Jali asks it before a change removes panes or makes a pane show another object. `true` lets the change happen; `false` keeps the panes (`reason: "kept"`). A promise holds the change (`reason: "pending"`) until it answers. If the layout changed in the meantime, the held change is dropped. A guard that throws or rejects keeps the panes.
 
-It is asked first. If it says yes and a pane still reports unsaved work (`useUnsaved`), Jali's own "Discard unsaved changes?" follows; Discard does not ask the guard again. It is not asked while the workspace is made, or for changes that remove nothing (focus, tuck, open beside). A later yes makes the change against the workspace as it is then; if the panes it would remove or replace are no longer the ones asked about, the guard is asked again. When Back or Forward is not made in the end (the guard keeps the panes, or the person keeps editing), the address goes back to what is on screen.
+It is asked first. If it says yes and a pane still reports unsaved work (`useUnsaved`), Jali's own "Discard unsaved changes?" follows; Discard does not ask the guard again. It is not asked while the instance is made, or for changes that remove nothing (focus, tuck, open beside). A later yes makes the change against the instance as it is then; if the panes it would remove or replace are no longer the ones asked about, the guard is asked again. When Back or Forward is not made in the end (the guard keeps the panes, or the person keeps editing), the address goes back to what is on screen.
 
 ### CloseRequest
 
@@ -1246,7 +1254,7 @@ interface Settings
 
 - **`theme`** (`"system" | "light" | "dark"`, required): The theme choice.
 
-- **`boundary`** (`"tint" | "none"`, required): How a curated page marks panes opened while investigating.
+- **`boundary`** (`"tint" | "none"`, required): How a curated page marks the panes opened from its views.
 
 ### ThemeChoice
 
@@ -1291,7 +1299,7 @@ The options of `actions.openBeside` and a pane's `openBeside`. `edge` is the sid
 - It is a side on screen, as for `move` and `split`: `"right"` is the right in either reading direction.
 - It only places a new pane. Everything else is as without it: the new pane is linked to its source, focus stays in the source, it is one history entry and it is announced the same way. A link that replaces the source's earlier link of the same kind shows in that pane, where it is; an object already open is shown where it is.
 - With no room on that edge, the new pane becomes a tab of its source, as without one. On a phone it goes on that edge in the layout, which shows one pane at a time until the screen is wider.
-- On a curated page, panes opened from the page's views stay in the investigation, after the views. The first one starts it there whatever the edge; later ones open on that edge of the investigation's last column. A pane opened from an opened pane opens on that edge of it. In Single view a link peeks, as always.
+- On a curated page, panes opened from the page's views stay together, after the views. The first one starts it there whatever the edge; later ones open on that edge of the opened panes' last column. A pane opened from an opened pane opens on that edge of it. In Single view a link peeks, as always.
 
 ### Group
 
@@ -1313,7 +1321,7 @@ A tab group as the model sees it (`model().groups`): a stack in the tree, or one
 interface UrlSyncOptions { location?; storage?; prefix?; sizes? }
 ```
 
-The `url` option of `createJali`: `location` (a `LocationPort`, default the browser's history), `prefix` (for two workspaces in one address: `"b."` writes `b.l`, `b.zoom`), `sizes` (`LinkSizes`) and `storage` (default: the workspace's own).
+The `url` option of `createJali`: `location` (a `LocationPort`, default the browser's history), `prefix` (for two instances in one address: `"b."` writes `b.l`, `b.zoom`), `sizes` (`LinkSizes`) and `storage` (default: the instance's own).
 
 ### LinkSizes
 
@@ -1333,7 +1341,7 @@ What a layout link carries about sizes. `"local"` (the default): the layout as d
 type JaliLink = PageLink | LayoutLink
 ```
 
-What [`linkSearch`](../core.md#linkSearch) builds a link to: a curated page or a free workspace's layout.
+What [`linkSearch`](../core.md#linksearch) builds a link to: a curated page or a free layout's layout.
 
 ### PageLink
 
@@ -1343,7 +1351,7 @@ What [`linkSearch`](../core.md#linkSearch) builds a link to: a curated page or a
 interface PageLink { page: string; item?: ItemId; tab?: string; open?: readonly ObjectRef[]; peek?: ObjectRef }
 ```
 
-A link to a curated page, for [`linkSearch`](../core.md#linkSearch).
+A link to a curated page, for [`linkSearch`](../core.md#linksearch).
 
 **Parameters**
 
@@ -1353,7 +1361,7 @@ A link to a curated page, for [`linkSearch`](../core.md#linkSearch).
 
 - **`tab`** (`string`): The view in use (a role id). Default: the one the reader used last, else the home view.
 
-- **`open`** (`readonly ObjectRef[]`): Panes opened from the page's views, in order. A link with any opens in Split view. A workspace opens each object once, and at most 32.
+- **`open`** (`readonly ObjectRef[]`): Panes opened from the page's views, in order. A link with any opens in Split view. An instance opens each object once, and at most 32.
 
 - **`peek`** (`ObjectRef`): The object in the peek sheet.
 
@@ -1365,7 +1373,7 @@ A link to a curated page, for [`linkSearch`](../core.md#linkSearch).
 interface LayoutLink { layout: LayoutInput; preset?: string; zoom?: NodeId; peek?: ObjectRef }
 ```
 
-A link to a free workspace's layout, for [`linkSearch`](../core.md#linkSearch): the layout (`row(…)` and the other builders, or a `Layout`), the preset it came from, the maximised pane's id and the object in the peek sheet.
+A link to a free layout's layout, for [`linkSearch`](../core.md#linksearch): the layout (`row(…)` and the other builders, or a `Layout`), the preset it came from, the maximised pane's id and the object in the peek sheet.
 
 ### LinkSearchOptions
 
@@ -1375,7 +1383,7 @@ A link to a free workspace's layout, for [`linkSearch`](../core.md#linkSearch): 
 interface LinkSearchOptions { prefix?: string; search?: string; panes?: readonly PaneKindBase[] }
 ```
 
-The options of [`linkSearch`](../core.md#linkSearch): the workspace's `url.prefix`, a search string whose other params are kept, and the workspace's pane kinds. A link never carries a param only the app sets (`appOnly`) or one kept out of the address (`link: false`): `linkSearch` leaves them out of each ref a kind's call built (`query({ sql, autorun: true })`), and, given `panes`, out of any ref, such as those of a live layout or peek.
+The options of [`linkSearch`](../core.md#linksearch): the instance's `url.prefix`, a search string whose other params are kept, and the instance's pane kinds. A link never carries a param only the app sets (`appOnly`) or one kept out of the address (`link: false`): `linkSearch` leaves them out of each ref a kind's call built (`query({ sql, autorun: true })`), and, given `panes`, out of any ref, such as those of a live layout or peek.
 
 ### LocationPort
 
@@ -1425,7 +1433,7 @@ interface ListedCommand {
 }
 ```
 
-One entry of a command menu, from [`listCommands`](../core.md#listCommands). `key` is unique in the list; `id` is the command id, undefined for a pane's own commands. `group` is the pane's title for those. Close your menu before `run`: some commands move focus.
+One entry of a command menu, from [`listCommands`](../core.md#listcommands). `key` is unique in the list; `id` is the command id, undefined for a pane's own commands. `group` is the pane's title for those. Close your menu before `run`: some commands move focus.
 
 ### Rename
 
@@ -1475,7 +1483,7 @@ interface Command {
 }
 ```
 
-A workspace command. `run` gets the workspace. Your own commands go in `createJali({ commands })`, with a group of your own if you like. Whether one of Jali's can run now is in [`listCommands`](../core.md#listCommands) (`disabled`, `reason`).
+A command. `run` gets the instance. Your own commands go in `createJali({ commands })`, with a group of your own if you like. Whether one of Jali's can run now is in [`listCommands`](../core.md#listcommands) (`disabled`, `reason`).
 
 ### Keymap
 
@@ -1485,7 +1493,7 @@ A workspace command. `run` gets the workspace. Your own commands go in `createJa
 interface Keymap
 ```
 
-A workspace's resolved keys (`jali.keymap`): the defaults with its `keymap` overrides applied, with `platform`, `entries`, `sequences(id)`, `label(id)`, `format(seq)`, `find(match, prefix?)`, `isPrefix(match)` and `forPlatform(platform)`. `label` and `format` print keys in the workspace's words (`messages.keys`). `forPlatform` gives the same bindings matched and printed for another platform (the same object for its own), for labels a server prerenders: `jali/react` prints `"other"` until the page has hydrated.
+An instance's resolved keys (`jali.keymap`): the defaults with its `keymap` overrides applied, with `platform`, `entries`, `sequences(id)`, `label(id)`, `format(seq)`, `find(match, prefix?)`, `isPrefix(match)` and `forPlatform(platform)`. `label` and `format` print keys in the instance's words (`messages.keys`). `forPlatform` gives the same bindings matched and printed for another platform (the same object for its own), for labels a server prerenders: `jali/react` prints `"other"` until the page has hydrated.
 
 ### KeymapOverrides
 
@@ -1508,7 +1516,7 @@ interface KeymapOptions {
 }
 ```
 
-Part of `createJali`'s `keyboard` (`KeyboardOptions`): `platform` to match and print keys for, `prefix` and `reserved`, and `onInvalid`, called for each refused binding (default `console.warn`). `words` defaults to the workspace's `messages.keys`.
+Part of `createJali`'s `keyboard` (`KeyboardOptions`): `platform` to match and print keys for, `prefix` and `reserved`, and `onInvalid`, called for each refused binding (default `console.warn`). `words` defaults to the instance's `messages.keys`.
 
 ### DefaultKeymapId
 
@@ -1615,7 +1623,7 @@ interface ActiveItemPort {
 }
 ```
 
-The item a list is on, as a list and a workspace both understand it. Not the multi-select set and not DOM focus.
+The item a list is on, as a list and an instance both understand it. Not the multi-select set and not DOM focus.
 
 ### ActiveItemAction
 
@@ -1649,7 +1657,7 @@ Always accepted.
 interface ActiveItemMapping { toRef(itemId: string): ObjectRef; idOf(ref: ObjectRef): string | null }
 ```
 
-How a list's item ids map to refs; see [`activeItemPort`](../core.md#activeItemPort).
+How a list's item ids map to refs; see [`activeItemPort`](../core.md#activeitemport).
 
 ## Actions
 
@@ -1707,7 +1715,7 @@ What `JaliActions` `choose` asks the person for. `T` is whatever your items are.
 interface JaliActions<R extends ObjectRef = ObjectRef>
 ```
 
-`jali.actions` (in React, `useJali().actions`): panes and layouts. A curated page's actions are `JaliPage`, the dialogs' `JaliDialogs`. `R` is the refs of the workspace's kinds: a ref of another kind is a type error. Each one reads the state now, makes its change once and returns an `ActionResult`. They follow one rule:
+`jali.actions` (in React, `useJali().actions`): panes and layouts. A curated page's actions are `JaliPage`, the dialogs' `JaliDialogs`. `R` is the refs of the instance's kinds: a ref of another kind is a type error. Each one reads the state now, makes its change once and returns an `ActionResult`. They follow one rule:
 
 - The pane comes first, as a `PaneTarget`. It is optional (`?`), meaning the focused pane, only when nothing required follows it.
 - What the action uses comes next; options come last, in an object.
@@ -1734,7 +1742,7 @@ A pane that is not there gives `reason: "not-found"`. What a refusal reads out t
 
 - **`actions.newTab`**, `newTab(pane?: PaneTarget)`: The launcher as a new tab of the pane's group. `"unavailable"` without a launcher.
 
-- **`actions.addTab`**, `addTab(pane: PaneTarget, ref: ObjectRef)`: Show `ref` as a new tab of `pane`'s group (or a new group), and focus it. It is one step: one entry in the history, and the tab takes `pane`'s slot, so nothing else folds or moves. Use it rather than `openBeside` then `mergeInto`, which is two entries and can fold other panes in between. If `ref` is already open, that pane is shown instead. `"invalid"` for a kind the workspace doesn't have, as for every action that takes a ref.
+- **`actions.addTab`**, `addTab(pane: PaneTarget, ref: ObjectRef)`: Show `ref` as a new tab of `pane`'s group (or a new group), and focus it. It is one step: one entry in the history, and the tab takes `pane`'s slot, so nothing else folds or moves. Use it rather than `openBeside` then `mergeInto`, which is two entries and can fold other panes in between. If `ref` is already open, that pane is shown instead. `"invalid"` for a kind the instance doesn't have, as for every action that takes a ref.
 
 - **`actions.close`**, `close(pane?: PaneTarget)`: Close a pane, with an Undo toast. The last pane stays (`"last-pane"`). A curated page's view goes back to the tabs.
 
@@ -1766,13 +1774,13 @@ A pane that is not there gives `reason: "not-found"`. What a refusal reads out t
 
 - **`actions.moveTab`**, `moveTab(pane: PaneTarget, index: number)`: Move a tab to position `index` (from 0) among its group's tabs, clamped to the group and to its part of it (a pinned tab among the pinned tabs, any other after them); the group keeps its place and size, and its shown tab. Announced as "Orders moved to position 2 of 4". Refused with `"nothing-to-do"` for a pane that is not a tab in a group the person or the app made (a folded or tucked tab is placed by the layout).
 
-- **`actions.preset`**, `preset(id: string)`: Switch to a preset. `"not-found"` for an id the workspace doesn't have.
+- **`actions.preset`**, `preset(id: string)`: Switch to a preset. `"not-found"` for an id the instance doesn't have.
 
 - **`actions.toggleFullScreen`**, `toggleFullScreen(pane?)`: Put a pane (default: the focused one) on the whole screen: maximised, with the page in the browser's full screen. Again, Escape, or leaving the browser's full screen puts it back as it was. Where the browser has no full screen (an iPhone), the pane still covers the page. `"blocked"` for a pane the layout hides. ⌘K: "Full screen pane, or exit full screen".
 
 - **`actions.resetLayout`**, `resetLayout()`: Rebuild the preset last chosen.
 
-- **`actions.autoLayout`**, `autoLayout()`: Arrange every pane from the room there is and each kind's size hints ([`layout.arrange`](layout.md#layout.arrange)): columns at the kinds' comfortable widths, a second row when the height allows, the rest as tabs beside the pane they were opened from. The same panes, so nothing reloads; tucked and folded panes are placed too. Back returns to the arrangement before. `"unavailable"` on a curated page, `"nothing-to-do"` with one pane. ⌘K: "Arrange panes automatically".
+- **`actions.autoLayout`**, `autoLayout()`: Arrange every pane from the room there is and each kind's size hints ([`layout.arrange`](layout.md#layoutarrange)): columns at the kinds' comfortable widths, a second row when the height allows, the rest as tabs beside the pane they were opened from. The same panes, so nothing reloads; tucked and folded panes are placed too. Back returns to the arrangement before. `"unavailable"` on a curated page, `"nothing-to-do"` with one pane. ⌘K: "Arrange panes automatically".
 
 - **`actions.changeSettings`**, `changeSettings(patch: Partial<Settings>)`: Change the person's settings. They are saved on this device; a new theme is applied and a new pane cap refits the layout. `"invalid"`, changing nothing, when a value is one its setting can't take (a `paneCap` that isn't a whole number from 1 to 64, a `theme` or `centreDrop` it doesn't know). A saved value like that is never used either: that one setting starts on its default.
 
@@ -1792,7 +1800,7 @@ interface JaliPage<I extends ItemId = ItemId>
 
 - **`page.leave`**, `leave()`: Back to the free layout's preset. The page's mode and layout are kept. `"unavailable"` in a page-only app.
 
-- **`page.setMode`**, `setMode(mode: ViewMode)`: Single or Split view. Split view is refused while links only peek (`"not-allowed"`).
+- **`page.setMode`**, `setMode(mode: ViewMode)`: Single view or Split view. Split view is refused while links only peek (`"not-allowed"`).
 
 - **`page.showView`**, `showView(view: string)`: What a click on a page tab does. It never reshapes: Single view swaps the view; Split view focuses it, chooses its tab, or puts it in place of the view you're in.
 
@@ -1852,7 +1860,7 @@ An object of the kind `K`, with its params typed: what a kind's call returns (`n
 type RefOf<D>
 ```
 
-The refs of kinds `D`: each defined kind's `Ref`, and `ObjectRef` for a kind without a call. `createJali` uses it to type the workspace.
+The refs of kinds `D`: each defined kind's `Ref`, and `ObjectRef` for a kind without a call. `createJali` uses it to type the instance.
 
 ### RefsOf
 
@@ -1862,7 +1870,7 @@ The refs of kinds `D`: each defined kind's `Ref`, and `ObjectRef` for a kind wit
 type RefsOf<J extends AnyJali>
 ```
 
-The refs of workspace `J`'s kinds.
+The refs of instance `J`'s kinds.
 
 ### PageOf
 
@@ -1872,7 +1880,7 @@ The refs of workspace `J`'s kinds.
 type PageOf<P>
 ```
 
-The page's actions a workspace made with page `P` has: `JaliPage` for its item type, or `undefined`.
+The page's actions an instance made with page `P` has: `JaliPage` for its item type, or `undefined`.
 
 ### AnyJali
 
@@ -1882,7 +1890,7 @@ The page's actions a workspace made with page `P` has: `JaliPage` for its item t
 type AnyJali = Jali<any, any>
 ```
 
-Any workspace, whatever its kinds and page: for a function that takes one.
+Any instance, whatever its kinds and page: for a function that takes one.
 
 ### Register
 
@@ -1892,9 +1900,9 @@ Any workspace, whatever its kinds and page: for a function that takes one.
 interface Register { jali?: AnyJali }
 ```
 
-One declaration types the app's workspace everywhere, React's hooks included:
+One declaration types the app's instance everywhere, React's hooks included (the full example is on [Installation](../../get-started/installation.md#typescript-register-your-instance)):
 
-```ts
+```ts nocheck
 declare module "jali" {
   interface Register {
     jali: typeof jali;
@@ -1910,7 +1918,7 @@ declare module "jali" {
 type RegisteredJali
 ```
 
-The app's workspace type from `Register`, or any workspace when nothing is registered. The React hooks default to it.
+The app's instance type from `Register`, or any instance when nothing is registered. The React hooks default to it.
 
 ### JaliEvent
 
@@ -1930,7 +1938,7 @@ The name of an event: `"open"`, `"close"`, `"pin"`, `"focus"`, `"layout"` or `"t
 type DeepReadonly<T>
 ```
 
-`T`, read-only all the way down: what a workspace gives an app to read (its state, layout, model and events). An edit would change the workspace behind its back, with no history and no event; in development it throws. `layout.tree.clone` gives a copy to edit; a read-only layout goes back into `setLayout` and `createJali({ layout })` as it is.
+`T`, read-only all the way down: what an instance gives an app to read (its state, layout, model and events). An edit would change the instance behind its back, with no history and no event; in development it throws. `layout.tree.clone` gives a copy to edit; a read-only layout goes back into `setLayout` and `createJali({ layout })` as it is.
 
 ### PaneOf
 
@@ -1940,7 +1948,7 @@ type DeepReadonly<T>
 type PaneOf<R extends ObjectRef = ObjectRef>
 ```
 
-A pane as the model gives it: read-only, with its `ref` typed by the workspace's kinds.
+A pane as the model gives it: read-only, with its `ref` typed by the instance's kinds.
 
 ### KeyboardOptions
 
@@ -1950,4 +1958,4 @@ A pane as the model gives it: read-only, with its `ref` typed by the workspace's
 interface KeyboardOptions extends KeymapOptions { scope?; keymap? }
 ```
 
-`createJali({ keyboard })`: Jali's keys in one place. `scope` (`"page"` or `"local"`), `keymap`, and the `KeymapOptions` `prefix`, `reserved`, `platform`, `onInvalid` and `words`. See [`createJali`](../core.md#createJali).
+`createJali({ keyboard })`: Jali's keys in one place. `scope` (`"page"` or `"local"`), `keymap`, and the `KeymapOptions` `prefix`, `reserved`, `platform`, `onInvalid` and `words`. See [`createJali`](../core.md#createjali).

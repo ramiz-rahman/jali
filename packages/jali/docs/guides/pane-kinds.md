@@ -2,7 +2,7 @@
 
 Describe one kind of pane, what it shows, how narrow it can go, and the component that draws it.
 
-A [pane kind](../get-started/key-concepts.md#kind) is one sort of pane in your app: an orders list, one order, a customer. You define it once with `definePane`, and every pane of that kind in the workspace uses it.
+A [pane kind](../get-started/key-concepts.md#kind) is one sort of pane in your app: an orders list, one order, a customer. You define it once with `definePane`, and every pane of that kind uses it.
 
 This guide builds the kinds for a small orders app. The whole file is at the end.
 
@@ -11,7 +11,9 @@ This guide builds the kinds for a small orders app. The whole file is at the end
 Each pane shows one object, named by a **ref**: a kind and some params. The kind you define makes its refs:
 
 ```ts
-orderKind({ id: 12 }) // { kind: "order", params: { id: 12 } }
+import { orderKind } from "./panes";
+
+orderKind({ id: 12 }); // { kind: "order", params: { id: 12 } }
 ```
 
 A ref is plain data, so it fits in a link. Params are text, numbers or `true`/`false`. Your component reads them and loads the object itself: Jali never fetches anything.
@@ -23,10 +25,13 @@ A ref is plain data, so it fits in a link. Params are text, numbers or `true`/`f
 The first argument is the kind's name; refs and links carry it. `params` says what each pane of the kind needs, and how to read it back from a link, which turns every value into text:
 
 ```tsx
+import { definePane } from "jali/react";
+import { OrderDetail } from "./order-detail";
+
 export const orderKind = definePane("order", {
   params: { id: Number },
   title: ({ id }) => `Order ${id}`,
-  // ...
+  Component: OrderDetail,
 });
 ```
 
@@ -61,7 +66,7 @@ By default two refs are the same when all their params match as text, so `{ id: 
 
 `Component` renders the pane's content. `icon` is shown in the header, the tab and the shelf. Jali's own icons are [Phosphor's](https://phosphoricons.com) regular weight, so a Phosphor icon (`@phosphor-icons/react`, the set Chakni uses) matches them; any component that takes `size` works. Without one, Jali draws a plain square.
 
-Two more options:
+More options:
 
 - `holdWhileResizing: true` keeps the content as it is while a divider is dragged, and reflows it once on release. Use it for long lists and grids.
 - `inRecent: false` keeps the kind out of Recent. It can also be a function of the params.
@@ -107,13 +112,21 @@ The component, `title` and the other options get `{ id: number; tab?: "thread" |
 Declare the params first, and type the component from them with `PaneProps<typeof …>`. The orders file below does this:
 
 ```tsx
+import { oneOf, optional } from "jali";
+import { definePane, type PaneProps } from "jali/react";
+
 const orderParams = { id: Number, tab: optional(oneOf("summary", "history")) };
 
 function OrderDetail({ params }: PaneProps<typeof orderParams>) {
   // params is { id: number; tab?: "summary" | "history" }
+  return <h3>Order {params.id}</h3>;
 }
 
-export const orderKind = definePane("order", { params: orderParams, /* ... */ Component: OrderDetail });
+export const orderKind = definePane("order", {
+  params: orderParams,
+  title: ({ id }) => `Order ${id}`,
+  Component: OrderDetail,
+});
 ```
 
 `PaneProps<{ id: number }>`, with the params' type written out, still works. `ParamsOf<typeof orderParams>` is the params' type alone.
@@ -139,7 +152,7 @@ Jali passes these to `Component`:
 | `params` | What to show, typed by the kind's `params`. |
 | `node` | The pane in the layout, with the full ref as `node.ref`. In the peek sheet it is a node that is not in the layout. |
 | `paused` | True while the pane is hidden: behind a tab, tucked, folded, or behind a maximised pane. |
-| `focused` | True while this pane has the workspace's focus. |
+| `focused` | True while this pane has focus. |
 | `inPeek` | True when rendered in the peek sheet rather than a pane. |
 | `openBeside(ref)` | Open an object beside this pane. Focus stays here. A pane this one opened earlier for the same kind shows the new object instead. |
 | `openHere(ref)` | Show another object in this same pane. If it is open elsewhere, that pane is focused instead. |
@@ -159,7 +172,7 @@ That box is also the pane's scroller (`overflow: auto`). Content taller than the
 
 ## What a pane reports
 
-Three hooks tell the workspace about the pane they are called in:
+Three hooks tell Jali about the pane they are called in:
 
 - `useActivity("loading")` shows `"loading"`, `"working"`, `"live"`, `"needs-you"`, `"error"` or `"idle"` in the header, tab and shelf. Use `"working"` for work the person waits on, and `"live"` for work that is meant to go on, such as a recording or playback: it shows a slowly breathing dot, not a spinner, and reads "Live".
 - `useUnsaved(dirty && "an unsaved note")` reports work the person would lose.
@@ -172,6 +185,10 @@ The last two are covered in [Unsaved work and pane state](unsaved-work-and-pane-
 A control that acts on the whole pane, such as Add, Refresh or a view switch, can sit in the pane's header rather than in a toolbar of your own. Call `useHeaderActions` with the controls, and Jali places them after the title and Following / Kept, before its own buttons:
 
 ```tsx
+import { useCommands, useHeaderActions } from "jali/react";
+import { PlusIcon } from "@phosphor-icons/react";
+import { NoteList, useAddNote } from "./notes";
+
 function Notes() {
   const add = useAddNote();
   useCommands([{ id: "add", title: "Add a note", keys: "N", run: add }]);
@@ -195,9 +212,14 @@ Each pane's component renders inside its own error boundary and its own Suspense
 **When a component throws,** that pane shows what failed, with a Retry button and a Close button. The layout keeps its shape. Retry mounts the component again, and it is also in ⌘K while the pane is focused. The pane's activity reads `"error"`. Showing another object in the pane clears the failure. Pass `onPaneError` to `createJali` to send the error to your reporting; by default it is logged in development.
 
 ```ts
+import { createJali } from "jali";
+import { orderKinds, presets } from "./panes";
+import { telemetry } from "./telemetry";
+
 const jali = createJali({
   panes: orderKinds,
-  onPaneError: (error, { pane, ref }) => reportError(error, { pane, kind: ref.kind }),
+  presets,
+  onPaneError: (error, { pane, ref }) => telemetry.report(error, { pane, kind: ref.kind }),
 });
 ```
 
@@ -205,14 +227,23 @@ const jali = createJali({
 
 **When the object isn't there,** show it in the kind's own way. A ref whose params Jali can't read (a required one missing, a value of the wrong type, from a layout in code, a saved layout or an action) never reaches `Component`: Jali shows a message naming the param. Give the kind a `Missing` component to show your own instead. It gets the pane's props, with the params as they came, `problems` (what Jali couldn't read) and `close`, so it can explain and offer a way on, such as a button that shows a list in the pane with `openHere`. A link that holds such a ref is refused as broken before it opens anything.
 
-Params that read can still name nothing: a session that was deleted, an order from another account. Render the same component from `Component`, with no problems, so both cases look alike:
+Params that read can still name nothing: a session that was deleted, an order from another account. Render the same component from `Component`, with no problems, so both cases look alike. In the peek sheet, which has no pane of its own, `openHere` is refused, so offer `close` there:
 
 ```tsx
-function NoSession({ problems, openHere }: MissingProps) {
+import { definePane, useJali, type MissingProps, type PaneProps } from "jali/react";
+import { Session, library, useSession } from "./sessions";
+
+const sessionParams = { id: String };
+
+function NoSession({ problems, inPeek, openHere, close }: MissingProps) {
   return (
     <div role="status">
       <p>{problems.length ? "This link can't name a session." : "This session is gone."}</p>
-      <button onClick={() => openHere(library({}))}>Show the library</button>
+      {inPeek ? (
+        <button onClick={close}>Close</button>
+      ) : (
+        <button onClick={() => openHere(library())}>Show the library</button>
+      )}
     </div>
   );
 }
@@ -220,8 +251,11 @@ function NoSession({ problems, openHere }: MissingProps) {
 function SessionView(props: PaneProps<typeof sessionParams>) {
   const jali = useJali();
   const session = useSession(props.params.id);
-  if (!session)
-    return <NoSession {...props} problems={[]} close={() => jali.actions.close(props.node.id)} />;
+  if (!session) {
+    // In the peek sheet, close the peek; in a pane, close that pane.
+    const close = () => (props.inPeek ? jali.actions.closePeek() : jali.actions.close(props.node.id));
+    return <NoSession {...props} problems={[]} close={() => void close()} />;
+  }
   return <Session session={session} />;
 }
 
@@ -233,7 +267,7 @@ export const session = definePane("session", {
 });
 ```
 
-**To name a pane from its data,** call `useTitle(name)` in the pane. "Ada Okafor" then replaces "Customer 7" in the header, the tab, the shelf, ⌘K and announcements. The kind's `title` comes back when the component unmounts, when the pane shows another object, or when you pass `null`. The title is not saved, and the peek sheet always uses the kind's `title`.
+**To name a pane from its data,** call `useTitle(name)` in the pane. "Ada Okafor" then replaces "Customer 7" in the header, the tab, the shelf, ⌘K and announcements. The kind's `title` comes back when the component unmounts, when the pane shows another object, or when you pass `null`. The title is not saved. In the peek sheet, the sheet's own content's `useTitle` names it first, then a pane showing the same object, then the kind's `title` ([`useTitle`](../reference/react.md#usetitle)).
 
 `src/panes/customer.tsx`
 
@@ -287,11 +321,19 @@ export const customerKind = definePane("customer", {
 Every pane in the layout stays mounted, even when it is folded or behind a tab, so its state survives. That also means its timers and subscriptions keep running. Stop live work while `paused` is true, and keep the state:
 
 ```tsx
-useEffect(() => {
-  if (paused) return;
-  const timer = setInterval(refresh, 30_000);
-  return () => clearInterval(timer);
-}, [paused]);
+import { useEffect } from "react";
+import { usePane } from "jali/react";
+import { refresh } from "./orders";
+
+function OrderStatus() {
+  const { paused } = usePane();
+  useEffect(() => {
+    if (paused) return;
+    const timer = setInterval(refresh, 30_000);
+    return () => clearInterval(timer);
+  }, [paused]);
+  return null;
+}
 ```
 
 With TanStack Query, pass `enabled: !paused` or `subscribed: !paused`.
@@ -300,7 +342,7 @@ Some work is meant to go on while nobody looks at it: a recording, a stream, mus
 
 ## Lists: select, peek and open beside
 
-A list pane tells the workspace where its cursor is with `select(ref)`. Call it as the cursor moves. Then:
+A list pane tells Jali where its cursor is with `select(ref)`. Call it as the cursor moves. Then:
 
 - the detail panes that follow this list show the item once the cursor rests, each one of its own kind if the kind has `follow`;
 - Space can call `peek(ref)` to show it in a sheet;
@@ -310,15 +352,18 @@ Report the selection before opening it, so the opened pane is linked to the list
 
 ## The launcher
 
-Split (⌘\\) and "New tab here" open a pane for the person to choose what goes in it: the workspace's launcher. Without one, the workspace offers neither.
+Split (⌘\\) and "New tab here" open a pane for the person to choose what goes in it: the launcher. Without one, Jali offers neither.
 
 Define it like any kind, usually with `scratch: true`, and pass it as `launcher`. It closes quietly, and its component reads what to offer with `useLauncher()`: `recent` (objects opened this session), `isOpen(ref)` and `titleOf(ref)`. Choosing calls `openHere(ref)`, which fills the pane.
 
-## Give the kinds to the workspace
+## Give the kinds to `createJali`
 
-Pass every kind to `createJali`, and the launcher on its own. Each workspace has its own kinds: nothing is shared between workspaces or tests.
+Pass every kind to `createJali`, and the launcher on its own. Each instance has its own kinds: nothing is shared between instances or tests.
 
 ```ts
+import { createJali } from "jali";
+import { launcher, orderKinds, presets } from "./panes";
+
 const jali = createJali({ panes: orderKinds, launcher, presets });
 ```
 
@@ -363,7 +408,7 @@ function OrderList({ select, peek, openBeside, paused }: PaneProps) {
     select(orderKind({ id: ORDERS[next]!.id })); // a following detail shows it once the cursor rests
   };
 
-  // Content first: claim the keys you use with preventDefault, and let the rest reach the workspace.
+  // Content first: claim the keys you use with preventDefault, and let the rest reach Jali.
   const onKeyDown = (e: KeyboardEvent) => {
     const order = orderKind({ id: ORDERS[at]!.id });
     if (e.metaKey || e.ctrlKey) return;
@@ -455,7 +500,7 @@ export const scratchNote = definePane("scratch", {
   Component: () => <textarea aria-label="Scratch note" />,
 });
 
-/** What Split and "New tab here" open until the person chooses: the workspace's `launcher`. */
+/** What Split and "New tab here" open until the person chooses: the `launcher`. */
 export const launcher = definePane("launcher", {
   title: "New pane",
   icon: PlusIcon,

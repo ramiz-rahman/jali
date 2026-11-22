@@ -8,7 +8,7 @@ Every word Jali shows or says can be replaced. That covers what it announces to 
 
 Pass `messages` to `createJali`. Give only the words you want to change. Everything else stays English.
 
-`src/workspace.ts`
+`src/jali.ts`
 
 ```tsx
 import { createJali } from "jali";
@@ -31,11 +31,11 @@ The words are grouped by area. The type lists every key, so your editor complete
 | Area | What it holds |
 |---|---|
 | `announcements` | What the live region says after a change, and why something did not happen |
-| `toasts` | The title and description of each toast (`jali.onToast`) |
+| `toasts` | The title and description of each toast (the `toast` event) |
 | `commands`, `commandGroups` | Command titles and the groups they are listed under, in ⌘K and `listCommands` |
-| `palette`, `chooser`, `confirmDiscard`, `settings` | The command palette, the chooser ("Add to tabs of…", and the words around your items in `jali.actions.choose`), "Discard unsaved changes?" and the settings panel |
+| `palette`, `chooser`, `confirmDiscard`, `settings` | The command palette, the chooser ("Add to tabs of…", and the words around your items in `jali.dialogs.choose`), "Discard unsaved changes?" and the settings panel |
 | `pane`, `tabs`, `shelf`, `peek` | A pane's header, its tabs and their menu, the shelf, the peek sheet |
-| `workspace`, `page`, `drop` | The panes region and its dividers, a curated page's bar and tabs, the label shown while dragging |
+| `workspace`, `page`, `drop` | The panes' region and its dividers, a curated page's bar and tabs, the label shown while dragging |
 | `keys` | Words in printed keys ("Ctrl", "Esc", "Alt-click"), and how a tooltip shows its shortcut |
 
 ## Write a full translation
@@ -88,7 +88,7 @@ A message that needs values is a function: a pane's title, a count, a direction,
 
 ## Pick the language
 
-The words belong to the workspace: choose them when you call `createJali`. To change language, make the workspace again with the new words.
+The words belong to the instance: choose them when you call `createJali`. To change language, make the instance again with the new words.
 
 `src/App.tsx`
 
@@ -98,7 +98,7 @@ import { JaliRoot } from "jali/react";
 import { orderKind, ordersKind } from "../../reference/kinds";
 import { fr } from "./french";
 
-// Pick the words when the workspace is made: they are part of it, like its keys.
+// Pick the words when the instance is made: they are part of it, like its keys.
 const jali = createJali({
   panes: [ordersKind, orderKind],
   layout: ordersKind(),
@@ -116,9 +116,9 @@ Some words come from your app, so Jali shows them as you give them:
 
 - Pane titles (`definePane`'s `title`) and preset labels.
 - A curated page's name, view labels, `itemNoun` and `viewers` (`definePage`).
-- The free workspace's name (`createJali({ name })`), when you give one.
+- The free layout's name (`createJali({ name })`), when you give one.
 - Your own commands and the commands a pane adds with `useCommands`.
 
 Two things are not translated. The Mac's key symbols (⌘, ⌥, ⇧, ↵, the arrows) are symbols, not words. Errors and console warnings meant for developers stay in English.
 
-`formatKeys` and `keyHint` print English key words unless you pass words as their third argument (`keyHint("Alt+Enter", platform, fr.keys)`). `jali.keymap.label(id)` and `jali.keymap.format(seq)` use the workspace's own words.
+`formatKeys` and `keyHint` print English key words unless you pass words as their third argument (`keyHint("Alt+Enter", platform, fr.keys)`). `jali.keymap.label(id)` and `jali.keymap.format(seq)` use the instance's own words.

@@ -1,0 +1,70 @@
+# Features
+
+Choose what Jali does beyond laying out panes, feature by feature, and see what each one adds to your bundle.
+
+Without any features, Jali lays out panes, fits them, folds them, moves focus, undoes, follows a list, and runs every command from its keys. Everything else is a feature: a value you pass in `createJali({ features })`, imported from its own entry. An app ships only the features it imports, their words included.
+
+```ts
+import { createJali } from "jali";
+import { urlSync } from "jali/url";
+import { palette } from "jali/palette";
+
+const jali = createJali({ panes, layout, features: [urlSync(), palette()] });
+```
+
+For Jali's usual set in one line, use `defaultFeatures()`:
+
+```ts
+import { createJali } from "jali";
+import { defaultFeatures } from "jali/features";
+import { rename } from "jali/rename";
+import { saveName } from "./names";
+
+const jali = createJali({
+  panes,
+  layout,
+  features: [...defaultFeatures(), rename({ run: ({ ref }, text) => saveName(ref, text) })],
+});
+```
+
+A feature given again takes the earlier one's place, so `[...defaultFeatures(), urlSync({ location })]` keeps the defaults with the address in a router's hands.
+
+## Every feature
+
+The sizes are what each feature adds to the floor (one kind of pane, a starting layout, no features), gzipped, in a production build. They come from `pnpm size` in Jali's repo (`tooling/size.mjs`), which measures every feature on its own and fails when one grows past its budget.
+
+| Feature | Import | What the person gets | Adds (gzipped) | In `defaultFeatures()` |
+|---|---|---|---|---|
+| `urlSync()` | `jali/url` | The layout in the address: links reopen it, Back and Forward step through it, a reload keeps it | 2.7 KB | Yes |
+| `palette()` | `jali/palette` | The ⌘K command palette | 1.1 KB | Yes |
+| `settings()` | `jali/settings` | The settings panel: theme, centre drop, pane cap, keys | 1.3 KB | Yes |
+| `chooser()` | `jali/chooser` | "Add to tabs of…", and `jali.dialogs.choose` for your own commands | 1.5 KB | Yes |
+| `pressed()` | `jali/pressed` | `data-pressed` on Jali's controls while they are held, for a theme that draws it | 0.4 KB | Yes |
+| `rename({ run })` | `jali/rename` | Renaming a pane in place: double-click or F2 on a tab | 0.5 KB | No: it needs your `run` |
+| `popOut()` | `jali/pop-out` | A pane in its own floating window (Chrome and Edge on desktop) | 1.2 KB | No |
+| `defaultFeatures()` | `jali/features` | The first five together | 6.2 KB | |
+
+A curated page is not a feature but a value you pass as `createJali({ page })`, made with `definePage` from `jali/page`. It adds about 6.0 KB, and an app without one ships none of it.
+
+The floor itself is 51.9 KB of core, 23.5 KB of React parts and 8.3 KB of styles. Without React, the instance alone is 46.4 KB; the layout tree alone (`row`, `column` and the `layout` namespace) is 10.3 KB. These are the numbers of 22 Nov 2026; the size gate keeps them from growing unnoticed.
+
+## Without a feature
+
+Leaving a feature out removes what it draws and what it adds to ⌘K, and refuses what asks for it, with the reason `"unavailable"`:
+
+- **No `urlSync()`:** Jali leaves the address alone. Back and Forward belong to your app, and a reload opens the starting layout. Your own writer still works through `createJali({ url })`.
+- **No `palette()`:** no palette, and ⌘K is your app's, unless `keyboard.keymap` binds `"palette.toggle"`. `jali.dialogs.openPalette()` is refused. Your own menu can list Jali's commands with `useJaliCommands()`.
+- **No `settings()`:** no settings panel, and "Open settings" is not in ⌘K. `jali.dialogs.openSettings()` is refused. Pass `createJali({ settings })` for the first settings a person gets.
+- **No `chooser()`:** "Add to tabs of…" is not offered, and `jali.dialogs.choose()` is refused.
+- **No `rename()`:** nothing offers renaming, and `jali.actions.startRename()` is refused.
+- **No `popOut()`:** no Pop out button, menu item or command.
+- **No `pressed()`:** Jali's controls carry no `data-pressed`. Jali's own styles never read it.
+
+## What every app has
+
+No feature is needed for: the layout and fitting, focus and F6, undo, following a list, the keyboard and its commands, tabs and their menus, the shelf, peek, the phone layout (one pane at a time, and two stacked), rows that scroll sideways, maximise and full screen. All of their words are in every app.
+
+## Next
+
+- [Features reference](../reference/features.md): each feature's options.
+- [Keep the layout in the URL](url-and-routers.md): `urlSync()` in depth.

@@ -1,0 +1,145 @@
+# Troubleshooting and FAQ
+
+Fixes for the problems people meet first, Jali's development warnings, and answers to common questions.
+
+Each problem below starts with what you see, then says why and how to fix it. Jali's own messages start with `Jali:`, and the development-only ones are left out of production builds.
+
+## Nothing shows, or every pane is collapsed
+
+**You see:** an empty area, and in development `Jali: the panes measure 0 pixels high, so every pane is collapsed`.
+
+**Why:** Jali fills the box you give it, and the box has no height.
+
+**Fix:** give `<JaliRoot>` (or the element around `<JaliView />`) a height: `height: 100%` with `html`, `body` and `#root` at full height, `100dvh`, or a grid or flex cell that has one. See the CSS in the [Quickstart](../get-started/quickstart.md) and [Build your own chrome](custom-chrome.md).
+
+## "Invalid hook call"
+
+**Why:** the app bundles two copies of React. This happens when Jali is linked from a checkout or a monorepo and finds its own React beside its source.
+
+**Fix:** with Vite, add `resolve: { dedupe: ["react", "react-dom"] }`; with webpack, alias `react` and `react-dom` to your app's copy. See [Installation](../get-started/installation.md#linked-or-in-a-monorepo).
+
+## Jali's styles are missing, or win over mine
+
+**Why:** the CSS cascade layers are in the wrong order, or `jali/styles.css` isn't imported.
+
+**Fix:** import `jali/styles.css` once, and name the layer order before any of your styles: `@layer base, jali;` (with Tailwind 4, `@layer theme, base, jali, components, utilities;`). Styles in a later layer, or in no layer, win without `!important`. See [Theming](theming.md).
+
+## ⌘K does nothing
+
+**Why:** the palette is a feature, and it isn't on.
+
+**Fix:** add `palette()` from `jali/palette` to `features`, or use `defaultFeatures()`. If your app has its own command menu, leave it out on purpose and list Jali's commands with `useJaliCommands()`.
+
+## The address doesn't change, and links don't reopen the layout
+
+**Why:** the address is the `urlSync()` feature, and it isn't on.
+
+**Fix:** add `urlSync()` from `jali/url` to `features` (it is in `defaultFeatures()`). With a router, pass `urlSync({ location })`: see [Keep the layout in the URL](url-and-routers.md).
+
+## An action returns `{ ok: false, reason: "unavailable" }`
+
+**Why:** what it needs isn't there: the feature (`jali.dialogs.openPalette()` without `palette()`, `openSettings()` without `settings()`, `choose()` without `chooser()`, `startRename()` without `rename()`), a launcher (Split, New tab), a curated page, or room (a phone shows one pane at a time).
+
+**Fix:** add what's missing. Every refusal reason is listed under [`RefusalReason`](../reference/core/types.md#refusalreason).
+
+## Jali's keys don't work inside my pane
+
+**Why:** your content stops every key from bubbling (`stopPropagation` on a container), so F6, ⌘K and Jali's commands never reach Jali.
+
+**Fix:** call `event.preventDefault()` only on the keys your content handles, and let the rest bubble. An editor that needs every key marks itself `data-pane-keys="content"`. See [Commands and keys](commands-and-keys.md#content-first).
+
+## With two instances, keys act on the wrong one
+
+**Fix:** give each `keyboard: { scope: "local" }`, its own `id` and `label`, and a `prefix` for one of their `urlSync()`. See [Two instances on one page](two-workspaces.md).
+
+## Every pane is folded into tabs in my tests
+
+**Why:** jsdom lays nothing out, so a rendered root measures 0 by 0.
+
+**Fix:** test rules without rendering, with `createTestJali` (1440 by 900 by default). When you do render, give the root element a `clientWidth` and `clientHeight`. See [Test your layouts](testing.md).
+
+## A linked Jali doesn't pick up my changes
+
+**Why:** a linked package resolves to its built `dist/`, which doesn't rebuild when its source changes.
+
+**Fix:** rebuild it, or resolve its source with the `"source"` condition. See [Installation](../get-started/installation.md#linked-or-in-a-monorepo).
+
+## A hydration mismatch after server rendering
+
+**Why:** the server's first render and the browser's differ: another address, another size, or other inputs.
+
+**Fix:** give the server `urlSync({ location: memoryLocation(search) })` with the request's search, pass the same `size` on both sides, and make the instance from the same kinds and layout. See [Server rendering and hydration](../get-started/installation.md#server-rendering-and-hydration).
+
+## `createJali` throws "no layout to start from can be shown"
+
+**Why:** it was given no `layout`, no `presets` and no `page`, or none of them can be shown: a ref of a kind not in `panes`, or a param its kind can't read. The first reason follows the colon.
+
+**Fix:** pass a starting `layout` (or `presets`), made with your kinds' own calls (`order({ id: 7 })`).
+
+## Development warnings
+
+In development, Jali warns once for each mistake it can catch early. A production build (`NODE_ENV=production`) drops these checks and their words.
+
+### Options Jali doesn't know
+
+`createJali`, `definePane` and `definePage` warn for each option they don't know, so an options object built at run time can't silently fall back to defaults. Each starts `Jali: <function> has no option "<name>"`, and ends with where the option went, or `, and ignores it` for any other unknown option:
+
+| Option given | Warning ends with |
+|---|---|
+| `createJali({ keys })` | `keys moved to keyboard.scope ("page", or "local" for "scoped")` |
+| `createJali({ keymap })` | `keymap moved to keyboard.keymap` |
+| `createJali({ keyPrefix })` | `keyPrefix moved to keyboard.prefix` |
+| `createJali({ reservedKeys })` | `reservedKeys moved to keyboard.reserved` |
+| `createJali({ keymapOptions })` | `keymapOptions moved to keyboard (keyboard.platform, keyboard.onInvalid, keyboard.words)` |
+| `createJali({ palette })` | `palette is a feature: features: [palette()] from "jali/palette" (leave it out for palette: false)` |
+| `createJali({ rename })` | `rename is a feature: features: [rename({ can, run })] from "jali/rename"` |
+| `createJali({ url })`, not a writer | `url is a feature: features: [urlSync({ location, prefix, sizes })] from "jali/url" (url takes only a writer of your own)` |
+| `definePane({ minWidth })`, `maxWidth`, `comfortableWidth` | `minWidth moved to width: { min }` (and `{ max }`, `{ comfortable }`) |
+| `definePane({ minHeight })`, `maxHeight`, `comfortableHeight` | `minHeight moved to height: { min }` (and `{ max }`, `{ comfortable }`) |
+
+### Other warnings
+
+| Message starts with | What to do |
+|---|---|
+| `Jali: two Jali roots on this page share the id` | Give each instance its own `createJali({ id })` |
+| `Jali: two workspaces on this page are both named` | Give each its own `label` (or `aria-label`) |
+| `Jali: kind "…" is defined twice` | Each kind name once in `panes` |
+| `Jali: two presets have the id` | Give each preset its own `id` |
+| `Jali: there is no preset` | `preset` must name one of `presets` |
+| `Jali: usePane(…) is called in a pane of kind` | Call `usePane(kind)` with the kind of the pane it renders in, or `usePane()` |
+| `Jali: this page has no parts to render it` | Make the page with `definePage` from `jali/page` |
+| `Jali: pane … failed` | A pane's component threw; pass `onPaneError` to report it |
+
+## FAQ
+
+### How big is it?
+
+With React and the default features, about 90 KB gzipped: 55.4 KB of core, 26.2 KB of React parts and 8.3 KB of styles. The floor, with no features, is about 84 KB. Each feature's cost is on [Features](features.md).
+
+### Does it work with server rendering and Next.js?
+
+Yes. `jali/react` is marked `"use client"`, and Jali renders on the server and hydrates without a mismatch when both sides get the same inputs. See [Installation](../get-started/installation.md#nextjs-app-router).
+
+### Can panes float and overlap?
+
+No. Panes tile in rows, columns and tabs. One pane at a time can pop out into a window of its own with `popOut()` (Chrome and Edge on desktop).
+
+### Does it work with Vue, Svelte or Solid?
+
+Not yet. The core (`jali`) has no framework, and `jali/adapter` holds what an adapter needs, but only the React adapter exists. `jali/adapter` may change in any minor version.
+
+### React Native?
+
+No. Jali renders to the DOM.
+
+### How do I save a person's layout on my server?
+
+Listen for the `layout` event with `source: "action"`, save in order, and give it back as `layout`, or per preset with `saved`. See [Start from presets](presets.md#save-a-persons-layout).
+
+### What licence is it under?
+
+Apache-2.0, as the package's `package.json` says.
+
+### Which versions are stable?
+
+Jali hasn't reached 1.0 yet. The public entries (`jali`, `jali/react`, the feature entries, `jali/page`, `jali/testing` and `jali/agent`) are the API being stabilised for 1.0. `jali/adapter`, for framework adapters, is outside that promise: it may change in any minor version.

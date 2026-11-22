@@ -1,8 +1,8 @@
 # Following a list
 
-A list reports its selection, and a detail opened from it follows that selection, in place, until the person pins it.
+A list reports its selection, and a detail opened from it follows that selection, in place, until the person keeps it.
 
-The most common shape in a workspace is a list and its detail: tickets on the left, the selected ticket on the right. The person moves down the list and expects the detail to keep up. Jali does this for you, as long as the list says what is selected.
+The most common shape in a layout is a list and its detail: tickets on the left, the selected ticket on the right. The person moves down the list and expects the detail to keep up. Jali does this for you, as long as the list says what is selected.
 
 *Live demo on the site: Select rows in the list with J and K: the detail beside it follows, in place.*
 
@@ -18,11 +18,12 @@ import { definePane, type PaneProps } from "jali/react";
 import { tickets } from "./data";
 import { ticket } from "./ticket";
 
-function TicketList({ select, peek, openBeside }: PaneProps) {
+function TicketList({ node, select, peek, openBeside }: PaneProps) {
   const [index, setIndex] = useState<number | null>(null);
   const current = index === null ? undefined : tickets[index];
+  const optionId = (id: number) => `${node.id}-ticket-${id}`; // unique per pane
 
-  // Move the cursor and tell the workspace what is selected. A following detail shows it once it rests.
+  // Move the cursor and tell Jali what is selected. A following detail shows it once it rests.
   const selectAt = (i: number) => {
     const next = Math.max(0, Math.min(tickets.length - 1, i));
     setIndex(next);
@@ -35,20 +36,28 @@ function TicketList({ select, peek, openBeside }: PaneProps) {
   };
 
   const onKeyDown = (e: KeyboardEvent) => {
-    if (e.metaKey || e.ctrlKey) return; // ⌘K and the workspace's keys bubble on
+    if (e.metaKey || e.ctrlKey) return; // ⌘K and Jali's keys bubble on
     if ((e.key === "j" || e.key === "ArrowDown") && !e.altKey) selectAt((index ?? -1) + 1);
     else if ((e.key === "k" || e.key === "ArrowUp") && !e.altKey) selectAt((index ?? 1) - 1);
     else if (e.key === " " && current) peek(ticket({ id: current.id }));
     else if (e.key === "Enter" && e.altKey && index !== null) openAt(index);
     else return; // not ours: let it bubble
-    e.preventDefault(); // claimed: the workspace leaves this key alone
+    e.preventDefault(); // claimed: Jali leaves this key alone
   };
 
   return (
-    <ul role="listbox" aria-label="Tickets" tabIndex={0} onKeyDown={onKeyDown}>
+    // One tab stop; the cursor is the active option, which screen readers follow (aria-activedescendant).
+    <ul
+      role="listbox"
+      aria-label="Tickets"
+      tabIndex={0}
+      aria-activedescendant={current ? optionId(current.id) : undefined}
+      onKeyDown={onKeyDown}
+    >
       {tickets.map((t, i) => (
         <li
           key={t.id}
+          id={optionId(t.id)}
           role="option"
           aria-selected={i === index}
           onClick={() => selectAt(i)}
@@ -69,7 +78,7 @@ export const ticketList = definePane("tickets", {
 });
 ```
 
-Opening a row selects it first. That order matters: when `openBeside` is called with the list's selected item, the workspace knows the new pane came from the selection.
+Opening a row selects it first. That order matters: when `openBeside` is called with the list's selected item, Jali knows the new pane came from the selection.
 
 ## The following detail
 
@@ -86,6 +95,9 @@ Focus stays in the list the whole time, so the person keeps moving with J and K.
 One list can drive details of several kinds. A watchlist selects a quote, and beside it a chart, an order book and the news follow the same instrument. A follower of the selected object's kind shows that object. A follower of another kind shows what its kind says it shows for it, with `follow`:
 
 ```tsx filename="src/panes/chart.tsx"
+import { definePane } from "jali/react";
+import { Chart } from "./chart-view";
+
 export const chart = definePane("chart", {
   params: { symbol: String },
   title: ({ symbol }) => `${symbol} chart`,
@@ -109,7 +121,7 @@ The detail changes once the selection has rested for 150ms. Holding J to run dow
 
 Opening a row (⌥↵, or a row's open button) while that wait is running shows the row in the detail at once.
 
-## Pinning
+## Keeping a detail
 
 "Keep" is what other tools call pinning a follower; in Jali, "pin" is for tabs.
 
@@ -130,6 +142,9 @@ With no following detail, or one that is out of sight (folded, behind a tab, tuc
 A list with no selection yet, beside a follower that already shows something, would otherwise start on its first row and move the follower straight away. Say what the list selects with `selects`, and it starts on what its follower of that kind shows instead:
 
 ```tsx
+import { definePane } from "jali/react";
+import { Watchlist } from "./watchlist-view";
+
 const watchlist = definePane("watchlist", {
   title: "Watchlist",
   // It reports select(quote({ symbol })): with no selection, it starts on what its following quote shows.
@@ -138,7 +153,7 @@ const watchlist = definePane("watchlist", {
 });
 ```
 
-This happens when the workspace starts, when a link arrives, and after a preset or `setLayout`, in the same change: nothing moves and there is no step to undo. Only a follower of the kind the list selects counts. A follower of another kind, such as a chart beside a watchlist of quotes, shows what its `follow` gives for a selection, and that can't be turned back into the selection, so the list starts on nothing. In a chain, the first list starts first, so a list that follows it starts from the layout as the first one leaves it. A list that already has a selection agrees with its followers instead ([A new layout beside a list](#a-new-layout-beside-a-list)).
+This happens when the instance starts, when a link arrives, and after a preset or `setLayout`, in the same change: nothing moves and there is no step to undo. Only a follower of the kind the list selects counts. A follower of another kind, such as a chart beside a watchlist of quotes, shows what its `follow` gives for a selection, and that can't be turned back into the selection, so the list starts on nothing. In a chain, the first list starts first, so a list that follows it starts from the layout as the first one leaves it. A list that already has a selection agrees with its followers instead ([A new layout beside a list](#a-new-layout-beside-a-list)).
 
 Read the selection back to put the cursor there, `useJaliState((s) => s.selection[node.id])`, and report a selection of your own only when there is none (no follower of that kind).
 
@@ -151,7 +166,7 @@ A list keeps its selection through a preset or `setLayout` when it is in the new
 
 A layout that arrives from outside (Back, Forward, a link, a reload) agrees too, on the list's side only: when it gives the list a follower of the selected item's kind that shows something else, the selection becomes what it shows. Its followers stay exactly as the link has them, and nothing is announced.
 
-A list that keeps its cursor only in its own state won't see this. To move the cursor with it, read the selection back from the workspace, `useJaliState((s) => s.selection[node.id])`, and put the cursor on that item. A kept detail keeps the object the layout gives it. A follower with unsaved work does too: if the layout shows another object in it, the person is asked first, as for any change that would lose the work.
+A list that keeps its cursor only in its own state won't see this. To move the cursor with it, read the selection back from Jali, `useJaliState((s) => s.selection[node.id])`, and put the cursor on that item. A kept detail keeps the object the layout gives it. A follower with unsaved work does too: if the layout shows another object in it, the person is asked first, as for any change that would lose the work.
 
 ## Not in the current results
 
@@ -163,7 +178,7 @@ A list should keep its selection on the same item, not the same position, when i
 
 ## Unsaved work in the detail
 
-If the following detail has [unsaved work](../get-started/key-concepts.md#unsaved-work), it stays on its object while the list moves on, and the workspace says why: "The detail stays put: it has an unsaved reply". Asking on every row would be worse than a detail that waits.
+If the following detail has [unsaved work](../get-started/key-concepts.md#unsaved-work), it stays on its object while the list moves on, and Jali says why: "The detail stays put: it has an unsaved reply". Asking on every row would be worse than a detail that waits.
 
 Only the detail with unsaved work is held. When a list has several followers, the others move as usual, in the same change. The announcement is about the one that stayed.
 

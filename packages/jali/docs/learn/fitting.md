@@ -2,7 +2,7 @@
 
 Each kind says how narrow it can go, and when the panes don't fit, Jali folds them into tabs one at a time and brings them back in reverse as room returns.
 
-A workspace has to work in a 1920px window, a 1280px laptop and a phone, with whatever panes the person opened. Jali never squeezes a pane below the width its content works at. When there is not enough room, it folds a pane into a tab of a neighbour instead, and brings it back when there is.
+A layout has to work in a 1920px window, a 1280px laptop and a phone, with whatever panes the person opened. Jali never squeezes a tiled pane below the width its content works at. When there is not enough room, it folds a pane into a tab of a neighbour instead, and brings it back when there is.
 
 *Live demo on the site: Drag the frame's edge. Panes fold into tabs one at a time as it narrows, and return in reverse as it widens.*
 
@@ -47,7 +47,7 @@ export const ticket = definePane("ticket", {
 - **`width.comfortable`** is where spare room takes the pane first. It defaults to the minimum.
 - **`width.max`** is the widest the content usefully uses. It is soft: spare room past it goes to neighbours that can still use it, and only when every neighbour is at its maximum does the pane grow on. A split never leaves an empty gap. Leave it out for content that can use any width, such as tables and charts.
 
-Heights have the same three, down a column: `height.min` decides folding as `width.min` does (Jali checks both after every fold), and `height.comfortable` and `height.max` say where spare height goes. A timeline that is right at about 200 pixels says `height: { min: 160, comfortable: 200, max: 240 }`, and the pane above it takes the rest of a tall window, with no weights to tune. Across a row, a row is as tall as the tallest its panes can use; a tab group is measured as its first tab, as for widths.
+Heights have the same three, down a column: `height.min` decides folding as `width.min` does (Jali checks both after every fold), and `height.comfortable` and `height.max` say where spare height goes. A timeline that is right at about 200 pixels says `height: { min: 160, comfortable: 200, max: 240 }`, and the pane above it takes the rest of a tall window, with no weights to tune. Across a row, a row is as tall as the tallest its panes can use; a tab group is as tall as its tallest minimum, and takes its comfortable and maximum heights from its home tab (the tab it started from).
 
 **Why a minimum, not a percentage:** a ticket at 200px is broken whatever the window. A width the content needs is a fact about the content, so the kind says it once, and every layout respects it.
 
@@ -112,27 +112,27 @@ On a curated page the opened pane is the shown tab instead, so the link the pers
 
 ## The pane cap
 
-Even with room, a workspace shows at most 8 panes at once by default. The person can change this in Settings, from 2 to 16. Past the cap, the oldest pane that is not kept, not focused and not a primary view becomes a tab. Every object stays open; only what is shown changes.
+Even with room, Jali shows at most 8 panes at once by default. The person can change this in Settings, from 2 to 16. Past the cap, the oldest pane that is not kept, not focused and not a primary view becomes a tab. Every object stays open; only what is shown changes.
 
 ## One pane is quiet
 
-The workspace's chrome grows only when there is something to arrange. While one pane is on screen, with or without tabs, it fills the workspace edge to edge, with no border or focus edge, and its header has no tuck or maximise. If it has tabs, each tab's × closes it, so the header has no close button either. Open a second pane and both get their edges and buttons back.
+Jali's chrome grows only when there is something to arrange. While one pane is on screen, with or without tabs, it fills the space edge to edge, with no border or focus edge, and its header has no tuck or maximise. If it has tabs, each tab's × closes it, so the header has no close button either. Open a second pane and both get their edges and buttons back.
 
 ## Maximise and full screen
 
-Maximise lets one pane cover the workspace, with the others kept behind it (⇧⌘↵, or the button in its header). Full screen goes further: the pane covers the whole screen, the browser's own bars included, for a chart, a document or a presentation. Its button sits beside Maximise; ⌘K has "Full screen pane, or exit full screen", and `jali.actions.toggleFullScreen(pane)` does it from your code. Escape, the button again, or leaving the browser's full screen puts everything back as it was. The pane is the browser's full-screen element, so nothing of your page covers it, whatever its z-index, and ⌘K, Jali's dialogs and the tab menus open inside it. Your own overlays, such as toasts, don't show until it leaves full screen.
+Maximise lets one pane cover the others, which are kept behind it (⇧⌘↵, or the button in its header). Full screen goes further: the pane covers the whole screen, the browser's own bars included, for a chart, a document or a presentation. Its button sits beside Maximise; ⌘K has "Full screen pane, or exit full screen", and `jali.actions.toggleFullScreen(pane)` does it from your code. Escape, the button again, or leaving the browser's full screen puts everything back as it was. The pane is the browser's full-screen element, so nothing of your page covers it, whatever its z-index, and ⌘K, Jali's dialogs and the tab menus open inside it. Your own overlays, such as toasts, don't show until it leaves full screen.
 
-Where the browser has no full screen, as on an iPhone, the pane is placed over the window instead. There, an element of yours around the workspace that is its own stacking context (a `transform`, a `filter`, `isolation: isolate`) keeps it inside that element.
+Where the browser has no full screen, as on an iPhone, the pane is placed over the window instead. There, an element of yours around Jali's root that is its own stacking context (a `transform`, a `filter`, `isolation: isolate`) keeps it inside that element.
 
-## Phones get a single view
+## Phones show one pane at a time
 
-On a phone, a workspace narrower than 600 pixels shows a single view: one pane fills the width, with a switcher at the top listing every pane (← and → move along it, Enter shows the pane). It does the same at any width when even one pane is too wide at its minimum, since folding can't help then. Other panes stay mounted, so their state survives. `createJali({ phone: { below } })` moves the line; `below: 0` keeps only the second rule.
+On a phone, where Jali's root is narrower than 600 pixels, it shows one pane at a time: one pane fills the width, with a switcher at the top listing every pane (← and → move along it, Enter shows the pane). It does the same at any width when even one pane is too wide at its minimum, since folding can't help then. Other panes stay mounted, so their state survives. In this mode a pane fills the width even when that is narrower than its minimum: there is nowhere else to put it. `createJali({ phone: { below } })` moves the line; `below: 0` keeps only the second rule.
 
 ### Two panes, stacked
 
 A list and its detail often work best together, even on a phone. With `createJali({ phone: { stack: true } })`, a portrait phone shows the focused pane together with the pane it was opened from, one above the other, instead of one at a time. The two share the height as a column does: half each, unless a kind gives a comfortable or maximum height, so a short timeline stays short above its list. A divider fills the 24 pixels between them, so it never covers either pane, and settles on a third, a half or two thirds of the height, by drag or arrow keys, and from then on the person's choice holds. The switcher marks both panes.
 
-Stacking happens only when both panes have room: the workspace at least 480 pixels tall, each pane at least 200 (`stackFloor`) and at least its kind's minimum height. It never stacks more than two. Held sideways, the phone is wide enough for the normal layout. While the on-screen keyboard is up, the pane you're typing in shows alone, so the keyboard doesn't cover it. A kind can stay out with `phone: { stack: false }`, or ask for its half with `phone: { place: "top" }`.
+Stacking happens only when both panes have room: Jali's root at least 480 pixels tall, each pane at least 200 (`stackFloor`) and at least its kind's minimum height. It never stacks more than two. Held sideways, the phone is wide enough for the normal layout. While the on-screen keyboard is up, the pane you're typing in shows alone, so the keyboard doesn't cover it. A kind can stay out with `phone: { stack: false }`, or ask for its half with `phone: { place: "top" }`.
 
 ### Folding screens
 

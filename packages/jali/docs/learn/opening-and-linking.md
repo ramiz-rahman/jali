@@ -2,7 +2,7 @@
 
 A pane opens other objects beside itself, in its own place, or in a peek, and Jali keeps a chain of links from filling the screen.
 
-A pane never builds the layout itself. It asks the workspace to show an object, with one of three functions it gets as props, and the workspace decides where it goes. That keeps each pane's code small, and links behave the same way in every pane.
+A pane never builds the layout itself. It asks Jali to show an object, with one of three functions it gets as props, and Jali decides where it goes. That keeps each pane's code small, and links behave the same way in every pane.
 
 `customer-tickets.tsx`
 
@@ -86,7 +86,7 @@ If the object is already open in another pane, that pane is focused instead, and
 
 ## Peek
 
-`peek(ref)` shows the object in a sheet over the right of the workspace, without adding a pane or changing the layout. `peek(null)` closes it. In a list, Space usually opens it; Esc closes it.
+`peek(ref)` shows the object in a sheet over the right of the panes, without adding a pane or changing the layout. `peek(null)` closes it. In a list, Space usually opens it; Esc closes it.
 
 From the sheet, **Open beside** closes the peek and opens the object beside the pane it was peeked from, and **Open full** makes it the only pane. While the sheet is open, moving the list's selection moves the peek with it.
 
@@ -106,17 +106,17 @@ On a [curated page](../get-started/key-concepts.md#curated-page), each object ap
 
 A link to an opened pane that is already on screen focuses that pane.
 
-In Single mode, and for a viewer who works in Single, a link opens as a peek instead. [Curated pages](curated-pages.md) explains why.
+In Single view, and for a viewer who works in Single view only (link mode `"peek"`), a link opens as a peek instead. [Curated pages](curated-pages.md) explains why.
 
-## What a free workspace does instead
+## What a free layout does instead
 
-In a workspace without a curated page, where the person builds the layout, each chain of links is its own. Opening the same customer from two different orders gives two customer panes, one beside each order. Each is part of its own chain of links, and the person may want them side by side.
+In a layout without a curated page, where the person builds the layout, each chain of links is its own. Opening the same customer from two different orders gives two customer panes, one beside each order. Each is part of its own chain of links, and the person may want them side by side.
 
 Within one chain, a link never makes a copy. When the object is already the pane the link is in, a pane it was opened from, or a pane it opened, that pane is shown instead and focus stays where it was: "Already open: Order 1". So a customer's link back to the order you came from goes to that order.
 
 What else stops copies is the plain-link rule above, and `openHere`, which focuses an object that is already open rather than showing it twice. A list's following detail never opens a second copy of a row either.
 
-## What the workspace says
+## What Jali says
 
 Every open is announced to screen readers, briefly:
 

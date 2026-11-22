@@ -2,14 +2,16 @@
 
 A layout is a tree of rows, columns, stacks and panes, with a size on every node, and notes beside it for what is hidden.
 
-Every workspace has one layout. It is a plain JSON tree, so it fits in the address and two of them can be compared. You write one with `row`, `column`, `tabs` and `pane`, which build the tree for you. Each live diagram on this page is a real workspace beside its own tree. Hover a node to see its pane, drag a divider to see the sizes change, and switch to JSON to see what goes in the link.
+Every instance has one layout. It is a plain JSON tree, so it fits in the address and two of them can be compared. You write one with `row`, `column`, `tabs` and `pane`, which build the tree for you. Each live diagram on this page is a real Jali layout beside its own tree. Hover a node to see its pane, drag a divider to see the sizes change, and switch to JSON to see what goes in the link.
 
 ## Panes are the leaves
 
 A [pane](../get-started/key-concepts.md#pane) node shows one [ref](../get-started/key-concepts.md#ref). It is always a leaf.
 
 ```ts
-{ id: "a", type: "pane", size: { weight: 1 }, ref: { kind: "note", params: { id: 1 } } }
+import type { PaneNode } from "jali";
+
+const node: PaneNode = { id: "a", type: "pane", size: { weight: 1 }, ref: { kind: "note", params: { id: 1 } } };
 ```
 
 The `id` names the node in the layout. Actions use it (`jali.actions.focus("a")`) and the address carries it. The builders name nodes after what they hold; give an `id` yourself when your code refers to a node.
@@ -77,7 +79,9 @@ Some panes are not shown in their own place. The layout keeps a note about each,
 - **hidden**: a curated page's views that are not on screen, with no slot and no tab.
 
 ```ts
-overlay: { tucks: [], folds: [], shown: {}, hidden: ["overview"] }
+import type { Overlay } from "jali";
+
+const overlay: Overlay = { tucks: [], folds: [], shown: {}, hidden: ["overview"] };
 ```
 
 The tree stays as it was. A fold, a tuck or a hide only adds a note, and undoing it removes the note. That is why a tucked pane goes back to its exact slot, and why widening the window brings folded panes back to where they were. `shown` records which tab is showing in each fold group, keyed by the group's home pane.

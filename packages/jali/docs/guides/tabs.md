@@ -6,9 +6,9 @@ When several panes share one place, they show as tabs. Most of what people expec
 
 *Live demo on the site: Real tabs, the first one pinned. Right-click a tab, or drag one along the strip.*
 
-The rest of this guide sets up a workspace of saved reports, where people name and pin their own reports:
+The rest of this guide sets up an app of saved reports, where people name and pin their own reports:
 
-`src/workspace.tsx`
+`src/jali.tsx`
 
 ```tsx
 import { useSyncExternalStore } from "react";
@@ -92,7 +92,7 @@ function exportCsv(id: number) {
 
 People drag a tab along its own strip. A line shows where it will land, and dropping puts it there. While the pointer is over the strip, the drop zones for splitting stay hidden, so a short drag never splits the pane by accident. Dropping a pane in the middle of another still adds it as the last tab.
 
-From the keyboard, ⌘K ⇧PageUp and ⌘K ⇧PageDown move the focused tab one place. On Windows and Linux it's Ctrl+K Shift+PageUp and Ctrl+K Shift+PageDown. Screen readers hear the new place: "Orders moved to position 2 of 4". At the end of the strip, the workspace says the tab is already last. Right to left, "left" is still the screen's left, which is later in the strip.
+From the keyboard, ⌘K ⇧PageUp and ⌘K ⇧PageDown move the focused tab one place. On Windows and Linux it's Ctrl+K Shift+PageUp and Ctrl+K Shift+PageDown. Screen readers hear the new place: "Orders moved to position 2 of 4". At the end of the strip, Jali says the tab is already last. Right to left, "left" is still the screen's left, which is later in the strip.
 
 From your code, use `jali.actions.moveTab(pane, index)`. The index starts at 0, and a number past the end means the end. The group keeps its place, its size and the tab it shows.
 
@@ -106,7 +106,7 @@ Right-click a tab, or focus it and press Shift+F10 or the menu key. A pane on it
 - Rename…, when you've set up `rename` and it allows this pane.
 - Pin tab, a checkbox.
 - Move tab left, Move tab right, and Move out of tabs.
-- Split right and Split down, when the workspace has a `launcher` and isn't showing a curated page.
+- Split right and Split down, when there is a `launcher` and no curated page is open.
 - Maximise or Restore, Full screen or Exit full screen, and Pop out (where the browser can and the app turned it on).
 - Tuck, on a pane without tabs.
 
@@ -114,16 +114,22 @@ Close other tabs and Close tabs to the right are one change. `beforeClose` is as
 
 ### Add your own items
 
-Give `tabMenu` a function of the tab's pane. It's called each time a menu opens, and its items come after Jali's, below a line:
+Give `createJali` a `tabMenu`: a function of the tab's pane. It's called each time a menu opens, and its items come after Jali's, below a line:
 
 ```tsx
-tabMenu: (pane) =>
-  pane.ref.kind === "report"
-    ? [
-        { id: "report.export", title: "Export as CSV", run: () => exportCsv(pane.ref) },
-        { id: "report.share", title: "Share", run: share, disabled: "Save the report first" },
-      ]
-    : undefined,
+import { createJali } from "jali";
+
+const jali = createJali({
+  panes,
+  layout,
+  tabMenu: (pane) =>
+    pane.ref.kind === "report"
+      ? [
+          { id: "report.export", title: "Export as CSV", run: () => exportCsv(pane.ref) },
+          { id: "report.share", title: "Share", run: share, disabled: "Save the report first" },
+        ]
+      : undefined,
+});
 ```
 
 - **`checked`** makes the item a checkbox, for a setting that's on or off.
@@ -132,7 +138,7 @@ tabMenu: (pane) =>
 
 Return `undefined` or `[]` for a pane with no items of its own. Choosing an item closes the menu and puts focus back on the tab before `run` is called, so an item that moves focus somewhere else wins. Esc closes the menu and returns focus to the tab.
 
-The function is for the whole workspace, not one per kind, because kinds often share their items. Branch on `pane.ref.kind` when they don't.
+The function is for every tab, not one per kind, because kinds often share their items. Branch on `pane.ref.kind` when they don't.
 
 ## Pin tabs
 
@@ -156,13 +162,22 @@ A tab is as wide as its title, up to `--jali-tab-max-width` (default 20rem), and
 
 ## Rename in place
 
-Jali doesn't store names. Your app saves the name, and the pane shows it, usually with [`useTitle`](../reference/react.md#useTitle). Give `rename` a `run` function to turn renaming on:
+Jali doesn't store names. Your app saves the name, and the pane shows it, usually with [`useTitle`](../reference/react.md#usetitle). Turn renaming on with the `rename()` feature, from `jali/rename`, and give it a `run` function:
 
 ```tsx
-rename: {
-  can: (pane) => pane.ref.kind === "report",
-  run: (pane, text) => saveReportName(pane.ref, text),
-},
+import { createJali } from "jali";
+import { rename } from "jali/rename";
+
+const jali = createJali({
+  panes,
+  layout,
+  features: [
+    rename({
+      can: ({ ref }) => ref.kind === "report",
+      run: ({ ref }, text) => saveReportName(ref, text),
+    }),
+  ],
+});
 ```
 
 Then a double-click or F2 on a tab opens a text field in its place, with the name selected. When a pane is on its own and has no tab, the field opens in its title. The tab's menu also has Rename….
@@ -172,7 +187,7 @@ Then a double-click or F2 on a tab opens a text field in its place, with the nam
 - **`run` returns `false`**, throws or rejects: the field stays open with the text, marked invalid, and screen readers hear it. The person can fix the name or press Esc.
 - **`run` returns a promise:** the field shows it's busy until the promise settles.
 
-`can` says which panes can be renamed. Leave it out and every pane can. Without `rename`, nothing offers renaming.
+`can` says which panes can be renamed. Leave it out and every pane can. Without `rename()`, nothing offers renaming.
 
 F2 is the rename key in file managers. If something inside your pane uses F2 too, such as a grid that edits a cell, it gets the key first. If your app uses F2 for something else everywhere, list it in `keyboard.reserved`, and call `jali.actions.startRename(pane)` from your own command instead.
 

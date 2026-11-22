@@ -2,25 +2,24 @@
 
 Build the smallest Jali app, two notes side by side, then open a third from a button.
 
-This page builds the app in `examples/minimal`, one file at a time. At the end you have a workspace with two notes in it. A button in each note opens the next note beside it.
+This page builds a small app, one file at a time: two notes side by side, each with a button that opens the next note beside it. The finished app is [`examples/minimal`](https://github.com/ramiz-rahman/jali/tree/master/examples/minimal) in the repo, which adds a launcher and makes the panes the page's `<main>`.
 
-You need a React app on React 18.2 or later. Any bundler that handles CSS imports works; the example uses Vite.
+You need Node 20 or later. Start from a new React app, or skip this step and use your own:
 
-Jali runs in browsers from 2024 on ([Baseline 2024](https://web.dev/baseline)): Chrome and Edge 123, Firefox 120, Safari 17.5, and Electron 30. Its colours are `light-dark()` pairs, the newest thing it needs. Older browsers show the workspace without its colours.
+```sh
+npm create vite@latest notes -- --template react-ts
+cd notes
+```
 
 *Live demo on the site: What you are building, running: two notes side by side. Drag the line between them, or click a note's button to open the next note beside it.*
 
-### Install the packages
-
-`jali` holds the model: the layout, the workspace and its commands. It doesn't depend on React. `jali/react` renders it, with a default theme and its own icons.
+### Install Jali
 
 ```sh
 npm install jali
 ```
 
-> **Warning: Linked or in a monorepo.** If your app gets Jali through `link:`, `file:` or `workspace:`, or from a symlinked checkout, Jali can find its own copy of React beside its source. The app then bundles two Reacts, and hooks fail with "Invalid hook call". With Vite, add `resolve: { dedupe: ["react", "react-dom"] }` to `vite.config.ts` so there is one. With webpack, alias `react` and `react-dom` to your app's copy.
->
-> A linked Jali also resolves to its built files in `dist/` by default, and they don't rebuild when its source changes: run `vp pack` in the Jali packages, or read the source directly. With Vite, add the `"source"` condition: `resolve: { conditions: ["source", ...defaultClientConditions] }`. Vitest runs tests in Node through Vite's server side, which reads `ssr.resolve.conditions` and not `resolve.conditions`, so for tests add `ssr: { resolve: { conditions: ["source", ...defaultServerConditions] } }` too. Both defaults come from `vite`. Without it, tests get the built Jali while the app gets the source, and the two can disagree.
+One package: `jali` holds the model (the layout, the panes and their commands) and has no framework; `jali/react` renders it. If your app links Jali from a checkout or a monorepo, see [Installation](installation.md#linked-or-in-a-monorepo).
 
 ### Define a pane
 
@@ -51,11 +50,11 @@ export const note = definePane("note", {
 
 `note` is now also how you name a note: `note({ id: 1 })` is the [ref](key-concepts.md#ref) of note 1, `{ kind: "note", params: { id: 1 } }`. You use refs to open panes and to write layouts.
 
-### Create the workspace
+### Create the instance
 
-The [workspace](key-concepts.md#store) holds the panes, focus, history and settings. It takes the kinds it can show and the [layout](key-concepts.md#layout-tree) it opens on.
+`createJali` makes the [instance](key-concepts.md#instance): it holds the panes, focus, history and settings. It takes the kinds it can show and the [layout](key-concepts.md#layout-tree) it opens on.
 
-`workspace.ts`
+`jali.ts`
 
 ```tsx
 import { createJali, row } from "jali";
@@ -71,11 +70,11 @@ export const jali = createJali({
 
 `row(...)` puts panes side by side; `column(...)` puts them one above the other. These two share the width equally.
 
-`features` turns on what the workspace does beyond laying out panes. `defaultFeatures()` is Jali's usual set: the layout in the address bar, the ⌘K palette, Settings and the chooser. Reload the page and the layout comes back; Back and Forward step through changes. If the address already holds a layout, that one opens instead. An app that wants less picks each feature from its own entry, and ships only those: see [Features](../reference/features.md).
+`features` turns on what Jali does beyond laying out panes. `defaultFeatures()` is Jali's usual set: the layout in the address bar, the ⌘K palette, Settings and the chooser. Reload the page and the layout comes back; Back and Forward step through changes. If the address already holds a layout, that one opens instead. An app that wants less picks each feature from its own entry, and ships only those: see [Features](../reference/features.md).
 
 ### Render it
 
-`<JaliRoot>` draws the workspace and its features' dialogs, such as the ⌘K palette. While it is on the page, it also turns on the keyboard, Back and Forward, the theme and saving.
+`<JaliRoot>` draws the panes and the features' dialogs, such as the ⌘K palette. While it is on the page, it also turns on the keyboard, Back and Forward, the theme and saving.
 
 `main.tsx`
 
@@ -84,18 +83,18 @@ import { createRoot } from "react-dom/client";
 import { JaliRoot } from "jali/react";
 import "jali/styles.css";
 import "./app.css";
-import { jali } from "./workspace";
+import { jali } from "./jali";
 
 createRoot(document.getElementById("root")!).render(<JaliRoot jali={jali} className="app" />);
 ```
 
-The workspace fills the box you give it, so that box needs a height: here `html`, `body` and `#root` are the full window. To add your own top bar or sidebar, put it inside `<JaliRoot>` with `<JaliView />` where the panes go: the panes take the room it leaves. If the box has no height, the panes have none either, and a warning in the console says so while you develop.
+The panes fill the box you give them, so that box needs a height: here `html`, `body` and `#root` are the full window. To add your own top bar or sidebar, put it inside `<JaliRoot>` with `<JaliView />` where the panes go: the panes take the room it leaves. If the box has no height, the panes have none either, and a warning in the console says so while you develop.
 
 Screen readers meet the panes as a region named "Panes", inside your page's own `<main>`. When Jali is the whole page and it has no `<main>` of its own, pass `landmark: "main"` to `createJali` so the panes are the page's `<main>`.
 
 ### Add the styles and the layer line
 
-`jali/styles.css` is Jali's default theme and the workspace's layout. Every rule in it sits in a CSS cascade layer named `jali`.
+`jali/styles.css` is Jali's default theme and the panes' layout. Every rule in it sits in a CSS cascade layer named `jali`.
 
 `app.css`
 
@@ -117,7 +116,7 @@ Screen readers meet the panes as a region named "Panes", inside your page's own 
   }
 }
 
-/* The workspace fills whatever box you give it. */
+/* Jali fills whatever box you give it. */
 .app {
   height: 100%;
   display: grid;
@@ -155,7 +154,7 @@ export const note = definePane("note", {
 });
 ```
 
-Click the button in note 1. Note 2 opens to its right, and focus stays in note 1, so you can keep working where you were.
+Click the button in note 2. Note 3 opens to its right, and focus stays in note 2, so you can keep working where you were.
 
 Keep clicking the button in the newest note. Each click opens the next note beside the one you clicked in. When the panes no longer fit at their minimum width, some fold into tabs, and the note you are working in stays on screen. Widen the window and they come back. [How a layout fits](../learn/fitting.md) explains the order, and [Opening and linking](../learn/opening-and-linking.md) explains what `openBeside` does when a pane opens several links.
 

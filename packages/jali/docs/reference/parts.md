@@ -1,6 +1,6 @@
 # Parts
 
-Every part of the workspace you can style, its element, its selector, and the attributes that carry its state.
+Every part of Jali you can style, its element, its selector, and the attributes that carry its state.
 
 These are the parts of what Jali renders that your styles may rely on. Each has one selector, a `jali-` class or a `data-` attribute, is one kind of element, and carries its state in attributes, never in classes: select `.jali-pane[data-focused]`, `.jali-tab[aria-selected="true"]` or `.jali-pane-action[data-action="close"]`.
 
@@ -67,7 +67,7 @@ Give the tab's title `min-width: 0` (`.jali-tab-title`) so it shrinks first when
 
 ## Theme
 
-A started workspace writes the theme in use, `light` or `dark`, as `data-theme` on `<html>`, and on its root (`[data-jali]`) and the layer that holds its dialogs (`[data-jali-layer]`) as well, so a rule can be scoped to the workspace: `[data-jali][data-theme="dark"] .grain { background-image: url(grain-dark.svg); }`. It follows the theme setting and, for System, the system's preference. The copy on the root and layer is not a theme scope of its own for Jali's styles: whatever sits between `<html>` and the workspace still decides its colours. With `createJali({ pageTheme: false })` Jali writes none of them, because the page's own theme decides: switch images on your own theme scope, or on `prefers-color-scheme` when the page has none. Nor does it write over a `data-theme` you give `<JaliRoot>`.
+A started instance writes the theme in use, `light` or `dark`, as `data-theme` on `<html>`, and on its root (`[data-jali]`) and the layer that holds its dialogs (`[data-jali-layer]`) as well, so a rule can be scoped to the instance: `[data-jali][data-theme="dark"] .grain { background-image: url(grain-dark.svg); }`. It follows the theme setting and, for System, the system's preference. The copy on the root and layer is not a theme scope of its own for Jali's styles: whatever sits between `<html>` and the instance still decides its colours. With `createJali({ pageTheme: false })` Jali writes none of them, because the page's own theme decides: switch images on your own theme scope, or on `prefers-color-scheme` when the page has none. Nor does it write over a `data-theme` you give `<JaliRoot>`.
 
 ## Pressed
 
@@ -86,14 +86,10 @@ Attributes a pane sets with `usePaneAttributes` appear on everything that stands
 
 Corners, spacing and colours are tokens, not parts: every corner reads `--jali-radius`, `--jali-radius-control`, `--jali-radius-menu` or `--jali-radius-chip`, and the space between panes is `createJali({ gap, inset })`, which Jali writes as `--jali-gap` and `--jali-inset`.
 
-## Workspace
+## Instance
 
 | Part | Element | What it is | State attributes |
 | --- | --- | --- | --- |
-| `[data-jali]` | `div` | The workspace's root: the element `<JaliRoot>` renders, with your `className`. | none |
-| `[data-jali-layer]` | `div` | Beside the root (`display: contents`), holding everything that overlays the workspace: the palette, Settings, the chooser, the discard question, tab menus and the live region. Tokens set on an element around `<JaliRoot>` reach it; tokens set on the root itself don't. | none |
-| `[data-jali-overlays]` | `div` | Beside the root and the layer (`display: contents`), holding what you pass `<JaliRoot overlays>`, such as a toaster; only when you pass some. Inert while one of Jali's dialogs is open, as the workspace is. | none |
-| `.jali-workspace` | `section` (`main` with `createJali({ landmark: "main" })`) | The area the panes are laid out in. | `data-single`: Flag: Single view (one pane at a time, with the switcher).<br>`data-stacked`: Flag: stacked view, two panes one above the other (a phone with `phone.stack`), or a pane each side of a fold.<br>`data-fold`: Across a fold: `row` (the halves side by side) or `column` (one above the other).<br>`data-zoomed`: Flag: a pane is maximised.<br>`data-full-screen`: Flag: a pane is on the whole screen.<br>`data-alone`: Flag: one pane on screen, shown full-bleed with no tuck, maximise or drag.<br>`data-page`: On a curated page: `split` or `single`, the page's mode. |
 
 ## Pane
 

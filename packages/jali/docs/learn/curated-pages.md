@@ -2,15 +2,15 @@
 
 A designed page about one item, with tabs of views, that the person can read one view at a time or lay out side by side.
 
-A free workspace starts empty, or from a preset, and the person builds it. That suits work where the layout is the work: exploring data, comparing records.
+A free layout starts empty, or from a preset, and the person builds it. That suits work where the layout is the work: exploring data, comparing records.
 
-Much work is about one item at a time: a customer, a case, a loan application. For that, a page someone designed is better. It shows the right views in the right order, and the person can still lay them out their own way. Jali calls this a curated page. Both run on the same workspace. The difference is where the person controls the layout: from the panes in a free workspace, from a tab strip on a curated page.
+Much work is about one item at a time: a customer, a case, a loan application. For that, a page someone designed is better. It shows the right views in the right order, and the person can still lay them out their own way. Jali calls this a curated page. Both run on the same instance. The difference is where the person controls the layout: from the panes in a free layout, from a tab strip on a curated page.
 
 > **Note: See one working.** The [Loan review example](../examples.md#loan-review) is a curated page: a queue of applications at the left, then Overview, Application, Borrower, Loan history, Group and Field officer as tabs.
 
-## A profile describes the page
+## `definePage` describes the page
 
-`definePage` makes the page's definition (its [profile](../get-started/key-concepts.md#curated-page)). You pass it to the workspace as `page`, beside your kinds.
+`definePage`, from `jali/page`, makes the [curated page](../get-started/key-concepts.md#curated-page)'s definition. Pass it to `createJali` as `page`, beside your kinds. An app that never imports `jali/page` ships none of a page's code.
 
 `customer-page.tsx`
 
@@ -88,41 +88,50 @@ export const customerPage = definePage({
 });
 ```
 
-- **`roles`** are the page's views, in tab order. Each is a [role](../get-started/key-concepts.md#role): an id, a label, an icon, and a priority. A role's pane in the layout has the role's id as its node id.
+- **`roles`** are the page's [views](../get-started/key-concepts.md#role), in tab order. Each has an id, a label, an icon, and a priority. A role's pane in the layout has the role's id as its node id.
 - **`bind(item)`** says what each view shows for one item. Choosing another item from the list swaps every view's object in place.
 - **`build(item)`** is the designed layout for Split view. Every role is in it; the ones that should not show at first are listed in `overlay.hidden`.
-- **`home`** is the view Single mode opens on.
-- **`Header`** sits above the tabs, and **`Rail`**, optional, is the list of items at the left. Both are your components. `Rail` gets `activate(item)` to switch items. Leave it out when the page has nothing to list, such as a report reached by a link: the header, tabs and panes then take the whole width.
+- **`home`** is the view Single view opens on.
+- **`Header`** sits above the tabs, and **`Rail`**, optional, is the list of items at the left. Both are your components. `Rail` gets `showItem(item)` to switch items. Leave it out when the page has nothing to list, such as a report reached by a link: the header, tabs and panes then take the whole width.
 - **`viewers`** names the two kinds of person who use the page (below).
 
-Items are numbers: `item` is the id a link carries.
+An item id is a number or a string, such as a UUID or a slug. A link carries it as text; when `firstItem` is a number, you get numbers back.
 
 ### When a view's object comes from your data
 
 `bind` answers at once: it runs inside every page action (choosing an item, Reset, a link arriving, Back), and each of those returns its result and writes the address straight away. So `bind` names objects; it doesn't fetch them. Most views need only the item's id (`orderList({ customer: item })`), and each pane loads its own data, with its own loading and error states.
 
-When a view shows another object that only your data knows (the borrower of an application, say), read those ids before you make the workspace, keep them, and let `bind` look them up:
+When a view shows another object that only your data knows (the borrower of an application, say), read those ids before you call `createJali`, keep them, and let `bind` look them up:
 
 ```ts
-await loadBorrowers(api); // fills a Map from application id to borrower id
+import { createJali, type ObjectRef } from "jali";
+import { definePage, type Page } from "jali/page";
+
+// Your app's: the page as written, its kinds, and the borrower ids read ahead.
+declare const loanPage: Page<number>;
+declare const application: (params: { id: number }) => ObjectRef;
+declare const member: (params: { id: number }) => ObjectRef;
+declare function loadBorrowers(): Promise<Map<number, number>>;
+
+const borrowerOf = await loadBorrowers(); // application id → borrower id
 
 const page = definePage({
-  ...profile,
+  ...loanPage,
   bind: (item: number) => ({
     application: application({ id: item }),
-    borrower: member({ id: borrowerOf(item) }),
+    borrower: member({ id: borrowerOf.get(item) ?? 0 }),
   }),
 });
 const jali = createJali({ panes, page });
 ```
 
-Until they are read, show your own loading screen in place of `<JaliRoot>`. If the list of items grows while the page is open, read the new ids before you call `activate`. Loan review, among the examples, does this.
+Until they are read, show your own loading screen in place of `<JaliRoot>`. If the list of items grows while the page is open, read the new ids before you call `showItem`. Loan review, among the examples, does this.
 
 ## Opening the page
 
-While a page is open, `<JaliView>` renders it: your rail, your header, the tabs, and the panes. `<PageBar>` holds the mode switch, the investigation and Reset; put it in your own top bar.
+While a page is open, `<JaliView>` renders it: your rail, your header, the tabs, and the panes. `<PageBar>` holds the mode switch, **Back to** the page and Reset; put it in your own top bar.
 
-`workspace.ts`
+`jali.ts`
 
 ```tsx
 import { createJali } from "jali";
@@ -141,11 +150,11 @@ export const jali = createJali({
 if (!jali.get().page) jali.page.open({ item: 7 });
 ```
 
-A link opens a page with `?page=customer&item=7&tab=orders`. Without one, open it with `jali.actions.openPage()`, or from ⌘K ("Open Customer"). `jali.actions.leavePage()` goes back to the free workspace. A page-only app (a page and no presets or layout) needs neither: the workspace starts on its page.
+A link opens a page with `?page=customer&item=7&tab=orders`. Without one, open it with `jali.page.open()`, or from ⌘K ("Open Customer"). `jali.page.leave()` goes back to the free layout. A page-only app (a page and no presets or layout) needs neither: it starts on its page. `jali.page` exists, and is typed, only when `createJali` was given a page.
 
-## Single: one view at a time
+## Single view: one view at a time
 
-Single is the default. It shows one view, chosen from the tabs, like any web app. The pane has no header of its own, because the selected tab already names it.
+Single view is the default. It shows one view, chosen from the tabs, like any web app. The pane has no header of its own, because the selected tab already names it.
 
 Clicking a tab swaps the view in place; nothing moves. A link inside a view opens as a [peek](../get-started/key-concepts.md#peek), since there is no second pane for it to open into, and the announcement says how to open links beside.
 
@@ -160,29 +169,29 @@ In Split view, the tabs become a palette of views that the person lays out with 
 
 **Why a click never reshapes:** a click is the lightest thing a person does. If it added a pane and pushed the others aside, every click would rearrange the screen. Adding a view is always a deliberate gesture: a drag or ⌥-click.
 
-The first switch to Split view starts from the profile's design. Switching back to Single keeps the split layout exactly, and switching again restores it. Dragging a tab out of Single switches to Split view for you.
+The first switch to Split view starts from the page's design. Switching back to Single view keeps the split layout exactly, and switching again restores it. Dragging a tab out of Single view switches to Split view for you. In code, `jali.page.setMode("single" | "split")`.
 
 ## Views never fold into each other's tabs
 
 When there is no room for a view the person places, the least recently used views go back to the page's tabs, supporting views before the primary one. The announcement names them. A view never folds into a tab group inside a pane, because that would repeat the page's tabs inside a pane.
 
-## Investigating
+## Following links: opened panes
 
-In Split view, following a link opens an **opened** pane after the page's views, marked with a tint and an "Opened" tag. The opened panes together are the investigation. They stay in one region at the right, so the designed layout stays readable.
+In Split view, following a link opens a pane after the page's views, marked with a tint and an "Opened" tag. Opened panes stay in one region at the right, so the designed layout stays readable.
 
 Nothing the person placed gives way to an opened pane. If there is no room beside, the opened pane becomes the shown tab of the pane the link was in, at that pane's size. If even that needs more room, views go back to the page's tabs; none folds.
 
 **Back to** the page (in `<PageBar>`, or ⌘K) closes every opened pane and returns the layout to exactly how it was before the first link, unless the person rearranged the views meanwhile. Undo (⌘K ⌘Z) reopens them.
 
-Choosing another item swaps every view in place and closes the investigation, because the opened panes belonged to the item before.
+Choosing another item swaps every view in place and closes the opened panes, because they belonged to the item before.
 
 ## What is whose
 
 - The **mode** and the **split layout** belong to the person. They are kept on their device, through the [storage port](../get-started/key-concepts.md#ports), without the opened panes. Reset puts the layout back to the design.
-- A **link** carries content only: the item, the view in use and the opened panes. The same link opens in each reader's own layout. A link with opened panes opens in Split view, since Single cannot show them.
+- A **link** carries content only: the item, the view in use and the opened panes. The same link opens in each reader's own layout. A link with opened panes opens in Split view, since Single view cannot show them.
 
-## Viewers
+## Viewers and link mode
 
-A page can be used by two kinds of person, named by `viewers`. The `full` viewer may switch to Split view and open links beside. The `limited` viewer works in Single only and opens links as a peek. The sample names them "account manager" and "support agent".
+A page can be used by two kinds of person, named by `viewers`. The `full` viewer may switch to Split view and open links beside. The `limited` viewer works in Single view only and opens links as a peek. The sample names them "account manager" and "support agent".
 
-`jali.actions.setCanInvestigate(false)` sets the limited one. In a product, your app sets it from the person's role.
+`createJali({ linkMode: "peek" })`, or later `jali.page.setLinkMode("peek")`, makes the person a limited viewer; `"open"` (the default) gives full access. In a product, your app sets it from the person's role.

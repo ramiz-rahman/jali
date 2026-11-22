@@ -2,7 +2,7 @@
 
 The pure layout operations of jali, each taking a layout and returning a new one.
 
-`layout` is a namespace export of `jali`. Every member is pure: the layout you pass is never changed, an operation that does nothing returns the same object, and the workspace's actions are built from these. To write a layout, use the builders (`row`, `column`, `tabs`, `pane`); these work on one. Types such as `layout.OpenResult` and `layout.UndoEntry` are reachable through it as well.
+`layout` is a namespace export of `jali`. Every member is pure: the layout you pass is never changed, an operation that does nothing returns the same object, and the instance's actions are built from these. To write a layout, use the builders (`row`, `column`, `tabs`, `pane`); these work on one. Types such as `layout.OpenResult` and `layout.UndoEntry` are reachable through it as well.
 
 ### layout.open
 
@@ -14,6 +14,32 @@ layout.open(
   ref: ObjectRef, ctx: LayoutContext, linked: boolean,
   place?: Placement, opts?: OpenOptions,
 ): OpenResult
+```
+
+Example, `layout.ts`:
+
+```ts
+import { GAP, layout, type Layout, type LayoutContext, type ViewState } from "jali";
+import { orderKind } from "./kinds";
+import { store } from "./store";
+
+// Every operation is pure: a layout in, a new layout out. The context is the room, the gap and the kinds.
+const ctx: LayoutContext = {
+  fit: { ...store.get().area, gap: GAP, kinds: store.env.kinds.registry() },
+  paneCap: store.get().settings.paneCap,
+};
+const start: Layout = layout.tree.clone(store.getLayout());
+const view: ViewState = { focused: "orders", focusHistory: ["orders"] };
+
+const opened = layout.openBeside(start, view, "orders", orderKind({ id: 1043 }), ctx);
+opened.mode; // "beside", "replaced" (an earlier link reused) or "tab" (no room)
+
+const closed = layout.close(opened.layout, opened.view, opened.opened, ctx);
+const boxes = layout.resolve(closed.layout, closed.view, ctx).panes; // a rect for every pane
+
+const code = layout.encode(closed.layout); // "1.WzEseyJ…": what goes in ?l=
+const back = layout.decode(code, store.env.kinds.registry()); // the same layout, or null when it can't be read
+export { boxes, back };
 ```
 
 Opens `ref` in a new pane at `edge` of `target`, then fits the layout. `openBeside` and `split` are the two common forms.
@@ -32,7 +58,7 @@ When there is no room, or the pane cap is passed, what folds is decided now and 
 
 - **`ref`** (`ObjectRef`, required): What the new pane shows. Throws `Unknown pane kind` when its kind is not in `ctx.fit.kinds`.
 
-- **`ctx`** (`LayoutContext`, required): The room, the gap, the kinds and the pane cap (see [`LayoutContext`](types.md#LayoutContext)). A negative width or height counts as zero. Throws a `RangeError` for a non-finite size or gap, a negative gap, or a cap that is not a positive integer.
+- **`ctx`** (`LayoutContext`, required): The room, the gap, the kinds and the pane cap (see [`LayoutContext`](types.md#layoutcontext)). A negative width or height counts as zero. Throws a `RangeError` for a non-finite size or gap, a negative gap, or a cap that is not a positive integer.
 
 - **`linked`** (`boolean`, required): Whether the new pane is linked to `target` (`linkedTo`). Closing the source drops the link.
 
@@ -94,7 +120,7 @@ layout.close(layout, view, target, ctx): { layout: Layout; view: ViewState; undo
 
 Removes a pane. Its space goes to the pane it was opened from when that is a sibling, else the next sibling, else the previous. Links to it are dropped. When it had focus, focus goes to the most recently focused pane still open. The last pane is never closed: the same layout comes back.
 
-**Returns** `{ layout; view; undo }`: `undo` holds the layout and view before, for the workspace's undo.
+**Returns** `{ layout; view; undo }`: `undo` holds the layout and view before, for the instance's undo.
 
 ### layout.closeOthers
 
@@ -293,7 +319,7 @@ The pane following `source`'s selection for `kind`: linked to it, with `follows:
 layout.followers(layout, source: NodeId): PaneNode[]
 ```
 
-Every pane following `source`'s selection, one per kind, in tree order. A list's selection moves each of them that can show it (see `follow` on [`PaneOptions`](types.md#PaneOptions)).
+Every pane following `source`'s selection, one per kind, in tree order. A list's selection moves each of them that can show it (see `follow` on [`PaneOptions`](types.md#paneoptions)).
 
 **Returns** `PaneNode[]`:
 
@@ -676,7 +702,7 @@ Pixels from the centre at which a snapped divider lets go.
 layout.tree.panes(layout.root)
 ```
 
-Helpers for reading the tree. Each one leaves the tree it is given as it is; `map` returns a new tree. To change a layout, use the operations on this page or `jali.actions`. Each takes a tree a workspace gave (read-only) as well as one of your own; `clone` gives a copy to edit.
+Helpers for reading the tree. Each one leaves the tree it is given as it is; `map` returns a new tree. To change a layout, use the operations on this page or `jali.actions`. Each takes a tree an instance gave (read-only) as well as one of your own; `clone` gives a copy to edit.
 
 - **`layout.tree.clone`**, `clone<T>(value: T): T`: A deep copy (`structuredClone`).
 
