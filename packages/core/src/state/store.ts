@@ -216,7 +216,8 @@ export interface UrlWriter {
   write(state: () => UrlState, mode: HistoryMode): void;
   /** The address to share ("Copy link"). */
   href?(): string;
-  /** Drop a write still waiting (a debounced one): the workspace is going away (`jali.destroy()`). */
+  /** The workspace is going away (`jali.destroy()`): drop a write still waiting (a debounced one), and every later
+   *  one. */
   cancel?(): void;
 }
 
@@ -342,7 +343,9 @@ export interface UiStore {
   start(): () => void;
   /** Stop for good (`jali.destroy()`): the listeners stop, pane state waiting to be saved is saved, deferred steps
    *  (a follow waiting for the selection to rest) and a debounced address write are dropped, and the kind registry
-   *  is no longer listened to. Later deferred steps are dropped too. Calling it again does nothing. */
+   *  is no longer listened to. A question still open (the host's `beforeClose`, or "Discard unsaved changes?")
+   *  settles as `"kept"`, and every later commit is refused as `"unavailable"`, so nothing lands on the next route.
+   *  Calling it again does nothing. */
   destroy(): void;
 }
 
@@ -503,6 +506,8 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     notify();
   });
   let destroyed = false;
+  // The workspace's lifetime: `destroy()` ends it, and whatever still waits on it (a host's answer) ends with it.
+  const life = new AbortController();
   const toastFns = new Set<(t: Toast) => void>();
   const pendingToasts: Toast[] = [];
   const models = modelCache();
@@ -686,11 +691,14 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
       }),
     ctx,
     snapshot: () => ({ s: state, m: store.model(), ctx: ctx(), env }),
-    apply: (o, action) => batch(() => apply(io, o, action)),
+    // A destroyed workspace changes nothing more: a late answer, a timer or a caller that kept a handle is refused.
+    apply: (o, action) =>
+      destroyed ? { ok: false, reason: "unavailable" } : batch(() => apply(io, o, action)),
     announce: (text) => store.set({ announcement: { text, seq: state.announcement.seq + 1 } }),
     // The writer reads the address's share of the state only (UrlState), when it writes, and as a link carries it:
     // without params only the app sets (`appOnly`).
     writeUrl: (mode) =>
+      destroyed ||
       deps.url?.write(() => {
         const { layout, view, presetId, page } = store.get();
         const kinds = env.kinds.registry();
@@ -742,6 +750,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
       // Stopping saves pane state still waiting to be saved; without a start, nothing saves it at all.
       stop?.();
       destroyed = true;
+      life.abort();
       for (const t of timers.values()) clearTimeout(t);
       timers.clear();
       deps.url?.cancel?.();
@@ -767,11 +776,12 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
       return store.guard;
     },
     later: (o: Outcome) => store.apply(o),
+    signal: life.signal,
     snapshot: store.snapshot,
     url: store.writeUrl,
     announce: store.announce,
     toast: store.toast,
-    focus: (id: NodeId) => (store.focusHeld ? undefined : focusOf?.(dom, id)),
+    focus: (id: NodeId) => (store.focusHeld || destroyed ? undefined : focusOf?.(dom, id)),
     defer,
     unstable:
       deps.unstable ??

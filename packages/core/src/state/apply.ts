@@ -371,6 +371,9 @@ export interface ApplyIO {
   beforeClose?: BeforeClose;
   /** Commit an outcome later, from the top (a change `beforeClose` allowed after a while). */
   later?(o: Outcome): ActionResult;
+  /** The workspace's lifetime. Once it ends (`destroy()`), a held host answer settles as `"kept"` at once, and its
+   *  later yes changes nothing. */
+  signal?: AbortSignal;
 }
 
 /**
@@ -649,10 +652,17 @@ function step(c: Run, o: Outcome, f: Frame | undefined): ActionResult {
           agreed,
           action: c.action,
         };
-        const settled = answer.then((yes): ActionResult | Promise<ActionResult> => {
-          if (!yes) return refused("kept");
-          const r = io.later ? io.later(again) : apply(io, again);
-          return r.reason === "pending" && r.settled ? r.settled : r;
+        const signal = io.signal;
+        const settled = new Promise<ActionResult>((resolve) => {
+          const kept = () => resolve(refused("kept"));
+          if (signal?.aborted) return kept();
+          signal?.addEventListener("abort", kept, { once: true });
+          void answer.then((yes) => {
+            signal?.removeEventListener("abort", kept);
+            if (signal?.aborted || !yes) return kept();
+            const r = io.later ? io.later(again) : apply(io, again);
+            resolve(r.reason === "pending" && r.settled ? r.settled : r);
+          });
         });
         hold.settled = settled;
         return { ok: false, reason: "pending", settled };

@@ -408,6 +408,8 @@ export function createUrlSync({
   const keys = urlKeys(prefix);
   const sizesKey = `${prefix ?? ""}sizes`;
   let timer: ReturnType<typeof setTimeout> | undefined;
+  // Cancelled for good (`jali.destroy()`): later writes are dropped, so none lands on the next route's address.
+  let closed = false;
   // "local": the sizes the person dragged, per layout structure (a few layouts, most recent first).
   const loadSizes = (): [string, PersonalSizes][] => {
     try {
@@ -441,7 +443,7 @@ export function createUrlSync({
   return {
     // A debounced write reads the state when it fires, so it writes the latest sizes.
     write(state: () => UrlState, mode: HistoryMode) {
-      if (mode === "none") return;
+      if (mode === "none" || closed) return;
       clearTimeout(timer);
       if (mode === "debounce") timer = setTimeout(() => write(state(), false), PERSIST_MS);
       else write(state(), mode === "push");
@@ -456,6 +458,7 @@ export function createUrlSync({
       return core.validate(joined, kinds).ok ? { ...r, layout: joined } : r;
     },
     cancel() {
+      closed = true;
       clearTimeout(timer);
       timer = undefined;
     },

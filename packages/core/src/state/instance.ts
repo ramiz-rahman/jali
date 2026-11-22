@@ -101,7 +101,9 @@ export interface Jali {
   start(): () => void;
   /** Stop for good, when the workspace goes away (a route change, a test's end): its listeners stop, pane state
    *  waiting to be saved is saved, a follow waiting for the selection to rest and a pending address write are
-   *  dropped, and nothing is scheduled after. Its state can still be read. Calling it again does nothing. */
+   *  dropped, and nothing is scheduled after. A question still open (`beforeClose`, or "Discard unsaved changes?")
+   *  settles as `"kept"`, and every action after it is refused as `"unavailable"`. Its state can still be read.
+   *  Calling it again does nothing. */
   destroy(): void;
 }
 

@@ -196,6 +196,8 @@ export function startUi(
       })
     : () => {};
   return () => {
+    // An arrival still waiting for an answer is no longer the latest: its answer changes nothing.
+    nav++;
     offStore();
     offTheme();
     offKeys();
