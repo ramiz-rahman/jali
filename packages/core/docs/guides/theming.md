@@ -312,7 +312,7 @@ function resolve(el: HTMLElement, token: string): string {
 }
 ```
 
-Resolve again, and redraw, whenever `useTheme()` changes, because the result depends on the theme in force.
+Resolve again, and redraw, whenever `useJaliTheme()` changes, because the result depends on the theme in force.
 
 ## Next
 

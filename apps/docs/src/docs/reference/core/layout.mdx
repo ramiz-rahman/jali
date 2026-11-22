@@ -461,7 +461,7 @@ Pixels from the centre at which a snapped divider lets go.
 
 <Entry name="layout.tree" kind="namespace" from="@jali/core" signature={`layout.tree.panes(layout.root)`} compact>
 
-Helpers for reading the tree. Each one leaves the tree it is given as it is; `map` returns a new tree. To change a layout, use the operations on this page or `jali.actions`. Four older members edit a tree in place (`replace`, `balance`, `remove`, `activate`), and `parentOf` is a second name for `parent`: they are deprecated and will go.
+Helpers for reading the tree. Each one leaves the tree it is given as it is; `map` returns a new tree. To change a layout, use the operations on this page or `jali.actions`. Each takes a tree a workspace gave (read-only) as well as one of your own; `clone` gives a copy to edit.
 
 <Members>
 <Member name="layout.tree.clone" signature="clone<T>(value: T): T">A deep copy (`structuredClone`).</Member>
@@ -470,12 +470,7 @@ Helpers for reading the tree. Each one leaves the tree it is given as it is; `ma
 <Member name="layout.tree.panes" signature="panes(root: LayoutNode): PaneNode[]">Every pane, in tree order.</Member>
 <Member name="layout.tree.find" signature="find(root: LayoutNode, id: NodeId): LayoutNode | undefined">The node with this id.</Member>
 <Member name="layout.tree.parent" signature="parent(root, id): SplitNode | StackNode | undefined">The node that holds `id`.</Member>
-<Member name="layout.tree.parentOf" signature="parentOf(root, id)">Deprecated: use `parent`. Another name for it.</Member>
 <Member name="layout.tree.stackOf" signature="stackOf(root, id): StackNode | undefined">The tab group (stack in the tree) that holds `id`.</Member>
-<Member name="layout.tree.replace" signature="replace(root, id, replacement): LayoutNode">Deprecated: it changes `root` in place. Use `map(root, (n) => (n.id === id ? replacement : n))`, which returns a new tree.</Member>
-<Member name="layout.tree.balance" signature="balance(node: LayoutNode): void">Deprecated: it changes `node` in place. The layout operations balance the children nobody sized for you.</Member>
-<Member name="layout.tree.remove" signature="remove(root, id): LayoutNode | undefined">Deprecated: it changes `root` in place. Use `layout.close`, which returns a new layout, fitted.</Member>
-<Member name="layout.tree.activate" signature="activate(layout: Layout, id: NodeId): void">Deprecated: it changes `layout` in place. Use `layout.setActiveTab`, which returns a new layout.</Member>
 <Member name="layout.tree.newId" signature={`newId(root, prefix = "pane"): NodeId`}>The first free id of the form `prefix-1`, `prefix-2`, …</Member>
 <Member name="layout.tree.map" signature="map(root, fn: (node) => LayoutNode): LayoutNode">A new tree with `fn` applied top down; a node `fn` replaces is not descended into, and unchanged branches keep their identity.</Member>
 <Member name="layout.tree.shape" signature="shape(root): string">The tree's structure as text, without sizes, tab choice or content.</Member>

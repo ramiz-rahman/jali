@@ -42,14 +42,14 @@ import { presets } from "../presets/layouts";
 export const jali = createJali({
   panes: orderKinds,
   presets,
-  keymap: {
-    "pane.close": "Mod+K Mod+X", // rebind: replaces the default
-    "pane.zoom": ["Mod+Shift+Enter", "Mod+K Mod+Enter"], // several bindings: the first is the one shown
-    "pane.split.down": null, // unbind
-    "palette.toggle": ["Mod+K", "Mod+Shift+Space"], // the palette
-    "pane.close_others": "Mod+K Shift+Mod+Backspace", // a command with no default key
-  },
-  keymapOptions: {
+  keyboard: {
+    keymap: {
+      "pane.close": "Mod+K Mod+X", // rebind: replaces the default
+      "pane.zoom": ["Mod+Shift+Enter", "Mod+K Mod+Enter"], // several bindings: the first is the one shown
+      "pane.split.down": null, // unbind
+      "palette.toggle": ["Mod+K", "Mod+Shift+Space"], // the palette
+      "pane.close_others": "Mod+K Shift+Mod+Backspace", // a command with no default key
+    },
     // A refused binding (a bare letter, three steps, an unknown key) is reported here. Default: console.warn.
     onInvalid: (id, binding, reason) =>
       console.error(`Keymap: ${id} "${binding}" ignored: ${reason}`),
@@ -292,12 +292,12 @@ Your keymap may differ from the defaults, and the keys print differently on each
 `src/CloseButton.tsx`
 
 ```tsx
-import { useShortcut, useJali } from "@jali/react";
+import { useJaliShortcut, useJali } from "@jali/react";
 
 /** A button in your own chrome that runs a workspace action and shows the workspace's key for it. */
 export function CloseButton() {
   const { actions } = useJali();
-  const keys = useShortcut("pane.close"); // "⌘K ⌘⌫", or "" when unbound
+  const keys = useJaliShortcut("pane.close"); // "⌘K ⌘⌫", or "" when unbound
   return (
     <button onClick={() => actions.close()} title={keys ? `Close pane · ${keys}` : "Close pane"}>
       Close {keys ? <kbd>{keys}</kbd> : null}
@@ -306,7 +306,7 @@ export function CloseButton() {
 }
 ```
 
-- `useShortcut(id)` gives "⌘K ⌘⌫" on a Mac and "Ctrl+K Ctrl+Backspace" elsewhere, or `""` when the command is unbound.
+- `useJaliShortcut(id)` gives "⌘K ⌘⌫" on a Mac and "Ctrl+K Ctrl+Backspace" elsewhere, or `""` when the command is unbound.
 - Outside React, `jali.keymap.label(id)` does the same.
 
 For keys your content handles itself, `keyHint("Mod+Enter")` prints them the same way ("⌘↵" or "Ctrl+Enter").
@@ -344,7 +344,7 @@ export const jali = createJali({
   presets,
   commands,
   // Bound like any of Jali's commands.
-  keymap: { "orders.refresh": "Mod+K Mod+U" },
+  keyboard: { keymap: { "orders.refresh": "Mod+K Mod+U" } },
 });
 ```
 
@@ -374,7 +374,7 @@ export const openLatestOrder: Command = {
   title: "Open latest order for…",
   group: "Orders",
   run: (jali) =>
-    jali.actions.choose({
+    jali.dialogs.choose({
       title: "Open latest order for…",
       items: customers,
       label: (c) => c.name,
@@ -410,10 +410,10 @@ export const jali = createJali({
   launcher,
   presets,
   palette: false, // your app's ⌘K menu lists Jali's commands (HostCommandMenu.tsx)
-  keyPrefix: "Mod+J", // Jali's two-step keys start with ⌘J: ⌘J ⌘Z restores a closed pane
-  reservedKeys: ["Mod+K", "Mod+/", "Mod+Shift+F"], // your app's own: Jali never binds these
-  keys: "scoped", // only keys pressed inside the panes
-  keymapOptions: {
+  keyboard: {
+    prefix: "Mod+J", // Jali's two-step keys start with ⌘J: ⌘J ⌘Z restores a closed pane
+    reserved: ["Mod+K", "Mod+/", "Mod+Shift+F"], // your app's own: Jali never binds these
+    scope: "local", // only keys pressed inside the panes
     // Each of Jali's bindings that a reserved key pushed out is reported here, once, at start-up.
     onInvalid: (id, binding, reason) =>
       console.warn(`Jali: ${id} "${binding}" not bound: ${reason}`),

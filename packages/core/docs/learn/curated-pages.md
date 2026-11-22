@@ -54,11 +54,11 @@ const build = (id: number) => {
 };
 
 // The list beside the page, and the header above its tabs.
-function Rail({ item, activate }: { item: number; activate: (item: number) => void }) {
+function Rail({ item, showItem }: { item: number; showItem: (item: number) => void }) {
   return (
     <nav aria-label="Customers">
       {customers.map((c) => (
-        <button key={c.id} aria-current={c.id === item} onClick={() => activate(c.id)}>
+        <button key={c.id} aria-current={c.id === item} onClick={() => showItem(c.id)}>
           {c.name}
         </button>
       ))}
@@ -138,7 +138,7 @@ export const jali = createJali({
 });
 
 // A link with ?page=customer opens the page. Open it from code, a menu or ⌘K ("Open Customer") otherwise.
-if (!jali.get().page) jali.actions.openPage({ item: 7 });
+if (!jali.get().page) jali.page.open({ item: 7 });
 ```
 
 A link opens a page with `?page=customer&item=7&tab=orders`. Without one, open it with `jali.actions.openPage()`, or from ⌘K ("Open Customer"). `jali.actions.leavePage()` goes back to the free workspace. A page-only app (a page and no presets or layout) needs neither: the workspace starts on its page.

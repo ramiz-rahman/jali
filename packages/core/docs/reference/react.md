@@ -26,7 +26,7 @@ Draws a workspace: its panes, and the dialogs every workspace has (the command p
 
 The root is a `<div data-jali>` that the workspace attaches to, so focus, drag and F6 stay inside it. The dialogs render after it, in a `<div data-jali-layer>` (styled `display: contents`), which counts as the workspace's for its keys. Each dialog is modal: focus goes into it, Tab stays inside it, the root is `inert` while it is open, and focus goes back where it was when it closes. Mark your own chrome inside it with `data-jali-chrome` and Jali never pulls focus out of it.
 
-Two things are yours to render. **The shelf** (tucked panes as chips): put `Shelf` in your status line or footer, or tucked panes have nowhere to come back from but ⌘K "Show a pane from the shelf". **Toasts**: Jali sends them through `jali.onToast` (closes and tucks come with Undo, which ⌘K ⌘Z also runs) and shows none itself; render them with your toaster in `overlays`.
+Two things are yours to render. **The shelf** (tucked panes as chips): put `Shelf` in your status line or footer, or tucked panes have nowhere to come back from but ⌘K "Show a pane from the shelf". **Toasts**: Jali sends them as the `toast` event, `useJaliEvent("toast", show)` (closes and tucks come with Undo, which ⌘K ⌘Z also runs) and shows none itself; render them with your toaster in `overlays`.
 
 **Props**
 
@@ -185,7 +185,7 @@ Keys: content first. Claim the keys you use with `event.preventDefault()` (J and
 definePage(page: Page): Page
 ```
 
-Defines a curated page: one item at a time (a loan application, a customer), its views as tabs, the item's header above the tabs (`Header`) and, optionally, a list of items at the left (`Rail`, which calls `activate(item)` to show another). Pass it to `createJali({ page })`. It returns a copy of `page` that carries the code that runs a page and the parts that draw it. That code comes only with `definePage`, so an app without a curated page ships none of it. (`@jali/core` exports a `definePage` too, for a page without React; this one calls it.)
+Defines a curated page: one item at a time (a loan application, a customer), its views as tabs, the item's header above the tabs (`Header`) and, optionally, a list of items at the left (`Rail`, which calls `showItem(item)` to show another). Pass it to `createJali({ page })`. It returns a copy of `page` that carries the code that runs a page and the parts that draw it. That code comes only with `definePage`, so an app without a curated page ships none of it. (`@jali/core` exports a `definePage` too, for a page without React; this one calls it.)
 
 **Returns** `Page`:
 
@@ -221,22 +221,12 @@ Each of these acts for the pane it is called in, from any depth inside the kind'
 *hook*, from `@jali/react`
 
 ```ts
-usePane<P = Params>(): PaneProps<P>
+usePane(kind?: Pane): PaneProps<params of kind>
 ```
 
-The pane's `PaneProps`, for components below the kind's own: `const { params, openBeside } = usePane<{ id: number }>()`. Throws outside a pane.
+The pane's `PaneProps`, for components below the kind's own: `const { params, openBeside } = usePane(order)`, with `params` typed from the kind, no cast. In development, a component in a pane of another kind is an error. Without a kind, the params are plain values (`Params`), for a component any kind renders. Throws outside a pane.
 
 **Returns** `PaneProps<P>`:
-
-### keyBelongsToContent
-
-*function*, from `@jali/react`
-
-```ts
-keyBelongsToContent(event: KeyboardEvent): boolean
-```
-
-Whether a key event belongs to the focused content: its target is a text field, a contenteditable region, a combobox or search box, inside a dialog, or a control that Space presses (a button, link, tab, checkbox, switch, radio or menu item). Use it in a window-level `keydown` handler that wants a single key such as Space. See [Space in lists](../guides/commands-and-keys.md).
 
 ### useActivity
 
@@ -439,6 +429,16 @@ The workspace as it is on screen, subscribed: the panes, their boxes and titles,
 
 **Returns** `JaliModel`:
 
+### useJaliEvent
+
+*hook*, from `@jali/react`
+
+```ts
+useJaliEvent(event: JaliEvent, handler: (e: JaliEvents[event]) => void): void
+```
+
+Hear one of the workspace's events while the component is mounted: `useJaliEvent("open", ({ ref }) => …)`, `useJaliEvent("toast", show)`. It always calls the latest `handler`, so an inline function is fine, and stops listening on unmount. Typed by the app's workspace once it is registered (`Register`). See [`JaliEvents`](core/types.md#JaliEvents).
+
 ### shallow
 
 *function*, from `@jali/react`
@@ -449,12 +449,12 @@ shallow<T>(a: T, b: T): boolean
 
 The same keys (or items) with the same values by `Object.is`, one level deep: the equality for a selector that picks several values, `useJaliState((s) => ({ focused: s.view.focused, cap: s.settings.paneCap }), shallow)`.
 
-### useTheme
+### useJaliTheme
 
 *hook*, from `@jali/react`
 
 ```ts
-useTheme(): "light" | "dark"
+useJaliTheme(): "light" | "dark"
 ```
 
 The theme in use: the person's setting, or the system's when they chose "System". For a toaster or anything else of yours that needs to match.
@@ -471,12 +471,12 @@ Jali's commands for your app's own command menu, when the workspace is made with
 
 **Returns** `ListedCommand[]`:
 
-### useShortcut
+### useJaliShortcut
 
 *hook*, from `@jali/react`
 
 ```ts
-useShortcut(id: string): string
+useJaliShortcut(id: string): string
 ```
 
 A command's keys in this workspace's keymap, for a tooltip ("⌘K ⌘[" or "Ctrl+K Ctrl+["); `""` when unbound. Safe to prerender: on a server and while the page hydrates it prints keys for `"other"` ("Ctrl+K Ctrl+["), since a server can't know the reader's platform, then React renders it again with the reader's. A page rendered only in the browser gets the reader's keys on its first render.
@@ -487,36 +487,9 @@ A command's keys in this workspace's keymap, for a tooltip ("⌘K ⌘[" or "Ctrl
 
 **Returns** `string`:
 
-### JaliProvider
-
-*component*, from `@jali/react`
-
-```ts
-<JaliProvider jali={jali} icons?>{children}</JaliProvider>
-```
-
-Makes a workspace available to the hooks and parts below it. `<JaliRoot>` renders one; use it alone when you compose the parts yourself, and call `jali.start()` in an effect.
-
-**Props**
-
-- **`workspace`** (`Jali`, required):
-- **`icons`** (`Partial<JaliIcons>`): As on `<JaliRoot>`.
-
-- **`children`** (`ReactNode`):
-
 ## Parts
 
-`<JaliRoot>` and `<JaliView>` render these. Use them to compose your own: each must be inside a `<JaliProvider>`, and none takes props unless shown.
-
-### Panes
-
-*component*, from `@jali/react`
-
-```ts
-<Panes />
-```
-
-The panes: frames, dividers, drop zones, the drag chip, the peek sheet and (on a phone) the pane switcher. It is a `<section aria-label="Panes">` region, or the page's `<main>` with `createJali({ landmark: "main" })`, measures itself to set the workspace's `area`, keeps DOM focus on the focused pane, and announces panes folding or unfolding when the room changes. When even one pane's minimum doesn't fit, it shows one pane at a time. It is `position: relative` with `overflow: hidden` and no size of its own. Jali's styles make the root (`[data-jali]`) fill its box as a flex column, with the panes at `flex: 1`, so they take the room your own chrome leaves. Your own layout (a grid or flex cell) wins over those styles. If the panes still measure 0 high after they mount, a development warning in the console says so.
+Chrome of your own goes inside `<JaliRoot>`, around `<JaliView />`: the root renders the dialogs, the live region and the full-screen layer for every way of using Jali. These parts are for that chrome; each must be inside `<JaliRoot>`, and none takes props unless shown.
 
 ### CuratedPage
 
@@ -526,7 +499,7 @@ The panes: frames, dividers, drop zones, the drag chip, the peek sheet and (on a
 <CuratedPage />
 ```
 
-A curated page: the page's `Rail` at the left, when it has one; its `Header`, the page tabs and `<Panes>` beside it, or across the whole width without a rail. Renders only while a page is open (it reads it without checking).
+A curated page: the page's `Rail` at the left, when it has one; its `Header`, the page tabs and the panes beside it, or across the whole width without a rail. Renders only while a page is open (it reads it without checking).
 
 ### PageBar
 
@@ -547,56 +520,6 @@ A curated page's controls, for your top bar: the Single / Split view switch (Spl
 ```
 
 The panes the person tucked, as chips grouped by home (with Put back), for a status line. Folded panes are not here: they wait behind their tab strip's **N folded** chip. Arrow keys move between chips, Enter shows one, Shift+Enter puts it back. Renders nothing when no pane is tucked.
-
-### Announcer
-
-*component*, from `@jali/react`
-
-```ts
-<Announcer />
-```
-
-The one polite live region (`role="status"`) every layout change is announced in. It clears and then sets the text, so a repeat is announced again.
-
-### Palette
-
-*component*, from `@jali/react`
-
-```ts
-<Palette />
-```
-
-The command palette (⌘K or Ctrl+K), while `paletteOpen` is set. The focused pane's own commands come first, then every workspace command with its group and keys; refused ones are greyed. Choosing one closes the palette and runs it once focus is back.
-
-### SettingsPanel
-
-*component*, from `@jali/react`
-
-```ts
-<SettingsPanel>{extra?}</SettingsPanel>
-```
-
-The Settings dialog, while `settingsOpen` is set: theme, centre drop, pane cap (2 to 16), a curated page's opened-pane marking and viewer, every key binding from the workspace's keymap, then its children (your own fieldsets; `<JaliRoot settingsExtra>`). Changes go through `actions.changeSettings` and are saved on this device.
-
-### Chooser
-
-*component*, from `@jali/react`
-
-```ts
-<Chooser />
-```
-
-"Add to tabs of…" (the `pane.merge` command): pick a pane or tab group on screen by title, and the focused pane joins it. Renders while `chooser` is set.
-
-### ConfirmDiscard
-
-*component*, from `@jali/react`
-
-```ts
-<ConfirmDiscard />
-```
-
-"Discard unsaved changes?", while a change that would lose unsaved work is held (`confirm`). Lists each pane and its work. Keep editing is the default (focused, Esc and a click outside); Discard makes the held change against the workspace as it is then, and asks again if more work would now be lost.
 
 ### KindIcon
 
@@ -644,7 +567,7 @@ A button that is only an icon, drawn as Jali's header buttons are (the `iconButt
 
 ```tsx
 
-<IconButton label="Settings" onClick={() => jali.actions.openSettings()}>
+<IconButton label="Settings" onClick={() => jali.dialogs.openSettings()}>
   <GearSixIcon size={16} aria-hidden />
 </IconButton>;
 ```
@@ -821,7 +744,7 @@ Jali's icon for every name: Phosphor's regular weight, copied into the package. 
 useJaliIcons(): JaliIcons
 ```
 
-The icons this workspace draws with, for chrome of your own that should match Jali's: `const { close } = useJaliIcons()`. Inside `<JaliRoot>` or `<JaliProvider>`.
+The icons this workspace draws with, for chrome of your own that should match Jali's: `const { close } = useJaliIcons()`. Inside `<JaliRoot>`.
 
 ## Experimental
 

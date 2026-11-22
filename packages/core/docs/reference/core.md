@@ -17,14 +17,16 @@ Framework adapters import `@jali/core/adapter`: everything on this page, and, by
 *function*, from `@jali/core`
 
 ```ts
-createJali(options: JaliOptions): Jali
+createJali(options: JaliOptions): Jali<RefOf<kinds>, PageOf<page>>
 ```
 
 Makes one workspace, ready to render: its state, the model derived from it, its actions and its keymap. Each workspace has its own; nothing is shared between two on one page.
 
-Before it returns, it reads the address (a layout link opens as it is, a curated page link opens the page, a link that can't be read opens the starting layout with an error toast), adds what is on screen to Recent, fits the layout to the room and focuses the first pane. A page-only app (a `page` with no `layout` and no `presets`) starts with its page open on `firstItem`, and "Open Workspace" is refused. It throws ``Jali: give the workspace a `layout`, `presets` or a `page` to start from`` when it has none of them.
+Before it returns, it reads the address (a layout link opens as it is, a curated page link opens the page, a link that can't be read opens the starting layout with an error toast), adds what is on screen to Recent, fits the layout to the room and focuses the first pane. A page-only app (a `page` with no `layout` and no `presets`) starts with its page open on `firstItem`, and leaving it is refused. It throws ``Jali: give the workspace a `layout`, `presets` or a `page` to start from`` when it has none of them.
 
-Its listeners (keys, Back and Forward, theme and saving) start with `jali.start()`, which `<JaliRoot>` calls while it is mounted.
+Its type comes from what it is given: `jali.actions` takes refs of these kinds only, events and the model say which kind (`ref.kind` narrows `ref.params`), and `jali.page` is there only with a `page`. Declare it once as `Register` and the React hooks are typed by it too.
+
+Its listeners (keys, Back and Forward, theme and saving) start with `jali.start()`, which returns their stop and can start again; `<JaliRoot>` starts it while mounted and stops it on unmount. `jali.destroy()` is the end.
 
 **Parameters**
 
@@ -42,9 +44,11 @@ Its listeners (keys, Back and Forward, theme and saving) start with `jali.start(
 
 - **`launcher`** (`PaneKindBase`): What Split and "New tab here" open until the person chooses what to show. It closes quietly and its component reads `useLauncher()`. Without one, those commands and the tab strip's "+" are not offered.
 
-- **`page`** (`Page | null`): A curated page this workspace can show, from `definePage`. A page made any other way is refused: `definePage` gives it the code that runs it, which an app without a page never ships.
+- **`page`** (`Page | null`): A curated page this workspace can show, from `definePage` (`@jali/react`). A page made any other way is refused: `definePage` gives it the code that runs it, which an app without a page never ships. With one, `jali.page` has its actions.
 
-- **`name`** (`string`): The free workspace's name, in command titles such as "Open Workspace".
+- **`linkMode`** (`"open" | "peek"`): What following a link on the curated page does at first: `"open"` opens a pane beside the views; `"peek"` only peeks, in Single view, for a viewer who may look but not rearrange. `jali.page.setLinkMode` changes it later.
+
+- **`name`** (`string`): Your app's name for the free layout, in command titles such as "Open Data Studio" on a curated page. Without one, the command reads "Leave" and the page's name.
 
 - **`url`** (`boolean | UrlSyncOptions`):
 
@@ -60,23 +64,31 @@ The address.
 
 - **`id`** (`string`): Prefix for DOM ids (`jali-pane-orders`). Give each workspace on one page its own.
 
-- **`keys`** (`"page" | "scoped"`): `"page"`: every key on the page. `"scoped"`: only keys pressed inside it or in its dialogs (the palette, settings and the chooser render outside its root, so a ⌘K chord finishes there), and keys with nothing focused while it was the last one used. Use `"scoped"` for two on one page.
-
 - **`pageTheme`** (`boolean`): Set `data-theme` on `<html>` from the person's theme setting, and on the workspace's root and dialog layer too, for rules scoped to the workspace. `false` when the workspace sits in a page that has its own theme: then it writes none of them.
 
 - **`settings`** (`Partial<Settings>`): Settings for a person who has none saved on this device yet: `{ theme: "dark" }` for a dark-first app. They are not saved; what the person changes is, and wins from then on, setting by setting. See [`Settings`](core/types.md#Settings).
 
-- **`commands`** (`readonly Command[]`): Your own commands. They are listed in ⌘K after Jali's, and `keymap` can bind them like any other (`{ "orders.refresh": "Mod+K Mod+U" }`). If an id repeats one of Jali's, Jali's wins.
+- **`commands`** (`readonly Command[]`): Your own commands. They are listed in ⌘K after Jali's, and `keyboard.keymap` can bind them like any other (`{ "orders.refresh": "Mod+K Mod+U" }`). If an id repeats one of Jali's, Jali's wins.
 
-- **`keymap`** (`KeymapOverrides`): Rebind or unbind commands: `{ "pane.zoom": "Mod+K Mod+Enter", "pane.close": null }`. A binding is refused (and reported) when it can't be parsed, is a single character key with no Mod, Ctrl or Alt (those belong to the content), or has more than two steps.
+- **`keyboard`** (`KeyboardOptions`):
 
-- **`keymapOptions`** (`KeymapOptions`): `platform` (`"mac"` or `"other"`, for tests and the server) and `onInvalid(id, binding, reason)` (default `console.warn`).
+Jali's keys, in one place. See [`KeyboardOptions`](core/types.md#KeyboardOptions).
 
-- **`keyPrefix`** (`KeyString`): The first step of every default two-step binding, and the palette's key. Move it when your app owns ⌘K: `"Mod+J"` makes "Restore last closed pane" ⌘J ⌘Z. Bindings in `keymap` are used as written.
+**Fields**
 
-- **`reservedKeys`** (`readonly KeyString[]`): Keys your app uses for itself. Any of Jali's bindings that is one of them, or starts with one, is dropped and reported to `keymapOptions.onInvalid` when the workspace is made.
+- **`keyboard.scope`** (`"page" | "local"`): `"page"`: every key on the page. `"local"`: only keys pressed inside it or in its dialogs (the palette, settings and the chooser render outside its root, so a ⌘K chord finishes there), and keys with nothing focused while it was the last one used. Use `"local"` for two on one page.
 
-- **`palette`** (`boolean`): `false`: your app's own command menu lists Jali's commands ([`useJaliCommands`](react.md#useJaliCommands), `listCommands`). `<JaliRoot>` renders no palette, and its key is unbound unless `keymap` binds `"palette.toggle"`.
+- **`keyboard.keymap`** (`KeymapOverrides`): Rebind or unbind commands: `{ "pane.zoom": "Mod+K Mod+Enter", "pane.close": null }`. A binding is refused (and reported) when it can't be parsed, is a single character key with no Mod, Ctrl or Alt (those belong to the content), or has more than two steps.
+
+- **`keyboard.prefix`** (`KeyString`): The first step of every default two-step binding, and the palette's key. Move it when your app owns ⌘K: `"Mod+J"` makes "Restore last closed pane" ⌘J ⌘Z. Bindings in `keymap` are used as written.
+
+- **`keyboard.reserved`** (`readonly KeyString[]`): Keys your app uses for itself. Any of Jali's bindings that is one of them, or starts with one, is dropped and reported to `onInvalid` when the workspace is made.
+
+- **`keyboard.platform`** (`"mac" | "other"`): The keymap's platform, for tests and the server. Default: the running one.
+
+- **`keyboard.onInvalid`** (`(id, binding, reason) => void`): Hears each binding refused.
+
+- **`palette`** (`boolean`): `false`: your app's own command menu lists Jali's commands ([`useJaliCommands`](react.md#useJaliCommands), `listCommands`). `<JaliRoot>` renders no palette, and its key is unbound unless `keyboard.keymap` binds `"palette.toggle"`.
 
 - **`landmark`** (`"region" | "main"`): What the panes are to screen readers. `"region"`: a `<section>` labelled "Panes", which sits inside your page's own `<main>` and adds no second one. `"main"`: the panes render as the page's `<main>`. Use it when Jali is the whole app and the page has no `<main>` of its own.
 
@@ -112,7 +124,7 @@ The address.
 
 - **`messages`** (`MessageOverrides`): Words to use instead of Jali's English ones, by area: `{ commands: { close: "Fermer le volet" } }`. Keys you leave out stay English. See `en` and [Translate Jali](../guides/translating.md).
 
-**Returns** `Jali`: The workspace. Its members are listed under [`Jali`](core/types.md#Jali): `actions`, `get()`, `subscribe()`, `on()`, `model()`, `getLayout()`, `setLayout()`, `keymap`, `env`, `messages`, `href()`, `onToast()`, `start()` and `destroy()`.
+**Returns** `Jali`: The workspace. Its members are listed under [`Jali`](core/types.md#Jali): `actions`, `page` (with a page), `dialogs`, `get()`, `subscribe()`, `on()`, `model()`, `getLayout()`, `setLayout()`, `keymap`, `env`, `messages`, `href()`, `start()` and `destroy()`.
 
 ### actions
 
@@ -122,7 +134,7 @@ The address.
 jali.actions.openBeside(pane: PaneTarget, ref: ObjectRef, options?: OpenBesideOptions): ActionResult
 ```
 
-What an app asks the workspace to do. Each action reads the current state, makes its change once (layout, focus, address, announcement, toast) and returns what happened: `{ ok: true, pane }`, or `{ ok: false, reason }` with the reason it did not.
+What an app asks the workspace to do with panes and layouts; a curated page's actions are `jali.page` ([`JaliPage`](core/types.md#JaliPage)) and the dialogs' `jali.dialogs` ([`JaliDialogs`](core/types.md#JaliDialogs)). Each action reads the current state, makes its change once (layout, focus, address, announcement, toast) and returns what happened: `{ ok: true, pane }`, or `{ ok: false, reason }` with the reason it did not.
 
 The pane comes first, by its id or by the object it shows: `close("order")` and `close(orderKind({ id: 7 }))` both work. An action that would remove or replace a pane with unsaved work is held instead (`reason: "unsaved"`), and "Discard unsaved changes?" opens. A following detail with unsaved work keeps its object and says so, while the list's other followers move on. Every action is listed under [`JaliActions`](core/types.md#JaliActions).
 
@@ -482,6 +494,18 @@ The defaults keep to three rules:
 - single character keys belong to the focused content;
 - no keys the browser keeps for itself (⌘W, ⌘T, Ctrl+Tab and the like), no Ctrl+Alt, and no ⌘ or Ctrl with a digit;
 - one prefix, ⌘K or Ctrl+K, which opens the palette and starts a two-step chord whose second step keeps Mod held.
+
+### keyBelongsToContent
+
+*function*, from `@jali/core`
+
+```ts
+keyBelongsToContent(event: KeyboardEvent): boolean
+```
+
+Also exported from `@jali/react`.
+
+Whether a key event belongs to the focused content: its target is a text field, a contenteditable region, a combobox or search box, inside a dialog, or a control that Space presses (a button, link, tab, checkbox, switch, radio or menu item). Use it in a window-level `keydown` handler that wants a single key such as Space. See [Space in lists](../guides/commands-and-keys.md).
 
 ### formatKeys
 
