@@ -27,8 +27,11 @@ export interface ChooseOptions<T> {
   onChoose: (item: T) => void;
 }
 
-/** Open the chooser on `options` (closing ⌘K if it is open). Without a title or a way to name items: `"invalid"`. */
-export function choose(_x: Snapshot, options: ChooseOptions<unknown>): Outcome {
+/** Open the chooser on `options` (closing ⌘K if it is open). Without a title or a way to name items: `"invalid"`;
+ *  without the `chooser()` feature: `"unavailable"`. */
+export function choose(x: Snapshot, options: ChooseOptions<unknown>): Outcome {
+  // The dialog is the chooser feature's (`chooser()`).
+  if (!x.env.features?.some((f) => f.id === "chooser")) return refuse("unavailable");
   if (!options?.title || typeof options.label !== "function" || !Array.isArray(options.items))
     return refuse("invalid");
   return {

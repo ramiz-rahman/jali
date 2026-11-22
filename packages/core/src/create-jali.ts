@@ -1,6 +1,5 @@
 import type { WorkspaceAllow } from "./actions/allow";
 import type { PhoneOptions } from "./profile";
-import type { Rename } from "./actions/rename";
 /**
  * `createJali`: one call from pane kinds and a layout to a workspace that is ready to render.
  *
@@ -31,7 +30,8 @@ import type { BeforeClose } from "./state/apply";
 import type { Jali, PageOf } from "./state/instance";
 import type { LinkMode } from "./actions/public";
 import { createJaliStore, type JaliConfig, type UrlWriter } from "./state/store";
-import { createUrlSync, type UrlSyncOptions } from "./url";
+import type { Feature } from "./features/feature";
+import { warnUnknown } from "./dev-options";
 import type { MessageOverrides } from "./state/messages";
 import type { Settings } from "./state/settings";
 
@@ -75,11 +75,14 @@ export interface JaliOptions<
    *  on a curated page. Default: none, and the command says "Leave Loan review" instead. */
   name?: string;
   /**
-   * The address. `true` (the default in a browser): the layout lives in the address bar, so a link reopens it and
-   * Back and Forward step through it. Options configure that (`{ prefix: "b.", sizes: "link", location }`); `false`
-   * leaves the address alone.
+   * What the workspace does beyond laying out panes, each a value from its own module, so an app ships only what it
+   * uses: `[urlSync(), palette(), settings(), chooser(), rename({ run })]`, or `defaultFeatures()` from
+   * `jali/features` for all of Jali's usual ones at once. Default: none (no address, no palette, no Settings).
    */
-  url?: boolean | UrlSyncOptions | UrlWriter;
+  features?: readonly Feature[];
+  /** A writer of your own for the address (a router's), in place of `urlSync()`: it writes, and Jali reads nothing
+   *  back. Most apps give `urlSync({ location })` instead. */
+  url?: UrlWriter;
   /** What a person keeps on this device (settings, pane state, sizes): localStorage under this prefix, or a port.
    *  Default: the workspace's `id` ("jali") in a browser, so two workspaces never overwrite each other; memory
    *  elsewhere. */
@@ -106,9 +109,6 @@ export interface JaliOptions<
    *    `console.warn`), and the words printed keys use.
    */
   keyboard?: KeyboardOptions;
-  /** `false`: the app shows Jali's commands in its own command menu (`useJaliCommands`, `listCommands`). Jali then
-   *  renders no palette, and its key is unbound unless `keyboard.keymap` binds "palette.toggle". Default true. */
-  palette?: boolean;
   /** The reading direction. Default: the page's (the computed `direction` where the workspace is rendered, so
    *  `<html dir="rtl">` is enough), followed when it changes. Give one to fix it: `<JaliRoot>` then sets `dir` on its
    *  elements, so the styles agree. Right to left, a row starts at the right; the layout and its links are the same. */
@@ -160,12 +160,6 @@ export interface JaliOptions<
    */
   tabMenu?: TabMenu;
   /**
-   * Renaming in place: double-click or F2 on a tab, or on a lone pane's title, opens a field there. `can(pane)` says
-   * which panes may be renamed (default: all); `run(pane, text)` saves the name in your app, which then shows it
-   * (`useTitle`). Return `false`, throw or reject to keep the field open. Without it, nothing offers renaming.
-   */
-  rename?: Rename;
-  /**
    * Phones: below `phone.below` pixels of workspace width (default 600), the workspace shows one pane at a time,
    * with a switcher, whatever the panes' minimums. Its layout, address and history don't change; widen it and the
    * arrangement comes back. `{ below: 0 }` switches only when even one pane can't fit.
@@ -173,9 +167,9 @@ export interface JaliOptions<
   phone?: PhoneOptions;
   /**
    * What may happen to panes, beside each kind's own `allow`: turn controls off (`{ fullScreen: false }`), turn Pop out
-   * on (`{ popOut: true }`), and `when` for rules that depend on the layout: `when: ({ action, presetId }) =>
+   * off (`{ popOut: false }`, with the `popOut()` feature), and `when` for rules that depend on the layout: `when: ({ action, presetId }) =>
    * !(presetId === "review" && action === "close")`. The actions obey it, whatever asks (a button, a key, ⌘K, a drag,
-   * an agent), and the chrome draws only what is allowed. Default: everything but Pop out.
+   * an agent), and the chrome draws only what is allowed. Default: everything (Pop out with its feature).
    */
   allow?: WorkspaceAllow;
   /**
@@ -199,6 +193,7 @@ export interface JaliOptions<
 }
 
 const inBrowser = typeof window !== "undefined";
+declare const process: { env: { NODE_ENV?: string } };
 
 const presetOf = ({ id, label, layout, saved }: PresetOptions): Preset => ({
   id,
@@ -219,7 +214,8 @@ export function resolveOptions(options: JaliOptions): JaliConfig {
     layout,
     presets,
     page,
-    url = inBrowser,
+    url,
+    features: given = [],
     size,
     moveFocus = true,
     storage: kept,
@@ -232,6 +228,8 @@ export function resolveOptions(options: JaliOptions): JaliConfig {
     pageTheme,
     ...same
   } = options;
+  // One of each: a later one of the same id takes the earlier's place.
+  const features = given.filter((f, i) => !given.slice(i + 1).some((g) => g.id === f.id));
   const kinds = "register" in panes ? panes : createPaneKinds([...panes]);
   if (launcher) kinds.register({ ...launcher, transient: true });
   const storage =
@@ -246,15 +244,10 @@ export function resolveOptions(options: JaliOptions): JaliConfig {
     profile: page ?? null,
     presets: presets?.map(presetOf) ?? [],
     ...(launcher ? { launcher: launcher.kind } : {}),
-    url:
-      url === false
-        ? undefined
-        : url === true
-          ? createUrlSync({ storage })
-          : "write" in url
-            ? url
-            : createUrlSync({ storage, ...url }),
+    features,
+    url: url && typeof url === "object" && "write" in url ? url : features.find((f) => f.address)?.address?.(storage),
     storage,
+    ...(features.some((f) => f.env?.rename) ? { rename: features.find((f) => f.env?.rename)!.env!.rename! } : {}),
     ...(landmark === "main" ? { landmark } : {}),
     ...(typeof label === "string" && label.trim() ? { label: label.trim() } : {}),
     ...(confirmDiscard === false ? { confirmDiscard } : {}),
@@ -278,6 +271,17 @@ export function createJali<
   const L extends PaneKindBase = never,
   const P extends ProfileBase<any, any> | null | undefined = undefined, // eslint-disable-line @typescript-eslint/no-explicit-any
 >(options: JaliOptions<D, L, P>): Jali<RefOf<D | L>, PageOf<P>> {
+  try {
+    if (process.env.NODE_ENV !== "production")
+      warnUnknown(
+        "createJali",
+        options,
+        (key, value) =>
+          key === "url" && !!value && typeof value === "object" && "write" in value,
+      );
+  } catch {
+    /* no `process`: production */
+  }
   const store = createJaliStore(resolveOptions(options as JaliOptions));
   boot(store);
   // Only now: putting the first layout in place closes nothing the person had.

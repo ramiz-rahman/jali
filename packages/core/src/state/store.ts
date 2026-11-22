@@ -245,7 +245,8 @@ export interface JaliConfig {
   /** The launcher's kind (it must be in `kinds`). Default: none, so no Split. */
   launcher?: string;
   commands?: readonly Command[];
-  palette?: boolean;
+  /** The features it has (features/feature.ts), one of each id. */
+  features?: readonly import("../features/feature").Feature[];
   dir?: Direction;
   /** `"main"` or nothing (resolved: any other value is a region). */
   landmark?: "main";
@@ -404,7 +405,12 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
   const page = pageEngineOf(deps.profile);
   if (deps.profile && !page)
     throw new Error("Jali: make the page with `definePage`, which gives it the code that runs it");
-  const messages = resolveMessages(deps.messages, page?.words);
+  const messages = resolveMessages(
+    deps.messages,
+    page?.words,
+    deps.features?.map((f) => f.words),
+  );
+  const hasPalette = !!deps.features?.some((f) => f.id === "palette");
   // Development-only defaults and checks, behind a literal `process.env.NODE_ENV` test: a production build replaces
   // it with `false` and drops all of it, messages included; an unbundled page, which has no `process`, lands in the
   // catch and is production (dev.ts).
@@ -453,7 +459,7 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
     commands: [],
     ...shared,
     profile: deps.profile ?? null,
-    palette: deps.palette !== false,
+    palette: hasPalette,
     messages,
     spacing: spacingOf({ gap, inset }),
   };
@@ -811,7 +817,7 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
     actions: undefined as unknown as Actions,
     keymap: createKeymap(
       // Without Jali's palette, its key is the host's, unless the host binds it on purpose.
-      deps.palette === false && !(PALETTE_ID in (keyboard.keymap ?? {}))
+      !hasPalette && !(PALETTE_ID in (keyboard.keymap ?? {}))
         ? { ...keyboard.keymap, [PALETTE_ID]: null }
         : keyboard.keymap,
       { ...keyboard, words: keyboard.words ?? messages.keys },
@@ -826,7 +832,7 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
     start() {
       if (stop || destroyed) return () => {};
       const offInput = trackInput();
-      const off = startUi(store, undefined, {
+      const off = startUi(store, {
         keys: (keyboard.scope ?? "page") === "page" ? {} : { root: rootElement },
         pageTheme: deps.pageTheme,
       });

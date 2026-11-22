@@ -13,6 +13,14 @@ import type { Platform } from "../commands/format";
 import type { Env } from "../profile";
 import type { Toast } from "./apply";
 import { pageEn } from "./page-messages";
+import {
+  chooserEn,
+  paletteEn,
+  popOutEn,
+  renameEn,
+  settingsEn,
+  urlSyncEn,
+} from "./feature-messages";
 
 /** A direction on screen, as command ids name it ("pane.focus.left"). Right to left, left is still the screen's left. */
 export type ScreenDirection = "left" | "right" | "up" | "down";
@@ -22,7 +30,6 @@ export const dirWord = (d: Edge | "centre") =>
   d === "top" ? "up" : d === "bottom" ? "down" : d === "centre" ? "into the centre" : d;
 
 const panes = (n: number) => (n === 1 ? "pane" : "panes");
-const cap = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
 
 /** The live region: what happened, and why something did not. */
 const announcements = {
@@ -142,8 +149,6 @@ const announcements = {
   peekClosed: "Peek closed",
   linkCopied: "Link copied",
   linkNotCopied: "Couldn't copy the link",
-  historyChanged: "Layout changed by browser history",
-  brokenLink: "The layout in this link couldn't be read. Opened the default layout instead.",
   centreDrop: (mode: "swap" | "tab") => `Centre drop: ${mode === "swap" ? "swap" : "add as tab"}`,
 
   // inside a curated page: what the workspace's own steps say there (the page's own words are in page-messages.ts)
@@ -175,13 +180,6 @@ const toasts = {
     title: `${count} ${count === 1 ? "tab" : "tabs"} closed`,
     undo: true,
   }),
-  brokenLink: (preset: string | undefined): Toast => ({
-    title: "This link’s layout couldn’t be read",
-    description: preset
-      ? `Opened “${preset}” instead. A copy of the link was kept.`
-      : "The layout stayed as it was. A copy of the link was kept.",
-    error: true,
-  }),
 };
 
 /** The label over a drop target while dragging: what releasing will do. */
@@ -204,7 +202,6 @@ const commands = {
   focusIndex: (n: number) => `Focus pane ${n}`,
   zoom: "Maximise or restore pane",
   fullScreen: "Full screen pane, or exit full screen",
-  popOut: "Pop out pane",
   tuck: "Tuck pane into its neighbour",
   putBack: "Put back tucked pane",
   revealFromShelf: "Show a pane from the shelf",
@@ -218,11 +215,9 @@ const commands = {
   moveDirection: (direction: ScreenDirection) => `Move pane ${direction}`,
   swap: "Swap with next pane",
   moveOutOfRow: "Move pane out of the row",
-  merge: "Add to tabs of…",
   unmerge: "Move out of tabs",
   moveTab: (direction: "left" | "right") => `Move tab ${direction}`,
   newTab: "New tab here",
-  rename: "Rename pane",
   preset: (label: string) => `Layout: ${label}`,
   resetLayout: "Reset layout",
   autoLayout: "Arrange panes automatically",
@@ -230,7 +225,6 @@ const commands = {
   peekClose: "Close peek",
   peekOpenBeside: "Open peek beside",
   peekOpenFull: "Open peek full",
-  settingsOpen: "Open settings",
   centreDropToggle: "Switch centre drop (swap ↔ tab)",
 };
 
@@ -264,36 +258,7 @@ const keys = {
   withKeys: (label: string, keys: string) => (keys ? `${label} · ${keys}` : label),
 };
 
-/** ⌘K. */
-const palette = {
-  label: "Commands",
-  placeholder: "Type a command…",
-  listLabel: "Commands",
-  empty: (query: string) => `No command matches “${query}”.`,
-};
 
-/** "Add to tabs of…" (⌘K ⌘G). */
-const chooser = {
-  label: (pane: string) => `Add ${pane} to tabs of`,
-  heading: <T>(pane: string, bold: (text: string) => T): (string | T)[] => [
-    "Add ",
-    bold(pane),
-    " to the tabs of…",
-  ],
-  placeholder: "Pane or stack",
-  inputLabel: "Pane or stack",
-  listLabel: "Panes and stacks",
-  empty: (query: string) => `No pane or stack matches “${query}”.`,
-  /** The hint beside a stack: how many tabs it has. */
-  stackHint: (count: number) => `${count} tabs`,
-  /** The hint beside a pane that is still choosing what to show (the launcher). */
-  newPaneHint: "new pane",
-  /** `jali.actions.choose`, when the app asks for an item: the field's placeholder (unless the app gives one), the
-   *  list's name for screen readers, and what it says when nothing matches. The title is the app's. */
-  choosePlaceholder: "Type to search",
-  chooseListLabel: "Choices",
-  chooseEmpty: (query: string) => `Nothing matches “${query}”.`,
-};
 
 /** "Discard unsaved changes?" */
 const confirmDiscard = {
@@ -312,33 +277,6 @@ const confirmDiscard = {
   keepEditing: "Keep editing",
 };
 
-/** The settings panel. */
-const settings = {
-  title: "Settings",
-  close: "Close settings",
-  theme: "Theme",
-  themeSystem: "System",
-  themeLight: "Light",
-  themeDark: "Dark",
-  centreDrop: "Centre drop",
-  centreDropSwap: "Swap the two panes",
-  centreDropTab: "Add as a tab",
-  paneCap: "Pane cap",
-  paneCapHelp: "Over the cap, the oldest pane that is neither kept nor focused becomes a tab.",
-  openedPanes: (page: string) => `${page}: opened panes`,
-  boundaryTint: "Tinted header and “Opened” tag",
-  boundaryNone: "No marking",
-  viewingAs: (page: string) => `${page}: viewing as`,
-  viewerFull: (viewer: string) => `${cap(viewer)}: links open beside`,
-  viewerLimited: (viewer: string) => `${cap(viewer)}: Single only, links open as a peek`,
-  keyboard: "Keyboard",
-  keyboardLabel: "Keyboard shortcuts",
-  paletteKey: "Command palette (then a second key for a chord)",
-  escapeKey: "Close the peek, then leave maximise (after the pane's own use of it)",
-  /** `undo` is the platform's undo key ("⌘Z", "Ctrl+Z"). */
-  keyboardNote: (undo: string) =>
-    `Inside a pane, its own keys come first: J/K and the arrows move, Space peeks, ${undo} undoes the pane's own changes, and the first Esc is the pane's.`,
-};
 
 /** Tabs (made by you: merged, opened, tucked; made by the layout: folded) and the tab strip's overflow menu. */
 const tabs = {
@@ -400,7 +338,6 @@ const tabs = {
   /** A pane in a row that scrolls sideways: out of it, beside it. */
   moveOutOfRow: "Move out of the row",
   pinTab: "Pin tab",
-  rename: "Rename…",
   /** A pinned tab's description starts with this. */
   pinned: "Pinned",
   splitRight: "Split right",
@@ -410,7 +347,6 @@ const tabs = {
   fullScreen: "Full screen",
   exitFullScreen: "Exit full screen",
   tuck: "Tuck",
-  popOut: "Pop out",
 };
 
 /** The shelf: tucked and folded panes as chips. */
@@ -468,12 +404,6 @@ const pane = {
   fullScreenTip: "Full screen",
   exitFullScreen: (pane: string) => `Exit full screen ${pane}`,
   exitFullScreenTip: "Exit full screen",
-  /** A popped-out pane's place (experimental Pop out). */
-  poppedOut: "Popped out into its own window",
-  bringBack: "Bring back",
-  popOut: (pane: string) => `Pop out ${pane}`,
-  popOutTip: "Pop out into a floating window",
-  bringBackPane: (pane: string) => `Bring back ${pane}`,
   /** The ⋯ button: everything the pane's menu offers. */
   menu: (pane: string) => `More for ${pane}`,
   menuTip: "More",
@@ -517,9 +447,6 @@ const pane = {
   closeFailed: "Close",
   /** A pane whose content is still loading, when its kind has no `Loading`. */
   loadingContent: "Loading…",
-  /** The rename field's name, and what it says when the app turned the name down. */
-  renameField: (pane: string) => `Rename ${pane}`,
-  renameFailed: "Not renamed. Change the name, or press Escape",
   /** A pane with unsaved work (`useUnsaved`): the unsaved mark's name, and the start of a tab's description. */
   unsaved: "Unsaved changes",
 };
@@ -555,7 +482,8 @@ const workspace = {
   dividerTip: (side: string, px: number) => `${side} · ${px}px`,
 };
 
-/** English for every workspace, without a curated page's words (those come with `definePage`; page-messages.ts). */
+/** English for every workspace, without a curated page's words (those come with `definePage`; page-messages.ts) or a
+ *  feature's (each feature brings its own; feature-messages.ts). */
 export const baseEn = {
   announcements,
   toasts,
@@ -563,10 +491,7 @@ export const baseEn = {
   commands,
   commandGroups,
   keys,
-  palette,
-  chooser,
   confirmDiscard,
-  settings,
   tabs,
   shelf,
   pane,
@@ -583,7 +508,22 @@ const withAreas = <B extends object, M extends object>(base: B, more: M): B & M 
 
 /** English, Jali's default words. Spread it to start a translation, or pass only what changes to `createJali`. */
 // Pure, so an app that never reads `en` (it reads `jali.messages`) doesn't ship the page's words through it.
-export const en = /* @__PURE__ */ withAreas(baseEn, pageEn);
+export const en = /* @__PURE__ */ [
+  pageEn,
+  urlSyncEn,
+  paletteEn,
+  chooserEn,
+  settingsEn,
+  renameEn,
+  popOutEn,
+].reduce<object>(withAreas, baseEn) as typeof baseEn &
+  typeof pageEn &
+  typeof urlSyncEn &
+  typeof paletteEn &
+  typeof chooserEn &
+  typeof settingsEn &
+  typeof renameEn &
+  typeof popOutEn;
 
 /** Every message Jali uses, by area. A full translation is a `Messages`: a missing key is a type error. */
 export type Messages = {
@@ -594,13 +534,20 @@ export type Messages = {
 export type MessageOverrides = { [Area in keyof Messages]?: Partial<Messages[Area]> };
 
 /**
- * A workspace's words: English, then a curated page's English (`page`, which its engine brings), then `overrides`,
- * area by area. Without a page, the page's words are left out: nothing reads them, and an app without a page doesn't
- * ship them. So `Messages`' page-only words (`page`, and the announcements, commands and toast only a page uses) are
- * there exactly when the workspace has a page.
+ * A workspace's words: English, then each feature's English (`features`, which each feature brings), then a curated
+ * page's (`page`, which its engine brings), then `overrides`, area by area. What a workspace doesn't have is left out:
+ * nothing reads it, and an app without it doesn't ship it. So `Messages`' feature and page words are there exactly
+ * when the workspace has the feature or the page.
  */
-export const resolveMessages = (overrides?: MessageOverrides, page?: MessageOverrides): Messages =>
-  withAreas(withAreas(baseEn, page ?? {}), overrides ?? {}) as Messages;
+export const resolveMessages = (
+  overrides?: MessageOverrides,
+  page?: MessageOverrides,
+  features: readonly (MessageOverrides | undefined)[] = [],
+): Messages =>
+  [...features, page, overrides].reduce<object>(
+    (words, more) => (more ? withAreas(words, more) : words),
+    baseEn,
+  ) as Messages;
 
 /** The messages of the workspace an env, snapshot or model belongs to (English when it was made without any). */
 export const messagesOf = (from: Env | { env: Env }): Messages =>

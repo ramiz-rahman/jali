@@ -169,12 +169,14 @@ export function setActivity({ s, m }: Snapshot, id: NodeId, a: PaneActivity): Ou
 }
 
 /** The command palette (⌘K) and the settings panel. */
-export const openPalette = (): Outcome => ({
-  op: "patch",
-  patch: { paletteOpen: true, chooser: null },
-});
+/** Refused as `"unavailable"` where the workspace has no such dialog (its feature: `palette()`, `settings()`). */
+const without = (x: Snapshot, id: "palette" | "settings") =>
+  x.env.features?.some((f) => f.id === id) ? undefined : refuse("unavailable");
+export const openPalette = (x: Snapshot): Outcome =>
+  without(x, "palette") ?? { op: "patch", patch: { paletteOpen: true, chooser: null } };
 export const closePalette = (): Outcome => ({ op: "patch", patch: { paletteOpen: false } });
-export const openSettings = (): Outcome => ({ op: "patch", patch: { settingsOpen: true } });
+export const openSettings = (x: Snapshot): Outcome =>
+  without(x, "settings") ?? { op: "patch", patch: { settingsOpen: true } };
 export const closeSettings = (): Outcome => ({ op: "patch", patch: { settingsOpen: false } });
 
 /** Change the person's settings (theme, pane cap, ...): saved on this device, and the layout refits to a new cap. */

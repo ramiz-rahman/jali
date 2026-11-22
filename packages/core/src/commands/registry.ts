@@ -6,13 +6,12 @@
  */
 import { checkAutoLayout } from "../actions/layout";
 import { notAllowed, type PaneControl } from "../actions/allow";
-import type { Edge, NodeId } from "../layout/types";
+import type { Edge } from "../layout/types";
 import { checkUndo } from "../actions/close";
 import { checkZoom } from "../actions/focus";
 import { checkPeek } from "../actions/peek";
 import { checkPutBack, checkTuck } from "../actions/tuck";
-import { checkMerge, checkMoveTab, checkUnmerge } from "../actions/tabs";
-import { checkRename } from "../actions/rename";
+import { checkMoveTab, checkUnmerge } from "../actions/tabs";
 import { activeTabId, focusShelfChip } from "../dom/focus";
 import type { Env } from "../profile";
 import { refuse, type RefusalStep, type Snapshot } from "../state/apply";
@@ -39,21 +38,9 @@ export interface CommandDef extends Omit<Command, "run"> {
   run: (store: JaliStore) => void;
 }
 
-/**
- * How the framework adapter pops a pane out into a floating window: `can` says whether this browser can, `run` opens
- * the pane. Core has no window of its own to open, so without one `pane.pop_out` can't run. An adapter gives it to
- * each workspace with its DOM port (`DomPort.popOut`, through `store.dom.use`); @jali/react's `reactDom` has one.
- */
-export interface PopOutPort {
-  can(): boolean;
-  run(jali: Jali, pane: NodeId): unknown;
-}
-/** The way to pop a pane out of `store`'s workspace: its adapter's own (its DOM port's). */
-const popOutOf = (store: Pick<JaliStore, "dom"> | undefined) => store?.dom.port.popOut;
-
 /** `check`, then the app's `allow` for the focused pane (a command for something it doesn't allow is greyed out,
  *  saying why). Leaving maximise or full screen is always allowed. */
-const also =
+export const also =
   (check: (x: Snapshot, store?: JaliStore) => RefusalStep | undefined, control: PaneControl) =>
   (x: Snapshot, store?: JaliStore): RefusalStep | undefined => {
     const id = x.s.view.focused;
@@ -62,7 +49,7 @@ const also =
       (control === "fullScreen" && x.s.fullScreen === id);
     return check(x, store) ?? (leaving ? undefined : notAllowed(x, id, control));
   };
-const needFocus = ({ s }: Snapshot) => (s.view.focused ? undefined : refuse("unavailable"));
+export const needFocus = ({ s }: Snapshot) => (s.view.focused ? undefined : refuse("unavailable"));
 const needLauncher = (x: Snapshot) =>
   x.s.view.focused && x.env.launcher ? undefined : refuse("unavailable");
 const inStrip = (x: Snapshot) =>
@@ -79,8 +66,23 @@ const DIRS: [Edge, ScreenDirection][] = [
   ["bottom", "down"],
 ];
 
-/** Every command a workspace has: the fixed set, its presets', and titles in its own words (its name, its viewers). */
+/** Every command a workspace has: the fixed set, its presets', its features' and titles in its own words (its name,
+ *  its viewers). */
 function buildCommands(env: Env): CommandDef[] {
+  const all = jaliCommands(env);
+  // Each feature's, after the command of Jali's it names (its place in the palette), else last.
+  for (const f of env.features ?? [])
+    for (const { after, ...c } of f.commands?.(env) ?? []) {
+      const at = after ? all.findIndex((d) => d.id === after) : -1;
+      all.splice(at < 0 ? all.length : at + 1, 0, c);
+    }
+  // The host's own, last (a Jali id wins if a host repeats one).
+  for (const c of env.commands ?? [])
+    all.push({ id: c.id, title: c.title, group: c.group, run: (u) => c.run(u.jali) });
+  return all;
+}
+
+function jaliCommands(env: Env): CommandDef[] {
   const { commands: t, commandGroups: g } = messagesOf(env);
   return [
     // F6 visits the panes, then the shelf and the host's regions (commands/regions.ts).
@@ -127,25 +129,6 @@ function buildCommands(env: Env): CommandDef[] {
       ),
       run: (u) => u.actions.toggleFullScreen(),
     },
-    // Only where the app turns pop out on (`allow: { popOut: true }`): the pane menu's Pop out, from ⌘K or a key.
-    ...(env.allow?.popOut === true
-      ? [
-          {
-            id: "pane.pop_out",
-            title: t.popOut,
-            group: g.pane,
-            check: also(
-              (x, store) =>
-                needFocus(x) ?? (popOutOf(store)?.can() ? undefined : refuse("unavailable")),
-              "popOut",
-            ),
-            run: (u: JaliStore) => {
-              const id = u.get().view.focused;
-              if (id) void popOutOf(u)?.run(u.jali, id);
-            },
-          },
-        ]
-      : []),
     {
       id: "pane.tuck",
       title: t.tuck,
@@ -242,14 +225,7 @@ function buildCommands(env: Env): CommandDef[] {
       run: (u) => u.actions.swapWithNext(),
     },
 
-    // Merge and unmerge without dragging (WCAG 2.5.7).
-    {
-      id: "pane.merge",
-      title: t.merge,
-      group: g.tabs,
-      check: also(checkMerge, "move"),
-      run: (u) => u.set({ chooser: { kind: "merge", source: u.get().view.focused! } }),
-    },
+    // Unmerge without dragging (WCAG 2.5.7); merging is the chooser's (`chooser()`).
     {
       id: "pane.unmerge",
       title: t.unmerge,
@@ -264,13 +240,6 @@ function buildCommands(env: Env): CommandDef[] {
       check: also(checkMoveTab, "move"),
       run: (u: JaliStore) => u.actions.moveTabToward(side),
     })),
-    {
-      id: "pane.rename",
-      title: t.rename,
-      group: g.pane,
-      check: checkRename,
-      run: (u) => u.actions.startRename(),
-    },
     {
       id: "stack.new-tab",
       title: t.newTab,
@@ -326,25 +295,12 @@ function buildCommands(env: Env): CommandDef[] {
     },
 
     {
-      id: "settings.open",
-      title: t.settingsOpen,
-      group: g.settings,
-      run: (u) => u.run("dialogs.openSettings"),
-    },
-    {
       id: "settings.centre_drop.toggle",
       title: t.centreDropToggle,
       group: g.settings,
       run: toggleCentreDrop,
     },
 
-    // The host's own, last (a Jali id wins if a host repeats one).
-    ...(env.commands ?? []).map((c): CommandDef => ({
-      id: c.id,
-      title: c.title,
-      group: c.group,
-      run: (u) => c.run(u.jali),
-    })),
   ];
 }
 

@@ -4,7 +4,7 @@
  *
  * Each level can only take away: Jali's own rules (a lone pane has no maximise, a phone no drag), then the kind
  * (`definePane({ allow })`, what its content can handle), then the workspace (`createJali({ allow })`: defaults, or a
- * function for "it depends"). Everything is allowed by default, except `popOut`, which an app turns on.
+ * function for "it depends"). Everything is allowed by default; `popOut` needs its feature, `popOut()`.
  */
 import * as core from "../layout/engine";
 import type { NodeId, PaneNode } from "../layout/types";
@@ -54,8 +54,6 @@ export type AllowRule = (ctx: AllowContext) => boolean | undefined | void;
 /** A workspace's `allow`: its defaults, and `when` for "it depends" (a preset, a curated page, a role). */
 export type WorkspaceAllow = PaneAllow & { when?: AllowRule };
 
-/** Off until the app turns them on, at the workspace (`createJali({ allow: { popOut: true } })`). */
-const OFF_BY_DEFAULT = /* @__PURE__ */ new Set<PaneControl>(["popOut"]);
 
 /** Whether `action` may happen to pane `id`. */
 export function allows(
@@ -67,7 +65,9 @@ export function allows(
   if (!pane) return true;
   if (env.kinds.get(pane.ref.kind)?.allow?.[action] === false) return false;
   const rule = env.allow;
-  if (OFF_BY_DEFAULT.has(action) ? rule?.[action] !== true : rule?.[action] === false) return false;
+  if (rule?.[action] === false) return false;
+  // Pop out only where the workspace has it (the `popOut()` feature, which brings the window).
+  if (action === "popOut" && !env.features?.some((f) => f.id === "popOut")) return false;
   if (!rule?.when) return true;
   const page = s.page
     ? { mode: s.page.mode, ...(s.page.item ? { item: String(s.page.item) } : {}) }

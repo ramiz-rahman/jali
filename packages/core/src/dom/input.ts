@@ -20,7 +20,8 @@ export type JaliInput = "mouse" | "touch" | "pen" | "keyboard" | "virtual" | "ag
 let noted: JaliInput | undefined;
 let clear: ReturnType<typeof setTimeout> | undefined;
 let held: JaliInput[] = [];
-let listeners = 0;
+/** How many started workspaces listen on each document (a floating window's is a document of its own). */
+const listening = /* @__PURE__ */ new WeakMap<Document, number>();
 
 const note = (input: JaliInput) => {
   noted = input;
@@ -51,10 +52,12 @@ export function withInput<T>(input: JaliInput, fn: () => T): T {
   }
 }
 
-/** Listen for a person's input on `doc` while any workspace is started. Returns the stop. */
+/** Listen for a person's input on `doc` while any workspace is started there. Returns the stop. */
 export function trackInput(doc: Document | undefined = globalThis.document): () => void {
   if (!doc) return () => {};
-  if (listeners++ === 0) {
+  const n = listening.get(doc) ?? 0;
+  listening.set(doc, n + 1);
+  if (n === 0) {
     doc.addEventListener("pointerdown", onPointer, true);
     doc.addEventListener("pointerup", onPointer, true);
     doc.addEventListener("keydown", onKey, true);
@@ -64,7 +67,9 @@ export function trackInput(doc: Document | undefined = globalThis.document): () 
   return () => {
     if (stopped) return;
     stopped = true;
-    if (--listeners === 0) {
+    const left = (listening.get(doc) ?? 1) - 1;
+    listening.set(doc, left);
+    if (left === 0) {
       doc.removeEventListener("pointerdown", onPointer, true);
       doc.removeEventListener("pointerup", onPointer, true);
       doc.removeEventListener("keydown", onKey, true);

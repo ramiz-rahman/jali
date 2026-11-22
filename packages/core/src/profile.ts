@@ -184,8 +184,11 @@ export interface Env {
   name?: string;
   /** The kind a split or a new tab opens until the person chooses what to show. Without one, there is no Split. */
   launcher?: string;
-  /** False when the host shows Jali's commands in its own command menu (`palette: false`). */
+  /** Whether Jali renders its palette (the `palette()` feature); false when the host shows Jali's commands in its own
+   *  command menu. */
   palette?: boolean;
+  /** The workspace's features (`createJali({ features })`), one of each id. */
+  features?: readonly import("./features/feature").Feature[];
   /** Every word the workspace shows or says (state/messages.ts). Default: English (`en`). */
   messages?: Messages;
   /** The curated page's engine, when `profile` is set (from `definePage`). */

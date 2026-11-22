@@ -123,6 +123,7 @@ export type {
 
 // ---------- the workspace's state ----------
 export type { PageState, Selection, UrlState, UrlWriter } from "./state/store";
+export type { Feature, FeatureId } from "./features/feature";
 export type { JaliModel, PaneOf, Group } from "./state/model";
 export type { Settings, ThemeChoice, Theme } from "./state/settings";
 

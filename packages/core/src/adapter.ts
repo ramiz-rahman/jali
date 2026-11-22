@@ -20,6 +20,7 @@ export type {
 
 // ---------- the instance and start-up ----------
 export { isDev } from "./dev";
+export { warnUnknown } from "./dev-options";
 export { createInstance, storeOf } from "./state/instance";
 export { boot, flushPaneState, startUi, type StartOptions } from "./boot";
 
@@ -167,8 +168,30 @@ export {
   revealFromShelf,
   shortcutLabel,
   type CommandDef,
-  type PopOutPort,
+  also,
+  needFocus,
 } from "./commands/registry";
+
+// ---------- features: what one can bring, and the framework-free halves of Jali's ----------
+export {
+  featureOf,
+  partOf,
+  type Feature,
+  type FeatureCommand,
+  type FeatureId,
+} from "./features/feature";
+export { chooserFeature, paletteFeature, settingsFeature } from "./features/dialogs";
+export { renameFeature } from "./features/rename";
+export { popOutFeature, type PopOutWindow } from "./features/pop-out";
+export { urlSync } from "./features/url-sync";
+export {
+  chooserEn,
+  paletteEn,
+  popOutEn,
+  renameEn,
+  settingsEn,
+  urlSyncEn,
+} from "./state/feature-messages";
 export { DEFAULT_PREFIX, PALETTE_ID, createKeymap } from "./commands/keymap";
 export {
   createKeyHandler,
