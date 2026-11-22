@@ -122,7 +122,9 @@ function createWindow(): ReactPopOut & { started(store: JaliStore): () => void }
     },
     close(store: JaliStore) {
       const s = slot(store).s;
-      if (s) (end(store, s), s.win.close());
+      if (!s) return;
+      end(store, s);
+      s.win.close();
     },
     started(store: JaliStore) {
       slot(store).on = true;
