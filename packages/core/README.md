@@ -11,19 +11,21 @@ A workspace of panes that fits the space it has. No framework.
 
 ```ts
 import { createJali, row } from "@jali/core";
+import { urlSync } from "@jali/core/adapter";
 
 const jali = createJali({
   panes: [orders, order], // your kinds: definePane from @jali/react
-  layout: row(orders(), order({ id: 1 })), // two panes side by side, kept in the address
+  layout: row(orders(), order({ id: 1 })), // two panes side by side
+  features: [urlSync()], // the layout in the address: links, Back and Forward, reloads
 });
 
 jali.actions.openBeside("orders", order({ id: 2 }));
 ```
 
-More than one workspace on a page: give each its own `id` (DOM ids and saved keys), URL `prefix` (`url: { prefix: "n." }`) and `keys: "scoped"`. A workspace inside a page with its own theme passes `pageTheme: false`.
+More than one workspace on a page: give each its own `id` (DOM ids and saved keys), its own address params (`urlSync({ prefix: "n." })`) and `keyboard: { scope: "local" }`. A workspace inside a page with its own theme passes `pageTheme: false`.
 
 Render it with [`@jali/react`](../react). Framework adapters import `@jali/core/adapter`.
 
-## Docs, here too
+## Docs
 
-`docs/` in this package holds the docs for the installed version, as Markdown: `node_modules/@jali/core/docs/README.md` lists every page. A coding agent should read `docs/get-started/coding-agents.md` before writing Jali code.
+The docs live with the published package: [`packages/jali/docs`](../jali/docs/README.md) (installed, `node_modules/jali/docs/README.md`). A coding agent should read [`get-started/coding-agents.md`](../jali/docs/get-started/coding-agents.md) before writing Jali code.
