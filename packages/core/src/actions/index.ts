@@ -152,131 +152,134 @@ const SELECT_OPTIONS = /* @__PURE__ */ arg.optional(
   arg.shape({ inResults: /* @__PURE__ */ arg.optional(arg.bool) }),
 );
 
-export const STEPS = {
-  // ---------- jali.actions ----------
-  focus: onPane(NONE, focusShown),
-  toggleZoom: onFocused(NONE, toggleZoom),
-  toggleFullScreen: onFocused(NONE, toggleFullScreen),
-  openBeside: onPane(
-    [arg.ref, arg.optional(arg.shape({ edge: arg.optional(arg.edge) }))],
-    (x, id, ref, options) => openBeside(x, id, ref, options?.edge ? { edge: options.edge } : {}),
-  ),
-  openHere: onPane([arg.ref], openHere),
-  peek: onPane([arg.ref], (x, id, ref) => peek(x, ref, id)),
-  closePeek: checked(NONE, (x) => (x.s.view.peek ? peek(x, null) : null)),
-  select: onPane([REF_OR_NONE, SELECT_OPTIONS], select),
-  setKept: onPane([arg.bool], (x, id, kept) =>
-    x.m.pane(id)?.linkedTo ? setKept(x, id, kept) : refuse("nothing-to-do"),
-  ),
-  split: onFocused([arg.optional(arg.oneOf("right", "bottom"))], (x, id, direction) => {
-    const target = id ?? x.s.view.focused;
-    const box = x.m.resolved.panes.find((b) => b.id === target);
-    const dir = direction ?? (box && box.rect.height > box.rect.width ? "bottom" : "right");
-    return target ? split(x, dir, target) : refuse("not-found");
-  }),
-  newTab: onFocused(NONE, (x, id) => newTab(x, id ?? x.s.view.focused)),
-  addTab: onPane([arg.ref], addTab),
-  close: onFocused(NONE, (x, id) =>
-    (id ?? x.s.view.focused) ? close(x, id) : refuse("not-found"),
-  ),
-  closeOthers: onFocused(NONE, closeOthers),
-  closeTabs: onPane([TAB_SET], closeTabs),
-  undo: checked(NONE, undo),
-  remove: onPane(NONE, remove),
-  tuck: onFocused(NONE, tuck),
-  // `preferred`, for adapters: the tab to put back when no pane is named (the one the shelf shows).
-  putBack: onFocused([arg.optional(arg.text)], putBack),
-  move: onPane([arg.edge], (x, id, direction) => moveDirection(x, direction, id)),
-  swapWithNext: onFocused(NONE, swapWithNext),
-  moveOutOfRow: onFocused(NONE, moveOutOfRow),
-  mergeInto: onPane([arg.target], (x, id, into) => {
-    const other = paneFor(x, into);
-    return other ? mergeInto(x, id, other) : refuse("not-found");
-  }),
-  unmerge: onFocused(NONE, unmerge),
-  moveTab: onPane([arg.integer], moveTab),
-  setPinned: onPane([arg.bool], setPinned),
-  startRename: onFocused(NONE, startRename),
-  preset: checked([arg.text], (x, id) =>
-    !x.env.presets.length
-      ? refuse("unavailable")
-      : x.env.presets.some((p) => p.id === id)
-        ? preset(x, id)
-        : refuse("not-found"),
-  ),
-  resetLayout: checked(NONE, (x) =>
-    x.env.presets.length ? resetLayout(x) : refuse("unavailable"),
-  ),
-  autoLayout: checked(NONE, autoLayout),
-  // Each setting is read by `settingsWith`, which refuses a patch it can't use.
-  changeSettings: checked([arg.object<Partial<Settings>>()], changeSettings),
+// Made in a function marked pure: each step is a call (`checked`, `onPane`), and an app that never makes an instance
+// (the layout tree alone) must be able to drop the whole table.
+export const STEPS = /* @__PURE__ */ (() =>
+  ({
+    // ---------- jali.actions ----------
+    focus: onPane(NONE, focusShown),
+    toggleZoom: onFocused(NONE, toggleZoom),
+    toggleFullScreen: onFocused(NONE, toggleFullScreen),
+    openBeside: onPane(
+      [arg.ref, arg.optional(arg.shape({ edge: arg.optional(arg.edge) }))],
+      (x, id, ref, options) => openBeside(x, id, ref, options?.edge ? { edge: options.edge } : {}),
+    ),
+    openHere: onPane([arg.ref], openHere),
+    peek: onPane([arg.ref], (x, id, ref) => peek(x, ref, id)),
+    closePeek: checked(NONE, (x) => (x.s.view.peek ? peek(x, null) : null)),
+    select: onPane([REF_OR_NONE, SELECT_OPTIONS], select),
+    setKept: onPane([arg.bool], (x, id, kept) =>
+      x.m.pane(id)?.linkedTo ? setKept(x, id, kept) : refuse("nothing-to-do"),
+    ),
+    split: onFocused([arg.optional(arg.oneOf("right", "bottom"))], (x, id, direction) => {
+      const target = id ?? x.s.view.focused;
+      const box = x.m.resolved.panes.find((b) => b.id === target);
+      const dir = direction ?? (box && box.rect.height > box.rect.width ? "bottom" : "right");
+      return target ? split(x, dir, target) : refuse("not-found");
+    }),
+    newTab: onFocused(NONE, (x, id) => newTab(x, id ?? x.s.view.focused)),
+    addTab: onPane([arg.ref], addTab),
+    close: onFocused(NONE, (x, id) =>
+      (id ?? x.s.view.focused) ? close(x, id) : refuse("not-found"),
+    ),
+    closeOthers: onFocused(NONE, closeOthers),
+    closeTabs: onPane([TAB_SET], closeTabs),
+    undo: checked(NONE, undo),
+    remove: onPane(NONE, remove),
+    tuck: onFocused(NONE, tuck),
+    // `preferred`, for adapters: the tab to put back when no pane is named (the one the shelf shows).
+    putBack: onFocused([arg.optional(arg.text)], putBack),
+    move: onPane([arg.edge], (x, id, direction) => moveDirection(x, direction, id)),
+    swapWithNext: onFocused(NONE, swapWithNext),
+    moveOutOfRow: onFocused(NONE, moveOutOfRow),
+    mergeInto: onPane([arg.target], (x, id, into) => {
+      const other = paneFor(x, into);
+      return other ? mergeInto(x, id, other) : refuse("not-found");
+    }),
+    unmerge: onFocused(NONE, unmerge),
+    moveTab: onPane([arg.integer], moveTab),
+    setPinned: onPane([arg.bool], setPinned),
+    startRename: onFocused(NONE, startRename),
+    preset: checked([arg.text], (x, id) =>
+      !x.env.presets.length
+        ? refuse("unavailable")
+        : x.env.presets.some((p) => p.id === id)
+          ? preset(x, id)
+          : refuse("not-found"),
+    ),
+    resetLayout: checked(NONE, (x) =>
+      x.env.presets.length ? resetLayout(x) : refuse("unavailable"),
+    ),
+    autoLayout: checked(NONE, autoLayout),
+    // Each setting is read by `settingsWith`, which refuses a patch it can't use.
+    changeSettings: checked([arg.object<Partial<Settings>>()], changeSettings),
 
-  // ---------- jali.page: refused as "unavailable" without a page ----------
-  "page.open": checked(
-    [arg.optional(arg.shape({ item: arg.optional(arg.item), tab: arg.optional(arg.text) }))],
-    (x, o = {}) => pageStep("open")(x, { item: o.item, tab: o.tab }),
-  ),
-  "page.leave": checked(NONE, (x) => (x.s.page ? pageStep("leave")(x) : null)),
-  "page.setMode": checked([arg.oneOf("single", "split")], pageStep("setMode")),
-  "page.showView": checked([arg.text], pageStep("showView")),
-  "page.showItem": checked([arg.item], pageStep("showItem")),
-  "page.back": checked(NONE, pageStep("back")),
-  "page.reset": checked(NONE, pageStep("reset")),
-  "page.setLinkMode": checked([arg.oneOf("open", "peek")], pageStep("setLinkMode")),
+    // ---------- jali.page: refused as "unavailable" without a page ----------
+    "page.open": checked(
+      [arg.optional(arg.shape({ item: arg.optional(arg.item), tab: arg.optional(arg.text) }))],
+      (x, o = {}) => pageStep("open")(x, { item: o.item, tab: o.tab }),
+    ),
+    "page.leave": checked(NONE, (x) => (x.s.page ? pageStep("leave")(x) : null)),
+    "page.setMode": checked([arg.oneOf("single", "split")], pageStep("setMode")),
+    "page.showView": checked([arg.text], pageStep("showView")),
+    "page.showItem": checked([arg.item], pageStep("showItem")),
+    "page.back": checked(NONE, pageStep("back")),
+    "page.reset": checked(NONE, pageStep("reset")),
+    "page.setLinkMode": checked([arg.oneOf("open", "peek")], pageStep("setLinkMode")),
 
-  // ---------- jali.dialogs ----------
-  // The request's items and callback are read by `choose`, which refuses one it can't use.
-  "dialogs.choose": checked([arg.object<ChooseOptions<unknown>>()], choose),
-  "dialogs.openPalette": checked(NONE, openPalette),
-  "dialogs.closePalette": checked(NONE, closePalette),
-  "dialogs.openSettings": checked(NONE, openSettings),
-  "dialogs.closeSettings": checked(NONE, closeSettings),
+    // ---------- jali.dialogs ----------
+    // The request's items and callback are read by `choose`, which refuses one it can't use.
+    "dialogs.choose": checked([arg.object<ChooseOptions<unknown>>()], choose),
+    "dialogs.openPalette": checked(NONE, openPalette),
+    "dialogs.closePalette": checked(NONE, closePalette),
+    "dialogs.openSettings": checked(NONE, openSettings),
+    "dialogs.closeSettings": checked(NONE, closeSettings),
 
-  // ---------- adapters: forms of a public action ----------
-  /** Focus only, as a click in a pane does: no tab is chosen, so nothing in the address changes. */
-  focusPane: [focus, "focus"],
-  focusCycle: [focusCycle, "focus"],
-  focusDirection: [focusDirection, "focus"],
-  focusIndex: [focusIndex, "focus"],
-  focusEnd: [focusEnd, "focus"],
-  reveal: [reveal, "focus"],
-  setActiveTab: [setActiveTab, "focus"],
-  splitAuto: [splitAuto, "split"],
-  dismiss: [dismiss, "close"],
-  moveDirection: [moveDirection, "move"],
-  moveTabToward: [moveTabToward, "moveTab"],
-  openPeekBeside: [openPeekBeside, "openBeside"],
-  showViewBeside: [pageStep("showViewBeside"), "page.showView"],
-  hideRole: [pageStep("hideRole"), "close"],
+    // ---------- adapters: forms of a public action ----------
+    /** Focus only, as a click in a pane does: no tab is chosen, so nothing in the address changes. */
+    focusPane: [focus, "focus"],
+    focusCycle: [focusCycle, "focus"],
+    focusDirection: [focusDirection, "focus"],
+    focusIndex: [focusIndex, "focus"],
+    focusEnd: [focusEnd, "focus"],
+    reveal: [reveal, "focus"],
+    setActiveTab: [setActiveTab, "focus"],
+    splitAuto: [splitAuto, "split"],
+    dismiss: [dismiss, "close"],
+    moveDirection: [moveDirection, "move"],
+    moveTabToward: [moveTabToward, "moveTab"],
+    openPeekBeside: [openPeekBeside, "openBeside"],
+    showViewBeside: [pageStep("showViewBeside"), "page.showView"],
+    hideRole: [pageStep("hideRole"), "close"],
 
-  // ---------- adapters: steps no action names ----------
-  /** The page from a link, or the page an app starts on: an arrival, which writes no history. */
-  arrivePage: [pageStep("open"), null],
-  placeTab: [pageStep("placeTab"), null],
-  noteOpen: [noteOpen, null],
-  setScroll: [setScroll, null],
-  drop: [drop, null],
-  endRename: [endRename, null],
-  resizeDivider: [resizeDivider, null],
-  setDividerSize: [setDividerSize, null],
-  nudgeDivider: [nudgeDivider, null],
-  commitDividerDrag: [commitDividerDrag, null],
-  resetDivider: [resetDivider, null],
-  enterResizeMode: [enterResizeMode, null],
-  leaveResizeMode: [leaveResizeMode, null],
-  openPeekFull: [openPeekFull, null],
-  follow: [follow, null],
-  arrive: [arrive, null],
-  setActivity: [setActivity, null],
-  setUnsaved: [setUnsaved, null],
-  setPaneCommands: [setPaneCommands, null],
-  setPaneState: [setPaneState, null],
-  setTitle: [setTitle, null],
-  setPaneAttributes: [setPaneAttributes, null],
-  reportPane: [reportPane, null],
-  discardAndContinue: [discardAndContinue, null],
-  keepEditing: [keepEditing, null],
-} as const satisfies Record<string, Step | readonly [Step, ActionName | null]>;
+    // ---------- adapters: steps no action names ----------
+    /** The page from a link, or the page an app starts on: an arrival, which writes no history. */
+    arrivePage: [pageStep("open"), null],
+    placeTab: [pageStep("placeTab"), null],
+    noteOpen: [noteOpen, null],
+    setScroll: [setScroll, null],
+    drop: [drop, null],
+    endRename: [endRename, null],
+    resizeDivider: [resizeDivider, null],
+    setDividerSize: [setDividerSize, null],
+    nudgeDivider: [nudgeDivider, null],
+    commitDividerDrag: [commitDividerDrag, null],
+    resetDivider: [resetDivider, null],
+    enterResizeMode: [enterResizeMode, null],
+    leaveResizeMode: [leaveResizeMode, null],
+    openPeekFull: [openPeekFull, null],
+    follow: [follow, null],
+    arrive: [arrive, null],
+    setActivity: [setActivity, null],
+    setUnsaved: [setUnsaved, null],
+    setPaneCommands: [setPaneCommands, null],
+    setPaneState: [setPaneState, null],
+    setTitle: [setTitle, null],
+    setPaneAttributes: [setPaneAttributes, null],
+    reportPane: [reportPane, null],
+    discardAndContinue: [discardAndContinue, null],
+    keepEditing: [keepEditing, null],
+  }) as const satisfies Record<string, Step | readonly [Step, ActionName | null]>)();
 
 export type Steps = typeof STEPS;
 export type StepName = keyof Steps;
