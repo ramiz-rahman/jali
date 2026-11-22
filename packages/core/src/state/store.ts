@@ -558,6 +558,11 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
       if (layout !== next.layout) next = { ...next, layout };
     }
     state = next;
+    // A refit's folds are part of what is on screen, so the address follows (a replace, once the size rests): a
+    // link copied, or a reload at this size, reopens it. No history entry and no `layout` event: it is no change
+    // the person made.
+    if (next.layout !== patch.layout && next.layout !== prev.layout && (resized || recapped))
+      store.writeUrl("debounce");
     notify();
   };
 
