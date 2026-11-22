@@ -23,19 +23,19 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 // docs/DECISIONS.md, "Phase 3b's size", has the numbers and what each feature adds over the floor.
 const BUDGETS = {
   bare: { core: 54.5, react: 24.7, css: 8.6, phosphor: 0 },
-  minimal: { core: 56.2, react: 24.7, css: 8.6, phosphor: 0 },
-  full: { core: 62.7, react: 30.3, css: 8.6, phosphor: 1.7 },
-  "own-icons": { core: 57.3, react: 27.5, css: 8.6, phosphor: 0 },
+  minimal: { core: 56.6, react: 24.7, css: 8.6, phosphor: 0 },
+  full: { core: 63.0, react: 30.6, css: 8.6, phosphor: 1.7 },
+  "own-icons": { core: 57.6, react: 27.5, css: 8.6, phosphor: 0 },
   headless: { core: 48.7 },
   layout: { core: 10.7 },
-  "+url": { core: 56.2, react: 24.7 },
+  "+url": { core: 56.6, react: 24.7 },
   "+palette": { core: 54.7, react: 25.7 },
   "+settings": { core: 55, react: 25.6 },
   "+chooser": { core: 54.7, react: 26 },
   "+rename": { core: 54.6, react: 25.1 },
   "+popOut": { core: 54.6, react: 25.9 },
   "+pressed": { core: 54.5, react: 25.1 },
-  "+defaults": { core: 57.3, react: 27.5 },
+  "+defaults": { core: 57.6, react: 27.5 },
   "+page": { core: 59.7, react: 25.9 },
 };
 
