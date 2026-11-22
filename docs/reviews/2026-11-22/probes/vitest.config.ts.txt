@@ -1,0 +1,7 @@
+import { defineConfig, defaultClientConditions } from "/Users/ramizrahman/Projects/jali/.claude/worktrees/review-93526af/node_modules/vite-plus/dist/index.js";
+export default defineConfig({
+  root: "/Users/ramizrahman/Projects/jali/.claude/worktrees/review-93526af",
+  resolve: { conditions: ["source", ...defaultClientConditions] },
+  server: { fs: { allow: ["/Users/ramizrahman/Projects/jali/.claude/worktrees/review-93526af", "/private/tmp/claude-501/-Users-ramizrahman-Projects-Sixface-Initiate/ea8d55cb-f05e-4f5b-837c-c6c0f93716ec/scratchpad/probe"] } },
+  test: { globals: true, include: ["/private/tmp/claude-501/-Users-ramizrahman-Projects-Sixface-Initiate/ea8d55cb-f05e-4f5b-837c-c6c0f93716ec/scratchpad/probe/**/*.test.ts"], environment: "jsdom" },
+} as any);

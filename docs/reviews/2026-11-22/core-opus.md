@@ -1,6 +1,6 @@
 # @jali/core: architecture and code review (Opus)
 
-Frozen tree: `review-93526af` (HEAD `93526af`). Read-only. Unit suite run: 106 files, 1,052 tests pass. Every finding marked **verified** was reproduced with a probe test run against the source (probes are in `/private/tmp/claude-501/-Users-ramizrahman-Projects-Sixface-Initiate/ea8d55cb-f05e-4f5b-837c-c6c0f93716ec/scratchpad/probe/`; the seeded fuzz harness is `e.fuzz.ts.txt` there). Byte figures come from a rolldown build of the headless scenario from source (`.../scratchpad/size/build.mjs`).
+Frozen tree: `review-93526af` (HEAD `93526af`). Read-only. Unit suite run: 106 files, 1,052 tests pass. Every finding marked **verified** was reproduced with a probe test run against the source (probes are in `probes/`; the seeded fuzz harness is `e.fuzz.ts.txt` there). Byte figures come from a rolldown build of the headless scenario from source (`.../scratchpad/size/build.mjs`).
 
 ## Verdict
 

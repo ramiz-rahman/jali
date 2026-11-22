@@ -1,0 +1,19 @@
+import { it } from "vitest";
+import { createJali, row, memoryStorage } from "/Users/ramizrahman/Projects/jali/.claude/worktrees/review-93526af/packages/core/src/index.ts";
+import { storeOf, flushPaneState } from "/Users/ramizrahman/Projects/jali/.claude/worktrees/review-93526af/packages/core/src/adapter.ts";
+const kinds = [{ kind: "doc", title: "Doc", params: { id: Number }, width: { min: 200 } }];
+it("two tabs of the same build share one pane-state key", () => {
+  const storage = memoryStorage();
+  const mk = (ids: number[]) => createJali({ panes: kinds, layout: row(...ids.map((id) => ({ kind: "doc", params: { id } }))), url: false, storage, size: { width: 1400, height: 800 }, moveFocus: false });
+  const tabA = mk([1, 2]); // panes doc, doc-2
+  const tabB = mk([7]);    // pane doc, showing doc 7
+  const a = storeOf(tabA), b = storeOf(tabB);
+  const idsA = a.get().layout.root.type === "row" ? (a.get().layout.root as any).children.map((c: any) => c.id) : [];
+  a.actions.setPaneState(idsA[0], "draft", "reply to customer 1");
+  a.actions.setPaneState(idsA[1], "scroll", 400);
+  flushPaneState(a); console.log("after tab A saves:", storage.get("pane-state"));
+  b.actions.setPaneState((b.get().layout.root as any).id ?? (b.get().layout.root as any).children?.[0]?.id, "draft", "tab B");
+  flushPaneState(b);
+  const reloadA = mk([1, 2]);
+  console.log("stored:", storage.get("pane-state"), "| reloaded tab A sees:", JSON.stringify(storeOf(reloadA).get().paneState));
+});
