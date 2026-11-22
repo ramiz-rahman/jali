@@ -6,6 +6,7 @@ import { act, cleanup, render } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, tabs } from "@jali/core";
 import { JaliRoot, definePane } from "@jali/react";
+import { defaultFeatures, urlSync } from "./features";
 
 const note = definePane("note", {
   params: { id: Number },
@@ -33,7 +34,7 @@ const make = (layout: Parameters<typeof createJali>[0]["layout"]) =>
   createJali({
     panes: [note],
     layout,
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: 1200, height: 800 },
     moveFocus: false,

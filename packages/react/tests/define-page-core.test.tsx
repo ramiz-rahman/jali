@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, pane } from "@jali/core";
 import { definePageEngine as defineCorePage } from "@jali/core/adapter";
 import { JaliRoot, definePage, definePane } from "@jali/react";
+import { defaultFeatures, urlSync } from "./features";
 
 afterEach(cleanup);
 
@@ -31,7 +32,7 @@ const make = (page: unknown) =>
   createJali({
     panes: [visit],
     page: page as ReturnType<typeof definePage>,
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: 1200, height: 800 },
     moveFocus: false,

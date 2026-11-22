@@ -8,7 +8,6 @@ const make = (storage: StoragePort, settings?: Parameters<typeof createJali>[0][
   createJali({
     panes: [note],
     layout: { kind: "note", params: {} },
-    url: false,
     storage,
     moveFocus: false,
     ...(settings ? { settings } : {}),

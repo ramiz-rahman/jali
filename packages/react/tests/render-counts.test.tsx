@@ -11,6 +11,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vite-p
 import { column, createJali, memoryLocation, memoryStorage, row, tabs } from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
 import { JaliRoot, JaliView, Shelf, definePane, useJaliCommands } from "@jali/react";
+import { defaultFeatures, urlSync } from "./features";
 
 const counts = vi.hoisted(() => ({
   frame: [] as string[],
@@ -143,7 +144,7 @@ const make = () =>
     layout: row(
       ...[0, 1, 2, 3, 4].map((c) => column(note({ id: c * 2 + 1 }), note({ id: c * 2 + 2 }))),
     ),
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: W, height: H },
     settings: { paneCap: 10 },
@@ -311,7 +312,7 @@ describe("render counts", () => {
         note({ id: 4 }),
         column(note({ id: 5 }), note({ id: 6 })),
       ),
-      url: { location: memoryLocation() },
+      features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
       storage: memoryStorage(),
       size: { width: W, height: H },
       moveFocus: false,
@@ -412,7 +413,7 @@ describe("render counts", () => {
       const jali = createJali({
         panes: [note],
         layout: row(tabs(note({ id: 1 }), note({ id: 2 }), note({ id: 3 })), note({ id: 4 })),
-        url: { location: memoryLocation() },
+        features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
         storage: memoryStorage(),
         size: { width: W, height: H },
         moveFocus: false,
@@ -456,7 +457,7 @@ describe("render counts", () => {
         note({ id: 4 }),
         column(note({ id: 5 }), note({ id: 6 })),
       ),
-      url: { location: memoryLocation() },
+      features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
       storage: memoryStorage(),
       size: { width: W, height: H },
       moveFocus: false,

@@ -7,6 +7,7 @@ import { createRef } from "react";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage } from "@jali/core";
 import { IconButton, JaliRoot, JaliView, definePane } from "@jali/react";
+import { defaultFeatures, urlSync } from "./features";
 
 afterEach(cleanup);
 
@@ -52,7 +53,7 @@ describe("IconButton", () => {
     const jali = createJali({
       panes: [notes],
       layout: notes(),
-      url: { location: memoryLocation() },
+      features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
       storage: memoryStorage(),
       size: { width: 800, height: 600 },
       moveFocus: false,

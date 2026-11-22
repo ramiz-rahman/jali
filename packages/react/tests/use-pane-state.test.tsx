@@ -5,6 +5,7 @@ import { act, cleanup, render } from "@testing-library/react";
 import { createJali, memoryStorage, pane, row } from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
 import { JaliRoot, JaliView, definePane, usePaneState } from "@jali/react";
+import { noUrl } from "./features";
 
 beforeAll(() => {
   globalThis.ResizeObserver ??= class {
@@ -132,7 +133,7 @@ describe("a setter kept after its pane shows another object (react-codex REACT-1
     const jali = createJali({
       panes: [doc],
       layout: row(pane(doc({ id: 1 }), { id: "d" })),
-      url: false,
+      features: noUrl(),
       storage: memoryStorage(),
       size: { width: 1200, height: 600 },
       moveFocus: false,

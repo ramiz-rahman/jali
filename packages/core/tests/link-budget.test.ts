@@ -6,6 +6,7 @@
 import { describe, expect, it } from "vite-plus/test";
 import { createJali, layout as L, memoryLocation, memoryStorage, pane, tabs } from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
+import { urlSync } from "../src/features/url-sync";
 
 const item = { kind: "item", title: "Item", params: { id: Number }, width: { min: 200 } };
 
@@ -18,7 +19,7 @@ describe("a layout's size", () => {
     const jali = createJali({
       panes: [item],
       layout: tabs(...many),
-      url: { location, sizes: "link" },
+      features: [urlSync({ location, sizes: "link" })],
       storage: memoryStorage(),
       size: { width: 1200, height: 800 },
       moveFocus: false,

@@ -4,6 +4,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from "vite-plus/
 import { createJali, memoryLocation, memoryStorage, row } from "@jali/core";
 import { JaliRoot, definePane, type JaliIconProps } from "@jali/react";
 import { defaultIcons } from "@jali/react/icons";
+import { defaultFeatures, urlSync } from "./features";
 
 const note = definePane("note", {
   params: { id: Number },
@@ -15,7 +16,7 @@ const make = () =>
   createJali({
     panes: [note],
     layout: row(note({ id: 1 }), note({ id: 2 })),
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: 1200, height: 800 },
     moveFocus: false,

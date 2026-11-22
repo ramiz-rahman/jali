@@ -3,6 +3,7 @@ import { describe, expect, it } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, row } from "@jali/core";
 import { frames, hingeOf, storeOf } from "@jali/core/adapter";
 import { definePane } from "@jali/react";
+import { defaultFeatures, urlSync } from "./features";
 
 const box = (left: number, top: number, right: number, bottom: number) => ({
   left,
@@ -46,7 +47,7 @@ const make = (fold?: boolean) => {
   const jali = createJali({
     panes: [note],
     layout: row(note({ id: 1 }), note({ id: 2 }), note({ id: 3 })),
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: 678, height: 760 },
     moveFocus: false,

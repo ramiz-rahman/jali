@@ -7,6 +7,7 @@ import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, pane, row } from "@jali/core";
 import { JaliRoot, definePane } from "@jali/react";
+import { defaultFeatures, urlSync } from "./features";
 
 afterEach(cleanup);
 
@@ -19,7 +20,7 @@ const make = () =>
   createJali({
     panes: [note],
     layout: row(pane(note({ id: 1 }), { id: "a" }), pane(note({ id: 2 }), { id: "b" })),
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: 1200, height: 800 },
     moveFocus: false,
@@ -54,7 +55,7 @@ describe("rows that scroll", () => {
     const jali = createJali({
       panes: [note],
       layout: row(...[1, 2, 3, 4, 5, 6].map((id) => pane(note({ id }), { id: `n${id}` }))),
-      url: { location: memoryLocation() },
+      features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
       storage: memoryStorage(),
       size: { width: 390, height: 800 },
       moveFocus: false,

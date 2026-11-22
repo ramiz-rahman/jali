@@ -15,6 +15,7 @@ import {
 } from "@jali/core";
 import { ALONE_CHROME, CHROME, buttonsOf, storeOf } from "@jali/core/adapter";
 import { JaliRoot, definePane } from "@jali/react";
+import { defaultFeatures, popOut, urlSync } from "./features";
 
 const note = definePane("note", {
   params: { id: Number },
@@ -27,15 +28,20 @@ const chart = definePane("chart", {
   Component: () => null,
 });
 
-const make = (opts: { buttons?: PaneButtons; allow?: WorkspaceAllow } = {}) =>
+const make = (opts: { buttons?: PaneButtons; allow?: WorkspaceAllow; pop?: boolean } = {}) =>
   createJali({
     panes: [note, chart],
     layout: row(pane(note({ id: 1 }), { id: "a" }), pane(chart(), { id: "c" })),
-    url: { location: memoryLocation() },
+    features: [
+      ...defaultFeatures(),
+      urlSync({ location: memoryLocation() }),
+      ...(opts.pop ? [popOut()] : []),
+    ],
     storage: memoryStorage(),
     size: { width: 1200, height: 800 },
     moveFocus: false,
-    ...opts,
+    ...(opts.buttons ? { buttons: opts.buttons } : {}),
+    ...(opts.allow ? { allow: opts.allow } : {}),
   });
 
 const tiled = { chrome: CHROME.tiled, zoomed: false, full: false, tabs: false };
@@ -48,16 +54,16 @@ describe("buttons", () => {
     expect(buttonsOf(x, "a", { ...tiled, chrome: CHROME.single })).toEqual(["close"]);
   });
 
-  it("Pop out is one of Jali's, before Close, where allow.popOut turns it on", () => {
-    const x = storeOf(make({ allow: { popOut: true } })).snapshot();
+  it("Pop out is one of Jali's, before Close, with the popOut() feature", () => {
+    const x = storeOf(make({ pop: true })).snapshot();
     expect(buttonsOf(x, "a", tiled)).toEqual(["tuck", "maximise", "popOut", "close"]);
   });
 
   it("a workspace list replaces them, a kind's function adjusts the workspace's, and allow filters", () => {
-    const x = storeOf(make({ buttons: ["maximise", "close"], allow: { popOut: true } })).snapshot();
+    const x = storeOf(make({ buttons: ["maximise", "close"], pop: true })).snapshot();
     expect(buttonsOf(x, "a", tiled)).toEqual(["maximise", "close"]);
     expect(buttonsOf(x, "c", tiled)).toEqual(["maximise", "close", "popOut"]);
-    // Pop out is off until the app turns it on: the kind's button isn't drawn.
+    // Pop out is off without its feature: the kind's button isn't drawn.
     expect(buttonsOf(storeOf(make()).snapshot(), "c", tiled)).toEqual([
       "tuck",
       "maximise",

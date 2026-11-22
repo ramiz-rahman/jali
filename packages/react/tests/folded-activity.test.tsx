@@ -5,6 +5,7 @@ import { createJali, memoryLocation, memoryStorage, optional, pane, row } from "
 import type { PaneActivity } from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
 import { JaliRoot, JaliView, definePane, useActivity } from "@jali/react";
+import { defaultFeatures, urlSync } from "./features";
 
 let room = { width: 1200, height: 600 };
 beforeAll(() => {
@@ -53,7 +54,7 @@ const make = (busy: boolean | (PaneActivity | undefined)[]) => {
     layout: Array.isArray(busy)
       ? row(...busy.map((does, i) => pane(task(does ? { does } : {}), { id: `t${i}` })))
       : row(pane(job({ busy }), { id: "a" }), pane(job({ busy }), { id: "b" })),
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: 1200, height: 600 },
     moveFocus: false,

@@ -10,7 +10,6 @@ import { createPaneKinds } from "@jali/core/adapter";
 const ref = (kind: string) => ({ kind, params: {} });
 const make = (o: Partial<JaliOptions>) =>
   createJali({
-    url: false,
     storage: memoryStorage(),
     size: { width: 1200, height: 800 },
     moveFocus: false,

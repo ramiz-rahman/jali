@@ -5,6 +5,7 @@
 import { describe, expect, it } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, type Layout } from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
+import { urlSync } from "../src/features/url-sync";
 
 const item = { kind: "item", title: "Item", params: { id: Number }, width: { min: 200 } };
 const pane = (id: string, size: Layout["root"]["size"]) =>
@@ -16,7 +17,7 @@ const finite = (layout: Layout) => {
   const jali = createJali({
     panes: [item],
     layout,
-    url: { location: memoryLocation(), sizes: "link" },
+    features: [urlSync({ location: memoryLocation(), sizes: "link" })],
     storage: memoryStorage(),
     size: { width: 1200, height: 800 },
     moveFocus: false,
@@ -25,7 +26,7 @@ const finite = (layout: Layout) => {
   const again = createJali({
     panes: [item],
     layout: rowOf(pane("z", { weight: 1 })),
-    url: { location: memoryLocation(storeOf(jali).href().slice("memory:".length)), sizes: "link" },
+    features: [urlSync({ location: memoryLocation(storeOf(jali).href().slice("memory:".length)), sizes: "link" })],
     storage: memoryStorage(),
     size: { width: 1200, height: 800 },
     moveFocus: false,

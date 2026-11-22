@@ -5,6 +5,7 @@ import { afterEach, beforeAll, describe, expect, it } from "vite-plus/test";
 import { act, cleanup, render } from "@testing-library/react";
 import { createJali, memoryLocation, memoryStorage, pane, row } from "@jali/core";
 import { JaliRoot, JaliView, definePane, useTitle } from "@jali/react";
+import { defaultFeatures, urlSync } from "./features";
 
 beforeAll(() => {
   globalThis.ResizeObserver ??= class {
@@ -52,7 +53,7 @@ describe("the peek sheet's title", () => {
     const jali = createJali({
       panes: [person],
       layout: row(pane(person({ id: "7" }), { id: "a" }), pane(person({ id: "8" }), { id: "b" })),
-      url: { location: memoryLocation() },
+      features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
       storage: memoryStorage(),
       size: { width: 1200, height: 600 },
       moveFocus: false,
@@ -72,7 +73,7 @@ describe("the peek sheet's title", () => {
     const jali = createJali({
       panes: [person, call],
       layout: row(pane(person({ id: "1" }), { id: "a" }), pane(call({ id: "c1" }), { id: "c" })),
-      url: { location: memoryLocation() },
+      features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
       storage: memoryStorage(),
       size: { width: 1200, height: 600 },
       moveFocus: false,

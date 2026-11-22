@@ -12,7 +12,6 @@ const make = () =>
   createJali({
     panes: [item],
     layout: row(ref(1), ref(2)),
-    url: false,
     storage: memoryStorage(),
     size: { width: 1200, height: 800 },
     moveFocus: false,
@@ -37,7 +36,6 @@ describe("public snapshots", () => {
     const jali = createJali({
       panes: [item],
       layout: mine,
-      url: false,
       storage: memoryStorage(),
       size: { width: 1200, height: 800 },
       moveFocus: false,

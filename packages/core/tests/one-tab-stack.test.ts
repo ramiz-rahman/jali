@@ -12,7 +12,6 @@ const make = () =>
   createJali({
     panes: [item],
     layout: row(tabs(pane(ref(1), { id: "lone" })), pane(ref(2), { id: "b" })),
-    url: false,
     storage: memoryStorage(),
     size: { width: 1200, height: 800 },
     moveFocus: false,

@@ -7,6 +7,7 @@ import { act, cleanup, fireEvent, render, screen, within } from "@testing-librar
 import { createJali, memoryLocation, memoryStorage, pane, row, runCommand, tabs } from "@jali/core";
 import type { LayoutInput } from "@jali/core";
 import { JaliRoot, definePane, useUnsaved } from "@jali/react";
+import { defaultFeatures, urlSync } from "./features";
 
 beforeAll(() => {
   globalThis.ResizeObserver ??= class {
@@ -46,7 +47,7 @@ const make = (layout: LayoutInput) =>
   createJali({
     panes: [note, draft],
     layout,
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: 1200, height: 600 },
     moveFocus: false,

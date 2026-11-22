@@ -10,6 +10,7 @@ import { storeOf } from "@jali/core/adapter";
 import { definePane, shallow, useJaliModel, useJaliState } from "@jali/react";
 // Internal: hooks read outside a root, as a docs side panel does.
 import { JaliProvider } from "../src/JaliRoot";
+import { defaultFeatures, urlSync } from "./features";
 
 afterEach(cleanup);
 
@@ -22,7 +23,7 @@ const make = () =>
   createJali({
     panes: [note],
     layout: row(pane(note({ id: 1 }), { id: "a" }), pane(note({ id: 2 }), { id: "b" })),
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: 1200, height: 800 },
     moveFocus: false,

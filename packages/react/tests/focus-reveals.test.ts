@@ -8,6 +8,7 @@ import { createJali, memoryLocation, memoryStorage, pane, row, tabs } from "@jal
 import { storeOf } from "@jali/core/adapter";
 import { definePane } from "@jali/react";
 import { geometryOf } from "../../core/src/state/apply";
+import { defaultFeatures, urlSync } from "./features";
 
 const Nothing = () => null;
 const list = definePane("orders", { title: "Orders", width: { min: 300 }, Component: Nothing });
@@ -22,7 +23,7 @@ const make = (layout: Parameters<typeof createJali>[0]["layout"], width = 1400) 
   const jali = createJali({
     panes: [list, order],
     layout,
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width, height: 800 },
     moveFocus: false,

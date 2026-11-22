@@ -21,6 +21,7 @@ import {
   type PaneKindBase,
 } from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
+import { urlSync } from "../src/features/url-sync";
 
 const kinds: PaneKindBase[] = [
   { kind: "list", title: "List", width: { min: 260, comfortable: 360 }, selects: "item" },
@@ -81,7 +82,7 @@ describe("random sequences of public actions", () => {
         panes: kinds,
         launcher,
         layout: START[seed % START.length]!,
-        url: { location, sizes: "link" },
+        features: [urlSync({ location, sizes: "link" })],
         storage,
         size: { width: 1400, height: 800 },
         moveFocus: false,
@@ -204,7 +205,7 @@ describe("random sequences of public actions", () => {
             panes: kinds,
             launcher,
             layout: row({ kind: "list", params: {} }),
-            url: { location: memoryLocation(location.search()), sizes: "link" },
+            features: [urlSync({ location: memoryLocation(location.search()), sizes: "link" })],
             storage,
             size: area,
             moveFocus: false,

@@ -7,6 +7,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from "vite-plus/
 import { createJali, memoryLocation, memoryStorage, type PhoneOptions } from "@jali/core";
 import { STACK_GAP, frames, storeOf } from "@jali/core/adapter";
 import { JaliRoot, definePane } from "@jali/react";
+import { defaultFeatures, urlSync } from "./features";
 
 const list = definePane("list", {
   title: () => "Orders",
@@ -29,7 +30,7 @@ const make = (size = { width: 378, height: 760 }, phone: PhoneOptions = { stack:
   const jali = createJali({
     panes: [list, order, chart],
     layout: list(),
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size,
     moveFocus: false,
@@ -68,7 +69,7 @@ describe("stacked view", () => {
     const alone = createJali({
       panes: [list],
       layout: list(),
-      url: { location: memoryLocation() },
+      features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
       storage: memoryStorage(),
       size: { width: 378, height: 760 },
       moveFocus: false,
@@ -174,7 +175,7 @@ describe("stacked view, from the kinds' heights", () => {
     const jali = createJali({
       panes: [strip, order],
       layout: strip(),
-      url: { location: memoryLocation() },
+      features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
       storage: memoryStorage(),
       size: { width: 378, height: 760 },
       moveFocus: false,

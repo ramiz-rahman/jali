@@ -6,6 +6,7 @@ import { definePane } from "@jali/react";
 import { runCommand } from "../../core/src/commands/registry";
 import { storeOf } from "../../core/src/state/instance";
 import { readSearch } from "../../core/src/url";
+import { defaultFeatures, urlSync } from "./features";
 
 const note = definePane("note", {
   params: { id: Number },
@@ -23,7 +24,7 @@ const make = (options: Partial<JaliOptions> = {}) => {
   const store = createJali({
     panes: [note, ticket],
     layout: row(pane(note({ id: 1 }), { id: "a" }), pane(note({ id: 2 }), { id: "b" })),
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: 1200, height: 800 },
     moveFocus: false,
@@ -94,7 +95,7 @@ describe("a curated page whose items are string ids (finding 13)", () => {
     const store = createJali({
       panes: [ticket],
       page: profile,
-      url: { location: memoryLocation() },
+      features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
       storage: memoryStorage(),
       size: { width: 1200, height: 800 },
       moveFocus: false,
@@ -108,7 +109,7 @@ describe("a curated page whose items are string ids (finding 13)", () => {
     const store = createJali({
       panes: [ticket],
       page: profile,
-      url: { location },
+      features: [...defaultFeatures(), urlSync({ location })],
       storage: memoryStorage(),
       size: { width: 1200, height: 800 },
       moveFocus: false,

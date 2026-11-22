@@ -4,17 +4,18 @@
  */
 import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vite-plus/test";
-import { createJali, memoryLocation, memoryStorage, pane } from "@jali/core";
+import { createJali, memoryLocation, memoryStorage, pane, type Feature } from "@jali/core";
 import { JaliRoot, definePane } from "@jali/react";
+import { defaultFeatures, noUrl, urlSync } from "./features";
 
 afterEach(cleanup);
 
 const note = definePane("note", { title: () => "Note", Component: () => null });
-const make = () =>
+const make = (options: { features?: Feature[] } = {}) =>
   createJali({
     panes: [note],
     layout: pane(note({}), { id: "a" }),
-    url: { location: memoryLocation() },
+    features: options.features ?? [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: 1200, height: 800 },
     moveFocus: false,
@@ -22,9 +23,9 @@ const make = () =>
 const modals = () => document.querySelectorAll('[aria-modal="true"]').length;
 
 describe("one owner for Jali's dialogs", () => {
-  it("with settings={false}, openSettings leaves nothing open", () => {
-    const jali = make();
-    render(<JaliRoot jali={jali} settings={false} />);
+  it("without the settings feature, openSettings leaves nothing open", () => {
+    const jali = make({ features: noUrl().filter((f) => f.id !== "settings") });
+    render(<JaliRoot jali={jali} />);
     act(() => void jali.dialogs.openSettings());
     expect(jali.get().settingsOpen).toBe(false);
     expect(modals()).toBe(0);

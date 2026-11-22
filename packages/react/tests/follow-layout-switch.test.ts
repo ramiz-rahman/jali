@@ -8,6 +8,7 @@ import { createJali, memoryLocation, memoryStorage, pane, row } from "@jali/core
 import { storeOf } from "@jali/core/adapter";
 import { definePane } from "@jali/react";
 import { FOLLOW_MS } from "../../core/src/actions/follow";
+import { defaultFeatures, urlSync } from "./features";
 
 const Nothing = () => null;
 const watchlist = definePane("watchlist", { title: "Watchlist", Component: Nothing });
@@ -51,7 +52,7 @@ const make = () =>
         ),
       },
     ],
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: 1600, height: 900 },
     moveFocus: false,

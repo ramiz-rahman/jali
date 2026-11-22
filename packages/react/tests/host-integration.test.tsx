@@ -11,6 +11,7 @@ import {
 } from "@jali/core";
 import { createKeymap } from "@jali/core/adapter";
 import { JaliRoot, JaliView, definePane, useCommands, useJaliCommands } from "@jali/react";
+import { defaultFeatures, noUrl, urlSync } from "./features";
 
 const note = definePane("note", {
   params: { id: Number },
@@ -27,7 +28,7 @@ const make = (options: Partial<JaliOptions> = {}) =>
   createJali({
     panes: [note],
     layout: row(note({ id: 1 }), note({ id: 2 })),
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: 1200, height: 800 },
     moveFocus: false,
@@ -80,20 +81,20 @@ describe("keyboard.reserved", () => {
   });
 });
 
-describe("palette: false", () => {
+describe("without the palette feature", () => {
   it("unbinds the palette's key, unless the app binds it on purpose", () => {
-    expect(make({ palette: false }).keymap.label("palette.toggle")).toBe("");
+    expect(make({ features: noUrl().filter((f) => f.id !== "palette") }).keymap.label("palette.toggle")).toBe("");
     expect(
-      make({ palette: false, keyboard: { keymap: { "palette.toggle": "F1" } } }).keymap.label(
+      make({ features: noUrl().filter((f) => f.id !== "palette"), keyboard: { keymap: { "palette.toggle": "F1" } } }).keymap.label(
         "palette.toggle",
       ),
     ).toBe("F1");
     // The two-step keys still work: the prefix starts a chord without opening anything.
-    expect(make({ palette: false }).keymap.label("pane.undo_close")).toBe("⌘K ⌘Z");
+    expect(make({ features: noUrl().filter((f) => f.id !== "palette") }).keymap.label("pane.undo_close")).toBe("⌘K ⌘Z");
   });
 
   it("renders no palette", () => {
-    const jali = make({ palette: false });
+    const jali = make({ features: noUrl().filter((f) => f.id !== "palette") });
     const { container } = render(<JaliRoot jali={jali} />);
     act(() => jali.dialogs.openPalette());
     expect(document.querySelector(".jali-palette")).toBeNull();
@@ -103,7 +104,7 @@ describe("palette: false", () => {
 
 describe("listCommands and useJaliCommands", () => {
   it("lists the focused pane's own commands first, then the workspace's, with keys and reasons", () => {
-    const jali = make({ palette: false });
+    const jali = make({ features: noUrl().filter((f) => f.id !== "palette") });
     render(<JaliRoot jali={jali} />);
     const list = listCommands(jali);
     expect(list[0]).toMatchObject({
@@ -119,7 +120,7 @@ describe("listCommands and useJaliCommands", () => {
   });
 
   it("runs a command, and the hook follows focus", () => {
-    const jali = make({ palette: false });
+    const jali = make({ features: noUrl().filter((f) => f.id !== "palette") });
     let seen: string[] = [];
     function HostMenu() {
       seen = useJaliCommands()

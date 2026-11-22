@@ -7,6 +7,7 @@ import { createJali, memoryLocation, memoryStorage, pane, row, type Jali } from 
 import { definePane } from "@jali/react";
 import { storeOf } from "../../core/src/state/instance";
 import { readSearch } from "../../core/src/url";
+import { defaultFeatures, urlSync } from "./features";
 
 const day = definePane("day", {
   params: { n: Number },
@@ -25,7 +26,7 @@ const make = (location = memoryLocation()): Jali =>
   createJali({
     panes: [day],
     layout,
-    url: { location },
+    features: [...defaultFeatures(), urlSync({ location })],
     storage: memoryStorage(),
     size: { width: 1200, height: 800 },
     moveFocus: false,

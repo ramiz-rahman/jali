@@ -7,6 +7,7 @@ import { afterEach, beforeAll, describe, expect, it } from "vite-plus/test";
 import { act, cleanup, render } from "@testing-library/react";
 import { createJali, memoryStorage, pane, row, type PaneNode } from "@jali/core";
 import { JaliRoot, definePane } from "@jali/react";
+import { noUrl } from "./features";
 
 beforeAll(() => {
   globalThis.ResizeObserver ??= class {
@@ -39,7 +40,7 @@ describe("PaneProps.node", () => {
     const jali = createJali({
       panes: [list, doc],
       layout: layout(true),
-      url: false,
+      features: noUrl(),
       storage: memoryStorage(),
       size: { width: 1200, height: 600 },
       moveFocus: false,

@@ -7,6 +7,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from "vite-plus/
 import { createJali, memoryLocation, memoryStorage, pane, row } from "@jali/core";
 import { JaliRoot, definePane } from "@jali/react";
 import { storeOf } from "@jali/core/adapter";
+import { defaultFeatures, urlSync } from "./features";
 
 const size = { clientWidth: 1200, clientHeight: 800 };
 beforeAll(() => {
@@ -28,7 +29,7 @@ const make = () =>
   createJali({
     panes: [note],
     layout: row(pane(note({ id: 1 }), { id: "a" }), pane(note({ id: 2 }), { id: "b" })),
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     moveFocus: false,
   });
@@ -38,7 +39,7 @@ describe("small accessibility polish", () => {
     const jali = createJali({
       panes: [note],
       layout: row(...[1, 2, 3].map((id) => pane(note({ id }), { id: `n${id}` }))),
-      url: { location: memoryLocation() },
+      features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
       storage: memoryStorage(),
       moveFocus: false,
     });
@@ -89,7 +90,7 @@ describe("a curated page's tabs", () => {
     const jali = createJali({
       panes: [note],
       page,
-      url: { location: memoryLocation() },
+      features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
       storage: memoryStorage(),
       moveFocus: false,
     });

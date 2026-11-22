@@ -6,6 +6,7 @@
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, row } from "@jali/core";
 import { browserLocation, buildSearch, storeOf } from "@jali/core/adapter";
+import { urlSync } from "../src/features/url-sync";
 
 const item = { kind: "item", title: "Item", params: { id: Number }, width: { min: 200 } };
 
@@ -24,7 +25,7 @@ describe("the address port", () => {
     const jali = createJali({
       panes: [item],
       layout: row({ kind: "item", params: { id: 1 } }),
-      url: { location },
+      features: [urlSync({ location })],
       storage: memoryStorage(),
       size: { width: 1200, height: 800 },
       moveFocus: false,
@@ -42,7 +43,6 @@ describe("the address port", () => {
     createJali({
       panes: [item],
       layout: row({ kind: "item", params: { id: 1 } }),
-      url: false,
       storage: memoryStorage(),
       size: { width: 1200, height: 800 },
       moveFocus: false,

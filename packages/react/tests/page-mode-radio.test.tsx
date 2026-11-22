@@ -6,6 +6,7 @@ import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, pane } from "@jali/core";
 import { JaliRoot, PageBar, JaliView, definePage, definePane } from "@jali/react";
+import { defaultFeatures, urlSync } from "./features";
 
 afterEach(cleanup);
 
@@ -32,7 +33,7 @@ describe("the view mode switch", () => {
     const jali = createJali({
       panes: [note],
       page,
-      url: { location: memoryLocation() },
+      features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
       storage: memoryStorage(),
       size: { width: 1200, height: 800 },
       moveFocus: false,

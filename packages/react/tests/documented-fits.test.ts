@@ -14,6 +14,7 @@ import {
 } from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
 import { definePane } from "@jali/react";
+import { defaultFeatures, urlSync } from "./features";
 
 const Nothing = () => null;
 const narrow = definePane("narrow", { title: "Narrow", width: { min: 240 }, Component: Nothing });
@@ -28,7 +29,7 @@ const draft = definePane("draft", {
 const make = (options: Partial<Parameters<typeof createJali>[0]>) =>
   createJali({
     panes: [narrow, wide, draft],
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: 1400, height: 800 },
     moveFocus: false,

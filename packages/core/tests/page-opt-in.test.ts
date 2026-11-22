@@ -15,6 +15,7 @@ import {
 } from "@jali/core";
 import { definePageEngine as definePage } from "@jali/core/adapter";
 import { storeOf } from "@jali/core/adapter";
+import { urlSync } from "../src/features/url-sync";
 
 const ticket = { kind: "ticket", title: "Ticket", params: { id: String } };
 const desk = {
@@ -32,7 +33,7 @@ const desk = {
 const make = (o: Partial<JaliOptions> = {}) =>
   createJali({
     panes: [ticket],
-    url: { location: memoryLocation() },
+    features: [urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: 1200, height: 800 },
     moveFocus: false,
@@ -63,7 +64,7 @@ describe("a workspace without a curated page", () => {
   it("ignores a page link", () => {
     const j = make({
       layout: { kind: "ticket", params: { id: "t-1" } },
-      url: { location: memoryLocation("?page=desk&item=t-2") },
+      features: [urlSync({ location: memoryLocation("?page=desk&item=t-2") })],
     });
     expect(j.get().page).toBeNull();
     expect(j.getLayout().root).toMatchObject({ ref: { params: { id: "t-1" } } });

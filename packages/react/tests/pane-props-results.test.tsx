@@ -13,6 +13,7 @@ import {
   type ActionResult,
 } from "@jali/core";
 import { JaliRoot, definePane, type PaneProps } from "@jali/react";
+import { defaultFeatures, urlSync } from "./features";
 
 beforeAll(() => {
   globalThis.ResizeObserver ??= class {
@@ -39,7 +40,7 @@ function mount() {
   const jali = createJali({
     panes: [list, order],
     layout: row(pane(list(), { id: "orders" }), pane(order({ id: 1 }), { id: "order" })),
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: 1400, height: 700 },
     moveFocus: false,

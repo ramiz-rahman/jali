@@ -11,7 +11,6 @@ const make = () =>
   createJali({
     panes: [item],
     layout: row({ kind: "item", params: { id: 1 } }),
-    url: false,
     storage: memoryStorage(),
     size: { width: 1000, height: 600 },
     moveFocus: false,

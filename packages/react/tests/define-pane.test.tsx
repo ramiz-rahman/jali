@@ -5,6 +5,7 @@ import { useState } from "react";
 import { createJali, memoryLocation, memoryStorage, pane, row, type JaliOptions } from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
 import { JaliRoot, definePane, useActivity, useCommands, usePane, useUnsaved } from "@jali/react";
+import { defaultFeatures, urlSync } from "./features";
 
 const note = definePane("note", {
   params: { id: Number },
@@ -41,7 +42,7 @@ const make = (options: Partial<JaliOptions> = {}) =>
   createJali({
     panes: [note],
     layout: row(note({ id: 1 }), note({ id: 2 })),
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: 1200, height: 800 },
     moveFocus: false,
@@ -108,8 +109,8 @@ describe("createJali", () => {
 
   it("writes the layout to the address and reads it back", () => {
     const location = memoryLocation();
-    make({ url: { location } }).actions.openBeside("note", note({ id: 9 }));
-    const again = make({ url: { location }, layout: row(note({ id: 1 })) });
+    make({ features: [...defaultFeatures(), urlSync({ location })] }).actions.openBeside("note", note({ id: 9 }));
+    const again = make({ features: [...defaultFeatures(), urlSync({ location })], layout: row(note({ id: 1 })) });
     expect(again.model().panes.map((p) => p.ref.params.id)).toEqual([1, 9, 2]);
   });
 

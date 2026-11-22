@@ -16,6 +16,7 @@ import {
   type JaliOptions,
 } from "@jali/core";
 import { JaliRoot, definePane } from "@jali/react";
+import { defaultFeatures, urlSync } from "./features";
 
 afterEach(() => {
   cleanup();
@@ -35,7 +36,7 @@ const make = (opts: Partial<JaliOptions> = {}) =>
       tabs(pane(note({ id: 1 }), { id: "a" }), pane(note({ id: 2 }), { id: "b" })),
       pane(note({ id: 3 }), { id: "c" }),
     ),
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: 1200, height: 800 },
     moveFocus: false,

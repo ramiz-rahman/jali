@@ -3,6 +3,7 @@ import { afterEach, beforeAll, describe, expect, it } from "vite-plus/test";
 import { cleanup, render } from "@testing-library/react";
 import { createJali, memoryLocation, memoryStorage, pane } from "@jali/core";
 import { JaliRoot, definePane, useUnsaved } from "@jali/react";
+import { defaultFeatures, urlSync } from "./features";
 
 function Draft() {
   useUnsaved("a draft");
@@ -24,7 +25,7 @@ describe("useUnsaved", () => {
     const jali = createJali({
       panes: [draft],
       layout: pane(draft(), { id: "a" }),
-      url: { location: memoryLocation() },
+      features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
       storage: memoryStorage(),
       size: { width: 800, height: 600 },
       moveFocus: false,

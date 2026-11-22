@@ -8,6 +8,8 @@ import { createJali, memoryLocation, memoryStorage, pane, row, runCommand, tabs 
 import { storeOf } from "@jali/core/adapter";
 import type { JaliOptions, LayoutInput } from "@jali/core";
 import { JaliRoot, definePane, useTitle, useUnsaved } from "@jali/react";
+import { defaultFeatures, rename, urlSync } from "./features";
+import type { Rename } from "@jali/core";
 
 beforeAll(() => {
   globalThis.ResizeObserver ??= class {
@@ -47,7 +49,7 @@ const make = (layout: LayoutInput, options: Partial<JaliOptions> = {}) =>
   createJali({
     panes: [note, draft],
     layout,
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: 1200, height: 600 },
     moveFocus: false,
@@ -449,7 +451,7 @@ describe("renaming in place", () => {
       return <p>doc {params.id}</p>;
     },
   });
-  const docs = (rename: JaliOptions["rename"], layout?: LayoutInput) =>
+  const docs = (options: Rename | undefined, layout?: LayoutInput) =>
     createJali({
       panes: [note, doc],
       layout:
@@ -458,11 +460,14 @@ describe("renaming in place", () => {
           tabs(pane(doc({ id: 1 }), { id: "a" }), pane(note({ id: 2 }), { id: "b" })),
           pane(doc({ id: 3 }), { id: "c" }),
         ),
-      url: { location: memoryLocation() },
+      features: [
+        ...defaultFeatures(),
+        urlSync({ location: memoryLocation() }),
+        ...(options ? [rename(options)] : []),
+      ],
       storage: memoryStorage(),
       size: { width: 1200, height: 600 },
       moveFocus: false,
-      ...(rename ? { rename } : {}),
     });
   const field = () => screen.getByRole("textbox") as HTMLInputElement;
 
@@ -538,10 +543,13 @@ describe("renaming in place", () => {
     const own = createJali({
       panes: [doc],
       layout: row(doc({ id: 1 })),
-      url: { location: memoryLocation() },
+      features: [
+        ...defaultFeatures(),
+        urlSync({ location: memoryLocation() }),
+        rename({ run: () => {} }),
+      ],
       storage: memoryStorage(),
       keyboard: { reserved: ["F2"], onInvalid: () => {} },
-      rename: { run: () => {} },
     });
     expect(own.keymap.label("pane.rename")).toBe("");
   });

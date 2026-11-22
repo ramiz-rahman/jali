@@ -17,6 +17,7 @@ import {
 } from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
 import { JaliRoot, definePane } from "@jali/react";
+import { defaultFeatures, urlSync } from "./features";
 
 beforeAll(() => {
   globalThis.ResizeObserver ??= class {
@@ -69,7 +70,7 @@ const make = (options: Partial<JaliOptions> = {}) =>
     panes: [watchlist, chart],
     layout: row(pane(watchlist(), { id: "watch" })),
     commands: [chartFor],
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: 1400, height: 700 },
     moveFocus: false,

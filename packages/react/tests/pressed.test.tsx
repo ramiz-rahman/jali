@@ -1,10 +1,11 @@
-/** data-pressed (packages/react/src/pressed.ts): on Jali's controls while held, by the pointer or by Space or Enter. */
+/** data-pressed (the `pressed()` feature, react/src/features/pressed.ts): on Jali's controls while held, by the pointer or by Space or Enter. */
 import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, row, tabs } from "@jali/core";
 import { JaliRoot, definePane } from "@jali/react";
 import { parts } from "../src/parts";
-import { PRESSABLE } from "../src/pressed";
+import { PRESSABLE } from "../src/features/pressed";
+import { defaultFeatures, urlSync } from "./features";
 
 const note = definePane("note", {
   params: { id: Number },
@@ -16,7 +17,7 @@ const make = () =>
   createJali({
     panes: [note],
     layout: row(note({ id: 1 }), tabs(note({ id: 2 }), note({ id: 3 }))),
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: 1200, height: 800 },
     moveFocus: false,

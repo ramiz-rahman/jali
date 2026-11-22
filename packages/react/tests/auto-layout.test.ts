@@ -13,6 +13,7 @@ import {
 } from "@jali/core";
 import { definePane } from "@jali/react";
 import { createAgent } from "../../core/src/agent";
+import { defaultFeatures, urlSync } from "./features";
 
 const list = definePane("list", {
   title: () => "Orders",
@@ -30,7 +31,7 @@ const make = (l: Parameters<typeof createJali>[0]["layout"], width = 1600, heigh
   createJali({
     panes: [list, order],
     layout: l,
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width, height },
     moveFocus: false,
@@ -371,7 +372,7 @@ describe("jali.actions.autoLayout", () => {
     const jali = createJali({
       panes: [list, order],
       layout: row(list(), order({ id: 1 }), order({ id: 2 })),
-      url: { location },
+      features: [...defaultFeatures(), urlSync({ location })],
       storage: memoryStorage(),
       size: { width: 1600, height: 900 },
       moveFocus: false,
@@ -387,7 +388,7 @@ describe("jali.actions.autoLayout", () => {
       panes: [list, order],
       layout: row(list(), order({ id: 1 })),
       allow: { move: false },
-      url: { location: memoryLocation() },
+      features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
       storage: memoryStorage(),
       size: { width: 1600, height: 900 },
       moveFocus: false,

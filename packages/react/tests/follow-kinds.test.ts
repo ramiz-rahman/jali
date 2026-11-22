@@ -18,6 +18,7 @@ import { storeOf } from "@jali/core/adapter";
 import { definePane } from "@jali/react";
 import { FOLLOW_MS } from "../../core/src/actions/follow";
 import { geometryOf } from "../../core/src/state/apply";
+import { defaultFeatures, noUrl, urlSync } from "./features";
 
 const Nothing = () => null;
 const watchlist = definePane("watchlist", { title: "Watchlist", Component: Nothing });
@@ -54,7 +55,7 @@ const make = (layout = defaultLayout()) =>
   createJali({
     panes: [watchlist, quote, chart, news, note],
     layout,
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: 1600, height: 900 },
     moveFocus: false,
@@ -222,7 +223,7 @@ describe("one selection, followers of every kind", () => {
         pane(orders(), { id: "orders" }),
         pane(order({ id: 1 }), { id: "order", linkedTo: "orders", follows: true }),
       ),
-      url: false,
+      features: noUrl(),
       storage: memoryStorage(),
       size: { width: 1400, height: 800 },
       moveFocus: false,

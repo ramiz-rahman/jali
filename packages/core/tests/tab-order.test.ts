@@ -74,7 +74,6 @@ describe("moving and pinning tabs", () => {
           createJali({
             panes: kinds,
             layout: shape,
-            url: false,
             storage: memoryStorage(),
             size: { width, height: 800 },
             moveFocus: false,
@@ -104,7 +103,6 @@ describe("an action whose rects depend on what it shows", () => {
         pane({ kind: "note", params: {} }, { id: "n" }),
         pane({ kind: "wide", params: {} }, { id: "w" }),
       ),
-      url: false,
       storage: memoryStorage(),
       size: { width: 1600, height: 800 },
       moveFocus: false,

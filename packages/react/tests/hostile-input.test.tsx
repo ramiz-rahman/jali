@@ -35,6 +35,7 @@ import {
 import { createAgent } from "@jali/core/agent";
 import { JaliRoot, definePane, usePaneState } from "@jali/react";
 import { follow } from "../../core/src/actions/follow";
+import { defaultFeatures, noUrl, urlSync } from "./features";
 
 const note = definePane("note", {
   params: { id: Number },
@@ -48,7 +49,7 @@ const make = (options: Partial<JaliOptions> = {}): Jali =>
   createJali({
     panes: [note],
     layout: row(pane(note({ id: 1 }), { id: "a" }), pane(note({ id: 2 }), { id: "b" })),
-    url: false,
+    features: noUrl(),
     storage: memoryStorage(),
     size: { width: 1200, height: 800 },
     moveFocus: false,
@@ -187,7 +188,7 @@ describe("C2b: stored sizes", () => {
     ]);
     // The good part of an entry is kept.
     expect(got.root.size).toEqual({ weight: 2 });
-    expect(() => make({ url: { location: memoryLocation(`?l=${code}`) }, storage })).not.toThrow();
+    expect(() => make({ features: [...defaultFeatures(), urlSync({ location: memoryLocation(`?l=${code}`) })], storage })).not.toThrow();
   });
 
   it.each([
@@ -201,7 +202,7 @@ describe("C2b: stored sizes", () => {
     const storage = memoryStorage({ sizes: JSON.stringify([[structureKey(l), entry]]) });
     let jali: Jali | undefined;
     expect(
-      () => (jali = make({ url: { location: memoryLocation(`?l=${code}`) }, storage })),
+      () => (jali = make({ features: [...defaultFeatures(), urlSync({ location: memoryLocation(`?l=${code}`) })], storage })),
     ).not.toThrow();
     expect(jali!.model().panes.map((p) => p.id)).toEqual(["a", "b"]);
     expect(layout.validate(jali!.getLayout(), registry)).toEqual({ ok: true });
@@ -260,7 +261,7 @@ describe("C3: names on Object.prototype", () => {
     const jali = createJali({
       panes: [kept],
       layout: row(pane(kept(), { id: "constructor" }), pane(kept(), { id: "other" })),
-      url: false,
+      features: noUrl(),
       storage: memoryStorage(),
       size: { width: 1200, height: 800 },
       moveFocus: false,

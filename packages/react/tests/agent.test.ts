@@ -4,6 +4,7 @@ import { createJali, memoryLocation, memoryStorage, row, type JaliInput } from "
 import { createAgent } from "@jali/core/agent";
 import { definePane } from "@jali/react";
 import { oneOf, optional } from "@jali/core/adapter";
+import { defaultFeatures, urlSync } from "./features";
 
 const list = definePane("list", {
   title: () => "Orders",
@@ -21,7 +22,7 @@ const make = () =>
   createJali({
     panes: [list, order],
     layout: row(list(), order({ id: 1 })),
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: 1600, height: 900 },
     moveFocus: false,

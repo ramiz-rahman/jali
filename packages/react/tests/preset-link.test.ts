@@ -5,6 +5,7 @@
 import { describe, expect, it } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, row, type PresetOptions } from "@jali/core";
 import { definePane } from "@jali/react";
+import { defaultFeatures, urlSync } from "./features";
 
 const Nothing = () => null;
 const list = definePane("orders", { title: "Orders", Component: Nothing });
@@ -22,7 +23,7 @@ const make = (search = "") => {
   const jali = createJali({
     panes: [list, order],
     presets,
-    url: { location },
+    features: [...defaultFeatures(), urlSync({ location })],
     storage: memoryStorage(),
     size: { width: 1400, height: 800 },
     moveFocus: false,

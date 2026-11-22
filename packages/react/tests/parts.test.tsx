@@ -10,6 +10,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from "vite-plus/
 import { createJali, memoryLocation, memoryStorage, pane, row, tabs } from "@jali/core";
 import { JaliRoot, JaliView, Shelf, definePane } from "@jali/react";
 import { parts, type Part, type PartName } from "../src/parts";
+import { defaultFeatures, urlSync } from "./features";
 
 const src = join(__dirname, "../src");
 const files = (dir: string): string[] =>
@@ -163,7 +164,7 @@ describe("styling contract", () => {
     const jali = createJali({
       panes: [note],
       layout: row(note({ id: 1 }), tabs(pane(note({ id: 2 }), { pinned: true }), note({ id: 3 }))),
-      url: { location: memoryLocation() },
+      features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
       storage: memoryStorage(),
       size: { width: 1600, height: 800 },
       moveFocus: false,

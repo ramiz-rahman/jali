@@ -20,7 +20,6 @@ describe("host callbacks and ref equality", () => {
     const jali = createJali({
       panes: [thing],
       layout: row({ kind: "thing", params: { id: 1 } }),
-      url: false,
       storage: memoryStorage(),
       size: { width: 1200, height: 800 },
       moveFocus: false,

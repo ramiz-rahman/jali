@@ -5,6 +5,7 @@
 import { describe, expect, it } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, pane } from "@jali/core";
 import { definePageEngine as definePage } from "@jali/core/adapter";
+import { urlSync } from "../src/features/url-sync";
 
 const loan = { kind: "loan", title: "Loan", params: { id: Number }, width: { min: 200 } };
 const bound: unknown[] = [];
@@ -27,7 +28,7 @@ const make = (search: string) =>
   createJali({
     panes: [loan],
     page: book,
-    url: { location: memoryLocation(search) },
+    features: [urlSync({ location: memoryLocation(search) })],
     storage: memoryStorage(),
     size: { width: 1400, height: 800 },
     moveFocus: false,

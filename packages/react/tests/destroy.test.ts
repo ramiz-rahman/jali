@@ -8,6 +8,7 @@ import { createJali, memoryLocation, memoryStorage, pane, row, type JaliOptions 
 import { loadPaneState, storeOf } from "@jali/core/adapter";
 import { FOLLOW_MS } from "../../core/src/actions/follow";
 import { definePane } from "@jali/react";
+import { defaultFeatures, noUrl, urlSync } from "./features";
 
 const orders = definePane("orders", {
   title: "Orders",
@@ -38,7 +39,7 @@ afterEach(() => vi.useRealTimers());
 describe("jali.destroy()", () => {
   it("drops a follow still waiting for the selection to rest", () => {
     vi.useFakeTimers();
-    const jali = make({ url: false });
+    const jali = make({ features: noUrl() });
     jali.actions.select("list", order({ id: 2 }));
     jali.destroy();
     vi.advanceTimersByTime(FOLLOW_MS * 4);
@@ -48,7 +49,7 @@ describe("jali.destroy()", () => {
   it("drops a debounced address write, so it never lands on the next route", () => {
     vi.useFakeTimers();
     const location = memoryLocation();
-    const jali = make({ url: { location } });
+    const jali = make({ features: [...defaultFeatures(), urlSync({ location })] });
     const store = storeOf(jali);
     const before = location.search();
     store.writeUrl("debounce");
@@ -60,7 +61,7 @@ describe("jali.destroy()", () => {
   });
 
   it("stops listening to the kind registry", () => {
-    const jali = make({ url: false });
+    const jali = make({ features: noUrl() });
     const heard = vi.fn();
     jali.subscribe(heard);
     jali.destroy();
@@ -72,7 +73,7 @@ describe("jali.destroy()", () => {
     vi.useFakeTimers();
     for (const end of ["destroy", "stop"] as const) {
       const storage = memoryStorage();
-      const jali = make({ url: false, storage });
+      const jali = make({ features: noUrl(), storage });
       const stop = jali.start();
       storeOf(jali).actions.setPaneState("detail", "scroll", 240);
       if (end === "destroy") jali.destroy();
@@ -87,7 +88,7 @@ describe("jali.destroy()", () => {
     try {
       for (const leave of ["pagehide", "hidden"] as const) {
         const storage = memoryStorage();
-        const jali = make({ url: false, storage });
+        const jali = make({ features: noUrl(), storage });
         const stop = jali.start();
         storeOf(jali).actions.setPaneState("detail", "draft", "Dear");
         // Typed just now: the 400 ms save hasn't run.
@@ -114,7 +115,7 @@ describe("jali.destroy()", () => {
   });
 
   it("can be called twice, and a start after it does nothing", () => {
-    const jali = make({ url: false });
+    const jali = make({ features: noUrl() });
     jali.destroy();
     expect(() => jali.destroy()).not.toThrow();
     const stop = jali.start();

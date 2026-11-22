@@ -2,6 +2,7 @@
 import { describe, expect, it } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, row, type PhoneOptions } from "@jali/core";
 import { definePane } from "@jali/react";
+import { defaultFeatures, urlSync } from "./features";
 
 const note = definePane("note", {
   params: { id: Number },
@@ -14,7 +15,7 @@ const at = (width: number, phone?: PhoneOptions) =>
   createJali({
     panes: [note],
     layout: row(note({ id: 1 }), note({ id: 2 })),
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width, height: 800 },
     moveFocus: false,

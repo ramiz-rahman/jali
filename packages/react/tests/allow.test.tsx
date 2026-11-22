@@ -13,6 +13,7 @@ import {
   tabs,
   type WorkspaceAllow,
 } from "@jali/core";
+import type { Feature } from "@jali/core";
 import {
   allows,
   commandDefsOf,
@@ -22,6 +23,7 @@ import {
   tabMenuOf,
 } from "@jali/core/adapter";
 import { JaliRoot, definePane } from "@jali/react";
+import { defaultFeatures, popOut, urlSync } from "./features";
 
 const note = definePane("note", {
   params: { id: Number },
@@ -34,14 +36,14 @@ const board = definePane("board", {
   Component: () => null,
 });
 
-const make = (allow?: WorkspaceAllow) =>
+const make = (allow?: WorkspaceAllow, more: Feature[] = []) =>
   createJali({
     panes: [note, board],
     layout: row(
       pane(board(), { id: "board" }),
       tabs(pane(note({ id: 1 }), { id: "a" }), pane(note({ id: 2 }), { id: "b" })),
     ),
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() }), ...more],
     storage: memoryStorage(),
     size: { width: 1200, height: 800 },
     moveFocus: false,
@@ -49,11 +51,14 @@ const make = (allow?: WorkspaceAllow) =>
   });
 
 describe("allow", () => {
-  it("allows everything by default but Pop out, which the app turns on", () => {
+  it("allows everything by default; Pop out with its feature, unless the app turns it off", () => {
     const x = storeOf(make()).snapshot();
     expect(allows(x, "a", "close")).toBe(true);
     expect(allows(x, "a", "popOut")).toBe(false);
-    expect(allows(storeOf(make({ popOut: true })).snapshot(), "a", "popOut")).toBe(true);
+    expect(allows(storeOf(make(undefined, [popOut()])).snapshot(), "a", "popOut")).toBe(true);
+    expect(allows(storeOf(make({ popOut: false }, [popOut()])).snapshot(), "a", "popOut")).toBe(
+      false,
+    );
   });
 
   it("a kind's `false` refuses its action, from any route, saying why", () => {

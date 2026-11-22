@@ -9,6 +9,7 @@ import { Suspense, useState } from "react";
 import { createJali, listCommands, memoryLocation, memoryStorage, pane, row } from "@jali/core";
 import type { LayoutInput, PaneErrorInfo } from "@jali/core";
 import { JaliRoot, definePane, useTitle, type Pane } from "@jali/react";
+import { defaultFeatures, urlSync } from "./features";
 
 beforeAll(() => {
   globalThis.ResizeObserver ??= class {
@@ -40,7 +41,7 @@ function make(
   return createJali({
     panes,
     layout,
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: 1200, height: 600 },
     moveFocus: false,

@@ -7,6 +7,7 @@ import { cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, pane, row, type JaliOptions } from "@jali/core";
 import { JaliRoot, JaliView, Shelf, definePage, definePane } from "@jali/react";
+import { defaultFeatures, urlSync } from "./features";
 
 afterEach(cleanup);
 
@@ -33,7 +34,7 @@ describe("a curated page's landmarks", () => {
     const jali = createJali({
       panes: [visit],
       page,
-      url: { location: memoryLocation() },
+      features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
       storage: memoryStorage(),
       size: { width: 1200, height: 800 },
       moveFocus: false,
@@ -60,7 +61,7 @@ const workspace = (options: Partial<JaliOptions>) =>
   createJali({
     panes: [note],
     layout: row(note({ id: 1 }), note({ id: 2 }), note({ id: 3 })),
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: 1200, height: 600 },
     moveFocus: false,

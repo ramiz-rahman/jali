@@ -16,7 +16,6 @@ describe("the model", () => {
     const jali = createJali({
       panes: [item],
       layout: row(ref(1), ref(2)),
-      url: false,
       storage: memoryStorage(),
       size: { width: 1400, height: 800 },
       moveFocus: false,

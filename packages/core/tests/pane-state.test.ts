@@ -24,6 +24,7 @@ import {
   storeOf,
   PANE_STATE_MAX,
 } from "@jali/core/adapter";
+import { urlSync } from "../src/features/url-sync";
 
 const order = { kind: "order", title: "Order", params: { id: Number }, width: { min: 200 } };
 const ref = (id: number) => ({ kind: "order", params: { id } });
@@ -63,7 +64,7 @@ const tab = (layout: LayoutInput, storage: StoragePort) =>
     createJali({
       panes: [order],
       layout,
-      url: { location: memoryLocation() },
+      features: [urlSync({ location: memoryLocation() })],
       storage,
       size: { width: 1600, height: 800 },
       moveFocus: false,

@@ -12,6 +12,7 @@ import {
   type DeepReadonly,
   type Layout,
 } from "@jali/core";
+import { urlSync } from "../src/features/url-sync";
 
 const item = { kind: "item", title: "Item", params: { id: Number }, width: { min: 200 } };
 const ref = (id: number) => ({ kind: "item", params: { id } });
@@ -19,7 +20,7 @@ const make = () =>
   createJali({
     panes: [item],
     layout: row(ref(1), ref(2), ref(3)),
-    url: { location: memoryLocation() },
+    features: [urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: 1400, height: 800 },
     moveFocus: false,
@@ -76,7 +77,7 @@ describe("events in the order changes were made", () => {
     const jali = createJali({
       panes: [item],
       layout: row(ref(1), ref(2)),
-      url: { location },
+      features: [urlSync({ location })],
       storage: memoryStorage(),
       size: { width: 1400, height: 800 },
       moveFocus: false,

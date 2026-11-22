@@ -9,6 +9,7 @@ import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, pane, row, tabs } from "@jali/core";
 import { JaliRoot, JaliView, Shelf, definePage, definePane } from "@jali/react";
+import { defaultFeatures, urlSync } from "./features";
 
 afterEach(cleanup);
 
@@ -43,7 +44,7 @@ describe("Jali's buttons inside a host's form", () => {
         pane(note({ id: 3 }), { id: "c" }),
         pane(note({ id: 4 }), { id: "d" }),
       ),
-      url: { location: memoryLocation() },
+      features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
       storage: memoryStorage(),
       size: { width: 1400, height: 800 },
       moveFocus: false,

@@ -26,7 +26,6 @@ const fixed = {
 const make = (o: Partial<JaliOptions>) =>
   createJali({
     panes: [free, fixed],
-    url: false,
     storage: memoryStorage(),
     size: { width: 1200, height: 800 },
     moveFocus: false,

@@ -9,6 +9,7 @@ import { createJali, memoryLocation, memoryStorage, pane, row, tabs } from "@jal
 import type { LayoutInput } from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
 import { JaliRoot, JaliView, Shelf, definePane } from "@jali/react";
+import { defaultFeatures, urlSync } from "./features";
 
 let room = { width: 1200, height: 600 };
 beforeAll(() => {
@@ -41,7 +42,7 @@ const make = (layout: LayoutInput) =>
   createJali({
     panes: [note],
     layout,
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: 1200, height: 600 },
     moveFocus: false,

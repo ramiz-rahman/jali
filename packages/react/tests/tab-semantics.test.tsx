@@ -7,6 +7,7 @@ import { cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, pane, row, tabs } from "@jali/core";
 import { JaliRoot, JaliView, definePage, definePane } from "@jali/react";
+import { defaultFeatures, urlSync } from "./features";
 
 afterEach(cleanup);
 
@@ -27,7 +28,7 @@ describe("a tile's tabs", () => {
         tabs(pane(note({ id: 1 }), { id: "a" }), pane(note({ id: 2 }), { id: "b" })),
         pane(note({ id: 3 }), { id: "c" }),
       ),
-      url: { location: memoryLocation() },
+      features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
       storage: memoryStorage(),
       size: { width: 1200, height: 800 },
       moveFocus: false,
@@ -53,7 +54,7 @@ describe("the stacked phone view", () => {
     const jali = createJali({
       panes: [note],
       layout: pane(note({ id: 1 }), { id: "a" }),
-      url: { location: memoryLocation() },
+      features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
       storage: memoryStorage(),
       size: { width: 378, height: 760 },
       phone: { stack: true },
@@ -95,7 +96,7 @@ describe("a curated page's tabs", () => {
     const jali = createJali({
       panes: [note],
       page,
-      url: { location: memoryLocation() },
+      features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
       storage: memoryStorage(),
       size: { width: 1200, height: 800 },
       moveFocus: false,

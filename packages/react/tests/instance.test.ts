@@ -18,6 +18,7 @@ import {
 import { storeOf } from "@jali/core/adapter";
 import { geometryOf } from "../../core/src/state/apply";
 import { definePane } from "@jali/react";
+import { defaultFeatures, urlSync } from "./features";
 
 const list = definePane("orders", { title: "Orders", Component: () => null });
 const order = definePane("order", {
@@ -36,7 +37,7 @@ const make = (options: Partial<JaliOptions> = {}) =>
   createJali({
     panes: [list, order],
     layout: row(list(), order({ id: 1 }), order({ id: 2 })),
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: 1400, height: 800 },
     moveFocus: false,
@@ -435,7 +436,7 @@ describe("events", () => {
 
   it("layout says when it came from the address", () => {
     const location = memoryLocation();
-    const jali = make({ url: { location } });
+    const jali = make({ features: [...defaultFeatures(), urlSync({ location })] });
     const stop = jali.start();
     const first = location.search();
     jali.actions.close("order-2");
@@ -527,7 +528,7 @@ describe("getLayout and setLayout", () => {
 
   it("writes the address, so Back returns to the layout before", () => {
     const location = memoryLocation();
-    const jali = make({ url: { location } });
+    const jali = make({ features: [...defaultFeatures(), urlSync({ location })] });
     const stop = jali.start();
     const count = location.entries.length;
     jali.setLayout(row(list()));
@@ -591,7 +592,7 @@ describe("beforeClose: the host is asked before panes go", () => {
   it("covers Back and Forward, and puts the address back when it keeps the panes", () => {
     const location = memoryLocation();
     let allow = true;
-    const jali = make({ url: { location }, beforeClose: () => allow });
+    const jali = make({ features: [...defaultFeatures(), urlSync({ location })], beforeClose: () => allow });
     const stop = jali.start();
     const first = location.search();
     jali.actions.openBeside("orders", order({ id: 7 }));
@@ -703,7 +704,7 @@ describe("keeping in step with the host's documents", () => {
 
   it("addTab is one step on a full workspace: one history entry, one layout event, nothing folds", () => {
     const location = memoryLocation();
-    const jali = make({ url: { location }, size: { width: 1000, height: 800 } });
+    const jali = make({ features: [...defaultFeatures(), urlSync({ location })], size: { width: 1000, height: 800 } });
     const entries = location.entries.length;
     const folded = jali.model().folded;
     const geometry = geometryOf(storeOf(jali).model());
@@ -741,7 +742,7 @@ describe("keeping in step with the host's documents", () => {
   it("remove takes a pane away quietly: no undo, no toast, no announcement, no question", () => {
     const beforeClose = vi.fn(() => false);
     const location = memoryLocation();
-    const jali = make({ beforeClose, url: { location } });
+    const jali = make({ beforeClose, features: [...defaultFeatures(), urlSync({ location })] });
     const toasts = vi.fn();
     jali.on("toast", toasts);
     storeOf(jali).actions.setUnsaved("order-2", "a draft");

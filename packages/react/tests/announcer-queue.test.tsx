@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test"
 import { createJali, memoryLocation, memoryStorage, pane } from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
 import { JaliRoot, definePane } from "@jali/react";
+import { defaultFeatures, urlSync } from "./features";
 
 beforeEach(() => void vi.useFakeTimers());
 afterEach(() => {
@@ -19,7 +20,7 @@ const make = () =>
   createJali({
     panes: [note],
     layout: pane(note({}), { id: "a" }),
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: 1200, height: 800 },
     moveFocus: false,

@@ -9,7 +9,6 @@ import { cleanup, render } from "@testing-library/react";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vite-plus/test";
 import {
   createJali,
-  listCommands,
   memoryLocation,
   memoryStorage,
   row,
@@ -28,6 +27,7 @@ import {
 } from "@jali/core/adapter";
 import { JaliRoot, definePane } from "@jali/react";
 import { reactDom } from "../src/dom";
+import { defaultFeatures, urlSync } from "./features";
 
 const note = definePane("note", {
   params: { id: Number },
@@ -39,7 +39,7 @@ const make = (options: Partial<JaliOptions> = {}) =>
     ...options,
     panes: [note],
     layout: row(note({ id: 1 }), note({ id: 2 })),
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: 1200, height: 800 },
     moveFocus: false,
@@ -165,31 +165,5 @@ describe("a workspace's DomPort", () => {
     expect(document.body.classList.contains("jali-resizing-column")).toBe(true);
     reactDom.dragging(null);
     expect(document.body.className).not.toMatch(/jali-/);
-  });
-
-  it("carries @jali/react's pop out: given to each workspace it renders, never set for all as @jali/react loads", () => {
-    const options = { allow: { popOut: true } } as const;
-    const pop = (jali: ReturnType<typeof make>) =>
-      listCommands(jali).find((c) => c.id === "pane.pop_out");
-    // A browser that can pop out: Document Picture-in-Picture, on a secure page.
-    vi.stubGlobal("documentPictureInPicture", { requestWindow: async () => window, window: null });
-    const secure = Object.getOwnPropertyDescriptor(window, "isSecureContext");
-    Object.defineProperty(window, "isSecureContext", { value: true, configurable: true });
-    try {
-      // @jali/react is loaded (this file imports it), but a workspace it hasn't rendered has no way to pop out.
-      const headless = make(options);
-      headless.actions.focus(headless.model().panes[0]!.id);
-      expect(pop(headless)).toMatchObject({ disabled: true });
-
-      const jali = make(options);
-      render(<JaliRoot jali={jali} />);
-      expect(storeOf(jali).dom.port.popOut).toBe(reactDom.popOut);
-      jali.actions.focus(jali.model().panes[0]!.id);
-      expect(pop(jali)).toMatchObject({ disabled: false });
-    } finally {
-      vi.unstubAllGlobals();
-      if (secure) Object.defineProperty(window, "isSecureContext", secure);
-      else Reflect.deleteProperty(window, "isSecureContext");
-    }
   });
 });

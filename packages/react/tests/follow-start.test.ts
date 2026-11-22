@@ -17,6 +17,7 @@ import {
 import { storeOf } from "@jali/core/adapter";
 import { definePane } from "@jali/react";
 import { FOLLOW_MS } from "../../core/src/actions/follow";
+import { defaultFeatures, urlSync } from "./features";
 
 const Nothing = () => null;
 const symbol = { symbol: String };
@@ -110,7 +111,7 @@ const make = (opts: { preset?: string; search?: string } = {}) => {
     panes: [watchlist, plain, quote, chart, days, day, map, place],
     presets,
     ...(opts.preset ? { preset: opts.preset } : {}),
-    url: { location },
+    features: [...defaultFeatures(), urlSync({ location })],
     storage: memoryStorage(),
     size: { width: 1800, height: 900 },
     moveFocus: false,

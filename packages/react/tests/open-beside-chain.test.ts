@@ -6,6 +6,7 @@ import { describe, expect, it } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, pane, row } from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
 import { definePane } from "@jali/react";
+import { defaultFeatures, urlSync } from "./features";
 
 const order = definePane("order", {
   params: { id: Number },
@@ -23,7 +24,7 @@ const make = (...panes: ReturnType<typeof pane>[]) =>
   createJali({
     panes: [order, customer],
     layout: row(...panes),
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: 2400, height: 800 },
     moveFocus: false,

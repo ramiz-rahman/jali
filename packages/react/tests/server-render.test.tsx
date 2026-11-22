@@ -6,6 +6,7 @@ import { renderToString } from "react-dom/server";
 import { createJali, memoryLocation, memoryStorage, row, type JaliOptions } from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
 import { JaliRoot, definePane, useJaliShortcut } from "@jali/react";
+import { defaultFeatures, popOut, urlSync } from "./features";
 
 const note = definePane("note", {
   params: { id: Number },
@@ -49,7 +50,7 @@ const make = (options: Partial<JaliOptions> = {}) =>
   createJali({
     panes: [note, slow.kind],
     layout: row(note({ id: 1 }), note({ id: 2 })),
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: 1200, height: 800 },
     ...options,
@@ -136,7 +137,7 @@ describe("server rendering", () => {
     // The build machine is a Mac (Node has a navigator too); the reader is on Windows, in a browser that can pop out.
     vi.stubGlobal("navigator", { platform: "MacIntel", userAgent: "Node.js" });
     const options: Partial<JaliOptions> = {
-      allow: { popOut: true },
+      features: [popOut()],
       buttons: (d) => [...d, "popOut"],
     };
     const html = renderToString(<JaliRoot jali={make(options)} />);

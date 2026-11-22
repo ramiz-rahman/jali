@@ -19,6 +19,7 @@ import { createJali, row } from "@jali/core";
 import { JaliRoot, definePane } from "@jali/react";
 import { parseKeys } from "../../core/src/commands/format";
 import { createTestStore } from "./workspace";
+import { noUrl } from "./features";
 
 const area = { width: 1600, height: 900 };
 const make = (deps: Parameters<typeof createTestStore>[0] = {}) => {
@@ -143,7 +144,7 @@ describe("default storage (3)", () => {
       panes: [note],
       layout: note(),
       id: "orders",
-      url: false,
+      features: noUrl(),
       size: area,
       moveFocus: false,
     });
@@ -171,7 +172,7 @@ describe("default storage (3)", () => {
 describe("startUi for one of several workspaces (9, 10, 11): StartOptions { keys, pageTheme }", () => {
   it("pageTheme: false leaves <html> alone", () => {
     const s = make();
-    const off = startUi(s, undefined, { pageTheme: false });
+    const off = startUi(s, { pageTheme: false });
     act(() => s.set({ settings: { ...s.get().settings, theme: "dark" } }));
     expect(document.documentElement.hasAttribute("data-theme")).toBe(false);
     off();
@@ -220,8 +221,8 @@ describe("startUi for one of several workspaces (9, 10, 11): StartOptions { keys
     rootA.append(inA);
     rootB.append(inB);
     document.body.append(rootA, rootB);
-    const offA = startUi(a, undefined, { keys: { root: () => rootA }, pageTheme: false });
-    const offB = startUi(b, undefined, { keys: { root: () => rootB }, pageTheme: false });
+    const offA = startUi(a, { keys: { root: () => rootA }, pageTheme: false });
+    const offB = startUi(b, { keys: { root: () => rootB }, pageTheme: false });
     try {
       const fa = a.get().view.focused,
         fb = b.get().view.focused;
@@ -272,7 +273,7 @@ describe("mounting (25)", () => {
     const s = createJali({
       panes: [note],
       layout: row(note({ id: 1 }), note({ id: 2 })),
-      url: false,
+      features: noUrl(),
       size: area,
     });
     document.body.focus();

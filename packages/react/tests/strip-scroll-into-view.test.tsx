@@ -8,6 +8,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vite-p
 import { act, cleanup, render } from "@testing-library/react";
 import { createJali, memoryLocation, memoryStorage, pane, row } from "@jali/core";
 import { JaliRoot, definePane } from "@jali/react";
+import { defaultFeatures, urlSync } from "./features";
 
 const day = definePane("day", {
   params: { n: Number },
@@ -59,7 +60,7 @@ const make = () =>
         ...[1, 2, 3, 4, 5, 6].map((n) => pane(day({ n }), { id: `d${n}` })),
       ),
     ),
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: 1200, height: 800 },
     moveFocus: false,

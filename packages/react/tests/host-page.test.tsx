@@ -7,6 +7,7 @@ import { act, cleanup, render, screen } from "@testing-library/react";
 import { GAP, createJali, memoryLocation, memoryStorage, pane, row } from "@jali/core";
 import type { JaliOptions } from "@jali/core";
 import { JaliRoot, JaliView, Shelf, definePane } from "@jali/react";
+import { defaultFeatures, urlSync } from "./features";
 
 afterEach(() => {
   cleanup();
@@ -24,7 +25,7 @@ const make = (options: Partial<JaliOptions> = {}) =>
   createJali({
     panes: [note],
     layout: row(pane(note({ id: 1 }), { id: "a" }), pane(note({ id: 2 }), { id: "b" })),
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: 1200, height: 600 },
     moveFocus: false,

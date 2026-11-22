@@ -10,6 +10,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vite-p
 import { createJali, memoryLocation, memoryStorage, pane, row } from "@jali/core";
 import { JaliRoot, definePane, useCommands, useHeaderActions } from "@jali/react";
 import { useState } from "react";
+import { defaultFeatures, urlSync } from "./features";
 
 /** The header's width, and the shown title's: the room it has and the width its whole text wants. */
 let room = { header: 600, title: 200, wants: 120 };
@@ -94,7 +95,7 @@ const make = () =>
   createJali({
     panes: [markers, note],
     layout: row(pane(markers(), { id: "m" }), pane(note(), { id: "n" })),
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: 1200, height: 600 },
     moveFocus: false,

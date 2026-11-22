@@ -18,6 +18,7 @@ import {
 import { definePageEngine as definePage } from "@jali/core/adapter";
 import { definePane } from "@jali/react";
 import { readSearch } from "../../core/src/url";
+import { defaultFeatures, urlSync } from "./features";
 
 const visit = definePane("visit", {
   params: { id: Number },
@@ -45,7 +46,7 @@ const at = (search: string, options: Partial<JaliOptions> = {}) =>
   createJali({
     panes: [visit, call],
     page,
-    url: { location: memoryLocation(search) },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation(search) })],
     storage: memoryStorage(),
     size: { width: 2000, height: 800 },
     moveFocus: false,
@@ -127,7 +128,7 @@ describe("a layout link", () => {
     const jali = createJali({
       panes: [visit, call],
       layout: row(visit({ id: 9 })),
-      url: { location: memoryLocation(linkSearch({ layout: input, peek: visit({ id: 2 }) })) },
+      features: [...defaultFeatures(), urlSync({ location: memoryLocation(linkSearch({ layout: input, peek: visit({ id: 2 }) })) })],
       storage: memoryStorage(),
       size: { width: 2000, height: 800 },
       moveFocus: false,

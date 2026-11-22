@@ -63,9 +63,6 @@ describe("public API", () => {
       "oneOf",
       "optional",
       "shallow",
-      "unstable_bringBack",
-      "unstable_canPopOut",
-      "unstable_popOut",
       "useActiveItemPort",
       "useActivity",
       "useCommands",
@@ -91,7 +88,6 @@ describe("public API", () => {
     const jali = core.createJali({
       panes: [{ kind: "note", title: "Note" }],
       layout: { kind: "note", params: {} },
-      url: false,
       storage: core.memoryStorage(),
       moveFocus: false,
     });

@@ -36,6 +36,8 @@ export const testKinds = () =>
  * The store before it boots, with nothing outside it (no address, no DOM focus unless given). `deps` adds or
  * overrides the rest (tests pass `initial`, `url`, ...).
  */
+import { defaultFeatures } from "../src/features/defaults";
+
 export function createTestStore(deps: Partial<JaliConfig> = {}): JaliStore {
   return createJaliStore({
     kinds: testKinds(),
@@ -49,6 +51,8 @@ export function createTestStore(deps: Partial<JaliConfig> = {}): JaliStore {
     preset: DEFAULT_PRESET,
     name: "Data Studio",
     storage: browserStorage("jali-tests"),
+    // Jali's dialogs, as an app with `defaultFeatures()` has them (no address: a store made by hand has none).
+    features: defaultFeatures().filter((f) => f.id !== "urlSync"),
     ...deps,
   });
 }

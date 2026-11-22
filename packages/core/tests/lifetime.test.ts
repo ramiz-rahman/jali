@@ -5,6 +5,7 @@
 import { describe, expect, it } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, row, type JaliOptions } from "@jali/core";
 import { createUrlSync, storeOf } from "@jali/core/adapter";
+import { urlSync } from "../src/features/url-sync";
 
 const item = { kind: "item", title: "Item", params: { id: Number }, width: { min: 200 } };
 const ref = (id: number) => ({ kind: "item", params: { id } });
@@ -29,7 +30,7 @@ describe("destroy() ends everything pending", () => {
   it("a host's yes after destroy() changes nothing and writes no address", async () => {
     const location = memoryLocation();
     const held = deferred();
-    const jali = make({ url: { location }, beforeClose: () => held.promise });
+    const jali = make({ features: [urlSync({ location })], beforeClose: () => held.promise });
     const panes = jali.model().resolved.panes.map((p) => p.id);
     const r = jali.actions.close(panes[1]!);
     expect(r.reason).toBe("pending");
@@ -46,7 +47,7 @@ describe("destroy() ends everything pending", () => {
 
   it("settles a held host answer as kept at once, before the host answers", async () => {
     const held = deferred();
-    const jali = make({ url: false, beforeClose: () => held.promise });
+    const jali = make({ beforeClose: () => held.promise });
     const r = jali.actions.close(jali.model().resolved.panes[1]!.id);
     let end: unknown;
     void r.settled!.then((v) => (end = v));
@@ -57,7 +58,7 @@ describe("destroy() ends everything pending", () => {
   });
 
   it("refuses every action after destroy()", () => {
-    const jali = make({ url: false });
+    const jali = make({});
     const layout = jali.getLayout();
     jali.destroy();
     expect(jali.actions.openBeside(jali.model().resolved.panes[0]!.id, ref(3))).toEqual({
@@ -82,10 +83,10 @@ describe("destroy() ends everything pending", () => {
   it("an arrival waiting for the host when the listeners stop does nothing after", async () => {
     const location = memoryLocation();
     const held = deferred();
-    const jali = make({ url: { location }, beforeClose: () => held.promise });
+    const jali = make({ features: [urlSync({ location })], beforeClose: () => held.promise });
     const stop = jali.start();
     const layout = jali.getLayout();
-    const other = make({ url: { location: memoryLocation() }, layout: row(ref(7)) });
+    const other = make({ features: [urlSync({ location: memoryLocation() })], layout: row(ref(7)) });
     location.visit(new URL(storeOf(other).href().replace("memory:", "http://x/")).search);
     stop();
     held.answer(true);

@@ -8,6 +8,7 @@ import { createJali, memoryLocation, memoryStorage, row, type JaliOptions } from
 import { storeOf } from "@jali/core/adapter";
 import { definePane } from "@jali/react";
 import { close } from "../../core/src/actions/close";
+import { defaultFeatures, urlSync } from "./features";
 
 const list = definePane("orders", { title: "Orders", Component: () => null });
 const order = definePane("order", {
@@ -21,7 +22,7 @@ const make = (options: Partial<JaliOptions> = {}) =>
   createJali({
     panes: [list, order],
     layout: row(list(), order({ id: 1 }), order({ id: 2 })),
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: 1400, height: 800 },
     moveFocus: false,
@@ -217,7 +218,7 @@ describe("Back and Forward keep their navigation with the question (C9)", () => 
   /** A workspace with history: the first address, Order 7 opened, then Order 8 opened with unsaved work. */
   function history(options: Partial<JaliOptions> = {}) {
     const location = memoryLocation();
-    const jali = make({ url: { location }, ...options });
+    const jali = make({ features: [...defaultFeatures(), urlSync({ location })], ...options });
     const stop = jali.start();
     const first = location.search();
     jali.actions.openBeside("orders", order({ id: 7 }));

@@ -19,6 +19,7 @@ import {
 import { definePageEngine as definePage } from "@jali/core/adapter";
 import { encodePeek, storeOf } from "@jali/core/adapter";
 import { definePane } from "@jali/react";
+import { defaultFeatures, urlSync } from "./features";
 
 const queryParams = { sql: String, autorun: appOnly(Boolean) };
 const query = definePane("query", {
@@ -33,7 +34,7 @@ const make = (search = "") => {
   const jali = createJali({
     panes: [query, list],
     layout: row(list(), query({ sql: "select 1" })),
-    url: { location },
+    features: [...defaultFeatures(), urlSync({ location })],
     storage: memoryStorage(),
     size: { width: 1600, height: 900 },
     moveFocus: false,
@@ -79,7 +80,7 @@ describe("a param only the app sets", () => {
     const jali = createJali({
       panes: [list],
       layout: row(list()),
-      url: { location: memoryLocation(`?l=${lists}&peek=${peek}`) },
+      features: [...defaultFeatures(), urlSync({ location: memoryLocation(`?l=${lists}&peek=${peek}`) })],
       storage: memoryStorage(),
       size: { width: 1600, height: 900 },
       moveFocus: false,
@@ -163,7 +164,7 @@ describe("a param only the app sets", () => {
     const jali = createJali({
       panes: [visit, query],
       page,
-      url: { location },
+      features: [...defaultFeatures(), urlSync({ location })],
       storage: memoryStorage(),
       size: { width: 2400, height: 800 },
       moveFocus: false,

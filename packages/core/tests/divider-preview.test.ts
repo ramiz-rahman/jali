@@ -16,7 +16,6 @@ describe("a divider drag's frames", () => {
       layout: row(
         ...Array.from({ length: 64 }, (_, i) => pane({ kind: "item", params: { id: i } })),
       ),
-      url: false,
       storage: memoryStorage(),
       size: { width: 4000, height: 800 },
       moveFocus: false,

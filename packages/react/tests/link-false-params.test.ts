@@ -17,6 +17,7 @@ import {
   type ParamsOf,
 } from "@jali/core";
 import { definePane } from "@jali/react";
+import { defaultFeatures, urlSync } from "./features";
 
 const chartParams = { runId: optional(String, { link: false }) };
 const chart = definePane("chart", {
@@ -47,7 +48,7 @@ const make = (location = memoryLocation()) =>
     panes: [query, chart],
     presets,
     preset: "report",
-    url: { location },
+    features: [...defaultFeatures(), urlSync({ location })],
     storage: memoryStorage(),
     size: { width: 1600, height: 900 },
     moveFocus: false,
@@ -115,7 +116,7 @@ describe("what the address doesn't hold, after a reload", () => {
       panes: [query, chart],
       presets,
       preset: "blank",
-      url: { location: memoryLocation(search) },
+      features: [...defaultFeatures(), urlSync({ location: memoryLocation(search) })],
       storage: memoryStorage(),
       size: { width: 1600, height: 900 },
       moveFocus: false,

@@ -17,6 +17,7 @@ import { storeOf } from "@jali/core/adapter";
 import { definePane } from "@jali/react";
 import { createTestStore } from "./workspace";
 import type { JaliStore } from "../../core/src/state/store";
+import { defaultFeatures, urlSync } from "./features";
 
 const video = definePane("video", {
   params: { id: Number },
@@ -39,7 +40,7 @@ const make = (
   createJali({
     panes: [video, transcript],
     layout: row(pane(video({ id: 1 }), { id: "v" })),
-    url: { location },
+    features: [...defaultFeatures(), urlSync({ location })],
     storage: memoryStorage(),
     size: { width, height },
     moveFocus: false,

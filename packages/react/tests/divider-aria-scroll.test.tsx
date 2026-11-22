@@ -7,6 +7,7 @@ import { afterAll, afterEach, beforeAll, expect, it } from "vite-plus/test";
 import { cleanup, render } from "@testing-library/react";
 import { createJali, memoryLocation, memoryStorage, pane, row } from "@jali/core";
 import { JaliRoot, definePane } from "@jali/react";
+import { defaultFeatures, urlSync } from "./features";
 
 const day = definePane("day", {
   params: { n: Number },
@@ -42,7 +43,7 @@ it("a scrolling row's dividers state no maximum; a fitted row's state a number",
       ),
       pane(day({ n: 9 }), { id: "side" }),
     ),
-    url: { location: memoryLocation("") },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation("") })],
     storage: memoryStorage(),
     size: { width: 1200, height: 800 },
     moveFocus: false,

@@ -5,6 +5,7 @@
 import { describe, expect, it } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, pane } from "@jali/core";
 import { definePageEngine as definePage } from "@jali/core/adapter";
+import { urlSync } from "../src/features/url-sync";
 
 const ticket = { kind: "ticket", title: "Ticket", params: { id: String }, width: { min: 200 } };
 const note = { kind: "note", title: "Note", width: { min: 200 } };
@@ -32,7 +33,7 @@ describe("a limited viewer", () => {
       panes: [ticket, note],
       presets: [{ id: "home", label: "Home", layout: { kind: "note", params: {} } }],
       page: desk,
-      url: { location: memoryLocation() },
+      features: [urlSync({ location: memoryLocation() })],
       storage: memoryStorage(),
       size: { width: 1400, height: 800 },
       moveFocus: false,
@@ -51,7 +52,6 @@ describe("a limited viewer", () => {
       panes: [ticket, note],
       presets: [{ id: "home", label: "Home", layout: { kind: "note", params: {} } }],
       page: desk,
-      url: false,
       storage: memoryStorage(),
       size: { width: 1400, height: 800 },
       moveFocus: false,

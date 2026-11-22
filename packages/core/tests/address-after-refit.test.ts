@@ -5,6 +5,7 @@
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, row, type Jali } from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
+import { urlSync } from "../src/features/url-sync";
 
 const kinds = [
   { kind: "list", title: "List", width: { min: 260, comfortable: 360 } },
@@ -23,7 +24,7 @@ const reopen = (j: Jali) =>
   createJali({
     panes: kinds,
     layout: row({ kind: "list", params: {} }),
-    url: { location: memoryLocation(storeOf(j).href().slice("memory:".length)), sizes: "link" },
+    features: [urlSync({ location: memoryLocation(storeOf(j).href().slice("memory:".length)), sizes: "link" })],
     // A reload on the same device: the person's pane cap is theirs, not the link's.
     storage: storeOf(j).storage,
     size: storeOf(j).get().area,
@@ -45,7 +46,7 @@ describe("the address after a refit", () => {
         item(2),
         item(3),
       ),
-      url: { location, sizes: "link" },
+      features: [urlSync({ location, sizes: "link" })],
       storage: memoryStorage(),
       size: { width: 1800, height: 800 },
       moveFocus: false,
@@ -75,7 +76,7 @@ describe("the address after a refit", () => {
     const jali = createJali({
       panes: kinds,
       layout: row({ kind: "list", params: {} }, item(1), item(2), item(3)),
-      url: { location, sizes: "link" },
+      features: [urlSync({ location, sizes: "link" })],
       storage: memoryStorage(),
       size: { width: 1800, height: 800 },
       moveFocus: false,

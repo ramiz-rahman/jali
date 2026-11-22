@@ -9,6 +9,7 @@ import { definePane } from "@jali/react";
 import { runCommand } from "../../core/src/commands/registry";
 import { tabMenuOf } from "../../core/src/commands/tab-menu";
 import { storeOf } from "../../core/src/state/instance";
+import { defaultFeatures, urlSync } from "./features";
 
 const day = definePane("day", {
   params: { n: Number },
@@ -35,7 +36,7 @@ const make = (location = memoryLocation()): Jali => {
       ),
       pane(side({ id: "b" }), { id: "right", px: 300 }),
     ),
-    url: { location },
+    features: [...defaultFeatures(), urlSync({ location })],
     storage: memoryStorage(),
     size: { width: 1440, height: 900 },
     moveFocus: false,

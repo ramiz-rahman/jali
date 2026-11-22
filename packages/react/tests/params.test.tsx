@@ -37,6 +37,7 @@ import {
   type MissingProps,
   type PaneProps,
 } from "@jali/react";
+import { defaultFeatures, noUrl, urlSync } from "./features";
 
 // A kind with every param type, declared first so its component is typed from it.
 const orderParams = {
@@ -65,7 +66,7 @@ const make = (search = "") =>
   createJali({
     panes: [order],
     layout: row(order({ id: 1 })),
-    url: { location: memoryLocation(search) },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation(search) })],
     storage: memoryStorage(),
     size: { width: 1200, height: 800 },
     moveFocus: false,
@@ -191,7 +192,7 @@ describe("a ref its kind can't read", () => {
     const jali = createJali({
       panes: [order],
       layout: row(pane({ kind: "order", params: { tab: "lines" } }, { id: "broken" })),
-      url: false,
+      features: noUrl(),
       storage: memoryStorage(),
       size: { width: 1200, height: 800 },
       moveFocus: false,
@@ -235,7 +236,7 @@ describe("a ref its kind can't read", () => {
         pane({ kind: "order", params: { id: "lost", tab: "lines" } }, { id: "broken" }),
         order({ id: 2 }),
       ),
-      url: false,
+      features: noUrl(),
       storage: memoryStorage(),
       size: { width: 1200, height: 800 },
       moveFocus: false,
@@ -293,7 +294,7 @@ describe("a ref its kind can't read", () => {
         pane(session({ id: "gone" }), { id: "gone" }),
         pane({ kind: "session", params: {} }, { id: "none" }),
       ),
-      url: false,
+      features: noUrl(),
       storage: memoryStorage(),
       size: { width: 1200, height: 800 },
       moveFocus: false,

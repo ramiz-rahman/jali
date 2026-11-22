@@ -9,6 +9,7 @@ import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { StrictMode, useEffect, useState } from "react";
 import { createJali, memoryLocation, memoryStorage, pane, row } from "@jali/core";
 import { JaliRoot, definePane } from "@jali/react";
+import { defaultFeatures, urlSync } from "./features";
 
 const mounts: string[] = [];
 function Counter({ id }: { id: string }) {
@@ -73,7 +74,7 @@ const make = () =>
         ...[1, 2, 3, 4].map((n) => pane(day({ n }), { id: `d${n}` })),
       ),
     ),
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     moveFocus: false,
   });

@@ -7,6 +7,7 @@ import { createJali, memoryLocation, memoryStorage, pane, row, sameRef } from "@
 import { layout as core, sameNode, storeOf } from "@jali/core/adapter";
 import type { Layout, LayoutNode, ObjectRef, PaneNode } from "@jali/core";
 import { definePane } from "@jali/react";
+import { defaultFeatures, urlSync } from "./features";
 
 const cell = definePane("cell", {
   params: { sheet: String, row: Number },
@@ -36,7 +37,7 @@ const make = (beforeClose?: () => boolean) =>
       pane(cell({ sheet: "A", row: 1 }), { id: "a" }),
       pane(cell({ sheet: "B", row: 2 }), { id: "b" }),
     ),
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: 1400, height: 800 },
     moveFocus: false,

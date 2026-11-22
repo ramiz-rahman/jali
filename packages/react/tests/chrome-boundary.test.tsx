@@ -7,6 +7,7 @@ import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, pane, row, type AnyJali } from "@jali/core";
 import { JaliRoot, JaliView, definePage, definePane, useHeaderActions } from "@jali/react";
+import { defaultFeatures, urlSync } from "./features";
 
 beforeEach(() => {
   vi.spyOn(console, "error").mockImplementation(() => {});
@@ -38,7 +39,7 @@ const make = (opts: Record<string, unknown> = {}): AnyJali =>
   createJali({
     panes: [note, iconic],
     layout: row(pane(note({ id: 1 }), { id: "a" }), pane(note({ id: 2 }), { id: "b" })),
-    url: { location: memoryLocation() },
+    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
     storage: memoryStorage(),
     size: { width: 1200, height: 600 },
     moveFocus: false,
