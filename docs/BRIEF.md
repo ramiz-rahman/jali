@@ -1,82 +1,55 @@
-# Jali: brief
+# Jali: product brief
 
-**What this is:** a throwaway spike that proves the shared Sixface pane system before any shared package is built. The founder agreed it on 17 Nov 2026.
+## What Jali is
 
-**The specification:**
+Jali is a layout library for web apps where people work on several things at once. It lays out an app's panes (lists, records, editors) in rows, columns and tabs, and keeps that layout usable on every screen. It ships as one package, `jali`: a framework-free core with no dependencies, rendered by React from `jali/react`.
 
-- `/Users/ramizrahman/Projects/Sixface-Initiate/workspaces/2026-11-16-sixface-design-system/pane-interaction-spec.md`: the interactions, plus §16 (decisions) and §18 (data).
-- `pane-system-research.md`: library research.
-- `multiplex-guidelines.md`, §9: minimum widths.
+## Who it is for
 
-All three are in the same folder.
+Teams building tools that people spend their working day in: support desks, credit and case review, operations consoles, data browsers, trading screens, editors. Their users keep a record open beside the list it came from, compare two objects, and follow a chain of links (an order, its customer, their other orders) without losing their place.
 
-**Data:** Data Studio's fictional sample database, from `examples/shared/src/data/sample-sql.ts`, a copy of `packages/contracts/src/sample.ts`. It runs in the browser on PGlite, with no backend.
+## The problem
 
-## What Jali must prove
+Web apps mostly show one view at a time. People work around it with browser tabs, lose their place and copy details between windows. Building split views by hand is a lot of work that every team repeats: splitting and resizing, deciding what happens when the window narrows, keeping focus and the keyboard right, remembering the layout, and doing all of it accessibly. Docking libraries solve part of it, but leave the hard case open: what to show when there isn't room for everything.
 
-1. **Many arbitrary panes fit or fold, and are never squeezed.** Chains of 6–10 panes built by following relations, for example order → customer → their orders → product → supplier → reviews. Required behaviours:
-   - pixel minimums per pane kind;
-   - the collapse plan: rail, then auto-tabs, then a single pane with a switcher;
-   - unfolding when room returns;
-   - a pane cap.
-2. **Every interaction in the spec, with pointer, keyboard and ⌘K:**
-   - **Open:** open beside, which replaces the linked pane of the same kind; peek with Space, then Pin beside or Open full.
-   - **Move:** centre drop swap vs add-as-tab (a setting); drag by the header grip with a 4px threshold and 25% edge zones; move with keys.
-   - **Resize:** hit area wider than the line; centre snap 10/16; double-click reset; APG keyboard; resize mode; 120ms persist.
-   - **Maximise:** button, double-click header, ⇧⌘↵, Esc.
-   - **Minimise:** to a rail or header.
-   - **Focus:** F6, ⌥1–9, directional by most-recently-used, no wrap.
-   - **Close:** focus returns; a Sonner "Pane closed · Undo"; ⌘Z.
-3. **URL round-trip.** Copy an 8-pane layout as a link, open it in a new tab, and get it exactly back. Back and Forward step through deliberate structural changes only. A broken URL falls back to the preset, and a pane whose object is gone stays with an error.
-4. **Shared data.** Edit a customer's name in a record pane, and every grid, relation list and query result showing that customer updates with **no extra fetch** for unaffected panes (show `stats()`). Large query results are shared by handle between grid, chart and inspector. Hidden, collapsed and tabbed-away panes pause.
-5. **Two resize adapters:** **react-resizable-panels 4.24.0** (pinned) and **Ark UI Splitter**. Switched by a setting, compared on behaviour, keyboard, accessibility and bundle size.
-6. **Accessibility.** Each pane is `role="region"` with a name. Dividers follow the WAI-ARIA window splitter pattern. Changes are announced in a live region. The collapse plan works at 200% zoom.
+## What Jali promises
 
-## Architecture
+1. **Panes fold; they are never squeezed.** Each kind of pane declares the smallest size it works at. When the window is too small, panes fold into tabs of their neighbours, in an order that protects what the person is working on, and come back to their exact place when there is room. On a phone, one pane at a time.
+2. **Panes show objects.** A pane is a kind plus a few params, so a layout fits in a link, a detail follows a list's selection, and one object has one pane.
+3. **The layout is in the address.** A link reopens the same panes in the same places; Back and Forward step through deliberate changes. An app with a router keeps its router in charge.
+4. **Nothing is lost by accident.** A pane reports unsaved work, and every change that would lose it asks first. Closing and tucking can be undone. Moving, folding and tabbing never remount a pane.
+5. **Everything works from the keyboard and with a screen reader.** Every action has a key and a menu item; dividers, tabs, menus and dialogs follow the WAI-ARIA patterns; changes are announced. Checked in a real browser on every change.
+6. **Every action says what happened.** Actions return a result or a typed refusal with its reason; nothing throws at a person's click. An app, a key, a command and an AI agent all take the same path.
+7. **An app ships only what it uses.** Everything beyond laying out panes (the address, the palette, Settings, renaming, Pop out, curated pages) is a feature the app imports, and a size gate holds each to its budget.
+8. **It fits the app it lives in.** Styles sit in their own cascade layer on `--jali-*` tokens, so an app's CSS or Tailwind theme wins without `!important`. Jali draws no app shell: the app's chrome goes around the panes.
 
-The engine is two packages in a pnpm workspace (since 19 Nov 2026). Five example apps are built on them (since 20 Nov 2026; before that, Data Studio and the loan review were one app, "the lab", at the root).
+## Two ways to use it
 
-```
-packages/core/     @jali/core, no framework: layout/ (model, ops, fit, codec, validation), the workspace store,
-                   actions, commands and keymap, URL and storage ports, the pane and active-item contracts
-packages/react/    @jali/react: workspace renderer, pane frame and tabs, dividers, peek, drag/drop zones, shelf,
-                   curated page, palette, settings, chooser, announcer; styles.css (theme + workspace, @layer jali)
-                   and tailwind.css (the bridge to a host's Tailwind theme)
-packages/*/tests/  each package's unit tests; packages/react/tests also holds the engine tests that run against
-                   Data Studio's and Loan review's kinds in one store
-apps/docs/         the docs site; tooling/agent-docs.mjs writes its pages into packages/core/docs as Markdown
-examples/          five example apps, each with `vp dev examples/<name>`, and each a workspace package with its own
-                   dependencies:
-  data-studio/     a database browser: catalog, query, chart, structure, er, audit, launcher; its presets
-  loan-review/     a curated page: the loan review's profile, kinds and views
-  markets/ studio/ trips/   a market terminal, an audio editor, a trip planner
-  shared/          not an app (@jali-examples/shared): what Data Studio and Loan review share. data/ (PGlite +
-                   sample + TanStack Query keys + entity invalidation + result store, no layout knowledge), the
-                   table, record and related panes and the grid, and shell/ (top bar, status line, toasts with Sonner)
-  minimal/ own-icons/   not example apps: the quickstart's app and the bundle-size checks' apps
-e2e/               Playwright demo script that walks every interaction and asserts the key behaviours, against
-                   Data Studio (:5300) and Loan review (:5350); e2e/fixtures/server.ts starts every suite's server
-tooling/           verify, the bundle-size check, the agent docs, the default icons and the React 18 check
-docs/              BRIEF.md, DECISIONS.md (every deviation, with reason); reviews/ holds the dated reports, among them
-                   FINDINGS.md (what we learned, for the founder)
-```
+- **A free layout:** the person builds it, from presets or from scratch, opening what they need beside what they have.
+- **A curated page:** a designed page about one item, with its views as tabs, read one view at a time (Single view) or laid out side by side (Split view).
 
-**Contracts:** `packages/core/src/layout/types.ts` and `examples/shared/src/data/types.ts`. The coordinator wrote them. Implement them; any signature change goes in `docs/DECISIONS.md`.
+## What Jali is not
 
-## Visual language
+- Not a window manager: panes tile, they don't float or overlap (one pane can pop out into its own window).
+- Not a dashboard grid of fixed tiles.
+- Not a data layer: panes load their own data, through the app's cache.
+- Not tied to one framework at its core, though React is the only adapter today.
 
-Sixface tokens, zinc neutrals and IBM Plex Sans, matching the design-system boards:
+## How it is checked
 
-- ground `#F4F4F5`; islands white, 10px radius, 1px `#E4E4E7`, 6px gaps;
-- focused pane: 1.5px `#5A2AFA` edge;
-- pane header 40px;
-- Plex Mono for code and numbers; numbers right-aligned.
+- Unit tests for the core's rules and the React adapter, with seeded fuzzing of the actions.
+- Browser suites for Jali and each example app, with axe scans and forced-colours checks.
+- A size gate per feature, a packed-package check that builds and hydrates from the tarball, and a React 18 run.
+- Docs whose code samples typecheck, whose reference tables are compared with the types, and which ship inside the package for coding agents.
 
-There is **no app shell beyond a slim 48px top bar** (title, layout presets, settings, ⌘K) and a 28px status line (pane count, focus, zoom hint, fetch stats). The point is the pane system, not the shell.
+## The examples
 
-## Rules
+Five apps show Jali on real work: Data Studio (a database browser where the person builds the layout), Loan review (a curated page over a queue of applications), Markets (a trading screen with live data), Studio (an audio editor that follows one playhead) and Trips (a map-first trip planner). Each is in `examples/`.
 
-- Run `pnpm test` and `pnpm typecheck` before handing back. Keep `vp dev` working on port 5300.
-- **No network installs:** dependencies are already installed. Ask the coordinator if something is missing.
-- Commit small and often on `main`, with plain messages. The git identity is the machine's. Do not add a co-author line, and do not push (there is no remote).
-- Touch only your work package's folders, plus `docs/DECISIONS.md` (append only).
+## Where the details are
+
+- [ARCHITECTURE.md](../ARCHITECTURE.md): how it is built.
+- [DECISIONS.md](DECISIONS.md): every decision, dated, with its reason.
+- [API-REVIEW.md](API-REVIEW.md): the public API as approved before 1.0.
+- [MIGRATION.md](MIGRATION.md): the moves an app made between API versions.
+- [reviews/](reviews): dated reviews and what came of them.
