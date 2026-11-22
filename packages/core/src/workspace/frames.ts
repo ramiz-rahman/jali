@@ -167,14 +167,26 @@ export function frames(
 
 const sameRect = (a: Rect, b: Rect) =>
   a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
-/** Same pane as far as a frame renders it. Ops make new objects every time, so compare values. */
-export const sameNode = (a: PaneNode, b: PaneNode) =>
-  a === b ||
-  (a.id === b.id &&
-    a.linkedTo === b.linkedTo &&
-    a.kept === b.kept &&
-    a.pinned === b.pinned &&
-    sameRef(a.ref, b.ref));
+/** Fields of a pane node that are its size in its split: the frame's rect says that, so they don't count. */
+const SIZE_FIELDS = new Set(["size", "base", "userSized"]);
+/**
+ * Same pane as far as a frame and its body render it: every field of the node (its ref by `sameRef`), but its size,
+ * which the rect carries. Ops make new objects every time, so compare values. Every field counts, not a list of them:
+ * a pane's `role` or `follows` changed by `setLayout`, with the same geometry, reaches its component.
+ */
+export const sameNode = (a: PaneNode, b: PaneNode) => {
+  if (a === b) return true;
+  if (!sameRef(a.ref, b.ref)) return false;
+  const keys = (n: PaneNode) =>
+    Object.keys(n).filter(
+      (k) => k !== "ref" && !SIZE_FIELDS.has(k) && n[k as keyof PaneNode] !== undefined,
+    );
+  const ka = keys(a);
+  return (
+    ka.length === keys(b).length &&
+    ka.every((k) => a[k as keyof PaneNode] === b[k as keyof PaneNode])
+  );
+};
 const sameGroup = (a: Frame["group"], b: Frame["group"]) =>
   a === b ||
   (!!a &&

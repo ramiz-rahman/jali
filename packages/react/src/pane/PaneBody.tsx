@@ -1,7 +1,7 @@
 import type { NodeId, ObjectRef, PaneNode } from "@jali/core";
 import { memo, useMemo } from "react";
 import type { ActionResult, UiStore } from "@jali/core/adapter";
-import { parseKeys, sameRef } from "@jali/core/adapter";
+import { parseKeys, sameNode } from "@jali/core/adapter";
 import type { PaneProps } from "../define";
 import { PaneContext, type PaneHost } from "./context";
 import { useEnv, useMessages, useStore } from "../state/react";
@@ -139,9 +139,7 @@ export const PaneBody = /* @__PURE__ */ memo(
     a.node.id === b.node.id &&
     a.paused === b.paused &&
     a.focused === b.focused &&
-    a.node.linkedTo === b.node.linkedTo &&
-    a.node.kept === b.node.kept &&
-    sameRef(a.node.ref, b.node.ref),
+    sameNode(a.node, b.node),
 );
 
 /**
