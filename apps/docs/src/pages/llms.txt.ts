@@ -10,9 +10,9 @@ export const GET: APIRoute = ({ site }) => {
   const lines = [
     "# Jali",
     "",
-    `> ${home?.summary ?? "Workspaces of panes for React."}`,
+    `> ${home?.summary ?? ""}`,
     "",
-    "Jali is one package, `jali`: its framework-free core (the layout tree, fitting and the workspace) is `jali`, and React renders it from `jali/react`. Every page below is Markdown. The same pages ship inside `jali` as `node_modules/jali/docs/`, for the installed version.",
+    "Jali is one package, `jali`. Its framework-free core (the layout tree, fitting, actions and events) is `jali`; React renders it from `jali/react`; each optional feature has its own entry (`jali/url`, `jali/palette`, …). Every page below is Markdown, and all of them together are at /llms-full.txt. The same pages ship inside the package as `node_modules/jali/docs/`, for the installed version.",
   ];
   let section = "";
   for (const item of readingOrder()) {

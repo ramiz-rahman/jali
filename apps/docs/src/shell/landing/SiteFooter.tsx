@@ -42,7 +42,7 @@ function columns(): { title: string; links: Link[] }[] {
         { href: REPO_URL, title: "GitHub", external: true },
         { href: "/examples", title: "Examples" },
         { href: "/llms.txt", title: "llms.txt" },
-        { href: `${REPO_URL}/blob/main/LICENSE`, title: "Licence", external: true },
+        { href: "/llms-full.txt", title: "llms-full.txt" },
       ],
     },
   ];

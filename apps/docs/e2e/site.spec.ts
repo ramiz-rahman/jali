@@ -87,6 +87,27 @@ test("the theme toggle sets the theme, and it is kept", async ({ page }) => {
   await expect(toggle.getByRole("radio", { name: "Dark" })).toHaveAttribute("aria-checked", "true");
 });
 
+test("a page links to its source on the docs' branch, and to a new issue that names it", async ({
+  page,
+}) => {
+  await page.goto("/learn/fitting");
+  await expect(page.getByRole("link", { name: "Edit this page" })).toHaveAttribute(
+    "href",
+    /\/edit\/master\/apps\/docs\/src\/docs\/learn\/fitting\.mdx$/,
+  );
+  await expect(page.getByRole("link", { name: "Report an issue" })).toHaveAttribute(
+    "href",
+    /\/issues\/new\?title=Docs%3A\+How\+a\+layout\+fits/,
+  );
+});
+
+test("llms-full.txt holds every page as Markdown", async ({ request }) => {
+  const text = await (await request.get("/llms-full.txt")).text();
+  expect(text).toContain("# Quickstart");
+  expect(text).toContain("# How a layout fits");
+  expect(text).toContain('import { createJali, row } from "jali";');
+});
+
 test("headings are read as their words, without their link", async ({ page }) => {
   await page.goto("/learn/fitting");
   const h2 = page.locator(".prose h2").first();

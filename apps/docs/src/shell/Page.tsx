@@ -1,4 +1,4 @@
-/** A page's header (section, title, summary, actions) and footer (previous and next, edit). Static HTML. */
+/** A page's header (section, title, summary, actions) and footer (previous and next, edit, report). Static HTML. */
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
@@ -7,8 +7,9 @@ import {
   CopyIcon,
   FileTextIcon,
   PencilSimpleIcon,
+  WarningCircleIcon,
 } from "@phosphor-icons/react";
-import { editUrl } from "../site/config";
+import { editUrl, issueUrl } from "../site/config";
 import { markdownUrl, neighbours, sectionOf, sources } from "../site/sources";
 
 function PageActions({ path, title }: { path: string; title: string }) {
@@ -96,6 +97,12 @@ export function PageFooter({ path }: { path: string }) {
           <a href={editUrl(file)} target="_blank" rel="noreferrer">
             <PencilSimpleIcon aria-hidden size={13} />
             Edit this page
+          </a>
+        ) : null}
+        {file ? (
+          <a href={issueUrl(path, sources[path]!.title)} target="_blank" rel="noreferrer">
+            <WarningCircleIcon aria-hidden size={13} />
+            Report an issue
           </a>
         ) : null}
       </div>
