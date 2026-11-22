@@ -12,7 +12,7 @@ export {
   type Page,
   type PageView,
 } from "./define";
-export { definePage } from "./define-page";
+export { definePage } from "./page/define";
 
 // ---------- inside a pane ----------
 export {
@@ -46,7 +46,8 @@ export { keyBelongsToContent } from "@jali/core/adapter";
 
 // ---------- chrome of your own, inside <JaliRoot> around <JaliView /> ----------
 // The dialogs, the live region and the panes themselves are the root's: every way of using Jali gets them.
-export { CuratedPage, PageBar } from "./chrome/PageBar";
+export { CuratedPage } from "./page/CuratedPage";
+export { PageBar } from "./page/PageBar";
 export { Shelf } from "./chrome/Shelf";
 export { KindIcon } from "./pane/icons";
 export { Activity } from "./pane/Activity";

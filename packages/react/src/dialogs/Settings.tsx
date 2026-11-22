@@ -5,7 +5,7 @@ import { useJaliIcons } from "../icons/context";
 
 import { useStore, useUi } from "../state/react";
 import { PALETTE_ID, commandById, parseKeys } from "@jali/core/adapter";
-import { PAGE_PARTS } from "../page-parts";
+import { PAGE_PARTS } from "../page/contract";
 
 const THEMES: { id: ThemeChoice; label: "themeSystem" | "themeLight" | "themeDark" }[] = [
   { id: "system", label: "themeSystem" },

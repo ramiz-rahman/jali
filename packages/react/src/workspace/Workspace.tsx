@@ -10,7 +10,7 @@ import { ContentHosts, PaneContent, useContentHosts } from "../pane/content";
 import { Strip, useFocusIntoStrip } from "./Scroller";
 import { useGeometry, useStore, useUi } from "../state/react";
 import { useHydrated } from "../state/hydrated";
-import { PAGE_PARTS } from "../page-parts";
+import { PAGE_PARTS } from "../page/contract";
 import { useUniqueName, useWorkspaceLabel } from "../a11y/landmark";
 import { useEngaged, useMeasure } from "./element";
 import { useFoldAnnouncements } from "./announce";

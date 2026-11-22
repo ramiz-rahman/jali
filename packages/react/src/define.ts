@@ -40,7 +40,7 @@ import { defineKind, warnUnknown } from "@jali/core/adapter";
 
 declare const process: { env: { NODE_ENV?: string } };
 import type { JaliIcon } from "./icons/types";
-import { PAGE_PARTS, type PageParts } from "./page-parts";
+import { PAGE_PARTS, type PageParts } from "./page/contract";
 
 /** `P` as params: a declaration (`{ id: Number }`, or a Standard Schema) is read as `ParamsOf` it; params' own type
  *  stays as it is. */

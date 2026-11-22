@@ -52,7 +52,11 @@ const FEATURE_FILES = {
   page: [
     "core/src/actions/page.ts",
     "core/src/state/page-messages.ts",
-    "react/src/chrome/PageBar.tsx",
+    "react/src/page/PageBar.tsx",
+    "react/src/page/PageTabs.tsx",
+    "react/src/page/CuratedPage.tsx",
+    "react/src/page/Ghost.tsx",
+    "react/src/page/PageSettings.tsx",
   ],
 };
 // Development-only code, which no production build ships (dev-options.ts: unknown options and where they went).

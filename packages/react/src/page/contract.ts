@@ -1,11 +1,11 @@
 /**
  * A curated page's contract with the components that render it: the key its parts are kept under, and what they are.
- * Nothing else: `definePage` (define-page.ts) puts the parts on (chrome/PageBar.tsx), and `<JaliView>`, `<Panes>` and
+ * Nothing else: `definePage` (page/define.ts) puts the parts on (page/parts.ts), and `<JaliView>`, `<Panes>` and
  * `<SettingsPanel>` read them through this key, so none of them imports another to find the page.
  */
 import type { ComponentType } from "react";
 
-/** Where a page from `definePage` keeps its React parts (chrome/PageBar.tsx). */
+/** Where a page from `definePage` keeps its React parts (page/parts.ts). */
 export const PAGE_PARTS: unique symbol = /* @__PURE__ */ Symbol.for("jali.react.page");
 
 /** What a curated page renders, by part: put on the page by `definePage`, read by `<JaliView>`, `<Panes>` and

@@ -46,7 +46,7 @@ import {
   useUi,
 } from "./state/react";
 import { Panes } from "./workspace/Workspace";
-import { PAGE_PARTS } from "./page-parts";
+import { PAGE_PARTS } from "./page/contract";
 import { overlaysDomId } from "./a11y/ModalDialog";
 import { LabelContext } from "./a11y/landmark";
 

@@ -1,11 +1,11 @@
 /**
  * Defining a curated page for React. Apart from define.ts so that only this module brings the page's parts
- * (chrome/PageBar.tsx): the types in define.ts, which the rest of the package reads, import none of them.
+ * (page/parts.ts): the types in define.ts, which the rest of the package reads, import none of them.
  */
 import { definePageEngine, warnUnknown } from "@jali/core/adapter";
-import { pageParts } from "./chrome/PageBar";
-import type { Page } from "./define";
-import { PAGE_PARTS } from "./page-parts";
+import { pageParts } from "./parts";
+import type { Page } from "../define";
+import { PAGE_PARTS } from "./contract";
 
 declare const process: { env: { NODE_ENV?: string } };
 
