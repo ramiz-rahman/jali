@@ -11,7 +11,7 @@ import type { Keymap } from "../commands/keymap";
 import type { Env } from "../profile";
 import type { Messages } from "./messages";
 import type { ActionName, JaliActions, JaliDialogs, JaliPage } from "../actions/public";
-import { STEPS, type StepName } from "../actions";
+import { bindSteps, isPublicStep } from "../actions";
 import { restoreLayout } from "../actions/layout";
 import type { ActionResult, Toast } from "./apply";
 import type { JaliModel } from "./model";
@@ -169,16 +169,14 @@ export function storeOf(jali: AnyJali): JaliStore {
   return store;
 }
 
-/** The public steps of one group (`""`: `jali.actions`), each through the store's `run`. */
-function group(store: JaliStore, prefix: string) {
-  const out: Record<string, (...a: never[]) => ActionResult> = {};
-  for (const [name, step] of Object.entries(STEPS)) {
-    const [g, n] = name.includes(".") ? name.split(".") : ["", name];
-    if (typeof step === "function" && g === prefix)
-      out[n!] = (...a) => store.run(name as StepName, ...(a as []));
-  }
-  return Object.freeze(out);
-}
+/** The public steps of one group (`""`: `jali.actions`; `"page"`, `"dialogs"`), each through the store's `run`. */
+const group = (store: JaliStore, prefix: string) =>
+  bindSteps(store.run, (name) => {
+    if (!isPublicStep(name)) return undefined;
+    const dot = name.indexOf(".");
+    const [g, n] = dot < 0 ? ["", name] : [name.slice(0, dot), name.slice(dot + 1)];
+    return g === prefix ? n : undefined;
+  });
 
 export function createInstance(store: JaliStore): Jali {
   const jali: Jali = {

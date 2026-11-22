@@ -8,9 +8,10 @@
  *  - What the action uses comes next (`openBeside(pane, ref)`); options come last, in an object.
  *  - Every action returns an `ActionResult`: `{ ok: true, pane }` when it happened, or `{ ok: false, reason }` when it
  *    did not. Announcements are unchanged: a refusal that is read out today still is, and `message` is that text.
- *  - Nothing it is given makes it throw. A ref is checked once, before any step sees it: a kind the instance doesn't
- *    have, or params that aren't text, numbers or flags, is `"invalid"`, with what is wrong as `message`. A pane named
- *    by something that is neither an id nor a ref is `"invalid"` too.
+ *  - Nothing it is given makes it throw. Every argument is checked once, before any step sees it (actions/args.ts),
+ *    so a caller TypeScript doesn't check (JavaScript, an agent) gets the same answer: a value its type doesn't allow
+ *    is `"invalid"`. A ref of a kind the instance doesn't have, or whose params aren't text, numbers or flags, says
+ *    what is wrong as `message`.
  *
  * Each is a step of the one table (actions/index.ts), committed once. `R` is the refs of the instance's kinds
  * (`createJali` infers it), so a ref of a kind it doesn't have is a type error.

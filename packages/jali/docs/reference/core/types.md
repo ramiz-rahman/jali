@@ -1216,7 +1216,7 @@ type RefusalReason = "not-found" | "invalid" | "unavailable" | "single-view" | "
 
 - **`not-found`**: The pane (by id or by what it shows), preset or view named is not there.
 
-- **`invalid`**: The layout or ref given can't be shown: a pane kind the instance doesn't have, params that aren't text, numbers or flags, or a malformed tree. An action given such a ref (`openBeside`, `openHere`, `addTab`, `peek`, `select`), or a pane named by something that is neither an id nor a ref, refuses with this and says why in `message`; it never throws.
+- **`invalid`**: What the action was given won't do. Every argument of every action is checked before anything happens, so JavaScript and an agent get the same answer TypeScript would give: a mode, edge, index or flag its type doesn't allow; a pane named by something that is neither an id nor a ref; a ref of a kind the instance doesn't have, or with params that aren't text, numbers or flags (these say why in `message`); or a layout that can't be shown. Nothing is stored as given, and it never throws.
 
 - **`unavailable`**: The instance can't do this: no launcher (split, new tab), no curated page, no free layout to go back to.
 

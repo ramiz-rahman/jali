@@ -30,7 +30,7 @@ import {
 import { initialArea, spacingOf } from "../tokens";
 import type { LayoutInput } from "../layout/build";
 import { readLayout } from "../actions/layout";
-import { STEPS, stepOf, type Actions, type StepArgs, type StepName } from "../actions";
+import { bindSteps, stepOf, type Actions, type StepArgs, type StepName } from "../actions";
 import type { ActionName } from "../actions/public";
 import {
   apply,
@@ -880,10 +880,10 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
     defer,
     unstable: unstable ?? devUnstable,
   };
-  store.actions = {} as Actions;
-  for (const name of Object.keys(STEPS) as StepName[])
-    if (!name.includes("."))
-      (store.actions as Record<string, unknown>)[name] = (...a: []) => store.run(name, ...a);
+  // Every step without a group (public or an adapter's), by name: the same `run` the instance's actions call.
+  store.actions = bindSteps(store.run, (name) =>
+    name.includes(".") ? undefined : name,
+  ) as unknown as Actions;
   store.jali = createInstance(store);
   // As an arrival, which writes no history: the address still holds the link boot is about to read, and boot writes
   // the address itself once it has.

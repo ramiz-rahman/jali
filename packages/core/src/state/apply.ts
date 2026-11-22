@@ -137,7 +137,8 @@ export interface Change {
 /**
  * Why an action did not happen. Each public action documents the reasons it can give.
  *  - "not-found": the pane, preset, view or item it names is not there.
- *  - "invalid": the layout given can't be shown (a pane kind this instance doesn't have, or a malformed tree).
+ *  - "invalid": what it was given won't do: an argument its type doesn't allow (a mode, an edge, an index), a ref of a
+ *    kind this instance doesn't have, or a layout that can't be shown (a malformed tree).
  *  - "unavailable": this instance can't do it: no launcher (split, new tab), no curated page, no free layout.
  *  - "single-view": a curated page in Single view has no layout to change.
  *  - "not-allowed": the person's role on the curated page may only peek (`setCanInvestigate(false)`).
