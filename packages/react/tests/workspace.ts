@@ -6,10 +6,10 @@
 import {
   browserStorage,
   createPaneKinds,
-  createUiStore,
+  createJaliStore,
   toLayout,
-  type UiStore,
-  type UiStoreDeps,
+  type JaliStore,
+  type JaliConfig,
 } from "@jali/core/adapter";
 import {
   DEFAULT_PRESET,
@@ -36,8 +36,8 @@ export const testKinds = () =>
  * The store before it boots, with nothing outside it (no address, no DOM focus unless given). `deps` adds or
  * overrides the rest (tests pass `initial`, `url`, ...).
  */
-export function createTestStore(deps: Partial<UiStoreDeps> = {}): UiStore {
-  return createUiStore({
+export function createTestStore(deps: Partial<JaliConfig> = {}): JaliStore {
+  return createJaliStore({
     kinds: testKinds(),
     launcher: dataStudioLauncher.kind,
     profile: loanReview,

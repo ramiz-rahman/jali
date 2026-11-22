@@ -4,7 +4,7 @@
  * memory storage and a fixed size (workspace.test.ts).
  *
  * Space: every audio tool plays and pauses with it. Jali binds no single keys (they belong to the focused content),
- * so nothing of Jali's needs moving; the app takes Space itself (shell/keys.ts) and names it in `reservedKeys`, so a
+ * so nothing of Jali's needs moving; the app takes Space itself (shell/keys.ts) and names it in `keyboard.reserved`, so a
  * later Jali binding on Space would be refused at start-up rather than fight the transport.
  */
 import { credits } from "./panes/credits";
@@ -32,7 +32,7 @@ export const kinds = [library, transcript, timeline, mixer, markers, clip, credi
 
 type Options = Pick<
   JaliOptions,
-  "url" | "storage" | "size" | "moveFocus" | "preset" | "keymapOptions"
+  "url" | "storage" | "size" | "moveFocus" | "preset" | "keyboard"
 > & {
   /** A short message for the person ("Marker added at 00:42"). */
   notify?: (text: string) => void;
@@ -226,16 +226,19 @@ export function createStudioJali(services: Services, options: Options = {}): Jal
     presets: presets.map((p) => ({ ...p, saved: () => services.layouts.get(p.id) })),
     commands: [...commands, makerCommand],
     name: "Studio",
-    // Bound like Jali's own commands: ⌘K then ⌘P plays, ⌘K then ⌘J goes to a segment.
-    keymap: { "studio.play": "Mod+K Mod+P", "studio.segment": "Mod+K Mod+J" },
-    // Space is the transport's (shell/keys.ts). Jali binds nothing to it; this keeps it that way.
-    reservedKeys: ["Space"],
     // Header shortcuts: Maximise and Close. Tuck, Full screen and Pop out are in the pane's ⋯ menu (and ⌘K), so a
     // header carries two keys and the pane's name stays its strongest mark.
     buttons: (defaults) => defaults.filter((b) => b !== "tuck"),
     storage: "studio",
     phone: { stack: true },
     ...jaliOptions,
+    keyboard: {
+      ...jaliOptions.keyboard,
+      // Bound like Jali's own commands: ⌘K then ⌘P plays, ⌘K then ⌘J goes to a segment.
+      keymap: { "studio.play": "Mod+K Mod+P", "studio.segment": "Mod+K Mod+J" },
+      // Space is the transport's (shell/keys.ts). Jali binds nothing to it; this keeps it that way.
+      reserved: ["Space"],
+    },
   });
   services.layouts.track(jali);
   return jali;

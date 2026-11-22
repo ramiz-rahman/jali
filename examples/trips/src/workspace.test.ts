@@ -19,7 +19,7 @@ function testJali({ search = "", width = 1440, height = 900 } = {}) {
     storage: memoryStorage(),
     size: { width, height },
     moveFocus: false,
-    keymapOptions: { platform: "mac" },
+    keyboard: { platform: "mac" },
   });
   return { jali, location, services, notes };
 }

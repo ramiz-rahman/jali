@@ -5,9 +5,9 @@
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 import { besidePreview } from "../../core/src/actions/page";
 import { createTestStore } from "./workspace";
-import type { UiStore } from "../../core/src/state/store";
+import type { JaliStore } from "../../core/src/state/store";
 
-let store: UiStore;
+let store: JaliStore;
 beforeEach(() => {
   localStorage.clear();
   store = createTestStore({ initial: { area: { width: 1156, height: 644 } } }); // the workspace at 1440×900

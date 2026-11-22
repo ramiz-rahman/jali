@@ -15,5 +15,5 @@ export const jali = createJali({
   // What this person keeps on this device (settings, pane state, sizes): localStorage under this prefix.
   storage: "support-desk",
   // Rebind or unbind commands. Ids not listed keep their default keys.
-  keymap: { "pane.close": "Mod+K Mod+X", "pane.zoom": null },
+  keyboard: { keymap: { "pane.close": "Mod+K Mod+X", "pane.zoom": null } },
 });

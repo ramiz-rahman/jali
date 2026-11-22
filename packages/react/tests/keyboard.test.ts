@@ -7,9 +7,9 @@ import { installKeyboard } from "../../core/src/commands/keyboard";
 import { createKeymap } from "../../core/src/commands/keymap";
 import { formatKeys, parseKeys, type Chord } from "../../core/src/commands/format";
 import { createTestStore } from "./workspace";
-import type { UiStore } from "../../core/src/state/store";
+import type { JaliStore } from "../../core/src/state/store";
 
-let store: UiStore;
+let store: JaliStore;
 let off: () => void;
 let content: HTMLElement;
 
@@ -197,8 +197,10 @@ describe("the keymap", () => {
   it("a host rebinds and unbinds per command, and labels follow", () => {
     off();
     setup({
-      keymap: { "pane.zoom": "Mod+K Mod+Enter", "pane.split.right": null },
-      keymapOptions: { platform: "mac" },
+      keyboard: {
+        keymap: { "pane.zoom": "Mod+K Mod+Enter", "pane.split.right": null },
+        platform: "mac",
+      },
     });
     expect(store.keymap.label("pane.zoom")).toBe("⌘K ⌘↵");
     expect(store.keymap.label("pane.split.right")).toBe("");

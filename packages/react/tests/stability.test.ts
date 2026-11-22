@@ -5,9 +5,9 @@
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 import { geometryOf } from "../../core/src/state/apply";
 import { createTestStore } from "./workspace";
-import type { UiStore } from "../../core/src/state/store";
+import type { JaliStore } from "../../core/src/state/store";
 
-let store: UiStore;
+let store: JaliStore;
 let breaches: string[];
 beforeEach(() => {
   localStorage.clear();

@@ -13,7 +13,7 @@ import {
   installKeyboard,
   memoryLocation,
   startUi,
-  type UiStore,
+  type JaliStore,
 } from "@jali/core/adapter";
 import { createJali, row } from "@jali/core";
 import { JaliRoot, definePane } from "@jali/react";
@@ -32,7 +32,7 @@ function keydown(target: EventTarget, init: KeyboardEventInit & { code?: string 
   target.dispatchEvent(e);
   return e;
 }
-const chordAt = (store: UiStore, target: () => EventTarget, text: string) => {
+const chordAt = (store: JaliStore, target: () => EventTarget, text: string) => {
   const mod = store.keymap.platform === "mac" ? { metaKey: true } : { ctrlKey: true };
   for (const c of parseKeys(text)) {
     const code = /^(Key|Digit)|^Backslash$|^Bracket/.test(c.key) ? c.key : undefined;
@@ -63,9 +63,9 @@ afterEach(() => {
 
 describe("keys scoped to a root (1, 12)", () => {
   it("a ⌘K chord finishes in the palette, which renders outside the root", () => {
-    // keys: "scoped" scopes each workspace's keys to its root while <JaliRoot> has it started.
-    const a = make({ id: "a", keys: "scoped" }),
-      b = make({ id: "b", keys: "scoped" });
+    // keyboard: { scope: "local" } scopes each workspace's keys to its root while <JaliRoot> has it started.
+    const a = make({ id: "a", keyboard: { scope: "local" } }),
+      b = make({ id: "b", keyboard: { scope: "local" } });
     const r = render(
       <>
         <JaliRoot jali={a.jali}>
@@ -120,13 +120,13 @@ describe("dialog ids (2)", () => {
 
 describe("default storage (3)", () => {
   it("two stores with their own ids save under their own prefixes", () => {
-    const a = core.createUiStore({
+    const a = core.createJaliStore({
       kinds: make().env.kinds,
       initial: { layout: make().get().layout },
       id: "orders",
       focusPane: null,
     });
-    const b = core.createUiStore({
+    const b = core.createJaliStore({
       kinds: make().env.kinds,
       initial: { layout: make().get().layout },
       id: "notes",
@@ -151,7 +151,7 @@ describe("default storage (3)", () => {
     expect(localStorage.getItem("orders:k")).toBe("v");
   });
   it("the default store keeps its old prefix", () => {
-    const s = core.createUiStore({
+    const s = core.createJaliStore({
       kinds: make().env.kinds,
       initial: { layout: make().get().layout },
       focusPane: null,
@@ -252,7 +252,7 @@ describe("host commands (18)", () => {
     const run = vi.fn();
     const s = make({
       commands: [{ id: "host.hello", title: "Say hello", group: "Host", run }],
-      keymap: { "host.hello": "Mod+K Mod+H" },
+      keyboard: { keymap: { "host.hello": "Mod+K Mod+H" } },
     });
     expect(core.commandsOf(s).some((c) => c.id === "host.hello")).toBe(true);
     const off = installKeyboard(s);

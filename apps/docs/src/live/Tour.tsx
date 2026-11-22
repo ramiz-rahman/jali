@@ -14,7 +14,7 @@ import {
   PauseIcon,
   PlayIcon,
 } from "@phosphor-icons/react";
-import { buildSearch, GAP, tabDropAt, zoneFor, type UiStore } from "@jali/core/adapter";
+import { buildSearch, GAP, tabDropAt, zoneFor, type JaliStore } from "@jali/core/adapter";
 import type { DndState, JaliActions, JaliModel } from "@jali/core/adapter";
 import { orderKind } from "./kinds";
 
@@ -292,7 +292,7 @@ const ease = (k: number) => (k < 0.5 ? 4 * k * k * k : 1 - (-2 * k + 2) ** 3 / 2
  * own strip a tab reorders; over a pane, its edges place beside and its middle adds a tab; its own group's middle
  * does nothing.
  */
-function dragAt(store: UiStore, pane: string, ws: HTMLElement, x: number, y: number): DndState {
+function dragAt(store: JaliStore, pane: string, ws: HTMLElement, x: number, y: number): DndState {
   const box = ws.querySelector(".jali-workspace")?.getBoundingClientRect();
   const p = { x: x - (box?.left ?? 0) - GAP, y: y - (box?.top ?? 0) - GAP };
   const tabAt = tabDropAt(store, pane, x, y);
@@ -316,7 +316,7 @@ function dragAt(store: UiStore, pane: string, ws: HTMLElement, x: number, y: num
 export interface TourOptions {
   /** Off: no tour, no listeners. */
   enabled: boolean;
-  store: UiStore;
+  store: JaliStore;
   fig: RefObject<HTMLElement | null>;
   /** The workspace's box (its width is what folds). */
   wrap: RefObject<HTMLElement | null>;
@@ -353,7 +353,7 @@ export function useTour(o: TourOptions): Tour {
     status: "idle" as TourStatus,
     step: 0,
     clock: null as Clock | null,
-    focus: null as UiStore | null,
+    focus: null as JaliStore | null,
     unquiet: null as (() => void) | null,
     away: false,
     held: false,
@@ -659,7 +659,7 @@ export function useTour(o: TourOptions): Tour {
 }
 
 /** What the address would say for this layout: the same search string Jali writes into a real one. */
-function Address({ store }: { store: UiStore }) {
+function Address({ store }: { store: JaliStore }) {
   const search = buildSearch("", store.get());
   return (
     <span className="live-tour-address" title="The address this layout writes" key={search}>
@@ -682,7 +682,7 @@ export function TourBar({
   tries,
 }: {
   tour: Tour;
-  store: UiStore;
+  store: JaliStore;
   /** The things to try, shown when the tour is not playing. */
   tries: ReactNode;
 }) {

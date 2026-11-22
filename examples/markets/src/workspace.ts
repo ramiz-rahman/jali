@@ -154,7 +154,7 @@ export function createMarketsJali(services: Services, options: Options = {}): Ja
     commands: [...commands, makerCommand],
     name: "Markets",
     // Bound like Jali's own commands; ⌘K then ⌘O, and so on.
-    keymap: { "markets.chart": "Mod+K Mod+O", "markets.blotter": "Mod+K Mod+B" },
+    keyboard: { keymap: { "markets.chart": "Mod+K Mod+O", "markets.blotter": "Mod+K Mod+B" } },
     storage: "markets",
     // Dark first: until the person picks a theme, a terminal is dark. (Jali's own default follows the system.)
     settings: { theme: "dark" },

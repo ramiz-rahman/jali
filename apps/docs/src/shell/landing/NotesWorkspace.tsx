@@ -26,7 +26,13 @@ function makeApp(source: Source, id: string): LandingApp {
   const location = memoryLocation();
   const storage = memoryStorage();
   // On the landing page: its own keys only, and the site keeps its theme.
-  const embedded = { url: { location }, storage, id, keys: "scoped", pageTheme: false } as const;
+  const embedded = {
+    url: { location },
+    storage,
+    id,
+    keyboard: { scope: "local" },
+    pageTheme: false,
+  } as const;
   const store =
     source.app === "quickstart"
       ? createJali({

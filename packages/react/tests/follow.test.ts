@@ -7,9 +7,9 @@ import type { ObjectRef, PaneNode } from "../../core/src/layout/types";
 import { FOLLOW_MS } from "../../core/src/actions/follow";
 import { geometryOf, type HistoryMode } from "../../core/src/state/apply";
 import { createTestStore } from "./workspace";
-import type { UiStore } from "../../core/src/state/store";
+import type { JaliStore } from "../../core/src/state/store";
 
-let store: UiStore;
+let store: JaliStore;
 let breaches: string[];
 let urls: HistoryMode[];
 const order = (id: number): ObjectRef => ({ kind: "record", params: { table: "orders", id } });

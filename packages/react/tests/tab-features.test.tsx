@@ -225,8 +225,7 @@ describe("reordering tabs", () => {
     const own = make(
       row(tabs(pane(note({ id: 1 }), { id: "a" }), pane(note({ id: 2 }), { id: "b" }))),
       {
-        keyPrefix: "Mod+J",
-        keymap: { "tab.move.right": "Alt+Shift+ArrowRight" },
+        keyboard: { prefix: "Mod+J", keymap: { "tab.move.right": "Alt+Shift+ArrowRight" } },
       },
     );
     expect(own.keymap.label("tab.move.left")).toMatch(/J/);
@@ -541,8 +540,7 @@ describe("renaming in place", () => {
       layout: row(doc({ id: 1 })),
       url: { location: memoryLocation() },
       storage: memoryStorage(),
-      reservedKeys: ["F2"],
-      keymapOptions: { onInvalid: () => {} },
+      keyboard: { reserved: ["F2"], onInvalid: () => {} },
       rename: { run: () => {} },
     });
     expect(own.keymap.label("pane.rename")).toBe("");

@@ -8,7 +8,7 @@ import { zoneFor, zoneRect } from "../../core/src/workspace/dnd";
 import { inlineStep } from "../../core/src/dom/direction";
 import { encode } from "../../core/src/layout";
 import type { Direction } from "../../core/src/layout/types";
-import type { UiStore } from "../../core/src/state/store";
+import type { JaliStore } from "../../core/src/state/store";
 import { createTestStore } from "./workspace";
 
 const area = { width: 1600, height: 900 };
@@ -17,7 +17,7 @@ const make = (dir: Direction) => {
   s.actions.preset("order-chain");
   return s;
 };
-let store: UiStore;
+let store: JaliStore;
 beforeEach(() => {
   localStorage.clear();
   store = make("rtl");

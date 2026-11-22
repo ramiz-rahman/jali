@@ -7,11 +7,11 @@ import { beforeEach, describe, expect, it } from "vite-plus/test";
 import { memoryLocation, memoryStorage } from "../../core/src/ports";
 import { createUrlSync } from "../../core/src/url";
 import { setLinkMode } from "../../core/src/actions/page";
-import type { UiStore } from "../../core/src/state/store";
+import type { JaliStore } from "../../core/src/state/store";
 import { createTestStore } from "./workspace";
 
 const area = { width: 1156, height: 644 };
-let store: UiStore;
+let store: JaliStore;
 beforeEach(() => {
   localStorage.clear();
 });

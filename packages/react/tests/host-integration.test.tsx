@@ -31,8 +31,8 @@ const make = (options: Partial<JaliOptions> = {}) =>
     storage: memoryStorage(),
     size: { width: 1200, height: 800 },
     moveFocus: false,
-    keymapOptions: { platform: "mac", onInvalid: () => {} },
     ...options,
+    keyboard: { platform: "mac", onInvalid: () => {}, ...options.keyboard },
   });
 
 beforeAll(() => {
@@ -44,21 +44,23 @@ beforeAll(() => {
 });
 afterEach(cleanup);
 
-describe("keyPrefix", () => {
+describe("keyboard.prefix", () => {
   it("moves every default two-step key and the palette's key at once", () => {
-    const k = make({ keyPrefix: "Mod+J" }).keymap;
+    const k = make({ keyboard: { prefix: "Mod+J" } }).keymap;
     expect(k.label("palette.toggle")).toBe("⌘J");
     expect(k.label("pane.undo_close")).toBe("⌘J ⌘Z");
     expect(k.label("pane.split.right")).toBe("⌘\\"); // direct keys stay
   });
 
   it("leaves the bindings an app writes itself as written", () => {
-    const k = make({ keyPrefix: "Mod+J", keymap: { "pane.close": "Mod+K Mod+W" } }).keymap;
+    const k = make({
+      keyboard: { prefix: "Mod+J", keymap: { "pane.close": "Mod+K Mod+W" } },
+    }).keymap;
     expect(k.label("pane.close")).toBe("⌘K ⌘W");
   });
 });
 
-describe("reservedKeys", () => {
+describe("keyboard.reserved", () => {
   it("drops any binding that is a reserved key or starts with one, and reports each", () => {
     const refused: string[] = [];
     const k = createKeymap(
@@ -73,7 +75,7 @@ describe("reservedKeys", () => {
   });
 
   it("with a moved prefix, only what really clashes goes", () => {
-    const k = make({ keyPrefix: "Mod+J", reservedKeys: ["Mod+K"] }).keymap;
+    const k = make({ keyboard: { prefix: "Mod+J", reserved: ["Mod+K"] } }).keymap;
     expect(k.label("pane.undo_close")).toBe("⌘J ⌘Z");
   });
 });
@@ -82,7 +84,9 @@ describe("palette: false", () => {
   it("unbinds the palette's key, unless the app binds it on purpose", () => {
     expect(make({ palette: false }).keymap.label("palette.toggle")).toBe("");
     expect(
-      make({ palette: false, keymap: { "palette.toggle": "F1" } }).keymap.label("palette.toggle"),
+      make({ palette: false, keyboard: { keymap: { "palette.toggle": "F1" } } }).keymap.label(
+        "palette.toggle",
+      ),
     ).toBe("F1");
     // The two-step keys still work: the prefix starts a chord without opening anything.
     expect(make({ palette: false }).keymap.label("pane.undo_close")).toBe("⌘K ⌘Z");

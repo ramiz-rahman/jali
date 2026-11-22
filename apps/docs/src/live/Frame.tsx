@@ -9,7 +9,7 @@ import {
   type PointerEvent,
 } from "react";
 import { ArrowCounterClockwiseIcon, ArrowsInLineHorizontalIcon } from "@phosphor-icons/react";
-import { GAP as JALI_GAP, layout as jl, type Layout, type UiStore } from "@jali/core/adapter";
+import { GAP as JALI_GAP, layout as jl, type Layout, type JaliStore } from "@jali/core/adapter";
 import type { DemoLayoutId } from "./demo";
 import { demoLayouts } from "./demo";
 import { LiveWorkspace, resetLive, useLiveStore } from "./LiveWorkspace";
@@ -38,7 +38,13 @@ interface Mark {
  * Where folding changes, found by fitting the same layout at each width from widest to narrowest, as a reader
  * narrowing the frame would (refit keeps what it folded before, so each width starts from the one above it).
  */
-function foldMarks(store: UiStore, base: Layout, inset: number, min: number, max: number): Mark[] {
+function foldMarks(
+  store: JaliStore,
+  base: Layout,
+  inset: number,
+  min: number,
+  max: number,
+): Mark[] {
   const view = { focusHistory: [] };
   const ctx0 = store.ctx();
   const marks: Mark[] = [];

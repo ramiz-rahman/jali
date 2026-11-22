@@ -6,10 +6,10 @@
 import { useId, useRef, useState, type ReactNode, type Ref } from "react";
 import {
   createPaneKinds,
-  createUiStore,
+  createJaliStore,
   layout as jl,
   memoryStorage,
-  type UiStore,
+  type JaliStore,
 } from "@jali/core/adapter";
 import { JaliRoot, JaliView, Shelf, useJaliModel } from "@jali/react";
 import { buildDemoLayout, type DemoLayoutId } from "./demo";
@@ -25,10 +25,10 @@ export function useLiveStore(
   layoutId: DemoLayoutId,
   label: string,
   centreDrop?: "swap" | "tab",
-): UiStore {
+): JaliStore {
   const raw = useId();
   const [store] = useState(() =>
-    createUiStore({
+    createJaliStore({
       kinds: createPaneKinds(demoKinds),
       initial: { layout: buildDemoLayout(layoutId), area: { width: 0, height: 0 } },
       storage: memoryStorage(),
@@ -36,7 +36,7 @@ export function useLiveStore(
       name: "Shop",
       label,
       // A figure on a docs page: only its own keys, and the site keeps its theme.
-      keys: "scoped",
+      keyboard: { scope: "local" },
       pageTheme: false,
       ...(centreDrop ? { settings: { centreDrop } } : {}),
     }),
@@ -45,7 +45,7 @@ export function useLiveStore(
 }
 
 /** Back to the layout the figure started with, fitted to its room. Focus is left where it is (on the reset button). */
-export function resetLive(store: UiStore, layoutId: DemoLayoutId) {
+export function resetLive(store: JaliStore, layoutId: DemoLayoutId) {
   const view = { focusHistory: [] };
   store.set({
     layout: jl.refit(buildDemoLayout(layoutId), view, store.ctx()),
@@ -78,7 +78,7 @@ function LiveStatus() {
 }
 
 export interface LiveWorkspaceProps {
-  store: UiStore;
+  store: JaliStore;
   /** Height of the whole workspace (panes and status line): px, or a CSS length. */
   height: number | string;
   /** Drawn over the workspace, inside its box (hover rings, the spotlight). */

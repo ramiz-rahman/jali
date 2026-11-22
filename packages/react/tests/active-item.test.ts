@@ -6,9 +6,9 @@ import { createTestStore } from "./workspace";
 import { FOLLOW_MS } from "../../core/src/actions/follow";
 import { activeItemPort } from "../../core/src/pane/activeItem";
 import { memoryStorage } from "../../core/src/ports";
-import type { UiStore } from "../../core/src/state/store";
+import type { JaliStore } from "../../core/src/state/store";
 
-let store: UiStore;
+let store: JaliStore;
 let port: ActiveItemPort;
 const order = (id: number): ObjectRef => ({ kind: "record", params: { table: "orders", id } });
 const mapping = {

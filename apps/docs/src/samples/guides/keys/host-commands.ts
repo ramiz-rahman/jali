@@ -24,5 +24,5 @@ export const jali = createJali({
   presets,
   commands,
   // Bound like any of Jali's commands.
-  keymap: { "orders.refresh": "Mod+K Mod+U" },
+  keyboard: { keymap: { "orders.refresh": "Mod+K Mod+U" } },
 });

@@ -46,8 +46,8 @@ describe("the address port", () => {
       storage: memoryStorage(),
       size: { width: 1200, height: 800 },
       moveFocus: false,
-      keys: "workspace" as never,
+      keyboard: { scope: "workspace" as never },
     });
-    expect(String(errors.mock.calls[0]?.[0])).toMatch(/keys is "page" or "scoped"/);
+    expect(String(errors.mock.calls[0]?.[0])).toMatch(/keyboard.scope is "page" or "local"/);
   });
 });

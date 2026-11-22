@@ -23,10 +23,7 @@ import * as f from "./ui/format";
 
 export const kinds = [trip, map, day, place, explore, budget];
 
-type Options = Pick<
-  JaliOptions,
-  "url" | "storage" | "size" | "moveFocus" | "preset" | "keymapOptions"
->;
+type Options = Pick<JaliOptions, "url" | "storage" | "size" | "moveFocus" | "preset" | "keyboard">;
 
 export function createTripsJali(services: Services, options: Options = {}): Jali {
   const placeHint = (p: Place) => {
@@ -150,7 +147,6 @@ export function createTripsJali(services: Services, options: Options = {}): Jali
     presets,
     commands: [...commands, makerCommand],
     name: "Trip",
-    keymap: { "trips.go": "Mod+K Mod+P", "trips.optimise": "Mod+K Mod+O" },
     // A new prefix for the Thailand trip, so pane state saved for the Lisbon one (a cursor on a Lisbon place) is left behind.
     storage: "trips-thailand",
     // On a portrait phone: a pane with the one it follows, one above the other. The place shows under the map it
@@ -161,5 +157,9 @@ export function createTripsJali(services: Services, options: Options = {}): Jali
     // Jali's "Pop out pane".
     allow: { popOut: true },
     ...options,
+    keyboard: {
+      ...options.keyboard,
+      keymap: { "trips.go": "Mod+K Mod+P", "trips.optimise": "Mod+K Mod+O" },
+    },
   });
 }

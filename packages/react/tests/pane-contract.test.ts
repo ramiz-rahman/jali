@@ -8,9 +8,9 @@ import { createTestStore } from "./workspace";
 import { FOLLOW_MS } from "../../core/src/actions/follow";
 import { memoryStorage } from "../../core/src/ports";
 import { savePaneState } from "../../core/src/state/pane-state";
-import type { UiStore } from "../../core/src/state/store";
+import type { JaliStore } from "../../core/src/state/store";
 
-let store: UiStore;
+let store: JaliStore;
 const order = (id: number): ObjectRef => ({ kind: "record", params: { table: "orders", id } });
 const ids = () => store.model().panes.map((p) => p.id);
 const said = () => store.get().announcement.text;

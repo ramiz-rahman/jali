@@ -11,7 +11,7 @@ import { ticketNote } from "../unsaved/note-editor";
 const orders = createJali({
   id: "orders",
   label: "Orders", // its landmark's name, and part of each pane's, for screen readers
-  keys: "scoped", // only keys pressed inside it and its dialogs, or on the page body after it was used last
+  keyboard: { scope: "local" }, // only keys pressed inside it and its dialogs, or on the page body after it was used last
   panes: orderKinds,
   presets,
 });
@@ -21,7 +21,7 @@ const orders = createJali({
 const notes = createJali({
   id: "notes",
   label: "Notes",
-  keys: "scoped",
+  keyboard: { scope: "local" },
   pageTheme: false,
   panes: [ticketNote],
   layout: ticketNote({ id: 42 }),

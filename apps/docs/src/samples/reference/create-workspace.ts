@@ -9,9 +9,8 @@ export const jali = createJali({
   url: { prefix: "a.", sizes: "link" }, // or true (the default in a browser), or false
   storage: "sales", // localStorage keys "sales:…", or a StoragePort
   id: "sales", // DOM ids "sales-pane-…"
-  keys: "scoped", // only keys pressed inside it
+  keyboard: { scope: "local", keymap: { "pane.close": "Mod+K Mod+W" } }, // only keys pressed inside it
   pageTheme: false, // leave data-theme on <html> to the page
-  keymap: { "pane.close": "Mod+K Mod+W" },
 });
 
 // With no browser (a test, the server): the address and storage in memory, a fixed size, DOM focus left alone.

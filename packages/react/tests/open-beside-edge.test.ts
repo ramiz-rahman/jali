@@ -16,7 +16,7 @@ import {
 import { storeOf } from "@jali/core/adapter";
 import { definePane } from "@jali/react";
 import { createTestStore } from "./workspace";
-import type { UiStore } from "../../core/src/state/store";
+import type { JaliStore } from "../../core/src/state/store";
 
 const video = definePane("video", {
   params: { id: Number },
@@ -129,7 +129,7 @@ describe("openBeside with an edge, in a free workspace", () => {
 type DOMRectLike = { x: number; y: number; width: number; height: number };
 
 describe("openBeside with an edge, on a curated page", () => {
-  let store: UiStore;
+  let store: JaliStore;
   beforeEach(() => {
     localStorage.clear();
     store = createTestStore({ initial: { area: { width: 2400, height: 900 } } });

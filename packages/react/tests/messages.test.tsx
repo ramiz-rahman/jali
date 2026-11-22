@@ -40,8 +40,8 @@ const make = (options: Partial<JaliOptions> = {}) =>
     storage: memoryStorage(),
     size: { width: 1200, height: 800 },
     moveFocus: false,
-    keymapOptions: { platform: "mac", onInvalid: () => {} },
     ...options,
+    keyboard: { platform: "mac", onInvalid: () => {}, ...options.keyboard },
   });
 
 const french: MessageOverrides = {

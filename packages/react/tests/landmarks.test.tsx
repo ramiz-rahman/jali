@@ -64,7 +64,7 @@ const workspace = (options: Partial<JaliOptions>) =>
     storage: memoryStorage(),
     size: { width: 1200, height: 600 },
     moveFocus: false,
-    keys: "scoped",
+    keyboard: { scope: "local" },
     ...options,
   });
 

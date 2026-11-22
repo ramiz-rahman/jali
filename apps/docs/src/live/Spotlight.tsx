@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { layout as jl, type Edge, type UiStore } from "@jali/core/adapter";
+import { layout as jl, type Edge, type JaliStore } from "@jali/core/adapter";
 import type { DemoLayoutId } from "./demo";
 import { demoLayouts } from "./demo";
 import { LiveWorkspace, useLiveStore } from "./LiveWorkspace";
@@ -98,7 +98,7 @@ function measure(stage: HTMLElement, selector: string, all: boolean): Box | null
 }
 
 /** Puts something on the shelf when nothing is there yet: the last pane is tucked behind its neighbour. */
-function stageShelf(store: UiStore) {
+function stageShelf(store: JaliStore) {
   const m = store.model();
   if (m.resolved.shelf.length || m.single) return;
   const id = m.visible[m.visible.length - 1];
@@ -110,7 +110,7 @@ function stageShelf(store: UiStore) {
 const ZONES: Edge[] = ["right", "bottom", "left"];
 
 /** A drag held mid-air so its drop zone shows: the first pane over the second, moving between zones. */
-function stageDrop(store: UiStore, step: number) {
+function stageDrop(store: JaliStore, step: number) {
   const m = store.model();
   const boxes = m.resolved.panes.filter((b) => !b.hidden);
   const from = boxes[0],
