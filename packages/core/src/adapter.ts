@@ -259,6 +259,7 @@ export {
   STACK_GAP,
   stackGap,
   stackSplit,
+  defaultStackShare,
   currentPane,
   frames,
   sameFrame,
