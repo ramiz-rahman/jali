@@ -44,7 +44,7 @@ import { StoreProvider, useDomScope, useStore, useTheme, useUi } from "./state/r
 import { Panes } from "./workspace/Workspace";
 import { PAGE_PARTS } from "./define";
 import { overlaysDomId } from "./a11y/ModalDialog";
-import { isDev } from "./dev";
+import { DEV } from "./dev";
 import { LabelContext } from "./a11y/landmark";
 
 export interface JaliRootProps extends HTMLAttributes<HTMLDivElement> {
@@ -307,7 +307,7 @@ export function JaliView() {
   const profile = useStore().env.profile;
   const Page = profile?.[PAGE_PARTS]?.View;
   useEffect(() => {
-    if (profile && !Page && isDev())
+    if (DEV && profile && !Page)
       console.error(
         "Jali: this page has no parts to render it, so <JaliView> shows bare panes. Make it with definePage from " +
           "@jali/react, not from @jali/core.",

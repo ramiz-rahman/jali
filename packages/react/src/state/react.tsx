@@ -16,7 +16,7 @@ import type { Actions, PaneAttributes, UiState, UiStore } from "@jali/core/adapt
 import type { ReactEnv, Page } from "../define";
 import { resolveTheme } from "@jali/core/adapter";
 import { reactDom } from "../dom";
-import { isDev } from "../dev";
+import { DEV } from "../dev";
 
 const StoreContext = /* @__PURE__ */ createContext<UiStore | null>(null);
 
@@ -45,7 +45,7 @@ export function useDomScope(store: UiStore) {
     if (owners.get(store) !== uid) return;
     const id = store.dom.id;
     const n = mounted.get(id) ?? 0;
-    if (n && isDev())
+    if (DEV && n)
       console.error(
         `Jali: two workspaces on this page share the id "${id}", so their elements' ids repeat. Give each its own ` +
           "createJali({ id, label }).",

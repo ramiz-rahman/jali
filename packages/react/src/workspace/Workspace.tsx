@@ -30,10 +30,8 @@ import { paneHydration } from "../state/hydration";
 import { DropIndicator } from "./DropIndicator";
 import { useSingleView } from "./useSingleView";
 import { PAGE_PARTS } from "../define";
-import { isDev } from "../dev";
+import { DEV } from "../dev";
 import { useWorkspaceLabel } from "../a11y/landmark";
-
-const DEV = !!(import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV;
 
 /** The workspace's usable size follows the element (minus the inset), and so does its reading direction (an
  *  ancestor's `dir`, read again when any `dir` on the page changes), unless the workspace was given one.
@@ -155,7 +153,7 @@ const names = new Map<string, number>();
 function useUniqueName(name: string) {
   useEffect(() => {
     const n = names.get(name) ?? 0;
-    if (n && isDev())
+    if (DEV && n)
       console.warn(
         `Jali: two workspaces on this page are both named "${name}", so their landmarks repeat. Name each with ` +
           "<JaliRoot aria-label> (or aria-labelledby), or createJali({ label }).",
