@@ -78,7 +78,7 @@ describe("Jali's buttons inside a host's form", () => {
     const files = (dir: string): string[] =>
       readdirSync(dir).flatMap((f) => {
         const p = join(dir, f);
-        return statSync(p).isDirectory() ? files(p) : /\.tsx$/.test(f) ? [p] : [];
+        return statSync(p).isDirectory() ? files(p) : f.endsWith(".tsx") ? [p] : [];
       });
     const bare: string[] = [];
     for (const f of files(src)) {
