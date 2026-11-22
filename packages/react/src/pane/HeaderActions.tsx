@@ -113,6 +113,7 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs, narrow = 0, onM
       case "tuck":
         return (
           <button
+            type="button"
             key={b}
             className="jali-icon-btn jali-act-tuck jali-pane-action"
             data-action="tuck"
@@ -131,6 +132,7 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs, narrow = 0, onM
       case "popOut":
         return (
           <button
+            type="button"
             key={b}
             className="jali-icon-btn jali-act-popout jali-pane-action"
             data-action="popout"
@@ -145,6 +147,7 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs, narrow = 0, onM
       case "close":
         return (
           <button
+            type="button"
             key={b}
             className="jali-icon-btn jali-act-close jali-pane-action"
             data-action="close"
@@ -165,6 +168,7 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs, narrow = 0, onM
       at < 0 ? all.length : at,
       0,
       <button
+        type="button"
         key="menu"
         className="jali-icon-btn jali-act-menu jali-pane-action"
         data-action="menu"
@@ -194,6 +198,7 @@ function ZoomButton({ id, title, zoomed }: { id: string; title: string; zoomed: 
   const { pane: t, keys } = messages;
   return (
     <button
+      type="button"
       className="jali-icon-btn jali-act-zoom jali-pane-action"
       data-action="zoom"
       onClick={() => actions.toggleZoom(id)}
@@ -221,6 +226,7 @@ function FullScreenButton({ id, title }: { id: string; title: string }) {
   const { pane: t, keys } = messages;
   return (
     <button
+      type="button"
       className="jali-icon-btn jali-act-fullscreen jali-pane-action"
       data-action="fullscreen"
       onClick={() => actions.toggleFullScreen(id)}

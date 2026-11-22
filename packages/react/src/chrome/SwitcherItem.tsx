@@ -40,6 +40,7 @@ export function SwitcherItem({
   const store = useStore();
   return (
     <button
+      type="button"
       {...marks}
       role="tab"
       className={`jali-switch-item${selected ? " is-active" : ""}${tucked ? " is-tucked" : ""}`}

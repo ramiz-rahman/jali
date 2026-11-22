@@ -101,6 +101,7 @@ export function Peek({ presentation }: { presentation: Presentation }) {
           {/* A curated workspace never replaces its arrangement; a role that only peeks can't keep either. */}
           {canPin ? (
             <button
+              type="button"
               className="jali-text-btn"
               onClick={() => actions.openPeekBeside()}
               title={t.openBeside}
@@ -110,6 +111,7 @@ export function Peek({ presentation }: { presentation: Presentation }) {
           ) : null}
           {page ? null : (
             <button
+              type="button"
               className="jali-text-btn"
               onClick={() => actions.openPeekFull()}
               title={t.openFull}
@@ -118,6 +120,7 @@ export function Peek({ presentation }: { presentation: Presentation }) {
             </button>
           )}
           <button
+            type="button"
             className="jali-icon-btn"
             onClick={() => actions.peek(null)}
             aria-label={t.close}

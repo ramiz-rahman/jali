@@ -284,6 +284,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
         <span className="jali-tab-actions" aria-hidden>
           {tucked ? (
             <button
+              type="button"
               className="jali-tab-putback"
               tabIndex={-1}
               aria-label={tw.putBack(title)}
@@ -296,6 +297,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
           ) : null}
           {closable(t.id) ? (
             <button
+              type="button"
               className="jali-tab-close"
               tabIndex={-1}
               aria-label={tw.close(title)}
@@ -360,6 +362,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
       ) : null}
       {page || !env.launcher ? null : (
         <button
+          type="button"
           className="jali-tab-add"
           aria-label={tw.newTab}
           title={tw.newTabTip}

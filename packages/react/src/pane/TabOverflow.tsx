@@ -71,6 +71,7 @@ export function TabOverflow({
   return (
     <>
       <button
+        type="button"
         ref={btn}
         className={folded ? "jali-tab-folded" : "jali-tab-more"}
         aria-haspopup="menu"
@@ -128,6 +129,7 @@ export function TabOverflow({
             const role = page && t.role ? roleOf(env.profile!, t.role) : undefined;
             return (
               <button
+                type="button"
                 {...own(marks, t.id)}
                 key={t.id}
                 role="menuitem"

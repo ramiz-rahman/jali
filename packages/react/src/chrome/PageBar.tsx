@@ -36,6 +36,7 @@ export function PageBar() {
     <div className="jali-page-bar">
       <div className="jali-seg jali-mode-switch" role="radiogroup" aria-label={t.viewMode}>
         <button
+          type="button"
           role="radio"
           aria-checked={!multi}
           className="jali-seg-btn"
@@ -45,6 +46,7 @@ export function PageBar() {
           <icon.singleView size={14} aria-hidden /> {t.single}
         </button>
         <button
+          type="button"
           role="radio"
           aria-checked={multi}
           className="jali-seg-btn"
@@ -61,13 +63,14 @@ export function PageBar() {
           <span className="jali-inv-text">
             <Parts of={t.investigating(opened, bold)} />
           </span>
-          <button className="jali-inv-back" onClick={() => actions.backToPage()}>
+          <button type="button" className="jali-inv-back" onClick={() => actions.backToPage()}>
             <icon.back size={13} aria-hidden /> {t.backTo(profile.name)}
           </button>
         </div>
       ) : null}
       {multi ? (
         <button
+          type="button"
           className="jali-icon-btn jali-page-reset"
           onClick={() => actions.resetPage()}
           aria-label={t.reset}
@@ -143,6 +146,7 @@ function PageTabs() {
           const Icon = r.icon;
           return (
             <button
+              type="button"
               key={r.id}
               role="tab"
               className="jali-page-tab"

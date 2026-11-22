@@ -39,7 +39,7 @@ export function SettingsPanel({ children }: { children?: ReactNode } = {}) {
     >
       <header>
         <h2 id={`${id}-settings-title`}>{t.title}</h2>
-        <button className="jali-icon-btn" onClick={close} aria-label={t.close}>
+        <button type="button" className="jali-icon-btn" onClick={close} aria-label={t.close}>
           <icon.close size={14} aria-hidden />
         </button>
       </header>

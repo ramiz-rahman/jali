@@ -168,6 +168,7 @@ export function Shelf() {
         }}
       >
         <button
+          type="button"
           className="jali-shelf-chip-main"
           tabIndex={it.paneId === tab ? 0 : -1}
           aria-label={t.chip({
@@ -192,6 +193,7 @@ export function Shelf() {
         </button>
         {it.reason === "tucked" ? (
           <button
+            type="button"
             className="jali-shelf-chip-put"
             tabIndex={-1}
             aria-label={t.putBack(L.title)}
@@ -241,6 +243,7 @@ export function Shelf() {
       </div>
       {hidden.length ? (
         <button
+          type="button"
           ref={more}
           className="jali-shelf-more"
           aria-haspopup="menu"
@@ -262,6 +265,7 @@ export function Shelf() {
             const L = label(m, it, own(activity, it.paneId));
             return (
               <button
+                type="button"
                 {...own(marks, it.paneId)}
                 className="jali-shelf-menu-item"
                 role="menuitem"

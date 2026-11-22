@@ -46,6 +46,7 @@ function DiscardDialog({ confirm }: { confirm: ConfirmState }) {
       </div>
       <footer>
         <button
+          type="button"
           className="jali-text-btn jali-dialog-button"
           data-role="secondary"
           onClick={() => store.actions.discardAndContinue()}
@@ -53,6 +54,7 @@ function DiscardDialog({ confirm }: { confirm: ConfirmState }) {
           {t.discard}
         </button>
         <button
+          type="button"
           className="jali-text-btn is-primary jali-dialog-button"
           data-role="primary"
           ref={keep}
