@@ -1,6 +1,6 @@
 /**
  * What is kept on this device is never trusted: the edits, the layouts, the two settings and each pane's own state
- * are checked as they are read (src/stored.ts), and a damaged value gives the default instead of breaking the app.
+ * are checked as they are read (src/storage.ts), and a damaged value gives the default instead of breaking the app.
  * Each test seeds hostile storage, loads the app and uses every layout, and fails on any uncaught error.
  */
 import { expect, test, type Page } from "@playwright/test";
