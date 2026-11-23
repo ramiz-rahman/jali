@@ -1,0 +1,68 @@
+/*
+ * The news pane's content (panes/news).
+ */
+@layer app {
+  .news-list {
+    flex: 1;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    overflow: auto;
+  }
+  .news-list li {
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    gap: 2px 8px;
+    padding: 7px 10px;
+    border-bottom: 1px solid color-mix(in srgb, var(--jali-border) 60%, transparent);
+  }
+  .news-list li:hover {
+    background: var(--jali-hover);
+  }
+  .news-list li[data-current] {
+    background: var(--jali-accent-weak);
+    box-shadow: inset 2px 0 0 var(--jali-accent);
+  }
+  /* The headline: a button across both columns, with the time and the title in them. */
+  .news-head {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: subgrid;
+    padding: 0;
+    border: 0;
+    background: none;
+    text-align: start;
+    cursor: pointer;
+  }
+  .news-time {
+    font-family: var(--jali-font-mono);
+    color: var(--jali-text-subtle);
+    font-size: var(--mk-type-meta);
+    padding-top: 1px;
+  }
+  .news-list li[data-fresh] .news-time {
+    color: var(--jali-accent);
+  }
+  .news-title {
+    line-height: 1.35;
+  }
+  .news-body,
+  .news-tags {
+    grid-column: 2;
+  }
+  .news-body {
+    margin: 0;
+    color: var(--jali-text-muted);
+    font-size: var(--mk-type-meta);
+  }
+  .news-source {
+    color: var(--jali-text-subtle);
+  }
+  .news-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 2px;
+  }
+}

@@ -1,0 +1,63 @@
+/*
+ * The tape pane's content (panes/tape).
+ */
+@layer app {
+  .tape {
+    overflow: auto;
+  }
+  .tape-table td {
+    height: 22px;
+    padding: 0 10px;
+    font-family: var(--jali-font-mono);
+    white-space: nowrap;
+  }
+  .t-time {
+    color: var(--jali-text-subtle);
+    font-family: var(--jali-font-mono);
+  }
+  .t-side {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 22px;
+    font-family: var(--jali-font);
+  }
+  .tape-table tr[data-side="buy"] .t-side {
+    color: var(--mk-up);
+  }
+  .tape-table tr[data-side="sell"] .t-side {
+    color: var(--mk-down);
+  }
+  @container (max-width: 300px) {
+    .tape-table td,
+    .tape-table th {
+      padding: 0 6px;
+    }
+    /* Narrow: the arrow says it; the word stays for screen readers. */
+    .t-side .side-word,
+    .t-side-h .side-word {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
+  }
+  .tape-table tr[data-large] td {
+    font-weight: 600;
+    background: var(--jali-accent-weak);
+  }
+  .tape-table tbody tr:first-child td {
+    animation: tape-in 500ms ease-out;
+  }
+  @keyframes tape-in {
+    from {
+      background: var(--jali-accent-mid);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tape-table tbody tr:first-child td {
+      animation: none;
+    }
+  }
+}

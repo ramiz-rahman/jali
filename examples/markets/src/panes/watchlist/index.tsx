@@ -4,6 +4,7 @@
  */
 import { useEffect, useMemo, useRef, type KeyboardEvent } from "react";
 import { ListBulletsIcon } from "@phosphor-icons/react";
+import { keyHint } from "jali";
 import {
   definePane,
   useCommands,
@@ -12,33 +13,27 @@ import {
   usePaneState,
   type PaneProps,
 } from "jali/react";
-import { keyHint } from "jali";
-import { isRecord, oneOf, text } from "@jali-examples/shared/store";
-import { DEFAULT_LISTS, listName, useList } from "../lists";
-import { useMarket, useQuotes } from "../market/react";
-import type { Instrument, Quote } from "../market/types";
-import { useServices } from "../services";
-import * as f from "../ui/format";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { Delta, Empty, Flash } from "../ui/parts";
-import { Sparkline } from "../ui/Sparkline";
-import { openFollowing } from "../actions";
-import { chart } from "./chart";
-import { listMove, scrollRowIntoView } from "./keys";
-import { quote } from "./quote";
+import { text } from "@jali-examples/shared/store";
+import { isBond } from "../../market/classes";
+import { useMarket, useQuotes } from "../../market/react";
+import type { Instrument } from "../../market/types";
+import { DEFAULT_LISTS, listName, useList } from "../../model/lists";
+import { useServices } from "../../services";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../ui/atoms/select";
+import { Empty } from "../../ui/molecules/Empty";
+import { openFollowing } from "../../workspace/actions";
+import { chart } from "../chart";
+import { listMove, scrollRowIntoView } from "../keys";
+import { quote } from "../quote";
+import { Row } from "./Row";
+import { LIST_ORDER, nextSort, parseSort, sortRows, type Sort, type SortBy } from "./sort";
 
-type SortBy = "list" | "symbol" | "last" | "changePct" | "volume";
-interface Sort {
-  by: SortBy;
-  dir: 1 | -1;
-}
-/** The sort kept in pane state, as read back, or list order. */
-const parseSort = (v: unknown): Sort | undefined => {
-  if (!isRecord(v)) return undefined;
-  const by = oneOf<SortBy>(["list", "symbol", "last", "changePct", "volume"])(v.by);
-  const dir = oneOf<1 | -1>([1, -1])(v.dir);
-  return by && dir ? { by, dir } : undefined;
-};
 /** The kept cursor: a symbol, or none. */
 const parseCursor = (v: unknown): string | null | undefined => (v === null ? null : text(v));
 
@@ -48,6 +43,9 @@ const COLUMNS: { by: SortBy; label: string; className: string }[] = [
   { by: "changePct", label: "Change", className: "c-num" },
   { by: "volume", label: "Volume", className: "c-num c-vol" },
 ];
+
+const sectorOf = (inst: Instrument | undefined) =>
+  inst?.assetClass === "equity" ? inst.sector : undefined;
 
 /** What a watchlist pane shows; its component and `definePane` share it. */
 const watchlistParams = { list: String };
@@ -65,12 +63,14 @@ function Watchlist({
   const market = useMarket();
   const jali = useJali();
   const list = useList(lists, params.list);
-  const symbols = useMemo(
-    () => (list?.symbols ?? []).filter((s) => market.instrument(s)),
+  // Only what this market has: a kept list is checked (model/lists.ts), and a live feed may be missing.
+  const instruments = useMemo(
+    () => (list?.symbols ?? []).flatMap((s) => market.instrument(s) ?? []),
     [list, market],
   );
+  const symbols = useMemo(() => instruments.map((i) => i.symbol), [instruments]);
   const quotes = useQuotes(symbols, paused);
-  const [sort, setSort] = usePaneState<Sort>("sort", { by: "list", dir: 1 }, { parse: parseSort });
+  const [sort, setSort] = usePaneState<Sort>("sort", LIST_ORDER, { parse: parseSort });
   const [kept, setCursor] = usePaneState<string | null>("cursor", null, { parse: parseCursor });
   // The cursor is on the instrument Jali has selected: it starts this list on what its following quote shows
   // (`selects`), and moves it with that quote when a layout (a desk, a link, Back) gives it another.
@@ -79,26 +79,18 @@ function Watchlist({
   const listRef = useRef<HTMLDivElement>(null);
 
   // Sorted by what the person chose; the cursor stays on the same instrument, not the same position.
-  const rows = useMemo(() => {
-    // Only what this market has: a kept list is checked (lists.ts), and a live feed may be missing.
-    const out = symbols.flatMap((s, i) => {
-      const inst = market.instrument(s);
-      return inst ? [{ inst, q: quotes.get(s), i }] : [];
-    });
-    if (sort.by === "list") return out;
-    const key = (r: (typeof out)[number]): number | string =>
-      sort.by === "symbol"
-        ? r.inst.symbol
-        : (r.q?.[sort.by as "last" | "changePct" | "volume"] ?? 0);
-    return out.sort((a, b) => {
-      const [x, y] = [key(a), key(b)];
-      return (x < y ? -1 : x > y ? 1 : 0) * sort.dir;
-    });
-  }, [symbols, quotes, sort, market]);
+  const rows = useMemo(
+    () =>
+      sortRows(
+        instruments.map((inst) => ({ inst, q: quotes.get(inst.symbol) })),
+        sort,
+      ),
+    [instruments, quotes, sort],
+  );
   const at = rows.findIndex((r) => r.inst.symbol === cursor);
-  const current = at >= 0 ? rows[at]!.inst : undefined;
+  const current = rows[at]?.inst;
 
-  // Tell Jali what is selected: its following quote, chart, book, trades and news show it (panes/follow.ts).
+  // Tell Jali what is selected: its following quote, chart, book, trades and news show it (panes/instrument.tsx).
   const moveTo = (symbol: string) => {
     setCursor(symbol);
     select(quote({ symbol }));
@@ -124,21 +116,14 @@ function Watchlist({
     lists.remove(params.list, symbol);
     if (next && symbol === cursor) moveTo(next.inst.symbol);
   };
-  const sortBy = (by: SortBy) =>
-    setSort((s) =>
-      s.by === by
-        ? s.dir === 1
-          ? { by, dir: -1 }
-          : { by: "list", dir: 1 }
-        : { by, dir: by === "symbol" ? 1 : -1 },
-    );
 
   const onKeyDown = (e: KeyboardEvent) => {
-    const to = listMove(e, at < 0 ? -1 : at, rows.length);
-    if (to !== null) moveTo(rows[to]!.inst.symbol);
-    else if (e.key === "Enter" && !e.metaKey && !e.ctrlKey && current) openChart(current.symbol);
+    const to = rows[listMove(e, at < 0 ? -1 : at, rows.length) ?? -1];
+    const plain = !e.metaKey && !e.ctrlKey;
+    if (to) moveTo(to.inst.symbol);
+    else if (e.key === "Enter" && plain && current) openChart(current.symbol);
     else if (e.key === " " && current) peek(quote({ symbol: current.symbol }));
-    else if ((e.key === "Delete" || e.key === "Backspace") && !e.metaKey && !e.ctrlKey && current)
+    else if ((e.key === "Delete" || e.key === "Backspace") && plain && current)
       remove(current.symbol);
     else return; // not ours: let it bubble to the workspace
     e.preventDefault();
@@ -163,7 +148,7 @@ function Watchlist({
       id: "sort-list",
       title: "Sort in list order",
       disabled: sort.by === "list" ? "Already in list order" : false,
-      run: () => setSort({ by: "list", dir: 1 }),
+      run: () => setSort(LIST_ORDER),
     },
     {
       id: "remove",
@@ -176,9 +161,9 @@ function Watchlist({
     },
   ]);
 
-  const grouped = sort.by === "list" && params.list === "equities";
+  const bySector = sort.by === "list" && list?.bySector;
   // A list of bonds is read in yields.
-  const yields = rows.length > 0 && rows.every((r) => r.inst.coupon !== undefined);
+  const yields = rows.length > 0 && rows.every((r) => isBond(r.inst));
   return (
     <div className="pane-body watchlist">
       <div className="toolbar">
@@ -207,7 +192,7 @@ function Watchlist({
               aria-label={`Sort by ${label.toLowerCase()}`}
               aria-pressed={sort.by === c.by}
               data-dir={sort.by === c.by ? (sort.dir === 1 ? "asc" : "desc") : undefined}
-              onClick={() => sortBy(c.by)}
+              onClick={() => setSort((s) => nextSort(s, c.by))}
             >
               {label}
             </button>
@@ -227,103 +212,29 @@ function Watchlist({
           aria-activedescendant={current ? `${node.id}-${current.symbol}` : undefined}
           onKeyDown={onKeyDown}
         >
-          {rows.map((r, i) => (
-            <Row
-              key={r.inst.symbol}
-              id={`${node.id}-${r.inst.symbol}`}
-              inst={r.inst}
-              q={r.q}
-              selected={i === at}
-              focused={focused}
-              paused={paused}
-              group={
-                grouped && (i === 0 || rows[i - 1]!.inst.group !== r.inst.group)
-                  ? r.inst.group
-                  : undefined
-              }
-              // A second tap on the selected row opens its chart: on a phone there is no Enter or double-click.
-              onSelect={() => (i === at ? openChart(r.inst.symbol) : moveTo(r.inst.symbol))}
-              onOpen={() => openChart(r.inst.symbol)}
-            />
-          ))}
+          {rows.map((r, i) => {
+            const sector = bySector ? sectorOf(r.inst) : undefined;
+            return (
+              <Row
+                key={r.inst.symbol}
+                id={`${node.id}-${r.inst.symbol}`}
+                inst={r.inst}
+                q={r.q}
+                selected={i === at}
+                focused={focused}
+                paused={paused}
+                group={sector !== sectorOf(rows[i - 1]?.inst) ? sector : undefined}
+                // A second tap on the selected row opens its chart: on a phone there is no Enter or double-click.
+                onSelect={() => (i === at ? openChart(r.inst.symbol) : moveTo(r.inst.symbol))}
+                onOpen={() => openChart(r.inst.symbol)}
+              />
+            );
+          })}
         </div>
       ) : (
         <Empty title="This list is empty">Add an instrument with ⌘K, "Add to watchlist".</Empty>
       )}
     </div>
-  );
-}
-
-function Row({
-  id,
-  inst,
-  q,
-  selected,
-  focused,
-  paused,
-  group,
-  onSelect,
-  onOpen,
-}: {
-  id: string;
-  inst: Instrument;
-  q: Quote | undefined;
-  selected: boolean;
-  focused: boolean;
-  paused: boolean;
-  group?: string;
-  onSelect: () => void;
-  onOpen: () => void;
-}) {
-  const isBond = q?.yield !== undefined;
-  return (
-    <>
-      {group ? (
-        <div className="wl-group" role="presentation">
-          {group}
-        </div>
-      ) : null}
-      <div
-        id={id}
-        data-row=""
-        role="option"
-        aria-selected={selected}
-        data-active={selected && focused ? "" : undefined}
-        className="wl-row"
-        onClick={onSelect}
-        onDoubleClick={onOpen}
-      >
-        <span className="c-name">
-          <b>{inst.symbol}</b>
-          <span className="wl-sub">{inst.name}</span>
-        </span>
-        {q ? (
-          <>
-            <span className="c-num">
-              <Flash value={q.last} dir={q.tickDir}>
-                {isBond ? f.percent(q.yield!) : f.price(inst, q.last)}
-              </Flash>
-            </span>
-            <span className="c-num">
-              <Delta value={isBond ? q.yieldChangeBp! : q.change}>
-                {isBond ? f.bp(q.yieldChangeBp!) : f.pct(q.changePct)}
-              </Delta>
-            </span>
-            <span className="c-num c-vol">
-              {inst.assetClass === "index" || inst.assetClass === "fx" ? "" : f.size(q.volume)}
-            </span>
-            <span className="c-num c-bid">{f.price(inst, q.bid)}</span>
-            <span className="c-num c-ask">{f.price(inst, q.ask)}</span>
-            <span className="c-spark">
-              <Sparkline symbol={inst.symbol} prevClose={inst.prevClose} paused={paused} />
-            </span>
-          </>
-        ) : (
-          // A live price before its first quote: said, not shown as 0.
-          <span className="c-pending">Not known yet</span>
-        )}
-      </div>
-    </>
   );
 }
 

@@ -1,0 +1,113 @@
+/*
+ * The curve pane's content (panes/curve).
+ */
+@layer app {
+  .curve {
+    overflow: auto;
+  }
+  .stat {
+    display: inline-flex;
+    gap: 6px;
+    color: var(--jali-text-subtle);
+    font-size: var(--mk-type-meta);
+  }
+  .legend {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+    color: var(--jali-text-subtle);
+    font-size: var(--mk-type-meta);
+  }
+  .key {
+    display: inline-block;
+    width: 14px;
+    height: 0;
+    border-top: 2px solid var(--jali-accent);
+    margin-left: 6px;
+  }
+  .key-prev {
+    border-top: 2px dashed var(--jali-text-subtle);
+  }
+  .key-corp {
+    width: 7px;
+    height: 7px;
+    border: 0;
+    background: var(--jali-blocked);
+    rotate: 45deg;
+  }
+  @container (max-width: 520px) {
+    .legend {
+      display: none;
+    }
+  }
+  .curve-plot {
+    flex: none;
+    padding: 6px 0 0;
+  }
+  .curve-plot svg {
+    display: block;
+  }
+  .curve-now {
+    fill: none;
+    stroke: var(--jali-accent);
+    stroke-width: 2;
+  }
+  .curve-prev {
+    fill: none;
+    stroke: var(--jali-text-subtle);
+    stroke-width: 1.25;
+    stroke-dasharray: 4 4;
+  }
+  .curve-dot {
+    fill: var(--jali-accent);
+    stroke: var(--jali-surface);
+    stroke-width: 2;
+    cursor: pointer;
+  }
+  .curve-corp {
+    cursor: pointer;
+  }
+  .curve-corp rect {
+    fill: var(--jali-blocked);
+  }
+  .curve-corp[data-selected] rect {
+    stroke: var(--jali-text);
+    stroke-width: 1.5;
+  }
+  .curve-table td {
+    height: 26px;
+    padding: 0 10px;
+    border-bottom: 1px solid color-mix(in srgb, var(--jali-border) 60%, transparent);
+  }
+  .curve-table td b {
+    font-family: var(--jali-font-mono);
+    font-weight: 500;
+    margin-right: 8px;
+  }
+  .curve-table .sub {
+    color: var(--jali-text-subtle);
+    font-size: var(--mk-type-meta);
+  }
+  .curve-table tbody {
+    outline: none;
+  }
+  .curve-table tbody:focus-visible {
+    outline: 2px solid var(--jali-focus-ring);
+    outline-offset: -2px;
+  }
+  .curve-table tr {
+    cursor: pointer;
+  }
+  .curve-table tbody tr:hover {
+    background: var(--jali-hover);
+  }
+  .curve-table tr[aria-current="true"] {
+    background: var(--jali-accent-weak);
+  }
+  @container (max-width: 400px) {
+    .c-price {
+      display: none;
+    }
+  }
+}

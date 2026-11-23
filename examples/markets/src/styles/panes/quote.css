@@ -1,0 +1,169 @@
+/*
+ * The quote pane's content (panes/quote).
+ */
+@layer app {
+  .quote {
+    overflow: auto;
+    padding: 10px 12px 12px;
+    gap: 12px;
+  }
+  .quote-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .quote-id {
+    display: grid;
+    min-width: 0;
+  }
+  .quote-id b {
+    font-family: var(--jali-font-mono);
+    font-weight: 500;
+    font-size: var(--mk-type-title);
+  }
+  .quote-id span {
+    color: var(--jali-text-subtle);
+    font-size: var(--mk-type-meta);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .quote-price {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 12px;
+  }
+  /* The big price flashes its ink, not a block of colour. */
+  .quote-last .flash[data-flash] {
+    animation-name: none;
+  }
+  .quote-last .flash[data-flash="up"][data-beat="0"] {
+    animation: ink-up-a 900ms ease-out;
+  }
+  .quote-last .flash[data-flash="up"][data-beat="1"] {
+    animation: ink-up-b 900ms ease-out;
+  }
+  .quote-last .flash[data-flash="down"][data-beat="0"] {
+    animation: ink-down-a 900ms ease-out;
+  }
+  .quote-last .flash[data-flash="down"][data-beat="1"] {
+    animation: ink-down-b 900ms ease-out;
+  }
+  @keyframes ink-up-a {
+    from {
+      color: var(--mk-up);
+    }
+  }
+  @keyframes ink-up-b {
+    from {
+      color: var(--mk-up);
+    }
+  }
+  @keyframes ink-down-a {
+    from {
+      color: var(--mk-down);
+    }
+  }
+  @keyframes ink-down-b {
+    from {
+      color: var(--mk-down);
+    }
+  }
+  .quote-last {
+    font-family: var(--jali-font-mono);
+    font-size: var(--mk-type-display);
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+  }
+  .quote-change {
+    display: inline-flex;
+    gap: 10px;
+    font-size: var(--mk-type-name);
+  }
+  .quote-sub {
+    flex-basis: 100%;
+    color: var(--jali-text-subtle);
+    font-family: var(--jali-font-mono);
+    font-size: var(--mk-type-meta);
+  }
+  .touch {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: end;
+    gap: 8px;
+    padding: 8px 0;
+    border-block: 1px solid var(--jali-border);
+  }
+  .touch-side {
+    display: grid;
+    gap: 1px;
+    font-family: var(--jali-font-mono);
+  }
+  .touch-side[data-side="ask"] {
+    text-align: right;
+  }
+  .touch-label {
+    font-family: var(--jali-font);
+    color: var(--jali-text-subtle);
+    font-size: var(--mk-type-meta);
+  }
+  .touch-price {
+    font-size: var(--mk-type-title);
+  }
+  .touch-size {
+    color: var(--jali-text-muted);
+    font-size: var(--mk-type-meta);
+  }
+  .touch-spread {
+    display: grid;
+    justify-items: center;
+    font-family: var(--jali-font-mono);
+    font-size: var(--mk-type-meta);
+    color: var(--jali-text-muted);
+  }
+  .range-labels {
+    display: flex;
+    justify-content: space-between;
+    color: var(--jali-text-subtle);
+    font-size: var(--mk-type-meta);
+    font-family: var(--jali-font-mono);
+  }
+  .range-labels span:nth-child(2) {
+    font-family: var(--jali-font);
+  }
+  .range-bar {
+    position: relative;
+    height: 6px;
+    margin-top: 6px;
+    border-radius: 3px;
+    background: var(--jali-border);
+  }
+  .range-last,
+  .range-open {
+    position: absolute;
+    top: 50%;
+    translate: -50% -50%;
+  }
+  .range-last {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--jali-text);
+    box-shadow: 0 0 0 2px var(--jali-surface);
+  }
+  .range-open {
+    width: 2px;
+    height: 12px;
+    background: var(--jali-text-subtle);
+  }
+  .quote-actions {
+    display: flex;
+    gap: 8px;
+  }
+  .quote-actions .btn-buy,
+  .quote-actions .btn-sell {
+    flex: 1;
+  }
+}

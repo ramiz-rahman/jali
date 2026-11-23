@@ -1,0 +1,138 @@
+/*
+ * The watchlist pane's content (panes/watchlist).
+ */
+@layer app {
+  .wl-head,
+  .wl-row {
+    display: grid;
+    grid-template-columns: minmax(96px, 1fr) 84px 84px;
+    align-items: center;
+    gap: 10px;
+    padding: 0 10px;
+  }
+  .wl-head {
+    flex: none;
+    height: 26px;
+    border-bottom: 1px solid var(--jali-border);
+    color: var(--jali-text-subtle);
+    font-size: var(--mk-type-meta);
+  }
+  .wl-head button {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font-size: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .wl-head button:hover,
+  .wl-head button[aria-pressed="true"] {
+    color: var(--jali-text);
+  }
+  .wl-head button[data-dir="asc"]::after {
+    content: " ↑";
+  }
+  .wl-head button[data-dir="desc"]::after {
+    content: " ↓";
+  }
+  .wl-head .c-name {
+    text-align: left;
+  }
+  .wl-head .c-num {
+    font-family: var(--jali-font);
+  }
+  .c-vol,
+  .c-bid,
+  .c-ask,
+  .c-spark {
+    display: none;
+  }
+  .wl-rows {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    outline: none;
+  }
+  .wl-rows:focus-visible {
+    box-shadow: inset 0 0 0 2px var(--jali-focus-ring);
+  }
+  /* A live price before its first quote, across the number columns. */
+  .c-pending {
+    grid-column: 2 / -1;
+    justify-self: end;
+    color: var(--jali-text-subtle);
+  }
+  .wl-row {
+    height: var(--mk-row-h);
+    border-bottom: 1px solid color-mix(in srgb, var(--jali-border) 60%, transparent);
+    cursor: default;
+  }
+  .wl-row:hover {
+    background: var(--jali-hover);
+  }
+  .wl-row[aria-selected="true"] {
+    background: var(--jali-accent-weak);
+    box-shadow: inset 2px 0 0 var(--jali-accent);
+  }
+  .wl-row[data-active] {
+    background: var(--jali-accent-mid);
+  }
+  .c-name {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    min-width: 0;
+  }
+  .c-name b {
+    font-family: var(--jali-font-mono);
+    font-weight: 500;
+    flex: none;
+  }
+  .wl-sub {
+    color: var(--jali-text-subtle);
+    font-size: var(--mk-type-meta);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .wl-group {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: 4px 10px 3px;
+    background: var(--jali-surface);
+    border-bottom: 1px solid var(--jali-border);
+    color: var(--jali-text-subtle);
+    font-size: var(--mk-type-meta);
+    font-weight: 600;
+  }
+  @container (min-width: 460px) {
+    .wl-head,
+    .wl-row {
+      grid-template-columns: minmax(120px, 1fr) 84px 84px 64px;
+    }
+    .c-vol {
+      display: block;
+    }
+  }
+  @container (min-width: 620px) {
+    .wl-head,
+    .wl-row {
+      grid-template-columns: minmax(140px, 1fr) 84px 84px 64px 76px 76px;
+    }
+    .c-bid,
+    .c-ask {
+      display: block;
+    }
+  }
+  @container (min-width: 760px) {
+    .wl-head,
+    .wl-row {
+      grid-template-columns: minmax(150px, 1fr) 84px 84px 64px 76px 76px 64px;
+    }
+    .c-spark {
+      display: block;
+    }
+  }
+}

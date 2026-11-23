@@ -6,25 +6,22 @@ import { StackIcon } from "@phosphor-icons/react";
 import { definePane, type PaneProps } from "jali/react";
 import { useTopic } from "../market/react";
 import type { BookLevel, Instrument } from "../market/types";
+import { Scroller } from "../ui/atoms/Scroller";
 import * as f from "../ui/format";
-import { Empty, Known, Scroller } from "../ui/parts";
-import { followSymbol } from "./follow";
+import { Empty } from "../ui/molecules/Empty";
+import { followSymbol, Known, symbolParams } from "./instrument";
 
-/** What a book pane shows; its component and `definePane` share it. */
-const bookParams = { symbol: String };
-
-function BookPane({ params, paused }: PaneProps<typeof bookParams>) {
+function BookPane({ params, paused }: PaneProps<typeof symbolParams>) {
   return (
-    <Known symbol={params.symbol}>
-      {(inst) =>
-        inst.assetClass === "index" ? (
-          <Empty icon={<StackIcon size={20} aria-hidden />} title="An index has no order book">
-            Its level comes from its members. Open one of them.
-          </Empty>
-        ) : (
-          <BookBody inst={inst} paused={paused} />
-        )
+    <Known
+      symbol={params.symbol}
+      untradable={
+        <Empty icon={<StackIcon size={20} aria-hidden />} title="An index has no order book">
+          Its level comes from its members. Open one of them.
+        </Empty>
       }
+    >
+      {(inst) => <BookBody inst={inst} paused={paused} />}
     </Known>
   );
 }
@@ -37,26 +34,24 @@ function BookBody({ inst, paused }: { inst: Instrument; paused: boolean }) {
         {inst.source ? `Asking ${inst.source} for ${inst.symbol}'s order book.` : "No orders yet."}
       </Empty>
     );
-  const depth = (levels: BookLevel[]) =>
-    levels.reduce<number[]>((acc, l) => [...acc, (acc.at(-1) ?? 0) + l.size], []);
-  const bidDepth = depth(b.bids);
-  const askDepth = depth(b.asks);
-  const most = Math.max(bidDepth.at(-1) ?? 1, askDepth.at(-1) ?? 1);
-  const bidTotal = bidDepth.at(-1) ?? 0;
-  const askTotal = askDepth.at(-1) ?? 0;
+  const bids = withDepth(b.bids);
+  const asks = withDepth(b.asks);
+  const bidTotal = bids.at(-1)?.depth ?? 0;
+  const askTotal = asks.at(-1)?.depth ?? 0;
+  const most = Math.max(bidTotal, askTotal, 1);
   const bidShare = bidTotal / (bidTotal + askTotal || 1);
-  // Kraken's book gives sizes, not how many orders make them up.
-  const counted = inst.source === undefined;
+  // Not every venue says how many orders make up a size (Kraken doesn't).
+  const counted = (b.bids[0] ?? b.asks[0])?.orders !== undefined;
   const cols = counted ? 3 : 2;
 
-  const row = (l: BookLevel, cum: number, side: "bid" | "ask") => (
+  const row = (l: Deep, side: "bid" | "ask") => (
     <tr key={`${side}-${l.price}`} data-side={side}>
       <td className="b-price">{f.price(inst, l.price)}</td>
       <td className="b-size">
-        <span className="b-bar" style={{ width: `${(cum / most) * 100}%` }} aria-hidden />
+        <span className="b-bar" style={{ width: `${(l.depth / most) * 100}%` }} aria-hidden />
         <span>{f.size(l.size)}</span>
       </td>
-      {counted ? <td className="b-orders">{l.orders}</td> : null}
+      {counted ? <td className="b-orders">{l.orders ?? ""}</td> : null}
     </tr>
   );
 
@@ -82,17 +77,14 @@ function BookBody({ inst, paused }: { inst: Instrument; paused: boolean }) {
           </tr>
         </thead>
         <tbody>
-          {b.asks
-            .map((l, i) => ({ l, cum: askDepth[i]! }))
-            .reverse()
-            .map(({ l, cum }) => row(l, cum, "ask"))}
+          {asks.toReversed().map((l) => row(l, "ask"))}
           <tr className="b-spread">
             <td colSpan={cols}>
               Spread{" "}
               {b.bids[0] && b.asks[0] ? f.spread(inst, b.bids[0].price, b.asks[0].price) : ""}
             </td>
           </tr>
-          {b.bids.map((l, i) => row(l, bidDepth[i]!, "bid"))}
+          {bids.map((l) => row(l, "bid"))}
         </tbody>
       </table>
       <div
@@ -109,8 +101,16 @@ function BookBody({ inst, paused }: { inst: Instrument; paused: boolean }) {
   );
 }
 
+/** A level with the depth to it: its size and every better level's. */
+type Deep = BookLevel & { depth: number };
+
+function withDepth(levels: readonly BookLevel[]): Deep[] {
+  let depth = 0;
+  return levels.map((l) => ({ ...l, depth: (depth += l.size) }));
+}
+
 export const book = definePane("book", {
-  params: bookParams,
+  params: symbolParams,
   follow: followSymbol,
   title: ({ symbol }) => `${symbol} book`,
   icon: StackIcon,

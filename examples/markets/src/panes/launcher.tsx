@@ -4,9 +4,8 @@
  */
 import { useState, type KeyboardEvent } from "react";
 import { PlusIcon } from "@phosphor-icons/react";
-import type { ObjectRef } from "jali";
 import { definePane, useLauncher, type PaneProps } from "jali/react";
-import { DEFAULT_LISTS } from "../lists";
+import { DEFAULT_LISTS } from "../model/lists";
 import { useMarket } from "../market/react";
 import { blotter } from "./blotter";
 import { book } from "./book";
@@ -37,7 +36,6 @@ function Launcher({ openHere, dismiss }: PaneProps) {
       dismiss(); // an untouched launcher closes quietly
     }
   };
-  const go = (ref: ObjectRef) => openHere(ref);
 
   return (
     <nav
@@ -73,7 +71,7 @@ function Launcher({ openHere, dismiss }: PaneProps) {
               type="button"
               className="btn"
               disabled={!known}
-              onClick={() => go(v.make({ symbol }))}
+              onClick={() => openHere(v.make({ symbol }))}
             >
               {v.label}
             </button>
@@ -88,18 +86,18 @@ function Launcher({ openHere, dismiss }: PaneProps) {
               key={l.id}
               type="button"
               className="btn"
-              onClick={() => go(watchlist({ list: l.id }))}
+              onClick={() => openHere(watchlist({ list: l.id }))}
             >
               {l.name} list
             </button>
           ))}
-          <button type="button" className="btn" onClick={() => go(curve())}>
+          <button type="button" className="btn" onClick={() => openHere(curve())}>
             Yield curve
           </button>
-          <button type="button" className="btn" onClick={() => go(news())}>
+          <button type="button" className="btn" onClick={() => openHere(news())}>
             Market news
           </button>
-          <button type="button" className="btn" onClick={() => go(blotter())}>
+          <button type="button" className="btn" onClick={() => openHere(blotter())}>
             Blotter
           </button>
         </div>
@@ -113,7 +111,7 @@ function Launcher({ openHere, dismiss }: PaneProps) {
                 key={JSON.stringify(ref)}
                 type="button"
                 className="btn"
-                onClick={() => go(ref)}
+                onClick={() => openHere(ref)}
               >
                 {titleOf(ref)}
               </button>

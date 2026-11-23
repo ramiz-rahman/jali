@@ -1,0 +1,26 @@
+/*
+ * The launcher pane's content (panes/launcher).
+ */
+@layer app {
+  .launcher {
+    gap: 16px;
+    padding: 12px;
+    overflow: auto;
+  }
+  .launcher h3 {
+    margin: 0 0 8px;
+    font-size: var(--mk-type-meta);
+    font-weight: 600;
+    color: var(--jali-text-subtle);
+  }
+  .launcher-name {
+    margin: 4px 0 8px;
+    color: var(--jali-text-muted);
+    font-size: var(--mk-type-meta);
+  }
+  .launcher-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+}

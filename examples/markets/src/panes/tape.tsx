@@ -4,27 +4,25 @@ import { ReceiptIcon } from "@phosphor-icons/react";
 import { definePane, type PaneProps } from "jali/react";
 import { useTopic } from "../market/react";
 import type { Instrument } from "../market/types";
+import { Arrow } from "../ui/atoms/Arrow";
+import { Scroller } from "../ui/atoms/Scroller";
 import * as f from "../ui/format";
-import { Arrow, Empty, Known, Scroller } from "../ui/parts";
-import { followSymbol } from "./follow";
+import { Empty } from "../ui/molecules/Empty";
+import { followSymbol, Known, symbolParams } from "./instrument";
 
 const ROWS = 80;
 
-/** What a tape pane shows; its component and `definePane` share it. */
-const tapeParams = { symbol: String };
-
-function TapePane({ params, paused }: PaneProps<typeof tapeParams>) {
+function TapePane({ params, paused }: PaneProps<typeof symbolParams>) {
   return (
-    <Known symbol={params.symbol}>
-      {(inst) =>
-        inst.assetClass === "index" ? (
-          <Empty icon={<ReceiptIcon size={20} aria-hidden />} title="An index doesn't trade">
-            Its members do. Open one of them.
-          </Empty>
-        ) : (
-          <TapeBody inst={inst} paused={paused} />
-        )
+    <Known
+      symbol={params.symbol}
+      untradable={
+        <Empty icon={<ReceiptIcon size={20} aria-hidden />} title="An index doesn't trade">
+          Its members do. Open one of them.
+        </Empty>
       }
+    >
+      {(inst) => <TapeBody inst={inst} paused={paused} />}
     </Known>
   );
 }
@@ -65,7 +63,7 @@ function TapeBody({ inst, paused }: { inst: Instrument; paused: boolean }) {
               <td className="num">{f.size(t.size)}</td>
               <td className="t-side">
                 <Arrow dir={t.side === "buy" ? "up" : "down"} />
-                <span className="side-word">{t.side === "buy" ? "Buy" : "Sell"}</span>
+                <span className="side-word">{f.SIDE[t.side].verb}</span>
               </td>
             </tr>
           ))}
@@ -76,7 +74,7 @@ function TapeBody({ inst, paused }: { inst: Instrument; paused: boolean }) {
 }
 
 export const tape = definePane("tape", {
-  params: tapeParams,
+  params: symbolParams,
   follow: followSymbol,
   title: ({ symbol }) => `${symbol} trades`,
   icon: ReceiptIcon,

@@ -1,0 +1,110 @@
+/*
+ * The book pane's content (panes/book).
+ */
+@layer app {
+  .book {
+    overflow: auto;
+  }
+  .ladder,
+  .tape-table,
+  .curve-table,
+  .grid-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+  }
+  .ladder th,
+  .tape-table th,
+  .curve-table th,
+  .grid-table th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    height: 26px;
+    padding: 0 10px;
+    background: var(--jali-surface);
+    border-bottom: 1px solid var(--jali-border);
+    color: var(--jali-text-subtle);
+    font-size: var(--mk-type-meta);
+    font-weight: 400;
+    text-align: left;
+  }
+  .ladder th:not(:first-child),
+  th.num {
+    text-align: right;
+  }
+  .ladder td {
+    height: 22px;
+    padding: 0 10px;
+    font-family: var(--jali-font-mono);
+    text-align: right;
+  }
+  .ladder td.b-price {
+    text-align: left;
+  }
+  .ladder tr[data-side="ask"] .b-price {
+    color: var(--mk-down);
+  }
+  .ladder tr[data-side="bid"] .b-price {
+    color: var(--mk-up);
+  }
+  .b-size {
+    position: relative;
+  }
+  .b-size span:last-child {
+    position: relative;
+  }
+  .b-bar {
+    position: absolute;
+    inset: 3px 0 3px auto;
+    border-radius: 2px 0 0 2px;
+  }
+  tr[data-side="ask"] .b-bar {
+    background: var(--mk-down-soft);
+  }
+  tr[data-side="bid"] .b-bar {
+    background: var(--mk-up-soft);
+  }
+  .b-orders {
+    color: var(--jali-text-subtle);
+    width: 1%;
+  }
+  .b-spread td {
+    height: 24px;
+    text-align: center;
+    font-family: var(--jali-font);
+    font-size: var(--mk-type-meta);
+    color: var(--jali-text-muted);
+    border-block: 1px solid var(--jali-border);
+    background: var(--jali-canvas);
+  }
+  @container (max-width: 280px) {
+    .b-orders {
+      display: none;
+    }
+  }
+  .imbalance {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: auto;
+    padding: 8px 10px;
+    border-top: 1px solid var(--jali-border);
+    font-size: var(--mk-type-meta);
+    color: var(--jali-text-muted);
+    white-space: nowrap;
+  }
+  .imbalance-bar {
+    flex: 1;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--mk-down);
+    overflow: hidden;
+  }
+  .imbalance-bar span {
+    display: block;
+    height: 100%;
+    background: var(--mk-up);
+    border-right: 2px solid var(--jali-surface);
+  }
+}

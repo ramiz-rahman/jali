@@ -13,8 +13,9 @@ import { optional } from "jali";
 import { oneOf } from "@jali-examples/shared/store";
 import { useMarket, useTopic } from "../market/react";
 import * as f from "../ui/format";
-import { Empty, Segmented } from "../ui/parts";
-import { followSymbol } from "./follow";
+import { Empty } from "../ui/molecules/Empty";
+import { Segmented } from "../ui/molecules/Segmented";
+import { followSymbol } from "./instrument";
 import { listMove, scrollRowIntoView } from "./keys";
 import { quote } from "./quote";
 

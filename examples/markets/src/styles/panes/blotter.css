@@ -1,0 +1,145 @@
+/*
+ * The blotter pane's content (panes/blotter).
+ */
+@layer app {
+  .blotter {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    overflow: auto;
+  }
+  .blotter-book {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  @container (min-width: 700px) {
+    .blotter {
+      grid-template-rows: none;
+      grid-template-columns: minmax(0, 1fr) 280px;
+    }
+    .ticket {
+      order: 2;
+      border-bottom: 0;
+      border-left: 1px solid var(--jali-border);
+    }
+  }
+  .ticket {
+    display: grid;
+    gap: 10px;
+    align-content: start;
+    padding: 10px 12px 12px;
+    border-bottom: 1px solid var(--jali-border);
+    background: color-mix(in srgb, var(--jali-canvas) 40%, var(--jali-surface));
+  }
+  .ticket-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .ticket-side button[aria-pressed="true"] {
+    color: var(--mk-on-signal);
+    box-shadow: none;
+  }
+  .ticket[data-side="buy"] .ticket-side button[aria-pressed="true"] {
+    background: var(--mk-up);
+  }
+  .ticket[data-side="sell"] .ticket-side button[aria-pressed="true"] {
+    background: var(--mk-down);
+  }
+  .ticket-fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 8px;
+  }
+  .ticket label,
+  .launcher-symbol {
+    display: grid;
+    gap: 3px;
+    color: var(--jali-text-subtle);
+    font-size: var(--mk-type-meta);
+  }
+  .ticket input,
+  .launcher-symbol input {
+    height: 30px;
+    padding: 0 8px;
+    border: 1px solid var(--jali-control);
+    border-radius: var(--jali-radius-control);
+    background: var(--jali-surface);
+    color: var(--jali-text);
+    font-family: var(--jali-font-mono);
+    font-size: var(--mk-type-body);
+    min-width: 0;
+  }
+  .ticket input:focus-visible,
+  .launcher-symbol input:focus-visible {
+    outline-offset: 0;
+  }
+  .ticket-foot {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .ticket-est {
+    flex: 1 1 100%;
+    color: var(--jali-text-subtle);
+    font-size: var(--mk-type-meta);
+    font-family: var(--jali-font-mono);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .ticket-foot .btn-buy,
+  .ticket-foot .btn-sell {
+    margin-left: auto;
+    min-width: 96px;
+  }
+  .ticket-result {
+    margin: 0;
+    font-size: var(--mk-type-meta);
+    color: var(--mk-down);
+  }
+  .ticket-result[data-ok] {
+    color: var(--jali-text-muted);
+  }
+  .summary {
+    display: flex;
+    gap: 20px;
+    flex: none;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--jali-border);
+  }
+  .summary div {
+    display: grid;
+    gap: 1px;
+  }
+  .summary span:first-child {
+    color: var(--jali-text-subtle);
+    font-size: var(--mk-type-meta);
+  }
+  .summary .delta,
+  .summary b {
+    justify-content: flex-start;
+    font-family: var(--jali-font-mono);
+    font-weight: 500;
+    font-size: var(--mk-type-name);
+  }
+  .table-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+  }
+  .grid-table td {
+    height: 26px;
+    padding: 0 10px;
+    border-bottom: 1px solid color-mix(in srgb, var(--jali-border) 60%, transparent);
+    white-space: nowrap;
+  }
+  .grid-table td b {
+    font-family: var(--jali-font-mono);
+    font-weight: 500;
+  }
+  .grid-table tbody tr:hover {
+    background: var(--jali-hover);
+  }
+}
