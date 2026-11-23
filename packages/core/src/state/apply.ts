@@ -575,10 +575,12 @@ const disturbed = (c: Run) => c.io.signal.aborted || c.io.get() !== c.base;
 const covered = (panes: Asked, agreed?: Asked) =>
   !!agreed && panes.every((p) => agreed.some((a) => a.pane === p.pane && sameRef(a.ref, p.ref)));
 
-/** `o` as an intent to run again: a step as it is; a change computed outside a step is made only on the layout it was
- *  computed from. */
+/** `o` as an intent to run again: a step, or the answer to a question (its own intent runs again), as it is; a
+ *  change computed outside a step is made only on the layout it was computed from. */
 function intentOf(o: Outcome, from: Layout): Intent {
-  return typeof o === "function" ? o : (x) => (x.s.layout === from ? o : refuse("kept"));
+  if (typeof o === "function") return o;
+  if (o && !Array.isArray(o) && o.op === "answer") return () => o;
+  return (x) => (x.s.layout === from ? o : refuse("kept"));
 }
 
 /** Hold the run for a question. Its intent is set where the action (or the part of an `each`) is discarded. */

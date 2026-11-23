@@ -128,6 +128,32 @@ describe("what the guard writes while it decides", () => {
   });
 });
 
+describe("a held yes, then a yes that writes", () => {
+  it("closes what both yeses allowed, though the second guard pinned a pane", async () => {
+    let answer!: (yes: boolean) => void;
+    let asked = 0;
+    let jali!: Jali;
+    jali = createJali({
+      panes: [item],
+      layout: three,
+      storage: memoryStorage(),
+      size: { width: 1600, height: 800 },
+      moveFocus: false,
+      beforeClose: () => {
+        if (++asked === 1) return new Promise<boolean>((r) => (answer = r));
+        jali.actions.setPinned("a", true);
+        return true;
+      },
+    });
+    const r = jali.actions.closeOthers("a");
+    jali.actions.openBeside("a", ref(4));
+    answer(true);
+    await expect(r.settled).resolves.toMatchObject({ ok: true });
+    expect(ids(jali)).toEqual(["a"]);
+    expect(jali.model().pane("a")?.pinned).toBe(true);
+  });
+});
+
 describe("an instance destroyed inside the guard (A2-3)", () => {
   it("that then says yes: the panes stay, nothing is told, and the close is unavailable", () => {
     const jali = make((j) => (j.destroy(), true));
