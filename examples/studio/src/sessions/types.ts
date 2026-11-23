@@ -3,6 +3,7 @@
  * their times, markers and credits. Every track is one continuous file that starts at session time 0, and all of a
  * session's tracks have the same length.
  */
+import type { SessionId } from "./ids";
 
 export interface SpeakerData {
   id: string;
@@ -69,8 +70,8 @@ export interface CreditsData {
 }
 
 export interface SessionData {
-  id: string;
-  /** Kept by the build for the old shape; the app shows the catalogue's source line instead (catalog.ts). */
+  id: SessionId;
+  /** Kept by the build (scripts/audio/); the app shows the catalogue's source line instead (catalog.ts). */
   show: string;
   episode: number;
   title: string;

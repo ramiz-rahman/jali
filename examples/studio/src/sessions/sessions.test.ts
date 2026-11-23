@@ -8,14 +8,9 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vite-plus/test";
 import { catalogueOf, CATALOGUE, PALETTE } from "./catalog";
-import {
-  loadSessions,
-  missionTime,
-  segmentIndexAt,
-  segmentsAt,
-  trackInput,
-  trackName,
-} from "./sessions";
+import { segmentIndexAt, segmentsAt, trackInput, trackName } from "./derive";
+import { missionTime } from "./format";
+import { loadSessions } from "./load";
 
 // Loaded as the app loads them, one chunk each (load.ts).
 const SESSIONS = await loadSessions();
@@ -102,7 +97,7 @@ describe("every session", () => {
       });
 
       it("is in the catalogue: a credit, a licence link, and a distinct colour and a mix for every track", () => {
-        const c = CATALOGUE[s.id]!;
+        const c = CATALOGUE[s.id];
         expect(c).toBeDefined();
         expect(c.credit.length).toBeGreaterThan(40);
         expect(c.short.length).toBeGreaterThan(20);
@@ -154,11 +149,11 @@ describe("reading the sessions", () => {
   it("says who is on a track: the mic's wearer, the callsigns heard, a song group's name, or no transcript", () => {
     const name = (s: typeof apollo) => (id: string) => s.speakers.find((p) => p.id === id)!.name;
     const t = (s: typeof apollo, id: string) => s.tracks.find((x) => x.id === id)!;
-    expect(trackName(t(dinner, "p05"), name(dinner), dinner)).toBe("Speaker 1 (P05)");
-    expect(trackName(t(apollo, "air-ground"), name(apollo), apollo)).toMatch(/CC.*LMP|LMP.*CC/);
-    expect(trackName(t(apollo, "flight-loop"), name(apollo), apollo)).toBe("no transcript");
-    expect(trackName(t(apollo, "pao"), name(apollo), apollo)).toBe("PAO");
-    expect(trackName(t(song, "drums"), name(song), song)).toBe("Drums");
+    expect(trackName(dinner, t(dinner, "p05"), name(dinner))).toBe("Speaker 1 (P05)");
+    expect(trackName(apollo, t(apollo, "air-ground"), name(apollo))).toMatch(/CC.*LMP|LMP.*CC/);
+    expect(trackName(apollo, t(apollo, "flight-loop"), name(apollo))).toBe("no transcript");
+    expect(trackName(apollo, t(apollo, "pao"), name(apollo))).toBe("PAO");
+    expect(trackName(song, t(song, "drums"), name(song))).toBe("Drums");
     expect(trackInput(t(song, "drums"))).toBe("8 stems");
     expect(trackInput(t(apollo, "flight-loop"))).toBe("Flight Director loop");
   });
@@ -170,11 +165,7 @@ describe("reading the sessions", () => {
   });
 
   it("names a song's rows lines and its transcript lyrics", () => {
-    expect(catalogueOf(song).words).toEqual({
-      transcript: "Lyrics",
-      segment: "line",
-      segments: "lines",
-    });
+    expect(catalogueOf(song).words).toEqual({ transcript: "Lyrics", segment: "line" });
     expect(catalogueOf(apollo).words.segment).toBe("segment");
   });
 

@@ -2,7 +2,8 @@
  * The sessions load when first wanted, once each, and a name that isn't a session never loads anything.
  */
 import { describe, expect, it } from "vite-plus/test";
-import { isSession, loadSession, SESSION_IDS, sessionById } from "./load";
+import { isSession, SESSION_IDS } from "./ids";
+import { loadSession, sessionById } from "./load";
 
 describe("loading a session", () => {
   it("has no data until it is asked for, then has it, from one load", async () => {

@@ -1,30 +1,47 @@
 /**
- * The app's own services, beside Jali: the audio engine with its transport, and the person's edits. Panes read them
- * from context; the app's commands get them when the workspace is made (workspace.ts).
+ * The app's own services, beside Jali: the audio engine with its transport, the person's edits, each layout as they
+ * left it, their settings, and the way the app tells them something. Panes read them from context; the workspace's
+ * commands get them when it is made (workspace/createStudioJali.ts).
  */
 import { createContext, useContext, type ReactNode } from "react";
 import { createEngine, type Engine } from "./audio/engine";
-import { createEdits, type Edits } from "./edits";
-import { createLayouts, type Layouts } from "./layouts";
-import { FIRST_SESSION } from "./sessions/sessions";
+import { createEdits, type Edits } from "./model/edits";
+import { FIRST_SESSION, type SessionId } from "./sessions/ids";
+import { createSettings, type SettingsStore } from "./settings";
+import { createSavedLayouts, type SavedLayouts } from "./workspace/savedLayouts";
+
+/** A short message for the person ("Marker added at 00:42"), with an Undo when the change can be taken back. */
+export type Notify = (text: string, options?: { undo?: () => void }) => void;
 
 export interface Services {
   engine: Engine;
   edits: Edits;
-  /** Each layout as the person left it (layouts.ts). */
-  layouts: Layouts;
+  layouts: SavedLayouts;
+  settings: SettingsStore;
+  notify: Notify;
 }
 
 export function createServices({
   persist = true,
   audio,
   session = FIRST_SESSION,
-}: { persist?: boolean; audio?: boolean; session?: string } = {}): Services {
+  notify = () => {},
+}: {
+  /** Keep the edits, the layouts and the settings on this device (false in tests). */
+  persist?: boolean;
+  /** Make sound (default: where Web Audio is). */
+  audio?: boolean;
+  /** The session the transport starts on; its data must be loaded. */
+  session?: SessionId;
+  notify?: Notify;
+} = {}): Services {
   const edits = createEdits(persist);
   return {
     edits,
-    layouts: createLayouts(persist),
+    layouts: createSavedLayouts(persist),
+    settings: createSettings(persist),
     engine: createEngine({ edits, session, audio }),
+    notify,
   };
 }
 

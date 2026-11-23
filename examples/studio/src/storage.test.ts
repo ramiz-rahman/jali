@@ -2,11 +2,14 @@
  * What comes back from storage is checked: damaged edits, layouts and settings give their defaults, and never throw.
  */
 import { afterEach, describe, expect, it } from "vitest";
-import { channelOf, createEdits, readEdits } from "./edits";
-import { createLayouts, readLayouts } from "./layouts";
-import { saved } from "./store";
+import { createEdits } from "./model/edits";
+import { channelOf } from "./model/mix";
+import { readEdits } from "./model/read";
+import type { SessionId } from "./sessions/ids";
+import { saved } from "./storage";
+import { createSavedLayouts, readLayouts } from "./workspace/savedLayouts";
 
-const SESSION = "apollo11-landing";
+const SESSION: SessionId = "apollo11-landing";
 
 afterEach(() => localStorage.clear());
 
@@ -60,7 +63,7 @@ describe("edits read back from storage", () => {
     ]) {
       localStorage.setItem("studio:edits:v1", raw);
       const edits = createEdits();
-      expect(channelOf(edits.of(SESSION), "a")).toEqual({
+      expect(channelOf(SESSION, edits.of(SESSION).mix, "a")).toEqual({
         gain: 0,
         pan: 0,
         mute: false,
@@ -93,7 +96,7 @@ describe("layouts read back from storage", () => {
 
   it("never hand over a name from Object.prototype", () => {
     localStorage.setItem("studio:layouts:v1", "null");
-    const layouts = createLayouts();
+    const layouts = createSavedLayouts();
     expect(layouts.get("constructor")).toBeUndefined();
     expect(layouts.get("mix")).toBeUndefined();
   });
