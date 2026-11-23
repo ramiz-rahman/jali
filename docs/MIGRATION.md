@@ -1,3 +1,34 @@
+# Migrating to the stabilisation step 3 (23 Nov 2026): undo reverses the operation
+
+Undo puts closed panes back into the layout as it is now, instead of putting back the layout from before the close.
+No public action changes its name or arguments; what changes is what Undo and "Back to …" leave on screen.
+
+## Behaviour
+
+| Before                                                                                                           | After                                                                                                                                                      |
+| ---------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Undo of a close put back the whole layout from before it: panes opened, pinned, resized or moved since were lost | each closed pane goes back to its slot (same parent, position, size, tab group), else beside the neighbour it had, else at the end; everything since stays |
+| a pane the host removed (`remove`) after the close came back with its Undo                                       | it stays gone; `remove` of a pane only Undo could bring back (by its id or object) takes it out of Undo, and is `"not-found"` only when there is none      |
+| Undo of a close could show an object twice, when it had been opened again meanwhile                              | that pane is left out (alone of its batch); a scratch pane, being its own, still comes back                                                                |
+| a closed pane whose id a new pane took came back under that id, and the new pane went                            | both stay: the closed pane comes back under a new id, with its pane state                                                                                  |
+| "Back to …" put back the layout from before the first link, unless the views had been rearranged                 | it closes the opened panes; the views keep their sizes and whatever was done to them meanwhile; Undo reopens only the opened panes                         |
+| a link opened on a curated page evened out the widths of the views beside it                                     | they keep their sizes, and the opened pane takes the mean of theirs                                                                                        |
+
+## `jali`
+
+| Before                                                                   | After                                                                                                 |
+| ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| `PageState.before` (the layout "Back to …" returned to)                  | removed: nothing is stored for "Back to …"; a `UrlWriter` of your own no longer sees it in `UrlState` |
+| `layout.close(...)` and `layout.closeOthers(...)` always returned `undo` | `undo` only when a pane closed, and it records the operation (see `jali/adapter`)                     |
+
+## `jali/adapter`
+
+| Before                                                  | After                                                                                                                                                                               |
+| ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `UndoEntry { kind; before: { layout; view }; tucked? }` | `{ kind: "close" \| "closeOthers"; closed: ClosedPane[]; sizes: SizeChange[] } \| { kind: "tuck"; tucked }`: each closed pane, its slot (`SlotLevel[]`), and the panes linked to it |
+| `ownedPaneState(s, kinds, layouts)`                     | `ownedPaneState(s, kinds, layout, closed?)`: the live layout, and the closed panes Undo could bring back                                                                            |
+| `pruneUndo(stack, layout)`                              | `pruneUndo(stack, layout, kinds?)`: with `kinds`, it also drops closed panes whose object is open                                                                                   |
+
 # Migrating to the stabilisation step 2 (23 Nov 2026): the commit model
 
 An action is a proposal until it commits, it makes one history write, and the address is written less often. No

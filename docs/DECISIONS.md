@@ -1826,3 +1826,49 @@ a commit on branch `stabilise`.
 - **Size:** unchanged budgets, none raised.
 - **Known limit:** the long-drag browser test runs in Data Studio, which has no row that scrolls, so it exercises the
   drop's single write rather than edge scrolling; the unit tests cover edge scrolling's ten-second hold.
+
+## 23 Nov 2026 · Stabilisation step 3: undo reverses the operation (23 Nov 2026)
+
+Step 3 of docs/reviews/2026-11-23/PLAN.md, as the owner approved it, from Codex's design with the lead's notes. Each is
+a commit on branch `stabilise`.
+
+- **An undo entry is the operation, not the layout before it.**
+  - **What:** a close entry holds each closed pane as it was (content, flags, links) and its slot, level by level from
+    its own container out: the container's id and type (a split's axis, or a tab group), its index, its size there,
+    and its neighbours, nearest first. It also holds the panes linked to it and the sizes the close changed on nodes
+    that stayed. Undo puts each pane back into the layout as it is now: into its container at its index (a tab within
+    its pinned or unpinned section) if that container is still there; failing that, beside the nearest neighbour it
+    had, recreating the container under its old id when that is free; failing that, at the end of the layout in
+    reading order. A batch goes back in the order it closed, so one pane put back is the next one's neighbour. A link
+    or size the close changed comes back only while it still has what the close left. Fits once, folding as a put
+    back does; a single close focuses the pane, a batch leaves focus where it is.
+  - **Why:** putting back a whole layout took back everything done since (finding UNDO), and brought back what the
+    host had removed meanwhile (A2-5).
+  - **Batches:** Close others, Close tabs and "Back to …" are one entry each, captured from the layout before any pane
+    is removed, so an earlier removal can't shift a later pane's recorded place or size. Missing panes and the last
+    pane make no entry.
+  - **Dropped entries:** after every commit, a closed pane whose object is open again leaves the stack (identity
+    kinds; a scratch pane is its own instance), and so does one the host removed: `remove` names a closed pane by its
+    id or object and takes it out of the stack, alone of its batch, or is `"not-found"`. An entry left with no pane goes.
+  - **Pane state:** kept while a pane or a closed pane in the stack shows its object under its id
+    (`ownedPaneState(s, kinds, layout, closed)`), and pruned when an entry is dropped too, not only when the layout
+    changes. A closed pane whose id a new pane took comes back under a new id, its state held for it there.
+  - **Commit model:** an entry is built inside the proposal and published with the commit, so a held, refused or
+    destroyed close publishes none, and a held one recomputes it on its yes.
+  - **Kept:** a tuck is still undone by putting the pane back; undo still covers closes and tucks only.
+- **"Back to …" closes the investigation.** It closes the panes without a role as one close, with `keepSizes`: no view
+  takes an opened pane's room, so a resize, a pin or a move made during the investigation stays, and undo reopens
+  only those panes. `PageState.before` and every assignment of it are gone; a new item and a mode change still clear
+  the stack.
+- **Decided beyond the design:**
+  - A link opened on a curated page (`yields: false`) no longer evens out the views beside it: the new pane takes the
+    mean of their sizes. Without it, the first link reset the page's designed widths (1.15 and 0.85), and closing it
+    could not give them back, so "Back to Loan review restores every rect" (e2e/review.spec.ts) failed once the
+    snapshot went. "Nothing the person placed gives way to an opened pane" now covers sizes too.
+  - "Back to …" keeps the views' sizes rather than giving the space to each pane's opener, as `close` does; otherwise
+    a role the person had just resized would take an opened pane's room.
+  - `remove` of an open pane doesn't search the stack: a closed pane of its object was already dropped when the object
+    opened again.
+  - `layout.close` and `layout.closeOthers` return `undo` only when a pane closed.
+- **Size:** core grows by about 1.4 KB gzipped (bare 53.5 → 54.9 KB, minimal 56.5 → 57.9 KB), over every core budget.
+  Not raised: the owner's approval is asked for with these numbers.
