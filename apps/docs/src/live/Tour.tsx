@@ -15,7 +15,7 @@ import {
   PlayIcon,
 } from "@phosphor-icons/react";
 import { buildSearch, GAP, tabDropAt, zoneFor, type JaliStore } from "jali/adapter";
-import type { DndState, JaliActions, JaliModel } from "jali/adapter";
+import type { DndState, JaliActions, Model as JaliModel } from "jali/adapter";
 import { orderKind } from "./kinds";
 
 export type TourStatus = "idle" | "playing" | "paused" | "stopped" | "done";
@@ -427,7 +427,7 @@ export function useTour(o: TourOptions): Tour {
       wait: (ms) => clock.wait(ms),
       cut: reduced,
       actions: store.jali.actions,
-      model: () => store.jali.model(),
+      model: () => store.model(),
       ws,
       pane: (id, sel) => {
         const el = id ? ws.querySelector(`[data-pane="${CSS.escape(id)}"]`) : null;

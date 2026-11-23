@@ -94,7 +94,7 @@ Switching to a preset is a new step in the browser's history, so Back returns to
 
 ## Your own preset menu
 
-Jali lists presets in ⌘K. If you want them in your top bar too, read them from the instance. Render this inside `<JaliRoot>`:
+Jali lists presets in ⌘K. If you want them in your top bar too, read them from the instance: `jali.presets` holds each one's `id` and `label`, in menu order. Render this inside `<JaliRoot>`:
 
 `src/PresetMenu.tsx`
 
@@ -103,11 +103,11 @@ import { useJali, useJaliState } from "jali/react";
 
 /** The presets as buttons in your own top bar. Render it inside <JaliRoot>. */
 export function PresetMenu() {
-  const { env, actions } = useJali();
+  const { presets, actions } = useJali();
   const current = useJaliState((s) => s.presetId);
   return (
     <nav aria-label="Layouts">
-      {env.presets.map((p) => (
+      {presets.map((p) => (
         <button key={p.id} aria-pressed={p.id === current} onClick={() => actions.preset(p.id)}>
           {p.label}
         </button>

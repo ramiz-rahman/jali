@@ -431,12 +431,12 @@ export const jali = createJali({
 
 ### One command menu: yours
 
-Leaving `palette()` out of `features` tells Jali your app has the command menu. Jali renders no palette and leaves ⌘K alone. `listCommands(jali)` gives your menu everything Jali's palette would have listed: the focused pane's own commands first, then Jali's and your own `commands`, each with its `title`, `group`, `keys` label, whether it is `disabled` now and the `reason`, and `run`. It builds a new list each time, so read it again when `jali.subscribe` calls back, as the sample does.
+Leaving `palette()` out of `features` tells Jali your app has the command menu. Jali renders no palette and leaves ⌘K alone. `listCommands(jali)` gives your menu everything Jali's palette would have listed: the focused pane's own commands first, then Jali's and your own `commands`, each with its `title`, `group`, `keys` label, whether it is `disabled` now and the `reason`, and `run`. It is the same array until something it lists changes, so it is a store snapshot as it is: `useSyncExternalStore(jali.subscribe, () => listCommands(jali))`, as the sample does, re-renders your menu only then.
 
 `src/HostCommandMenu.tsx`
 
 ```tsx
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { listCommands } from "jali";
 import { useJali } from "jali/react";
 
@@ -447,9 +447,8 @@ import { useJali } from "jali/react";
  */
 export function HostCommandMenu({ onClose }: { onClose: () => void }) {
   const jali = useJali();
-  // The focused pane's own first, then Jali's: read again after every change.
-  const [commands, setCommands] = useState(() => listCommands(jali));
-  useEffect(() => jali.subscribe(() => setCommands(listCommands(jali))), [jali]);
+  // The focused pane's own first, then Jali's: the same array until something it lists changes.
+  const commands = useSyncExternalStore(jali.subscribe, () => listCommands(jali));
   const [query, setQuery] = useState("");
   const shown = commands.filter((c) =>
     `${c.title} ${c.group}`.toLowerCase().includes(query.toLowerCase()),
@@ -484,7 +483,7 @@ export function HostCommandMenu({ onClose }: { onClose: () => void }) {
 }
 ```
 
-Close your menu before calling `run`: some commands move focus into a pane. Outside React, `listCommands(jali)` returns the same list; read it again after `jali.subscribe` calls back.
+Close your menu before calling `run`: some commands move focus into a pane. Outside React, read it again when `jali.subscribe` calls back, and compare it with the last one to know whether anything changed. An `allow` rule that reads your own data can change what it lists with no change of Jali's state: read it again when that data changes too.
 
 ### Move Jali's keys off yours
 

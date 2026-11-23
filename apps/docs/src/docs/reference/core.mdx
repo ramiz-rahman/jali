@@ -8,19 +8,18 @@ import createCode from "../../samples/reference/create-workspace.ts?raw";
 import builderCode from "../../samples/reference/builders.ts?raw";
 import formatCode from "../../samples/reference/format.ts?raw";
 import commandsCode from "../../samples/reference/commands.ts?raw";
-import layoutCode from "../../samples/reference/layout-ops.ts?raw";
 import sameRefCode from "../../samples/reference/same-ref.ts?raw";
 import readCode from "../../samples/reference/read-store.ts?raw";
 import messagesCode from "../../samples/reference/messages.ts?raw";
 import paramsCode from "../../samples/reference/params.tsx?raw";
 
-The framework-free part of Jali: the instance, the layouts it shows, the address and storage ports, commands and keys. Render it with [jali/react](/reference/react). Types have their own page, [jali types](/reference/core/types); the pure layout operations are on [The layout namespace](/reference/core/layout).
+The framework-free part of Jali: the instance, the layouts it shows, the address and storage ports, commands and keys. Render it with [jali/react](/reference/react). Types have their own page, [jali types](/reference/core/types).
 
 ```sh
 npm install jali
 ```
 
-Framework adapters import `jali/adapter`: everything on this page, and, by name, what an adapter needs from inside the package, such as the `DomPort` through which the core finds the adapter's elements. Apps need only what is on this page.
+Framework adapters import `jali/adapter`: everything on this page, and, by name, what an adapter needs from inside the package, such as the `DomPort` through which the core finds the adapter's elements, the instance's store (`storeOf`), and the pure layout operations (`layout`). Apps need only what is on this page.
 
 ## The instance
 
@@ -238,11 +237,13 @@ Storage in a `Map`, for tests, server rendering and embedded instances.
 
 ## Commands and keys
 
-<Entry name="listCommands" kind="function" from="jali" signature={`listCommands(jali: Jali): ListedCommand[]`} example={commandsCode} exampleFile="toolbar.ts">
+<Entry name="listCommands" kind="function" from="jali" signature={`listCommands(jali: Jali): readonly ListedCommand[]`} example={commandsCode} exampleFile="toolbar.ts">
 
-Every command a person can run from a menu now, in the palette's order: the focused pane's own commands first (keys `pane:<id>`), then the instance's and your own `commands`. Each has its `title`, `group`, `keys` label for this platform, `disabled` and the `reason`, and `run`. For an app with its own command menu (no `palette()` feature); in React, read it again in an effect on `jali.subscribe`.
+Every command a person can run from a menu now, in the palette's order: the focused pane's own commands first (keys `pane:<id>`), then the instance's and your own `commands`. Each has its `title`, `group`, `keys` label for this platform, `disabled` and the `reason`, and `run`. For an app with its own command menu (no `palette()` feature).
 
-<Returns type="ListedCommand[]" />
+It is worked out on every call, and returns the same array (and the same entries, each with the same `run`) until something it lists changes. So in React it is a store snapshot as it is: `useSyncExternalStore(jali.subscribe, () => listCommands(jali))` re-renders only when the list changes. What it lists can change without a change of state, when an `allow` rule reads your own data: call it again then.
+
+<Returns type="readonly ListedCommand[]" />
 
 </Entry>
 
@@ -326,21 +327,5 @@ A binding string printed for the platform: `keyHint("Alt+Enter")` is "⌥↵" on
 <Entry name="en" kind="constant" from="jali" signature={`const en: Messages`} example={messagesCode} exampleFile="messages.ts">
 
 Jali's English messages: every word it shows or says, by area (`announcements`, `toasts`, `commands`, `commandGroups`, `keys`, `palette`, `chooser`, `confirmDiscard`, `settings`, `tabs`, `shelf`, `pane`, `peek`, `panes`, `page`, `drop`). An instance made without `messages` says these words. A curated page's own words (the `page` area, and the announcements, commands and toast only a page uses) come with the page from `definePage`, so an instance without a page has none of them in `jali.messages`, and an app that doesn't import `en` doesn't ship them. Spread it to start a translation. A message that needs values is a function, such as `en.announcements.closed(pane)`; a message with a bold part takes `bold` and returns its parts in order.
-
-</Entry>
-
-## Geometry
-
-<Entry name="Spacing" kind="type" from="jali" signature={`interface Spacing { gap: number; inset: number }`} compact>
-
-An instance's spacing in CSS pixels, as `Env.spacing` holds it: the gap between panes, and the inset from the edges of Jali's root, which is always the gap.
-
-</Entry>
-
-## The layout namespace
-
-<Entry name="layout" kind="namespace" from="jali" signature={`import { layout } from "jali";`} example={layoutCode} exampleFile="layout.ts">
-
-The pure layout tree API: every operation takes a layout (and usually the view and a `LayoutContext`) and returns a new one; nothing is changed in place. The instance's actions are built on it. To write a layout, use the builders above; these are for working on one. Use it to build or test layouts, or to work out what an action would do. Each member is on [The layout namespace](/reference/core/layout).
 
 </Entry>

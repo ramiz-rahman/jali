@@ -614,7 +614,7 @@ How `usePaneState` reads a stored value. Stored state was written by an earlier 
 useJali(): Jali
 ```
 
-The instance from the nearest `<JaliRoot>`: its `actions`, `on`, `getLayout` and `setLayout`, `keymap`, `env` (kinds, presets, page) and state. Reading it does not subscribe; use `useJaliState` or `useJaliModel` for values that change. Throws outside `<JaliRoot>`.
+The instance from the nearest `<JaliRoot>`: its `actions`, `on`, `getLayout` and `setLayout`, `keymap`, `presets` and state. Reading it does not subscribe; use `useJaliState` or `useJaliModel` for values that change. Throws outside `<JaliRoot>`.
 
 **Returns** `Jali`:
 
@@ -633,22 +633,23 @@ import { useJaliShortcut, useJali, useJaliModel, useJaliState } from "jali/react
 
 // A status line: reads exactly what it shows, so it re-renders only when that changes.
 export function StatusLine() {
-  const focused = useJaliState((s) => s.view.focused);
-  const m = useJaliModel();
+  const zoomed = useJaliState((s) => !!s.view.zoomed);
+  const shown = useJaliModel((m) => m.panes.filter((p) => p.where === "shown").length);
+  const focused = useJaliModel((m) => m.panes.find((p) => p.focused)?.title);
   const { actions } = useJali();
   const keys = useJaliShortcut("pane.zoom");
   return (
     <footer>
-      {m.visible.length} panes on screen · {m.title(focused)}
+      {shown} panes on screen · {focused ?? "nothing focused"}
       <button title={keys ? `Maximise · ${keys}` : "Maximise"} onClick={() => actions.toggleZoom()}>
-        Maximise
+        {zoomed ? "Restore" : "Maximise"}
       </button>
     </footer>
   );
 }
 ```
 
-Subscribes to one value of the state. The component re-renders when that value changes, compared with `isEqual` (`Object.is` unless given). A selector may return a new object or array; pass your own equality function (one that compares its values, say) to re-render only when one of them changed.
+Subscribes to one value of the state ([`JaliState`](core/types.md#jalistate)). The component re-renders when that value changes, compared with `isEqual` (`Object.is` unless given). The state keeps each field's object while it is the same, so picking `s.view` or `s.selection` re-renders only when that changes. A selector may return a new object or array; pass your own equality function (one that compares its values, say) to re-render only when one of them changed.
 
 **Parameters**
 
@@ -680,8 +681,7 @@ export function OpenPanes() {
     <ul>
       {m.panes.map((p) => (
         <li key={p.id}>
-          <KindIcon kind={p.ref.kind} size={14} /> {m.title(p.id)}{" "}
-          <Activity activity={activity[p.id]} />
+          <KindIcon kind={p.ref.kind} size={14} /> {p.title} <Activity activity={activity[p.id]} />
         </li>
       ))}
     </ul>
@@ -689,7 +689,7 @@ export function OpenPanes() {
 }
 ```
 
-The instance as it is on screen, subscribed: the panes, their boxes and titles, the groups, the shelf. A new object only when something it depends on changed (the layout, the maximised pane, the area, the kinds, the page or the pane cap); focus alone does not change it. With a selector, only what it picks, re-rendering when that changes by `isEqual`.
+The layout as it is on screen, subscribed: every pane, with its title and where it is ([`JaliModel`](core/types.md#jalimodel)). A new object only when a pane changed, and each pane keeps its object while it is the same. With a selector, only what it picks, re-rendering when that changes by `isEqual`: `useJaliModel((m) => m.pane(id)?.where)` re-renders only when that pane moves.
 
 **Returns** `JaliModel`:
 
@@ -774,8 +774,7 @@ export function OpenPanes() {
     <ul>
       {m.panes.map((p) => (
         <li key={p.id}>
-          <KindIcon kind={p.ref.kind} size={14} /> {m.title(p.id)}{" "}
-          <Activity activity={activity[p.id]} />
+          <KindIcon kind={p.ref.kind} size={14} /> {p.title} <Activity activity={activity[p.id]} />
         </li>
       ))}
     </ul>

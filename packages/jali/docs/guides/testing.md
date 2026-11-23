@@ -74,7 +74,7 @@ describe("the orders app", () => {
   it("folds what does not fit", () => {
     // orders 440 + order 360 do not fit in 700
     const { jali: narrow } = testJali("", { width: 700, height: 900 });
-    expect(narrow.model().folded.length).toBeGreaterThan(0);
+    expect(narrow.model().panes.some((p) => p.where === "folded")).toBe(true);
   });
 });
 ```
@@ -96,8 +96,8 @@ Kinds belong to the instance, so every test gets its own: nothing about one test
 `jali.actions` holds what an app can ask Jali to do: `openBeside`, `close`, `preset`, `select` and the rest. Components call the same actions, so a test that runs them tests what a person does.
 
 - Each action returns what happened: `{ ok: true, pane }` (the pane it opened or acted on), or `{ ok: false, reason }`. Check `reason` to test a rule: `"unsaved"` when the person is asked first, `"not-found"` for a pane that is not there.
-- `jali.get()` is the state: `layout`, `view.focused`, `unsaved`, `selection`.
-- `jali.model()` is what is derived from it: `panes` in tree order, `pane(id)`, `folded`, `visible`, `resolved` (every pane's box on screen).
+- `jali.get()` is the state: `layout`, `view.focused`, `unsaved`, `selection`, `presetId`.
+- `jali.model()` is the layout as it is on screen: `panes` in tree order, `pane(id)` and `paneOf(ref)`, each pane with its `title` and `where` (`"shown"`, `"tab"`, `"folded"`, `"tucked"` or `"hidden"`).
 - `jali.on("open" | "close" | "focus" | "layout", handler)` tells you each change once.
 
 ## What a rendered pane would report

@@ -53,7 +53,7 @@ Switching to a preset is a new step in the browser's history, so Back returns to
 
 ## Your own preset menu
 
-Jali lists presets in ⌘K. If you want them in your top bar too, read them from the instance. Render this inside `<JaliRoot>`:
+Jali lists presets in ⌘K. If you want them in your top bar too, read them from the instance: `jali.presets` holds each one's `id` and `label`, in menu order. Render this inside `<JaliRoot>`:
 
 <Code code={menu} filename="src/PresetMenu.tsx" />
 

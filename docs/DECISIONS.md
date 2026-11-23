@@ -2037,3 +2037,60 @@ boundaries landed earlier.
   in development (they are Jali's state), as layouts already were.
 - **Size:** Jali full is 106.3 KB gzipped (JS 98.0), 1.5 KB more than before this step (104.8); core is 65.7 against a
   budget of 63. Still over, none raised; the budgets are re-set in step 8.
+
+## 23 Nov 2026 · Stabilisation step 7a: a designed read API (23 Nov 2026)
+
+Step 7, first half (docs/reviews/2026-11-23/PLAN.md, "The API (step 7)"; the design in the step's review notes, with
+the lead's split): the read API, a stable `listCommands`, every consumer moved. The consumers gate and the coverage
+adoptions are 7b.
+
+- **`jali.get()` is `JaliState`, Jali's own interface.**
+  - **What:** layout, page, view `{ focused, zoomed, peek }`, presetId, selection, settings, unsaved, activity,
+    resizeMode. Projected from the store's state (state/instance.ts) and kept while none of these changed; each field
+    is the store's own object, and `view` is kept while its three values are the same.
+  - **Why:** it was the engine's state behind a `Pick`, so its internals (`area`, `dir`, `recent`, `peekSource`, the
+    dialogs' flags, `view.scroll` and `focusHistory`) were API, and a selector over it heard every engine write.
+  - **Out:** `peekSource`, `area`, `dir`, `recent`, `paletteOpen`, `settingsOpen`: no example or real Data Studio reads
+    them. `view.peek` stays (the shared status line's hint).
+- **`jali.model()` is `JaliModel { panes, pane(id), paneOf(ref) }`.**
+  - **Each pane:** id, ref, title, where, focused, box, selected (a list pane's selection, reported with or without a
+    kind's `selects`), linkedTo, follows, kept, pinned. Links and flags stay because the examples and real Data Studio
+    read them; sizes, age, role and priority stay the engine's.
+  - **`where`:** taken off screen by the layout (`overlay.hidden`) is `"hidden"`; on screen and in its viewport is
+    `"shown"`; then tucked, folded or an inactive tab; then, one pane at a time, `"tab"` (the switcher's other
+    entries); anything else (behind a maximised pane, scrolled out of its row's window) is `"hidden"`. One pane at a
+    time uses core's `frames`, the calculation the adapter draws with, so a phone, stacked view and a fold agree with
+    the screen.
+  - **`box`:** where it is while shown, in CSS pixels from the panes' area's top left (the store's area: no inset or
+    switcher), the whole area for a maximised pane; `null` while it isn't shown, so "has a box" and "is shown" are one
+    rule.
+  - **References:** worked out again on each read and compared: a pane keeps its object while every field is the same
+    (refs by `sameRef`, boxes by value), the model while every pane does. A fast path returns the last model when the
+    engine's model, focus, the selection and the area are the same objects and no title changed: titles are read every
+    time, since a kind's title can read the app's own data.
+  - **`paneOf(ref)`:** the first pane `kinds.sameObject` matches, so a kind's `shows` counts and a scratch ref matches
+    nothing; real Data Studio keeps its own document-id lookup, which survives a change of kind.
+  - **Frozen** in production too: the projections are a handful of small objects per change.
+- **`jali.presets` is `{ id, label }[]`; `jali.env` goes.** Chrome metadata comes from the app's config: the shared
+  shell's `start(jali, { name, itemNoun })`.
+- **Behind jali/adapter:** `Env`, `Preset`, `Group`, `TuckedEntry`, `PaneKinds`, `Spacing`, the geometry types,
+  `StackPair`, `Hinge` and the `layout` namespace (its reference page goes; the docs' layout diagrams read the
+  engine's model through `storeOf`). `TuckRecord` becomes public, because `Overlay.tucks` names it and it was reachable
+  only through the layout namespace.
+  - **`createJali({ panes })` still takes a kind registry,** an adapter's (`createPaneKinds`). Narrowing it to an array
+    changed how `D` is inferred where tests spread `Partial<JaliOptions>`, so the arm stays and tooling/public-types.mjs
+    lists `PaneKinds`, `PaneKind` and `KindRegistry` as named on purpose but not exported, with that reason.
+- **`listCommands` is the same array until something it lists changes.** Worked out on every call and compared entry
+  by entry (key, id, title, group, keys, disabled, reason, run), never kept by the state's identity: an `allow` rule
+  can read the app's own data. An instance command's `run` is one function per id. Hosts and the palette read it with
+  `useSyncExternalStore(jali.subscribe, () => listCommands(jali))`; `useJaliCommands` goes.
+- **Consumers moved:** the examples' three hand-rolled helpers are `paneOf(ref)` and `where === "shown"`; every top bar
+  reads `jali.presets`; real Data Studio reads `where` and subscribes to `listCommands` (its workbench re-renders when
+  the commands change, not on every state change).
+- **Tests whose expectations changed:** `follows`, `kept` and `pinned` are booleans (three React tests expect
+  `false`); the public API lists `presets` for `env` and the adapter's `layout` namespace; Trips' week checks `where`
+  and `box` instead of the scroller's content boxes, Markets' second chart its tab group in the layout. Jali's own tests
+  that read the engine's model read `storeOf(jali)`.
+- **Size:** core grows about 0.8 KB gzipped where an instance is made (bare 56.5 → 57.3, minimal 59.7 → 60.4, full
+  65.7 → 66.6, `+page` 61.5 → 62.2) and 1.6 KB headless (51.0 → 52.6: it now ships `frames`, which React scenarios
+  already had); the React chunk is unchanged. Not raised: over every core budget, as since step 3.

@@ -31,12 +31,11 @@ export function agentTools(jali: Jali) {
     description: "The panes: id, title, the object each shows, and whether it is on screen.",
     inputSchema: { type: "object", properties: {} },
     execute() {
-      const model = jali.model();
-      return model.panes.map((p) => ({
+      return jali.model().panes.map((p) => ({
         id: p.id,
-        title: model.title(p.id),
+        title: p.title,
         ref: p.ref,
-        shown: model.visible.includes(p.id),
+        shown: p.where === "shown",
       }));
     },
   };

@@ -17,7 +17,7 @@ import {
   TreeStructureIcon,
   XIcon,
 } from "@phosphor-icons/react";
-import { layout as jl, type LayoutNode, type Rect, type JaliModel } from "jali/adapter";
+import { layout as jl, type LayoutNode, type Rect, type Model as JaliModel } from "jali/adapter";
 // The tree's side panels read the live workspace beside its root, so they use the root's own provider, which
 // jali/react keeps internal (the docs site lives in this repo).
 import { JaliProvider } from "../../../../packages/react/src/JaliRoot";

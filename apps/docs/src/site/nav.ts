@@ -62,7 +62,6 @@ export const NAV: NavSection[] = [
     items: [
       { path: "/reference/core" },
       { path: "/reference/core/types", title: "jali types" },
-      { path: "/reference/core/layout", title: "The layout namespace" },
       { path: "/reference/react" },
       { path: "/reference/features" },
       { path: "/reference/testing" },

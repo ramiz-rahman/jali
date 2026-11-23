@@ -16,14 +16,14 @@ import { jali } from "./jali";
 
 /** The top bar: the app's name, the presets, and a button that shows its key. */
 function TopBar() {
-  const { env, actions } = useJali();
+  const { presets, actions } = useJali();
   const current = useJaliState((s) => s.presetId);
   const resetKeys = useJaliShortcut("layout.reset"); // its keys in this keymap, or "" until you bind one
   return (
     <header className="top-bar" data-jali-chrome>
       <strong>Orders</strong>
       <nav aria-label="Layouts">
-        {env.presets.map((p) => (
+        {presets.map((p) => (
           <button
             key={p.id}
             type="button"
@@ -47,11 +47,10 @@ function TopBar() {
 
 /** The status line: what is focused, and the shelf of tucked panes. */
 function StatusLine() {
-  const focused = useJaliState((s) => s.view.focused);
-  const model = useJaliModel();
+  const focused = useJaliModel((m) => m.panes.find((p) => p.focused)?.title);
   return (
     <footer className="status-line" data-jali-chrome>
-      <span>{focused ? model.title(focused) : "No pane focused"}</span>
+      <span>{focused ?? "No pane focused"}</span>
       <Shelf />
     </footer>
   );

@@ -63,6 +63,6 @@ describe("the orders app", () => {
   it("folds what does not fit", () => {
     // orders 440 + order 360 do not fit in 700
     const { jali: narrow } = testJali("", { width: 700, height: 900 });
-    expect(narrow.model().folded.length).toBeGreaterThan(0);
+    expect(narrow.model().panes.some((p) => p.where === "folded")).toBe(true);
   });
 });

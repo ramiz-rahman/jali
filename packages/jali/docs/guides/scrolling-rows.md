@@ -120,4 +120,4 @@ On a phone, Jali shows one pane at a time, and its switcher lists every pane in 
 
 ## Reading it from your code
 
-The model has both layouts. `m.resolved` places each row at its scroll position, and gives a pane in it `clip`, the row's window. `m.content` is the same unscrolled, with each row's panes along its content. `m.outOfView` lists the panes scrolled out of view. The scroll positions are in `view.scroll`, by row id. The `layout` namespace has the pure steps: `scrolled`, `offsetToShow`, `maxOffset`, `moveOutOfStrip` and `extentIn`. See [the layout namespace](../reference/core/layout.md).
+A pane in the row's window is `where: "shown"` in `jali.model()`, with its `box`; a pane scrolled out of it is `"hidden"`, with no box. Focusing it (`jali.actions.focus(id)`) scrolls the row to it. Where each row came to rest is in the address, as `scroll`.

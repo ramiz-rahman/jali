@@ -2,13 +2,13 @@
 
 Every function and constant jali exports, with its options, defaults and what it returns.
 
-The framework-free part of Jali: the instance, the layouts it shows, the address and storage ports, commands and keys. Render it with [jali/react](react.md). Types have their own page, [jali types](core/types.md); the pure layout operations are on [The layout namespace](core/layout.md).
+The framework-free part of Jali: the instance, the layouts it shows, the address and storage ports, commands and keys. Render it with [jali/react](react.md). Types have their own page, [jali types](core/types.md).
 
 ```sh
 npm install jali
 ```
 
-Framework adapters import `jali/adapter`: everything on this page, and, by name, what an adapter needs from inside the package, such as the `DomPort` through which the core finds the adapter's elements. Apps need only what is on this page.
+Framework adapters import `jali/adapter`: everything on this page, and, by name, what an adapter needs from inside the package, such as the `DomPort` through which the core finds the adapter's elements, the instance's store (`storeOf`), and the pure layout operations (`layout`). Apps need only what is on this page.
 
 ## The instance
 
@@ -168,7 +168,7 @@ if (!opened.ok) console.log(opened.reason); // "not-found", "unsaved", …
 store.actions.select("orders", orderKind({ id: 1043 }));
 store.actions.close(orderKind({ id: 1042 })); // a pane by what it shows
 store.on("open", ({ pane, ref }) => console.log("opened", pane, ref.params));
-store.model().visible; // panes on screen, reading order
+store.model().panes.filter((p) => p.where === "shown"); // panes on screen, in tree order
 store.on("toast", (t) => console.log(t.title, t.undo ? "(Undo)" : ""));
 off();
 ```
@@ -471,7 +471,7 @@ Storage in a `Map`, for tests, server rendering and embedded instances.
 *function*, from `jali`
 
 ```ts
-listCommands(jali: Jali): ListedCommand[]
+listCommands(jali: Jali): readonly ListedCommand[]
 ```
 
 Example, `toolbar.ts`:
@@ -493,9 +493,11 @@ copyLink(store); // the address on the clipboard, and "Link copied" read out
 export { disabled, tooltip, onClick };
 ```
 
-Every command a person can run from a menu now, in the palette's order: the focused pane's own commands first (keys `pane:<id>`), then the instance's and your own `commands`. Each has its `title`, `group`, `keys` label for this platform, `disabled` and the `reason`, and `run`. For an app with its own command menu (no `palette()` feature); in React, read it again in an effect on `jali.subscribe`.
+Every command a person can run from a menu now, in the palette's order: the focused pane's own commands first (keys `pane:<id>`), then the instance's and your own `commands`. Each has its `title`, `group`, `keys` label for this platform, `disabled` and the `reason`, and `run`. For an app with its own command menu (no `palette()` feature).
 
-**Returns** `ListedCommand[]`:
+It is worked out on every call, and returns the same array (and the same entries, each with the same `run`) until something it lists changes. So in React it is a store snapshot as it is: `useSyncExternalStore(jali.subscribe, () => listCommands(jali))` re-renders only when the list changes. What it lists can change without a change of state, when an `allow` rule reads your own data: call it again then.
+
+**Returns** `readonly ListedCommand[]`:
 
 ### runCommand
 
@@ -640,53 +642,3 @@ en.announcements.closed("Order 1041"); // "Order 1041 closed · Undo available"
 ```
 
 Jali's English messages: every word it shows or says, by area (`announcements`, `toasts`, `commands`, `commandGroups`, `keys`, `palette`, `chooser`, `confirmDiscard`, `settings`, `tabs`, `shelf`, `pane`, `peek`, `panes`, `page`, `drop`). An instance made without `messages` says these words. A curated page's own words (the `page` area, and the announcements, commands and toast only a page uses) come with the page from `definePage`, so an instance without a page has none of them in `jali.messages`, and an app that doesn't import `en` doesn't ship them. Spread it to start a translation. A message that needs values is a function, such as `en.announcements.closed(pane)`; a message with a bold part takes `bold` and returns its parts in order.
-
-## Geometry
-
-### Spacing
-
-*type*, from `jali`
-
-```ts
-interface Spacing { gap: number; inset: number }
-```
-
-An instance's spacing in CSS pixels, as `Env.spacing` holds it: the gap between panes, and the inset from the edges of Jali's root, which is always the gap.
-
-## The layout namespace
-
-### layout
-
-*namespace*, from `jali`
-
-```ts
-import { layout } from "jali";
-```
-
-Example, `layout.ts`:
-
-```ts
-import { layout, type Layout, type LayoutContext, type ViewState } from "jali";
-import { orderKind } from "./kinds";
-import { store } from "./store";
-
-// Every operation is pure: a layout in, a new layout out. The context is the room, the gap and the kinds.
-const ctx: LayoutContext = {
-  fit: { ...store.get().area, gap: store.env.spacing.gap, kinds: store.env.kinds.registry() },
-  paneCap: store.get().settings.paneCap,
-};
-const start: Layout = layout.tree.clone(store.getLayout());
-const view: ViewState = { focused: "orders", focusHistory: ["orders"] };
-
-const opened = layout.openBeside(start, view, "orders", orderKind({ id: 1043 }), ctx);
-opened.mode; // "beside", "replaced" (an earlier link reused) or "tab" (no room)
-
-const closed = layout.close(opened.layout, opened.view, opened.opened, ctx);
-const boxes = layout.resolve(closed.layout, closed.view, ctx).panes; // a rect for every pane
-
-const code = layout.encode(closed.layout); // "1.WzEseyJ…": what goes in ?l=
-const back = layout.decode(code, store.env.kinds.registry()); // the same layout, or null when it can't be read
-export { boxes, back };
-```
-
-The pure layout tree API: every operation takes a layout (and usually the view and a `LayoutContext`) and returns a new one; nothing is changed in place. The instance's actions are built on it. To write a layout, use the builders above; these are for working on one. Use it to build or test layouts, or to work out what an action would do. Each member is on [The layout namespace](core/layout.md).

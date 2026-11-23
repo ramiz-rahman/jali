@@ -2,7 +2,7 @@
 
 Every type jali exports, with its fields, and every instance action.
 
-Import any of these with `import type { … } from "jali";`. Functions that use them are on [jali](../core.md) and [The layout namespace](layout.md).
+Import any of these with `import type { … } from "jali";`. Functions that use them are on [jali](../core.md).
 
 ## The layout tree
 
@@ -139,7 +139,7 @@ The direction of a split.
 type Edge = "left" | "right" | "top" | "bottom"
 ```
 
-A side of a pane: where to open or drop. In actions and commands it is a side of the screen, in either reading direction. The layout operations (`layout.drop`, `layout.open`, `layout.split`) take a side in the tree instead: `"left"` is before, `"right"` after, which right to left is the other side of the screen.
+A side of a pane: where to open or drop. In actions and commands it is a side of the screen, in either reading direction.
 
 ### Direction
 
@@ -149,7 +149,7 @@ A side of a pane: where to open or drop. In actions and commands it is a side of
 type Direction = "ltr" | "rtl"
 ```
 
-The reading direction an instance lays its panes out in (`jali.get().dir`, `createJali({ dir })`). Right to left, a row's first child is at the right: the same tree, mirrored on screen.
+The reading direction an instance lays its panes out in (`createJali({ dir })`, else the page's). Right to left, a row's first child is at the right: the same tree, mirrored on screen.
 
 ### Overlay
 
@@ -163,13 +163,23 @@ What sits on top of the tree. Written by the operations; read it, don't write it
 
 **Fields**
 
-- **`tucks`** (`{ pane: NodeId; home: NodeId; seq: number }[]`, required): Panes tucked into another pane (their home), in order.
+- **`tucks`** (`TuckRecord[]`, required): Panes tucked into another pane (their home), in order.
 
 - **`folds`** (`NodeId[]`, required): Slots folded for room, in order. The ids are opaque.
 
 - **`shown`** (`Record<NodeId, NodeId>`, required): The chosen tab of each folded or tucked group, keyed by the group's home pane.
 
 - **`hidden`** (`NodeId[]`): Panes taken off screen with no tab and no slot (a curated page's views in the tabs).
+
+### TuckRecord
+
+*type*, from `jali`
+
+```ts
+interface TuckRecord { pane: NodeId; home: NodeId; seq: number }
+```
+
+One tucked pane in `Overlay`: the pane, the pane it is tucked into (its home), and its place in the order it was tucked. Every tucked pane is here, shown or not; `jali.model()` says where each pane is now.
 
 ### ViewState
 
@@ -193,46 +203,6 @@ What the person is looking at, apart from the layout.
 
 - **`focusHistory`** (`NodeId[]`, required): Panes most recently focused first.
 
-### PaneKind
-
-*type*, from `jali`
-
-```ts
-interface PaneKind { kind; title(ref); minWidth; minHeight; comfortableWidth?; maxWidth?; comfortableHeight?; maxHeight?; checkParams? }
-```
-
-The part of a kind the layout operations read, from `kinds.registry()`. The sizes are explained under `PaneKindBase`. `checkParams(params)`, set for a kind that declares `params`, says what is wrong with a ref's params (a required param missing, a value its type can't read), or returns `undefined`; [`layout.validate`](layout.md#layoutvalidate) rejects a layout holding such a ref, so a link to it opens as broken.
-
-### KindRegistry
-
-*type*, from `jali`
-
-```ts
-type KindRegistry = Record<string, PaneKind>
-```
-
-Kinds by name, as the layout operations take them (`kinds.registry()`).
-
-### LayoutContext
-
-*type*, from `jali`
-
-```ts
-interface LayoutContext { fit: FitOptions; paneCap: number; dir?: Direction }
-```
-
-Everything a layout operation needs besides the layout. For an instance: `{ fit: { ...jali.get().area, gap: jali.env.spacing.gap, kinds: jali.env.kinds.registry() }, paneCap: jali.get().settings.paneCap, dir: jali.get().dir }`. `paneCap` is the most panes on screen before the oldest folds (the `paneCap` setting). `dir: "rtl"` mirrors the rects `resolve` returns, so they stay screen coordinates; the tree and the fit are the same.
-
-### FitOptions
-
-*type*, from `jali`
-
-```ts
-interface FitOptions { width: number; height: number; gap: number; kinds: KindRegistry }
-```
-
-The room: the instance's inner size in pixels, the gap between panes (6 in an instance), and the kinds.
-
 ### Rect
 
 *type*, from `jali`
@@ -242,80 +212,6 @@ interface Rect { x: number; y: number; width: number; height: number }
 ```
 
 A box in pixels, relative to the instance's inner area.
-
-### ResolvedLayout
-
-*type*, from `jali`
-
-```ts
-interface ResolvedLayout { panes: PaneBox[]; dividers: DividerBox[]; stacks; shelf; scrollers: ScrollerBox[] }
-```
-
-What `layout.resolve` returns: `panes` and `dividers` with their rects; `stacks`, the groups made by folding and tucking (`{ id, kind: "fold" | "tuck", homeId, paneIds }`); and `shelf`, every pane behind a tab with why (`{ paneId, homeId, stackId, reason: "tucked" | "folded" | "tab" }`).
-
-### PaneBox
-
-*type*, from `jali`
-
-```ts
-interface PaneBox { id: NodeId; rect: Rect; stackId?: NodeId; hidden?: "tab" | "zoom" | "off"; clip?: Rect }
-```
-
-A pane's place. `hidden`: behind another tab, behind a maximised pane, or `"off"` (hidden by the overlay, with an empty rect).
-
-### DividerBox
-
-*type*, from `jali`
-
-```ts
-interface DividerBox {
-  parentId: NodeId; index: number; axis: Axis; rect: Rect;
-  min: number; max: number; value: number;
-  neighbours?: [NodeId[], NodeId[]];
-}
-```
-
-A divider between child `index` and `index + 1` of split `parentId`. `value` is the first side's length now; `min` and `max` are how far a drag can take it; `neighbours` are the panes on each side.
-
-### ScrollerBox
-
-*type*, from `jali`
-
-```ts
-interface ScrollerBox { id: NodeId; rect: Rect; contentWidth: number; paneIds: NodeId[] }
-```
-
-A row that scrolls sideways (`row({ scroll: "x" }, …)`), as drawn. `rect` is its window on screen; its panes are laid along its content, `contentWidth` long, from `rect.x`. Once scrolled ([`layout.scrolled`](layout.md#layoutscrolled)), a strip's panes and dividers carry `clip`: the window they are cut to.
-
-### ResolvedStack
-
-*type*, from `jali`
-
-```ts
-interface ResolvedStack { id: NodeId; kind: "fold" | "tuck"; homeId: NodeId; paneIds: NodeId[] }
-```
-
-A tab group the fit made, not one in the tree: panes folded into a neighbour (`"fold"`) or tucked into their home (`"tuck"`). `homeId` is the pane whose slot holds them.
-
-### ShelfEntry
-
-*type*, from `jali`
-
-```ts
-interface ShelfEntry { paneId: NodeId; homeId: NodeId; stackId: NodeId; reason: "tucked" | "folded" | "tab" }
-```
-
-A pane that is not on screen, listed on the shelf: tucked, folded by the fit, or a background tab of a tucked or folded group. `homeId` is where it shows when put back.
-
-### TuckedEntry
-
-*type*, from `jali`
-
-```ts
-type TuckedEntry = ShelfEntry & { reason: "tucked" }
-```
-
-A pane the person tucked, as the model's `shelf` lists it. Folded panes are never on it: they wait behind their strip's "N folded" chip.
 
 ## Writing a layout
 
@@ -659,45 +555,7 @@ What a kind's `follow` returns: its params, any of which may be missing. Jali ch
 interface ParamProblem { param: string; value?: ParamValue }
 ```
 
-A param a ref is missing (`value` is undefined), or holds a value its type can't read. A ref with one never reaches the component: a layout link or saved layout holding it opens as broken, a page's opened pane with it is left out of the link, and a pane your code opens with it shows a message naming the param. Listed by `PaneKinds.problems`.
-
-### PaneKinds
-
-*type*, from `jali`
-
-```ts
-interface PaneKinds<D extends PaneKindBase = PaneKindBase>
-```
-
-An instance's kinds, as `jali.env.kinds`.
-
-- **`PaneKinds.register`**, `register(def: D): void`: Adds or replaces a kind and bumps `version()`.
-
-- **`PaneKinds.get`**, `get(kind: string): D | undefined`: The kind's definition.
-
-- **`PaneKinds.version`**, `version(): number`: Bumped by every registration; caches of kind-derived values key on it.
-
-- **`PaneKinds.onChange`**, `onChange(l: () => void): () => void`: Hear registrations. Returns the unsubscribe.
-
-- **`PaneKinds.registry`**, `registry(): KindRegistry`: The framework-free view for the layout operations; the same object until the next registration.
-
-- **`PaneKinds.params`**, `params(ref: ObjectRef): Params`: The ref's params, read with its kind's `params` types.
-
-- **`PaneKinds.problems`**, `problems(ref: ObjectRef): ParamProblem[]`: What its kind can't read in the ref's params: required params missing, values of the wrong type. Empty when it opens.
-
-- **`PaneKinds.title`**, `title(ref: ObjectRef): string`: The title, or the kind name for an unknown kind, a ref with problems or a title that throws.
-
-- **`PaneKinds.identityOf`**, `identityOf(ref: ObjectRef): string | undefined`: The ref's identity as text, `undefined` for scratch kinds.
-
-- **`PaneKinds.sameObject`**, `sameObject(a: ObjectRef, b: ObjectRef): boolean`: Same object type and identity. Scratch refs are never the same object.
-
-- **`PaneKinds.follow`**, `follow(kind: string, selected: ObjectRef): ObjectRef | undefined`: What a following pane of `kind` shows when its list selects `selected`: `selected` itself for its own kind, else what the kind's `follow` gives, when the kind can read it. `undefined`: the pane keeps what it shows.
-
-- **`PaneKinds.sameRecent`**, `sameRecent(a: ObjectRef, b: ObjectRef): boolean`: The same entry in Recent: same kind and identity (scratch kinds: same params).
-
-- **`PaneKinds.isRecordable`**, `isRecordable(ref: ObjectRef): boolean`: Whether it goes in Recent: the kind's `inRecent`.
-
-- **`PaneKinds.isTransient`**, `isTransient(ref: ObjectRef): boolean`: Whether it is the instance's launcher.
+A param a ref is missing (`value` is undefined), or holds a value its type can't read. A ref with one never reaches the component: a layout link or saved layout holding it opens as broken, a page's opened pane with it is left out of the link, and a pane your code opens with it shows a message naming the param.
 
 ### PaneCommand
 
@@ -887,16 +745,6 @@ How the instance behaves on a phone (`createJali({ phone })`).
 
 - **`fold`** (`boolean`): On a screen that folds into two (a half-open Galaxy Fold or Pixel Fold, a Flip in flex mode, a dual-screen phone), put a pane each side of the fold so none straddles the hinge: the focused pane and the pane it was opened from, else the next pane. Read from the browser's viewport segments, in Chrome and Edge 138 and later; elsewhere nothing changes. Default `true`.
 
-### Preset
-
-*type*, from `jali`
-
-```ts
-interface Preset { id: string; label: string; build: () => Layout }
-```
-
-A layout to start from or switch to ("Layout: Orders"), as `jali.env.presets` holds it: made from a `PresetOptions`, with `build` returning a fresh layout each time.
-
 ### PresetOptions
 
 *type*, from `jali`
@@ -906,16 +754,6 @@ interface PresetOptions { id: string; label: string; layout: LayoutInput | (() =
 ```
 
 A preset, as `createJali({ presets })` takes it. `saved`, if given, is asked each time the preset is chosen: a layout it returns is shown instead of `layout`, so the preset comes back as the person left it. "Reset layout" always builds `layout`. See [Start from presets](../../guides/presets.md#keep-each-preset-as-it-was-left).
-
-### Env
-
-*type*, from `jali`
-
-```ts
-interface Env { kinds: PaneKinds; profile: ProfileBase | null; presets: readonly Preset[]; commands?: readonly Command[]; name: string; launcher?: string; dir?: Direction; messages?: Messages }
-```
-
-What an instance is made of besides its state: `jali.env`. `profile` is its curated page; `launcher` the kind Split opens; `dir` the reading direction `createJali({ dir })` fixed, if any.
 
 ## The instance
 
@@ -935,15 +773,15 @@ An instance, from [`createJali`](../core.md#createjali). It is frozen: these mem
 
 - **`Jali.dialogs`**, `dialogs: JaliDialogs`: The palette, settings and the chooser. See `JaliDialogs`.
 
-- **`Jali.get`**, `get(): JaliState<R>`: The state now, read-only.
+- **`Jali.get`**, `get(): JaliState<R>`: The state now, read-only; the same object while nothing in it changed. See `JaliState`.
 
 - **`Jali.subscribe`**, `subscribe(fn: () => void): () => void`: Called once after each change of state, before the change's events. Returns the unsubscribe. To hear what changed, use `on`. A subscriber that throws is reported with `console.error`; the others, and the action that made the change, carry on.
 
-- **`Jali.model`**, `model(): JaliModel<R>`: The derived model, read-only; the same object while nothing it depends on changed.
+- **`Jali.model`**, `model(): JaliModel<R>`: The layout as it is on screen: every pane, with its title and where it is. Read-only; the same object while nothing in it changed. See `JaliModel`.
 
 - **`Jali.on`**, `on(event: keyof JaliEvents, handler: (e) => void): () => void`: Hear one kind of change: `"open"`, `"close"`, `"pin"`, `"focus"`, `"layout"` or `"toast"`. Returns the unsubscribe. A change's events come once it is done, in this order: `close`, `open`, `pin`, `focus`, `layout`, then its toasts. A handler that throws is reported with `console.error` and the others still hear it. See `JaliEvents`.
 
-- **`Jali.getLayout`**, `getLayout(): DeepReadonly<Layout>`: The layout on screen, to save. It is plain JSON, read-only; `layout.tree.clone` gives a copy to edit.
+- **`Jali.getLayout`**, `getLayout(): DeepReadonly<Layout>`: The layout on screen, to save. It is plain JSON, read-only; `structuredClone` gives a copy to edit.
 
 - **`Jali.setLayout`**, `setLayout(layout: LayoutInput): ActionResult`: Show a layout: anything `createJali({ layout })` takes. It is fitted to the room, focus stays on a pane that is still there, and the address gets a new entry, so Back returns to the layout before. A curated page that is open closes. Refused with `"invalid"` for a pane kind the instance doesn't have; held with `"unsaved"` when a pane that would go has unsaved work; asks `beforeClose` like a close. The layout is copied as it is given: editing your object afterwards changes nothing.
 
@@ -951,7 +789,7 @@ An instance, from [`createJali`](../core.md#createjali). It is frozen: these mem
 
 - **`Jali.messages`**, `messages: Messages`: Every word it shows or says: `en` with `createJali({ messages })` over it. Use it for your own UI in the same language. A curated page's own words (the `page` area, and the announcements, commands and toast only a page uses) are there when the instance has a page.
 
-- **`Jali.env`**, `env: Env`: Its kinds, presets, page, name and launcher.
+- **`Jali.presets`**, `presets: readonly { id: string; label: string }[]`: Its presets, in menu order, for your own menu: each one's `id`, which `actions.preset(id)` takes, and its `label`. The preset in use is `get().presetId`.
 
 - **`Jali.href`**, `href(): string`: The address to share: the URL writer's, else `location.href`, else `""`.
 
@@ -1038,42 +876,30 @@ The options of `createJali`. Each one, with its default, is under [`createJali`]
 *type*, from `jali`
 
 ```ts
-type JaliState<R extends ObjectRef = ObjectRef>
+interface JaliState<R extends ObjectRef = ObjectRef>
 ```
 
-What an instance holds that an app reads, read-only. Read it with `jali.get()` or `useJaliState(select)`. Change it through `actions`.
+What an instance holds that an app reads, read-only. Read it with `jali.get()` or `useJaliState(select)`; change it through `actions`. It is the same object until one of its fields changes, and each field keeps its object while it is the same, so a selector re-renders only for what it picked.
 
 **Fields**
 
-- **`layout`** (`Layout`, required): The arrangement.
-
-- **`view`** (`ViewState`, required): Focus, maximise, peek.
+- **`layout`** (`DeepReadonly<Layout>`, required): The arrangement: what `getLayout()` gives.
 
 - **`page`** (`PageState | null`, required): The curated page in use, or `null` for the free layout.
 
+- **`view`** (`{ focused?: NodeId; zoomed?: NodeId; peek?: R }`, required): The focused pane, the maximised one, and what the peek shows.
+
 - **`presetId`** (`string | undefined`, required): The preset last chosen; "Reset layout" rebuilds it.
-
-- **`peekSource`** (`NodeId`): The pane the peek acts for.
-
-- **`resizeMode`** (`NodeId | null`, required): The pane in keyboard resize mode.
-
-- **`settings`** (`Settings`, required): The person's settings.
-
-- **`activity`** (`Record<NodeId, PaneActivity>`, required): What each pane reports (`useActivity`), merged across the components that report it. A pane nothing reports an activity for has no entry: it is idle.
 
 - **`selection`** (`Record<NodeId, Selection<R>>`, required): Each list pane's selected item.
 
-- **`recent`** (`readonly R[]`, required): Objects opened this session, newest first, at most 8.
-
-- **`area`** (`{ width: number; height: number }`, required): The instance's inner size; the panes measure it.
-
-- **`dir`** (`Direction`, required): The reading direction the panes are laid out in. The panes read it from the page, unless `createJali({ dir })` fixed it.
+- **`settings`** (`Settings`, required): The person's settings.
 
 - **`unsaved`** (`Record<NodeId, string>`, required): Panes with unsaved work, and what it is.
 
-- **`paletteOpen`** (`boolean`, required): The command palette is open.
+- **`activity`** (`Record<NodeId, PaneActivity>`, required): What each pane reports (`useActivity`), merged across the components that report it. A pane nothing reports an activity for has no entry: it is idle.
 
-- **`settingsOpen`** (`boolean`, required): Settings is open.
+- **`resizeMode`** (`NodeId | null`, required): The pane in keyboard resize mode.
 
 ### PageState
 
@@ -1130,53 +956,25 @@ What a `UrlWriter` reads: the layout on screen, the view (focus, the maximised p
 *type*, from `jali`
 
 ```ts
-type JaliModel<R extends ObjectRef = ObjectRef>
+interface JaliModel<R extends ObjectRef = ObjectRef>
 ```
 
-What is on screen, derived once per change (`jali.model()`, `useJaliModel()`).
+The layout as it is on screen (`jali.model()`, `useJaliModel()`): every pane, with its title and where it is. Read-only. It is the same object until a pane changes, and each pane keeps its object while it is the same, so `useJaliModel((m) => m.pane(id))` re-renders only for that pane. A title is read again each time, since a kind's title can read your own data.
 
 **Fields**
 
-- **`resolved`** (`ResolvedLayout`, required): Boxes, dividers, groups and shelf, with the maximise applied and each row that scrolls at its scroll position.
+- **`panes`** (`readonly PaneOf<R>[]`, required): Every pane in tree order, wherever it is: shown, a tab, folded, tucked or hidden.
 
-- **`content`** (`ResolvedLayout`, required): The same, unscrolled: each strip's panes along its content.
+- **`pane`** (`(id: NodeId | undefined) => PaneOf<R> | undefined`, required): A pane by id.
 
-- **`outOfView`** (`ReadonlySet<NodeId>`, required): Panes in a row that scrolls, scrolled out of its window. They stay mounted and in the focus order, and are `paused`.
+- **`paneOf`** (`(ref: ObjectRef) => PaneOf<R> | undefined`, required): The first pane showing the same object as `ref`, whatever its kind: the same object type (a kind's `shows`, else its name) and identity, as Jali decides whether an object is already open. A ref of a scratch kind matches none.
 
-- **`flat`** (`ResolvedLayout`, required): The same as if nothing were maximised.
-
-- **`panes`** (`PaneNode[]`, required): Every pane in tree order.
-
-- **`pane`** (`(id: NodeId | undefined) => PaneNode | undefined`, required): A pane by id.
-
-- **`title`** (`(id: NodeId | undefined) => string`, required): A pane's name, or `"pane"` when there is none.
-
-- **`visible`** (`NodeId[]`, required): Panes on screen, reading order.
-
-- **`flatVisible`** (`NodeId[]`, required): The same as if nothing were maximised.
-
-- **`groups`** (`Map<NodeId, Group>`, required): Every tab group: `{ id, kind: "stack" | "fold" | "tuck", tabs, active }`.
-
-- **`stackOf`** (`(id) => StackNode | undefined`, required): The person's tab group holding a pane.
-
-- **`tuckOf`** (`(id) => { pane; home; seq } | undefined`, required): A pane's tuck.
-
-- **`shownWith`** (`(id: NodeId) => NodeId`, required): The pane on screen in the same group (itself when shown).
-
-- **`shelf`** (`TuckedEntry[]`, required): Tucked panes in tree order, with the pane each sits behind.
-
-- **`folded`** (`NodeId[]`, required): Panes folded for room.
-
-- **`off`** (`NodeId[]`, required): Panes hidden by the overlay.
-
-- **`onScreen`** (`PaneNode[]`, required): Every pane except hidden ones: what the phone's switcher lists.
-
-- **`onePane`** (`boolean`, required): One pane shows at a time: Jali's root is under `phone.below` wide, or even one pane's minimum is wider than the room.
-
-- **`stacked`** (`{ top: NodeId; bottom: NodeId; axis?: "row" | "column" }`): On a portrait phone with `phone.stack`, the two linked panes shown one above the other (`axis: "row"`: either side of a fold).
-
-- **`env`** (`Env`, required):
-- **`layout`** (`Layout`, required):
+```ts
+// The pane showing an order, brought to the front; else opened beside the focused pane.
+const shown = jali.model().paneOf(order({ id: 7 }));
+if (shown) jali.actions.focus(shown.id);
+else jali.actions.openBeside(jali.get().view.focused ?? "orders", order({ id: 7 }));
+```
 
 ### ActionResult
 
@@ -1374,36 +1172,6 @@ The options of `actions.openBeside` and a pane's `openBeside`. `edge` is the sid
 - It only places a new pane. Everything else is as without it: the new pane is linked to its source, focus stays in the source, it is one history entry and it is announced the same way. A link that replaces the source's earlier link of the same kind shows in that pane, where it is; an object already open is shown where it is.
 - With no room on that edge, the new pane becomes a tab of its source, as without one. On a phone it goes on that edge in the layout, which shows one pane at a time until the screen is wider.
 - On a curated page, panes opened from the page's views stay together, after the views. The first one starts it there whatever the edge; later ones open on that edge of the opened panes' last column. A pane opened from an opened pane opens on that edge of it. In Single view a link peeks, as always.
-
-### StackPair
-
-*type*, from `jali`
-
-```ts
-interface StackPair { top: NodeId; bottom: NodeId; axis?: "row" | "column"; hinge?: Hinge }
-```
-
-`JaliModel.stacked`: the two panes shown together while one pane shows at a time, on a portrait phone with `phone.stack` (`top` above `bottom`), or either side of a fold (`axis: "row"`, with its `hinge`).
-
-### Hinge
-
-*type*, from `jali`
-
-```ts
-interface Hinge { axis: "row" | "column"; start: number; size: number }
-```
-
-A fold that splits the screen in two, from the browser's viewport segments: `"row"` when the halves are side by side, `"column"` when one is above the other. `start` and `size` place it along that axis, in CSS pixels (`size` is 0 for a seamless fold).
-
-### Group
-
-*type*, from `jali`
-
-```ts
-interface Group { id: NodeId; kind: "stack" | "fold" | "tuck"; tabs: PaneNode[]; active: NodeId }
-```
-
-A tab group as the model sees it (`model().groups`): a stack in the tree, or one the fit made by folding or tucking, with its tabs and the shown one.
 
 ## The address and storage
 
@@ -1774,7 +1542,7 @@ A pane that is not there gives `reason: "not-found"`. What a refusal reads out t
 
 - **`actions.resetLayout`**, `resetLayout()`: Rebuild the preset last chosen.
 
-- **`actions.autoLayout`**, `autoLayout()`: Arrange every pane from the room there is and each kind's size hints ([`layout.arrange`](layout.md#layoutarrange)): columns at the kinds' comfortable widths, a second row when the height allows, the rest as tabs beside the pane they were opened from. The same panes, so nothing reloads; tucked and folded panes are placed too. Back returns to the arrangement before. `"unavailable"` on a curated page, `"nothing-to-do"` with one pane. ⌘K: "Arrange panes automatically".
+- **`actions.autoLayout`**, `autoLayout()`: Arrange every pane from the room there is and each kind's size hints: columns at the kinds' comfortable widths, a second row when the height allows, the rest as tabs beside the pane they were opened from. The same panes, so nothing reloads; tucked and folded panes are placed too. Back returns to the arrangement before. `"unavailable"` on a curated page, `"nothing-to-do"` with one pane. ⌘K: "Arrange panes automatically".
 
 - **`actions.changeSettings`**, `changeSettings(patch: Partial<Settings>)`: Change the person's settings. They are saved on this device; a new theme is applied and a new pane cap refits the layout. `"invalid"`, changing nothing, when a value is one its setting can't take (a `paneCap` that isn't a whole number from 1 to 64, a `theme` or `centreDrop` it doesn't know). A saved value like that is never used either: that one setting starts on its default.
 
@@ -1920,17 +1688,47 @@ The name of an event: `"open"`, `"close"`, `"pin"`, `"focus"`, `"layout"` or `"t
 type DeepReadonly<T>
 ```
 
-`T`, read-only all the way down: what an instance gives an app to read (its state, layout, model and events). An edit would change the instance behind its back, with no history and no event; in development it throws. Refs and params in it are frozen too. `layout.tree.clone` gives a copy to edit; a read-only layout goes back into `setLayout` and `createJali({ layout })` as it is.
+`T`, read-only all the way down: what an instance gives an app to read (its state, layout, model and events). An edit would change the instance behind its back, with no history and no event; in development it throws. Refs and params in it are frozen too. `structuredClone` gives a copy to edit; a read-only layout goes back into `setLayout` and `createJali({ layout })` as it is.
 
 ### PaneOf
 
 *type*, from `jali`
 
 ```ts
-type PaneOf<R extends ObjectRef = ObjectRef>
+interface PaneOf<R extends ObjectRef = ObjectRef>
 ```
 
-A pane as the model gives it: read-only, with its `ref` typed by the instance's kinds.
+A pane as the model gives it, read-only, with its `ref` typed by the instance's kinds.
+
+**Fields**
+
+- **`id`** (`NodeId`, required): Its id in the layout.
+
+- **`ref`** (`R`, required): What it shows.
+
+- **`title`** (`string`, required): Its name: its role on a curated page, else the title its content set (`useTitle`), else its kind's title.
+
+- **`where`** (`"shown" | "tab" | "folded" | "tucked" | "hidden"`, required): Where it is. `"shown"`: on screen, its content visible. `"tab"`: behind another tab of its group, or, while one pane shows at a time, another pane's turn. `"folded"`: folded for room, behind its place's "N folded" chip. `"tucked"`: the person tucked it onto the shelf. `"hidden"`: nowhere to be seen: hidden by a curated page, behind a maximised pane, or scrolled out of its row's window. Focusing a tab, a folded or a tucked pane shows it.
+
+- **`focused`** (`boolean`, required): It has focus.
+
+- **`box`** (`Rect | null`, required): Where it is while shown, in CSS pixels from the top left of the panes' area; `null` while it isn't shown.
+
+- **`selected`** (`R`): A list pane's selected item, when it has one (`select`).
+
+- **`linkedTo`** (`NodeId`): The pane it was opened from.
+
+- **`follows`** (`boolean`, required): It shows what its `linkedTo` list selects.
+
+- **`kept`** (`boolean`, required): The person kept it: it never shows another object by itself.
+
+- **`pinned`** (`boolean`, required): Its tab is pinned.
+
+```ts
+// Bring the following detail forward, if it isn't on screen.
+const detail = jali.model().panes.find((p) => p.linkedTo === "orders" && p.follows);
+if (detail && detail.where !== "shown") jali.actions.focus(detail.id);
+```
 
 ### KeyboardOptions
 

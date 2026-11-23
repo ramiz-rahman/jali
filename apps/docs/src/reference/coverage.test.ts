@@ -82,14 +82,6 @@ describe("the reference covers the public API", () => {
     expect(missing(Object.keys(core))).toEqual([]);
   });
 
-  it("every member of the layout namespace, and of layout.tree, has an entry", () => {
-    const names = [
-      ...Object.keys(core.layout).map((k) => `layout.${k}`),
-      ...Object.keys(core.layout.tree).map((k) => `layout.tree.${k}`),
-    ];
-    expect(missing(names)).toEqual([]);
-  });
-
   it("every value jali/react, jali/page and jali/testing export has an entry", () => {
     expect(missing([react, page, testing].flatMap((entry) => Object.keys(entry)))).toEqual([]);
   });

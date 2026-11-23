@@ -11,7 +11,8 @@ import {
   memoryStorage,
   type JaliStore,
 } from "jali/adapter";
-import { JaliRoot, JaliView, Shelf, useJaliModel } from "jali/react";
+import { JaliRoot, JaliView, Shelf } from "jali/react";
+import { useEngineModel } from "./engine";
 import { chooser } from "jali/chooser";
 import { palette } from "jali/palette";
 import { buildDemoLayout, type DemoLayoutId } from "./demo";
@@ -66,7 +67,7 @@ export function resetLive(store: JaliStore, layoutId: DemoLayoutId) {
 
 /** The status line under the panes: the shelf (tucked panes) and a count. */
 function LiveStatus() {
-  const m = useJaliModel();
+  const m = useEngineModel();
   const tucked = m.shelf.length,
     folded = m.folded.length,
     n = m.visible.length;

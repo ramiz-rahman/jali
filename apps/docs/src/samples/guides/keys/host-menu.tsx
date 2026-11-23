@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { listCommands } from "jali";
 import { useJali } from "jali/react";
 
@@ -9,9 +9,8 @@ import { useJali } from "jali/react";
  */
 export function HostCommandMenu({ onClose }: { onClose: () => void }) {
   const jali = useJali();
-  // The focused pane's own first, then Jali's: read again after every change.
-  const [commands, setCommands] = useState(() => listCommands(jali));
-  useEffect(() => jali.subscribe(() => setCommands(listCommands(jali))), [jali]);
+  // The focused pane's own first, then Jali's: the same array until something it lists changes.
+  const commands = useSyncExternalStore(jali.subscribe, () => listCommands(jali));
   const [query, setQuery] = useState("");
   const shown = commands.filter((c) =>
     `${c.title} ${c.group}`.toLowerCase().includes(query.toLowerCase()),

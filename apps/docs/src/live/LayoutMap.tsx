@@ -5,8 +5,9 @@
  */
 import { useContext, type CSSProperties, type ReactNode } from "react";
 import { RowsIcon, SquareSplitHorizontalIcon, StackIcon } from "@phosphor-icons/react";
-import type { LayoutNode, PaneNode, StackNode, JaliModel } from "jali/adapter";
-import { KindIcon, useJaliModel } from "jali/react";
+import type { LayoutNode, PaneNode, StackNode, Model as JaliModel } from "jali/adapter";
+import { KindIcon } from "jali/react";
+import { useEngineModel } from "./engine";
 import { PreviewRects, extentOf, panesUnder, sizeText, type Hover } from "./LayoutTree";
 import { colourOf } from "./colours";
 
@@ -200,7 +201,7 @@ export function LayoutMap({
   setHover(h: Hover | null): void;
   sizes: boolean;
 }) {
-  const m = useJaliModel();
+  const m = useEngineModel();
   const pick = (e: { target: EventTarget }) => {
     const id = (e.target as Element).closest<HTMLElement>("[data-node]")?.dataset.node;
     if (id && id !== hover?.id) setHover({ id, from: "tree" });
