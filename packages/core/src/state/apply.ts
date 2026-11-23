@@ -634,26 +634,22 @@ const CLOSES: ReadonlySet<ActionName | undefined> = /* @__PURE__ */ new Set<Acti
 ]);
 
 /**
- * A close the host made itself: worked out again after its `beforeClose` (at once, or once its promised yes came), it
- * found nothing left to do, and every pane the host let go (`host`, or what an answer carries) is gone. Its goal holds,
- * so it is done, not refused. Never another action: a replace whose pane the host closed did not happen.
+ * `intent` resuming: worked out again after a `beforeClose` that wrote, or as the answer to a question. A close among
+ * them that finds nothing left to do, with every pane it was about (`named`: what the host let go, what the person
+ * agreed to discard) gone already, however they went (most often the host's own close), has reached its goal: it is
+ * done, not refused. Only a close, and only resuming: a first run on a pane that isn't there is still not-found.
  */
-function closedByHost(
-  o: Outcome,
-  action: ActionName | undefined,
-  r: ActionResult,
-  host: Asked,
-  layout: Layout,
-): boolean {
-  const answer = o && !Array.isArray(o) && typeof o === "object" && o.op === "answer" ? o : null;
-  const gone = [...host, ...(answer?.agreed.host ?? [])];
-  return (
-    CLOSES.has(action ?? answer?.action) &&
-    (r.reason === "not-found" || r.reason === "nothing-to-do") &&
-    gone.length > 0 &&
-    gone.every((p) => !core.tree.find(layout.root, p.pane))
-  );
-}
+const resumed = (intent: Intent, action: ActionName | undefined, named: Asked): Intent =>
+  CLOSES.has(action) && named.length
+    ? (x) => {
+        const out = intent(x);
+        return isRefusal(out) &&
+          (out.reason === "not-found" || out.reason === "nothing-to-do") &&
+          named.every((p) => !core.tree.find(x.s.layout.root, p.pane))
+          ? null
+          : out;
+      }
+    : intent;
 
 /**
  * Commit an outcome: worked out first, then committed in one go. Returns the last step's `result` as `pane`, or the
@@ -669,9 +665,8 @@ export function apply(io: ApplyIO, o: Outcome, action?: ActionName): ActionResul
     const base = io.get();
     const c: Run = { io, p: { state: base, effects: [] }, base, agreed: {}, action, top };
     top.stop = false;
-    const res = whole(c, intent);
+    const res = whole(c, tries ? resumed(intent, action, top.host) : intent);
     if (io.signal.aborted) return UNAVAILABLE;
-    if (closedByHost(o, action, res.r, top.host, base.layout)) return DONE;
     if (io.get() !== base) {
       // Held by the host: its answer is awaited already, and runs the whole action again against the state then.
       if (c.hold?.host) {
@@ -760,7 +755,10 @@ function step(c: Run, o: Outcome): Res {
   if (o.op === "answer") {
     const inner: Run = { ...c, agreed: o.agreed, action: o.action, hold: undefined };
     if (o.input) c.top.input = o.input;
-    const res = whole(inner, o.intent);
+    const res = whole(
+      inner,
+      resumed(o.intent, o.action, [...(o.agreed.host ?? []), ...(o.agreed.discard ?? [])]),
+    );
     if (c.top.stop) return res;
     // Asked again: this question ends as that one does. Told once this commit lands.
     const settle = o.settle,

@@ -706,3 +706,35 @@ describe("D3. a page link's zoom reads back to the same pane, whatever a view is
     expect(fresh.get().view.zoomed).toBe("~1");
   });
 });
+
+describe("D4. a held close that resumes to find its panes gone is done, however they went", () => {
+  it("a Discard whose second beforeClose closes every pane itself settles ok", async () => {
+    let jali!: ReturnType<typeof make>["jali"];
+    let asked = 0;
+    ({ jali } = make({
+      page: undefined,
+      layout: row(pane(r(1), { id: "a" }), pane(r(2), { id: "b" }), pane(r(3), { id: "c" })),
+      beforeClose: ({ panes }) => {
+        // The second time it's asked, it closes them itself.
+        if (asked++ === 1) for (const p of panes) jali.actions.remove(p.pane);
+        return true;
+      },
+    }));
+    reportUnsaved(jali, "b", "draft");
+    const res = jali.actions.closeOthers("a");
+    expect(res.reason).toBe("unsaved");
+    expect(jali.actions.openBeside("a", r(9)).ok).toBe(true);
+    const answer = answerDiscard(jali, "discard");
+    expect(jali.model().panes.map((p) => p.id)).toEqual(["a"]);
+    expect(answer.ok).toBe(true);
+    expect((await res.settled!).ok).toBe(true);
+  });
+
+  it("a first run on a pane that isn't there is still not-found", () => {
+    const { jali } = make({
+      page: undefined,
+      layout: row(pane(r(1), { id: "a" }), pane(r(2), { id: "b" })),
+    });
+    expect(jali.actions.close("nope").reason).toBe("not-found");
+  });
+});
