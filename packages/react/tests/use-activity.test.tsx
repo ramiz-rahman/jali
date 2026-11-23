@@ -2,10 +2,8 @@
 import { afterEach, beforeAll, describe, expect, it } from "vite-plus/test";
 import { useState } from "react";
 import { act, cleanup, render } from "@testing-library/react";
-import { createJali, memoryLocation, memoryStorage, pane, row } from "@jali/core";
-import { storeOf } from "@jali/core/adapter";
-import type { LayoutInput } from "@jali/core";
-import { JaliRoot, JaliView, Shelf, definePane, useActivity } from "@jali/react";
+import { createJali, memoryStorage, pane, row } from "@jali/core";
+import { JaliRoot, JaliView, definePane, useActivity } from "@jali/react";
 
 let room = { width: 1200, height: 600 };
 beforeAll(() => {

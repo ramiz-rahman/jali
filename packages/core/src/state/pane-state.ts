@@ -160,8 +160,10 @@ export function paneStateSync(storage: StoragePort): PaneStateSync {
   return {
     read() {
       for (const key of OLD_KEYS)
-        if (storage.get(key) !== null)
-          storage.remove ? storage.remove(key) : storage.set(key, "{}");
+        if (storage.get(key) !== null) {
+          if (storage.remove) storage.remove(key);
+          else storage.set(key, "{}");
+        }
       initial = readRecords(storage);
       return { paneState: valuesOf(initial), paneStateOf: ownersOf(initial) };
     },
