@@ -42,6 +42,8 @@ import {
   focusIndex,
   focus,
   focusShown,
+  setFullScreen,
+  setZoom,
   toggleFullScreen,
   toggleZoom,
 } from "./focus";
@@ -299,6 +301,8 @@ export const STEPS = /* @__PURE__ */ (() =>
     reveal: [reveal, "focus"],
     revealShelf: [revealShelf, "focus"],
     setActiveTab: [setActiveTab, "focus"],
+    setZoom: [setZoom, "toggleZoom"],
+    setFullScreen: [setFullScreen, "toggleFullScreen"],
     splitAuto: [splitAuto, "split"],
     dismiss: [dismiss, "close"],
     moveDirection: [moveDirection, "move"],

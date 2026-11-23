@@ -530,6 +530,43 @@ describe("C5. only a close is done by the host's own close, and only when its pa
   });
 });
 
+describe("C6. a menu's Maximise and Full screen set their pane's value whatever another pane has", () => {
+  const three = () =>
+    make({
+      page: undefined,
+      layout: row(pane(r(1), { id: "a" }), pane(r(2), { id: "b" }), pane(r(3), { id: "c" })),
+    }).jali;
+  const item = (j: ReturnType<typeof three>, id: string) =>
+    paneMenuOf(storeOf(j), "a")
+      .flat()
+      .find((i) => i.id === id)!;
+
+  it("A's Maximise, chosen after B was maximised, maximises A", () => {
+    const jali = three();
+    const zoom = item(jali, "zoom");
+    expect(jali.actions.toggleZoom("b").ok).toBe(true);
+    zoom.run({ id: "a", ref: r(1) });
+    expect(jali.get().view.zoomed).toBe("a");
+  });
+
+  it("A's Restore, chosen after B was maximised instead, leaves B maximised", () => {
+    const jali = three();
+    expect(jali.actions.toggleZoom("a").ok).toBe(true);
+    const zoom = item(jali, "zoom");
+    expect(jali.actions.toggleZoom("b").ok).toBe(true);
+    zoom.run({ id: "a", ref: r(1) });
+    expect(jali.get().view.zoomed).toBe("b");
+  });
+
+  it("A's Full screen, chosen after B went full screen, puts A on the whole screen", () => {
+    const jali = three();
+    const full = item(jali, "full-screen");
+    expect(jali.actions.toggleFullScreen("b").ok).toBe(true);
+    full.run({ id: "a", ref: r(1) });
+    expect(storeOf(jali).get().fullScreen).toBe("a");
+  });
+});
+
 describe("C7. a host's own close, answered later, is done", () => {
   it("beforeClose closes b, then answers yes by a promise: the close settles ok", async () => {
     let jali!: ReturnType<typeof make>["jali"];
