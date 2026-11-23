@@ -144,7 +144,7 @@ export type PageOpening =
   | { instead: Outcome }
   | {
       place?: Placement;
-      patch: Partial<UiState>;
+      patch?: Partial<UiState>;
       asTab(fromSelection: boolean): {
         layout: Layout;
         view: ViewState;

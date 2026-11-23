@@ -362,6 +362,7 @@ describe("Back to the page closes the investigation; undo reopens only it", () =
     expect(opened()).toHaveLength(0);
     expect({ application: sizeOf("application"), context: sizeOf("context") }).toEqual(resized);
     expect(L.tree.find(store.get().layout.root, "borrower")).toMatchObject({ pinned: true });
+    expect(store.get().page).not.toHaveProperty("before");
     // Undo reopens the opened pane, and keeps both.
     store.actions.undo();
     expect(opened().map((p) => p.id)).toEqual([first]);

@@ -193,7 +193,6 @@ export function openPage(x: Snapshot, o: OpenPage = {}): Outcome {
   );
   const page: PageState = {
     profile: p.id,
-    before: undefined,
     item: item ?? prev?.item ?? p.firstItem,
     tab: roleOf(p, o.tab)?.id ?? prev?.tab ?? p.home,
     mode: opened.length ? "split" : (prev?.mode ?? x.s.prefs.mode),
@@ -209,7 +208,6 @@ export function openPage(x: Snapshot, o: OpenPage = {}): Outcome {
       ? single(p, page.item, page.tab, x.ctx)
       : split(y, p, page.item, page.tab, false);
   const { layout, view } = reopen(base, opened, base.view.focused ?? page.tab, x.ctx);
-  if (opened.length) page.before = base.layout;
   return {
     op: o.fromUrl ? "arrive" : "mode",
     layout,
@@ -524,7 +522,7 @@ export function activate(x: Snapshot, given: ItemId): Outcome {
   const item = readItem(given, p.firstItem);
   if (item === undefined) return refuse("invalid");
   if (r.item === item) return null;
-  const page = { ...r, item, before: undefined };
+  const page = { ...r, item };
   const saved = x.s.prefs.split;
   const prefs = {
     ...x.s.prefs,
@@ -591,7 +589,6 @@ export function backToPage(x: Snapshot): Outcome {
     layout: closed.layout,
     view: focused,
     msg: say(x).backToPage(name, opened.length),
-    patch: { page: { ...r, before: undefined } },
     toast: messagesOf(x).toasts.backToPage(name, opened.length),
     undo: closed.undo ? pushUndo(x.s.undoStack, closed.undo) : x.s.undoStack,
   };
@@ -635,7 +632,7 @@ export function resetPage(x: Snapshot): Outcome {
     view,
     msg: say(x).pageReset,
     patch: {
-      page: { ...r, before: opened.length ? base.layout : undefined },
+      page: r,
       prefs: { ...x.s.prefs, split: null },
     },
     undo: [],
@@ -709,9 +706,8 @@ function investigationPlace(layout: Layout, after: core.Placement, edge?: Edge):
 
 /**
  * How a link from `source` opens while the page is open (`openBeside` asks): Single view peeks;
- * an object already on the page is shown where it is; otherwise the opened pane goes to the investigation, the first
- * one remembers the layout it started from, and short of room it opens as a tab of its source, sending views back to
- * the page tabs rather than folding them.
+ * an object already on the page is shown where it is; otherwise the opened pane goes to the investigation, and short
+ * of room it opens as a tab of its source, sending views back to the page tabs rather than folding them.
  */
 function opening(x: Snapshot, source: NodeId, ref: ObjectRef, edge?: Edge): PageOpening {
   const { s, m, ctx } = x;
@@ -737,8 +733,6 @@ function opening(x: Snapshot, source: NodeId, ref: ObjectRef, edge?: Edge): Page
     ...(m.pane(source)?.role
       ? { place: investigationPlace(s.layout, placeAfterArrangement(s.layout), edge) }
       : {}),
-    // The first opened pane starts an investigation: remember the layout it started from.
-    patch: investigation(m.panes).length ? {} : { page: { ...page, before: s.layout } },
     asTab(fromSelection) {
       // No room beside: a tab of the source, in the source's slot at its size, shown and focused (the source is behind
       // it now). If even that needs more room, views go back to the page tabs; they never fold into a tab group.

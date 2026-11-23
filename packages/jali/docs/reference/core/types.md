@@ -1095,8 +1095,6 @@ A curated page in use.
 
 - **`tab`** (`string`, required): The view Single shows (in Split view, the last role focused).
 
-- **`before`** (`Layout`): The Split view layout just before the first opened pane; "Back to …" returns to it.
-
 ### Selection
 
 *type*, from `jali`

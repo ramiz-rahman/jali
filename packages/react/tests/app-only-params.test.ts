@@ -81,7 +81,7 @@ describe("a param only the app sets", () => {
     expect(jali.get().view.peek?.params).toEqual({ sql: "mine", autorun: true });
   });
 
-  it("is kept from a writer of the host's own: not in the page's way back either", () => {
+  it("is kept from a writer of the host's own, and comes back with an undone Back to the page", () => {
     const visit = definePane("visit", {
       params: { id: Number, autorun: appOnly(Boolean) },
       title: ({ id }) => `Visit ${id}`,
@@ -112,13 +112,14 @@ describe("a param only the app sets", () => {
     storeOf(jali).run("page.setMode", "split");
     jali.actions.openBeside("summary", query({ sql: "select 1", autorun: true }));
     const last = written.at(-1)!;
-    expect(last.page?.before).toBeDefined();
-    for (const l of [last.layout, last.page!.before!])
-      for (const p of layout.tree.panes(l.root)) expect(p.ref.params).not.toHaveProperty("autorun");
-    // The workspace itself keeps them: Back to the page's layout is exact.
-    expect(layout.tree.panes(storeOf(jali).get().page!.before!.root)[0]!.ref.params).toHaveProperty(
-      "autorun",
-    );
+    expect(last.page).not.toHaveProperty("before");
+    for (const p of layout.tree.panes(last.layout.root))
+      expect(p.ref.params).not.toHaveProperty("autorun");
+    // The workspace itself keeps them, and so does the undo of Back: the opened pane comes back as it was.
+    jali.page!.back();
+    jali.actions.undo();
+    for (const p of layout.tree.panes(jali.getLayout().root))
+      expect(p.ref.params).toHaveProperty("autorun", true);
   });
 
   it("is kept by Back and Forward on a curated page's opened pane that is still open", () => {

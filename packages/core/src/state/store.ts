@@ -111,8 +111,6 @@ export interface PageState {
   mode: ViewMode;
   /** The view Single mode shows (in Split view, the last role focused). */
   tab: string;
-  /** The split layout just before the first opened pane: "Back to …" returns to it exactly. */
-  before?: Layout;
 }
 
 /** A list's selected item, as its pane reported it (`select`). `inResults: false`: the list's filter no longer shows it. */
@@ -471,14 +469,11 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
    *  and without the peek. Read when the writer writes. */
   const urlState = (): UrlState => {
     const { layout, view, presetId, page } = state;
-    const kinds = env.kinds.registry();
-    // The page's way back holds refs too: a writer of the host's own sees it as a link carries it.
-    const before = page?.before && linkLayout(kinds, page.before);
     return {
-      layout: linkLayout(kinds, layout),
+      layout: linkLayout(env.kinds.registry(), layout),
       view: withoutPeek(view),
       presetId,
-      page: page && before !== page.before ? { ...page, before } : page,
+      page,
     };
   };
   const models = modelCache();
@@ -551,7 +546,7 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
 
   /**
    * A kind registered after a link gave refs of it: those refs drop the app-only params the link carried, wherever
-   * the instance keeps them (the layout, the peek, Recent, Undo's closed panes, the page's way back). A link never sets one.
+   * the instance keeps them (the layout, the peek, Recent, Undo's closed panes). A link never sets one.
    */
   const rereadLinks = () => {
     const kinds = env.kinds.registry();
@@ -576,8 +571,6 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
       return closed.every((c, i) => c === e.closed[i]) ? e : { ...e, closed };
     });
     if (undo.some((e, i) => e !== state.undoStack[i])) patch.undoStack = undo;
-    const back = state.page?.before && layout(state.page.before);
-    if (state.page && back !== state.page.before) patch.page = { ...state.page, before: back };
     if (Object.keys(patch).length) write(patch);
   };
 
