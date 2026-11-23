@@ -1,6 +1,6 @@
 /** A labelled select in a row of filters: its caption above, the choice below (ui/select.tsx's parts). */
 import { useId } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../atoms/select";
 
 export function Field<T extends string>({
   label,

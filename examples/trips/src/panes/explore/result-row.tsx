@@ -3,9 +3,10 @@ import { CheckIcon, PlusIcon } from "@phosphor-icons/react";
 import type { Standing } from "../../trip/plan";
 import type { RowProps } from "../../ui/cursor-list";
 import * as f from "../../ui/format";
-import { DayMark } from "../../ui/day-mark";
+import { DayMark } from "../../ui/atoms/day-mark";
 import { CATEGORY_ICON } from "../../ui/icons";
-import { Photo } from "../../ui/photo";
+import { Photo } from "../../ui/molecules/photo";
+import { photoOf } from "../../trip/photos";
 import type { Result } from "./filters";
 
 export function ResultRow({
@@ -38,7 +39,7 @@ export function ResultRow({
     >
       <button type="button" className="result-main" {...row}>
         <span className="result-photo">
-          <Photo id={p.id} />
+          <Photo photo={photoOf(p.id)} />
           <span className="result-cat" data-category={p.category}>
             <Icon size={11} weight="bold" aria-hidden />
           </span>

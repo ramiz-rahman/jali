@@ -19,7 +19,8 @@ import { dayNumber, daysIn, hotelOf } from "../../trip/plan";
 import { useCursorList } from "../../ui/cursor-list";
 import { useDropDay } from "../../ui/drag";
 import * as f from "../../ui/format";
-import { Photo } from "../../ui/photo";
+import { Photo } from "../../ui/molecules/photo";
+import { photoOf } from "../../trip/photos";
 import { selectPlace, showDay } from "../../workspace/hub";
 import { dayNumberOf, dayRef, KIND } from "../../workspace/refs";
 import { BudgetSummary } from "./budget-summary";
@@ -81,7 +82,7 @@ function TripPane({ node, focused, select, inPeek }: PaneProps) {
         <div className="trip-covers">
           {cities.map(({ c, days }) => (
             <div key={c} className="trip-cover">
-              <Photo id={`cover-${c}`} size="small" alt="" credit eager />
+              <Photo photo={photoOf(`cover-${c}`)} size="small" alt="" credit eager />
               <span className="trip-cover-text">
                 <b>{CITY[c].name}</b>
                 <span>
@@ -106,7 +107,7 @@ function TripPane({ node, focused, select, inPeek }: PaneProps) {
               className="trip-hotel"
               onClick={() => selectPlace(jali, services, hotel.id, { open: true })}
             >
-              <Photo id={hotel.id} className="trip-hotel-photo" />
+              <Photo photo={photoOf(hotel.id)} className="trip-hotel-photo" />
               <span>
                 <b>{hotel.name}</b>
                 <span className="muted">

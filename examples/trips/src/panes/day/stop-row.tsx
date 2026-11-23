@@ -6,7 +6,8 @@ import type { Step, StepRole } from "../../trip/plan";
 import type { RowProps } from "../../ui/cursor-list";
 import * as f from "../../ui/format";
 import { CATEGORY_ICON } from "../../ui/icons";
-import { Photo } from "../../ui/photo";
+import { Photo } from "../../ui/molecules/photo";
+import { photoOf } from "../../trip/photos";
 
 /** What the timeline calls each place that isn't a stop. */
 const ENDPOINT_LABEL: Record<Exclude<StepRole, "stop">, (p: Place) => string> = {
@@ -73,7 +74,7 @@ export function Stop({
         {index + 1}
       </span>
       <button type="button" className="stop-main" aria-describedby={hint} {...row}>
-        <Photo id={p.id} className="stop-photo" />
+        <Photo photo={photoOf(p.id)} className="stop-photo" />
         <span className="stop-text">
           <span className="stop-name">{p.name}</span>
           <span className="stop-meta">

@@ -6,7 +6,7 @@
 import { Marker, type Map as MapLibre } from "maplibre-gl";
 import { CITY, type CityId } from "../../trip/cities";
 import { photoOf } from "../../trip/photos";
-import { photoSrc } from "../../ui/photo";
+import { photoSrc } from "../../ui/molecules/photo";
 import type { Badge, Pin, PinRole } from "./features";
 import {
   layoutPins,
@@ -115,7 +115,8 @@ export function paintPin({ el, pin }: PinMarker, selected: boolean) {
  */
 function paintBubble(wrap: HTMLElement, id: string | null, day?: number) {
   let bubble = wrap.querySelector<HTMLElement>(".pin-photo");
-  const url = id ? photoSrc(id) : undefined;
+  const photo = id ? photoOf(id) : undefined;
+  const url = photo ? photoSrc(photo) : undefined;
   if (!id || !url) {
     bubble?.remove();
     return;
@@ -134,7 +135,7 @@ function paintBubble(wrap: HTMLElement, id: string | null, day?: number) {
   else delete bubble.dataset.day;
   const img = bubble.querySelector("img")!;
   if (img.getAttribute("src") !== url) img.src = url;
-  bubble.style.setProperty("--tone", photoOf(id)?.tone ?? "transparent");
+  bubble.style.setProperty("--tone", photo?.tone ?? "transparent");
 }
 
 export function createBadge(map: MapLibre, badge: Badge, onClick: () => void): Marker {

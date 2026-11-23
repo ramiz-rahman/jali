@@ -32,7 +32,7 @@ import { placeById } from "../../trip/places";
 import { dayNumber } from "../../trip/plan";
 import type { DaySummary } from "../../trip/summary";
 import * as f from "../../ui/format";
-import { Segmented } from "../../ui/segmented";
+import { Segmented } from "../../ui/atoms/segmented";
 import { isShown, placeShownBeside, selectPlace } from "../../workspace/hub";
 import { dayNumberOf, KIND, mapRef, WHOLE_TRIP } from "../../workspace/refs";
 import { useSelectedPlace } from "../../workspace/use-hub";

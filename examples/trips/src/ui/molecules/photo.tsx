@@ -1,33 +1,29 @@
 /**
- * A place's photo. The photos are files in public/photos (scripts/photos.mjs fetches them from Wikimedia Commons),
+ * A place's photo, given its entry in the trip's photo list (trip/photos.ts: `photoOf`). The photos are files in public/photos (scripts/photos.mjs fetches them from Wikimedia Commons),
  * each in two widths, with its tone (the photo's average colour) shown until it loads, so a list of thumbnails
  * never flashes white. A photo of a made-up business is a stand-in, and says so in its credit.
  */
 import { useId, useState, type CSSProperties } from "react";
 import { InfoIcon, XIcon } from "@phosphor-icons/react";
-import { photoOf, type PhotoInfo } from "../trip/photos";
+import type { PhotoInfo } from "../../trip/photos";
 import "./photo.css";
 
 // Vite's base ("./"), so the photos load from any path the built site is served at.
 const base = import.meta.env.BASE_URL;
-const src = (p: PhotoInfo, size: "large" | "small") =>
+/** A photo's address, also for code that draws outside React (the map's pins). */
+export const photoSrc = (p: PhotoInfo, size: "large" | "small" = "small") =>
   `${base}photos/${p.file}${size === "small" ? "-s" : ""}.webp`;
-/** A place's photo's address, for code that draws outside React (the map's pins). */
-export const photoSrc = (id: string, size: "large" | "small" = "small") => {
-  const p = photoOf(id);
-  return p ? src(p, size) : undefined;
-};
 
 export function Photo({
-  id,
+  photo: p,
   size = "small",
   className,
   alt,
   credit = false,
   eager = false,
 }: {
-  /** A place's id, or a city cover ("cover-bkk"). */
-  id: string;
+  /** The photo: `photoOf` a place's id, or of a city cover ("cover-bkk"). None shows a blank of the same size. */
+  photo: PhotoInfo | undefined;
   size?: "large" | "small";
   className?: string;
   /** Decorative by default (`""`): a thumbnail sits beside the place's name. A hero gives the photo's own. */
@@ -36,7 +32,6 @@ export function Photo({
   credit?: boolean;
   eager?: boolean;
 }) {
-  const p = photoOf(id);
   const [loaded, setLoaded] = useState(false);
   if (!p) return <span className={`photo photo-none ${className ?? ""}`} aria-hidden />;
   const style = { "--tone": p.tone, "--focus": p.focus ?? "50% 50%" } as CSSProperties;
@@ -48,7 +43,7 @@ export function Photo({
       style={style}
     >
       <img
-        src={src(p, size)}
+        src={photoSrc(p, size)}
         alt={alt ?? ""}
         width={p.w}
         height={p.h}

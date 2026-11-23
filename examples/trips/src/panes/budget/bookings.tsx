@@ -8,7 +8,8 @@ import { CITY } from "../../trip/cities";
 import type { Booking, TripBudget } from "../../trip/budget";
 import * as f from "../../ui/format";
 import { CATEGORY_ICON } from "../../ui/icons";
-import { Photo } from "../../ui/photo";
+import { Photo } from "../../ui/molecules/photo";
+import { photoOf } from "../../trip/photos";
 import { selectPlace } from "../../workspace/hub";
 
 export function Bookings({ budget, disabled }: { budget: TripBudget; disabled?: boolean }) {
@@ -55,7 +56,7 @@ function BookingRow({ booking: b, disabled }: { booking: Booking; disabled?: boo
       disabled={disabled}
       onClick={() => selectPlace(jali, services, b.place.id, { open: true })}
     >
-      <Photo id={b.place.id} className="budget-booking-mark" />
+      <Photo photo={photoOf(b.place.id)} className="budget-booking-mark" />
       <span className="budget-booking-text">
         <b>{b.place.name}</b>
         <span className="muted">

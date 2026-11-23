@@ -8,8 +8,9 @@ import { neighbours } from "../../trip/nearby";
 import { CATEGORY_LABEL, type Place } from "../../trip/places";
 import { standingOf } from "../../trip/plan";
 import * as f from "../../ui/format";
-import { DayMark } from "../../ui/day-mark";
-import { Photo } from "../../ui/photo";
+import { DayMark } from "../../ui/atoms/day-mark";
+import { Photo } from "../../ui/molecules/photo";
+import { photoOf } from "../../trip/photos";
 import { selectPlace } from "../../workspace/hub";
 import { placeRef } from "../../workspace/refs";
 
@@ -55,7 +56,7 @@ export function Nearby({ p }: { p: Place }) {
                     onKeyDown={(e) => onKeyDown(e, q.id)}
                     title={inPeek ? undefined : "Show it. Space to peek."}
                   >
-                    <Photo id={q.id} className="nearby-photo" />
+                    <Photo photo={photoOf(q.id)} className="nearby-photo" />
                     <span className="nearby-name">{q.name}</span>
                     {standing.kind === "stop" ? <DayMark n={standing.day.n} size="sm" /> : null}
                     {standing.kind === "hotel" ? <span className="tag">Your hotel</span> : null}

@@ -20,7 +20,7 @@ import { dayNumber } from "../../trip/plan";
 import { useCursorList } from "../../ui/cursor-list";
 import { BUDGET_CATEGORIES, BUDGET_LABEL, SPENDING } from "../../trip/budget";
 import * as f from "../../ui/format";
-import { Segmented } from "../../ui/segmented";
+import { Segmented } from "../../ui/atoms/segmented";
 import { showDay } from "../../workspace/hub";
 import { dayNumberOf, dayRef, KIND } from "../../workspace/refs";
 import { BudgetField } from "./budget-field";

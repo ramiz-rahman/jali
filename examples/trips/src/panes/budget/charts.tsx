@@ -7,7 +7,7 @@ import { WarningIcon } from "@phosphor-icons/react";
 import type { KeyboardEvent } from "react";
 import { BUDGET_CATEGORIES, BUDGET_LABEL, SPENDING, type TripBudget } from "../../trip/budget";
 import type { TripSummary } from "../../trip/summary";
-import { DayMark } from "../../ui/day-mark";
+import { DayMark } from "../../ui/atoms/day-mark";
 import * as f from "../../ui/format";
 
 /** How the pane drives the list of days: the cursor, its keys and a press, from `useCursorList`. */

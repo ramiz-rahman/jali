@@ -1,9 +1,10 @@
 /** A day in the overview's list, and its strip of photos. */
 import { AirplaneTiltIcon, WarningIcon } from "@phosphor-icons/react";
 import type { DaySummary } from "../../trip/summary";
-import { DayMark } from "../../ui/day-mark";
+import { DayMark } from "../../ui/atoms/day-mark";
 import * as f from "../../ui/format";
-import { Photo } from "../../ui/photo";
+import { Photo } from "../../ui/molecules/photo";
+import { photoOf } from "../../trip/photos";
 
 /** A day in the list: its mark, date, title and photos, how it travels, and what it costs. A drop target too. */
 export function DayRow({
@@ -69,7 +70,7 @@ function DayStrip({ stops }: { stops: readonly string[] }) {
   return (
     <span className="trip-day-strip" aria-hidden>
       {shown.map((id) => (
-        <Photo key={id} id={id} />
+        <Photo key={id} photo={photoOf(id)} />
       ))}
       {more > 0 ? <span className="trip-day-more">+{more}</span> : null}
     </span>

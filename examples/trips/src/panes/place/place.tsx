@@ -18,9 +18,9 @@ import { CITY } from "../../trip/cities";
 import { photoOf } from "../../trip/photos";
 import { CATEGORY_ONE, isPlannable, placeById, type Place } from "../../trip/places";
 import { dayWith, isHotel } from "../../trip/plan";
-import { Empty } from "../../ui/empty";
+import { Empty } from "../../ui/atoms/empty";
 import { CATEGORY_ICON } from "../../ui/icons";
-import { Photo } from "../../ui/photo";
+import { Photo } from "../../ui/molecules/photo";
 import { offerPlace, offerTitle } from "../../workspace/choosers";
 import { keptPlaces, selectPlace } from "../../workspace/hub";
 import { KIND } from "../../workspace/refs";
@@ -93,7 +93,7 @@ function PlaceBody({ p }: { p: Place }) {
     <article className="pane-body place" aria-label={p.name}>
       <div className="place-layout">
         <figure className="place-hero">
-          <Photo id={p.id} size="large" alt={photo?.alt ?? ""} credit eager />
+          <Photo photo={photoOf(p.id)} size="large" alt={photo?.alt ?? ""} credit eager />
           {photo?.standIn ? (
             <figcaption className="place-standin" title={photo.standIn}>
               Stand-in photo

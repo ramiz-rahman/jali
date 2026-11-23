@@ -6,9 +6,10 @@ import { CITY } from "../../trip/cities";
 import { isPlannable, type Place } from "../../trip/places";
 import { dayToOffer, standingOf, type Plan, type Standing } from "../../trip/plan";
 import * as f from "../../ui/format";
-import { DayMark } from "../../ui/day-mark";
+import { DayMark } from "../../ui/atoms/day-mark";
 import { CATEGORY_ICON } from "../../ui/icons";
-import { Photo } from "../../ui/photo";
+import { Photo } from "../../ui/molecules/photo";
+import { photoOf } from "../../trip/photos";
 import { offerLabel } from "../../workspace/choosers";
 import { selectPlace } from "../../workspace/hub";
 
@@ -43,7 +44,7 @@ export function PlaceCard({
   const target = dayToOffer(plan, p, dayN);
   return (
     <div className="map-card" aria-label={`Selected: ${p.name}`} role="region">
-      <Photo id={p.id} className="map-card-photo" />
+      <Photo photo={photoOf(p.id)} className="map-card-photo" />
       <div className="map-card-text">
         <p className="map-card-kind">
           <Icon size={14} weight="bold" aria-hidden /> {p.kind}, {p.area}

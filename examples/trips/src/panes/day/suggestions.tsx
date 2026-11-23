@@ -12,7 +12,8 @@ import { isPlannable } from "../../trip/places";
 import type { Day } from "../../trip/plan";
 import * as f from "../../ui/format";
 import { CATEGORY_ICON } from "../../ui/icons";
-import { Photo } from "../../ui/photo";
+import { Photo } from "../../ui/molecules/photo";
+import { photoOf } from "../../trip/photos";
 import { choosePlace } from "../../workspace/choosers";
 import { selectPlace } from "../../workspace/hub";
 
@@ -45,7 +46,7 @@ export function Suggestions({ day }: { day: Day }) {
                   onClick={() => selectPlace(jali, services, q.id, { from })}
                   title={`Show ${q.name}`}
                 >
-                  <Photo id={q.id} className="day-more-photo" />
+                  <Photo photo={photoOf(q.id)} className="day-more-photo" />
                   <span className="day-more-text">
                     <span className="day-more-name">{q.name}</span>
                     <span className="day-more-meta">

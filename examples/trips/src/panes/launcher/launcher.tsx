@@ -3,7 +3,7 @@ import type { KeyboardEvent } from "react";
 import { PlusIcon } from "@phosphor-icons/react";
 import { definePane, useLauncher, type PaneProps } from "jali/react";
 import { usePlan } from "../../state/services";
-import { DayMark } from "../../ui/day-mark";
+import { DayMark } from "../../ui/atoms/day-mark";
 import {
   budgetRef,
   dayRef,

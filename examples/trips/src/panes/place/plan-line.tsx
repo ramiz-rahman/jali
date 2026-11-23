@@ -10,7 +10,7 @@ import { CITY } from "../../trip/cities";
 import type { Category, Place } from "../../trip/places";
 import { daysIn, dayWith, hotelOf, standingOf, transferDay, type Plan } from "../../trip/plan";
 import * as f from "../../ui/format";
-import { DayMark } from "../../ui/day-mark";
+import { DayMark } from "../../ui/atoms/day-mark";
 import { offerPlace } from "../../workspace/choosers";
 
 interface LineProps {
