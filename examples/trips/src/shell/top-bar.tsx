@@ -11,7 +11,7 @@ import {
 } from "@phosphor-icons/react";
 import { copyLink, keyHint, runCommand } from "jali";
 import { useJali, useJaliState, useJaliShortcut, useJaliTheme } from "jali/react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/atoms/select";
 import { toggleTheme } from "../workspace/theme";
 import "./top-bar.css";
 
