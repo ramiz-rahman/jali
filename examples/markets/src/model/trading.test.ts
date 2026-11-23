@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { createSimulator } from "../market/simulator";
+import { createSimulator } from "../market/sim";
 import type { MarketData, Quote } from "../market/types";
-import { createTrading, KEPT_BOOK } from "./trading";
+import { KEPT_LEDGER } from "./ledger-kept";
+import { createTrading } from "./trading";
 
-/** The simulated market, with one instrument's quote replaced by `quote`. */
-function marketWith(symbol: string, quote: Partial<Quote>): MarketData {
+/** The simulated market, with one instrument's quote replaced by `quote`, or by none: its price not known yet. */
+function marketWith(symbol: string, quote: Partial<Quote> | null): MarketData {
   const base = createSimulator({ seed: 3 });
   return {
     ...base,
@@ -12,7 +13,7 @@ function marketWith(symbol: string, quote: Partial<Quote>): MarketData {
     instrument: (s) => base.instrument(s),
     snapshot: ((topic) =>
       topic.channel === "quote" && topic.symbol === symbol
-        ? { ...(base.snapshot(topic) as Quote), ...quote }
+        ? quote && { ...(base.snapshot(topic) as Quote), ...quote }
         : base.snapshot(topic)) as MarketData["snapshot"],
     subscribe: (topic, onData) => base.subscribe(topic, onData),
   };
@@ -20,7 +21,7 @@ function marketWith(symbol: string, quote: Partial<Quote>): MarketData {
 
 describe("the paper book trades only on real prices", () => {
   it("refuses a market order while the price is not known yet", () => {
-    const trading = createTrading(marketWith("LMNA", { pending: true, bid: 0, ask: 0 }), false);
+    const trading = createTrading(marketWith("LMNA", null), false);
     const r = trading.submit({ symbol: "LMNA", side: "buy", qty: 10, type: "market" });
     expect(r).toEqual({ error: expect.stringMatching(/not known yet/) });
     expect(trading.get().fills).toEqual([]);
@@ -35,7 +36,7 @@ describe("the paper book trades only on real prices", () => {
   });
 
   it("keeps a limit order working, unfilled, until there is a price", () => {
-    const trading = createTrading(marketWith("LMNA", { pending: true, bid: 0, ask: 0 }), false);
+    const trading = createTrading(marketWith("LMNA", null), false);
     const r = trading.submit({ symbol: "LMNA", side: "buy", qty: 10, type: "limit", limit: 500 });
     expect(r).toMatchObject({ status: "working" });
     expect(trading.get().fills).toEqual([]);
@@ -57,16 +58,16 @@ describe("the paper book trades only on real prices", () => {
 });
 
 describe("the kept paper book", () => {
-  const good = KEPT_BOOK.fallback;
+  const good = KEPT_LEDGER.fallback;
 
   it("falls back to the demo's book for anything that isn't a book", () => {
     for (const v of [null, 42, "book", [], {}, { positions: {} }])
-      expect(KEPT_BOOK.parse(v, 1)).toBeUndefined();
-    expect(KEPT_BOOK.parse(good, 2)).toBeUndefined();
+      expect(KEPT_LEDGER.parse(v, 1)).toBeUndefined();
+    expect(KEPT_LEDGER.parse(good, 2)).toBeUndefined();
   });
 
   it("drops a position, order or fill that doesn't read, and keeps the rest", () => {
-    const book = KEPT_BOOK.parse(
+    const book = KEPT_LEDGER.parse(
       {
         positions: [
           { symbol: "LMNA", qty: 10, avgPrice: 100, realized: 0 },
@@ -94,7 +95,7 @@ describe("the kept paper book", () => {
     const working = { symbol: "LMNA", side: "buy", qty: 10, type: "market", status: "working" };
     const fill = { orderId: 1, symbol: "LMNA", side: "buy", qty: 1, price: 100, time: 1 };
     localStorage.setItem(
-      KEPT_BOOK.key,
+      KEPT_LEDGER.key,
       JSON.stringify({
         v: 1,
         data: {
@@ -131,7 +132,7 @@ describe("the kept paper book", () => {
       expect(trading.get().fills.filter((f) => f.orderId === 7)).toHaveLength(1);
       expect(trading.get().positions[0]).toMatchObject({ symbol: "LMNA", qty: 10 });
     } finally {
-      localStorage.removeItem(KEPT_BOOK.key);
+      localStorage.removeItem(KEPT_LEDGER.key);
     }
   });
 });
