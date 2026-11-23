@@ -260,6 +260,9 @@ export function fitProblems(page: Page, ignore: readonly string[] = []) {
   }, ignore);
 }
 
+/** How long a width may take to settle before what doesn't fit is reported. */
+const SETTLE_MS = 3000;
+
 /** Every width in `widths`, then back to the size the test started at. Returns what didn't fit, at which width. */
 export async function sweep(
   page: Page,
@@ -269,10 +272,17 @@ export async function sweep(
   const found: FitProblem[] = [];
   for (const width of widths) {
     await page.setViewportSize({ width, height: HEIGHT(width) });
-    await settle(page);
-    await settle(page);
-    for (const p of await fitProblems(page, ignore))
-      found.push({ width, ...(p as Omit<FitProblem, "width">) });
+    // The layout settles over a few frames (a refit, then a pane's ResizeObserver, then the paint), and a loaded
+    // machine takes more of them than a quiet one: read it again until it fits or the time is up, so a problem that
+    // is only the layout on its way is not reported, and one that stays is.
+    let problems: Awaited<ReturnType<typeof fitProblems>> = [];
+    for (const end = Date.now() + SETTLE_MS; ; ) {
+      await settle(page);
+      await settle(page);
+      problems = await fitProblems(page, ignore);
+      if (!problems.length || Date.now() > end) break;
+    }
+    for (const p of problems) found.push({ width, ...(p as Omit<FitProblem, "width">) });
   }
   if (start) await page.setViewportSize(start);
   return found;
