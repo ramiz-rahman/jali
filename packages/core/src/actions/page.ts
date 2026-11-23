@@ -679,22 +679,26 @@ function closing(
   const { m, ctx } = x;
   const views = ids.filter((id) => m.pane(id)?.role);
   const names = views.map((id) => label(x.env.profile!, m.pane(id)!.role));
-  if (views.length) {
-    if (x.s.page?.mode === "single") return refuse("single-view", say(x).singleNoLayout);
-    if (!m.panes.some((n) => n.role && !m.off.includes(n.id) && !views.includes(n.id)))
-      return refuse("last-pane", say(x).lastView(names[0]!));
-  }
+  if (views.length && x.s.page?.mode === "single")
+    return refuse("single-view", say(x).singleNoLayout);
   // Views first: what closes is recorded where it is once they are out, so Undo never puts it beside a hidden view.
   let layout = x.s.layout,
     view = unzoomed(x.s.view);
   for (const id of views) {
     const r = core.hide(layout, view, id, ctx);
-    if (!r.ok) return refuse("blocked");
+    if (!r.ok)
+      return r.reason === "last"
+        ? refuse("last-pane", say(x).lastView(names[0]!))
+        : refuse("blocked");
     ({ layout, view } = r);
   }
   const others = ids.filter((id) => !views.includes(id));
   const { undo, ...r } = closeMany(layout, view, others, ctx, kind, { keepSizes });
   ({ layout, view } = r);
+  // Checked on what the close leaves: a view on screen, in front (one behind another pane's tab doesn't count).
+  const isView = (id: NodeId) => (core.tree.find(layout.root, id) as PaneNode | undefined)?.role;
+  if (views.length && !core.resolve(layout, view, ctx).panes.some((b) => !b.hidden && isView(b.id)))
+    return refuse("last-pane", say(x).lastView(names[0]!));
   return {
     layout,
     view,

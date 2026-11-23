@@ -448,3 +448,22 @@ describe("C2. undo gives every node it makes or puts back an id no other node ha
     expect(jali.model().paneOf(r(2))).toBeDefined();
   });
 });
+
+describe("C3. after any close on a page, a view is shown", () => {
+  it("a view behind an opened pane's tab doesn't count: closing the last shown view is refused", () => {
+    const { jali } = split();
+    expect(jali.actions.openBeside("application", r(9)).ok).toBe(true);
+    const opened = jali.model().paneOf(r(9))!.id;
+    expect(jali.actions.close("history").ok).toBe(true);
+    expect(jali.actions.mergeInto("borrower", opened).ok).toBe(true);
+    expect(jali.actions.focus(opened).ok).toBe(true);
+    expect(where(jali, "borrower")).toBe("tab");
+    jali.actions.close("application");
+    const views = ["application", "borrower", "history"];
+    const shownViews = jali
+      .model()
+      .panes.filter((p) => views.includes(p.id) && p.where === "shown");
+    expect(shownViews.length).toBeGreaterThan(0);
+    expect(jali.page!.showView("history").ok).toBe(true);
+  });
+});
