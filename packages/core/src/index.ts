@@ -31,7 +31,6 @@ export type {
   Ref,
   RefOf,
   PaneKindBase,
-  PaneKinds,
   PaneCommand,
   PaneActivity,
   PaneErrorInfo,
@@ -52,9 +51,9 @@ export type {
 export { optional, oneOf, appOnly } from "./pane-kinds";
 export type { StandardSchemaV1 } from "./standard-schema";
 export type { RoleBase, ProfileBase, ViewMode, ItemId } from "./profile";
-export type { Preset, Env, PhoneOptions } from "./env";
+export type { PhoneOptions } from "./env";
 
-// ---------- the layout tree (pure: every operation returns a new layout) ----------
+// ---------- the layout tree ----------
 export type {
   Axis,
   Direction,
@@ -70,18 +69,8 @@ export type {
   Overlay,
   ViewState,
   Rect,
-  ResolvedLayout,
-  ResolvedStack,
-  PaneBox,
-  DividerBox,
-  ScrollerBox,
-  PaneKind,
-  KindRegistry,
-  LayoutContext,
-  FitOptions,
-  ShelfEntry,
+  TuckRecord,
 } from "./layout/types";
-export * as layout from "./layout";
 export { sameRef } from "./actions/follow";
 
 // ---------- the instance: actions, results, events ----------
@@ -126,8 +115,7 @@ export type {
 // ---------- the instance's state ----------
 export type { PageState, Selection, UrlState, UrlWriter } from "./state/store";
 export type { Feature, FeatureId } from "./features/feature";
-export type { JaliModel, PaneOf, Group, TuckedEntry } from "./state/model";
-export type { StackPair, Hinge } from "./workspace/stack";
+export type { JaliModel, PaneOf } from "./state/model";
 export type { Settings, ThemeChoice, Theme } from "./state/settings";
 
 // ---------- words (translations) ----------
@@ -173,6 +161,5 @@ export {
 } from "./commands/format";
 
 // ---------- geometry ----------
-export type { Spacing } from "./tokens";
 /** Scroll a row that scrolls sideways while a drag is held near its edge, for an app's own drag (Jali's does it). */
 export { edgeScroll, type EdgeScroll } from "./workspace/edge-scroll";

@@ -4,11 +4,10 @@
  * made before the change still opening as they did.
  */
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { storeOf, toLayout } from "@jali/core/adapter";
+import { storeOf, toLayout, layout } from "@jali/core/adapter";
 import { afterEach, beforeAll, describe, expect, expectTypeOf, it } from "vite-plus/test";
 import {
   createJali,
-  layout,
   memoryLocation,
   memoryStorage,
   oneOf,
@@ -202,8 +201,8 @@ describe("a ref its kind can't read", () => {
     expect(alert.textContent).toContain("Its link has no “id”.");
     expect(screen.queryByRole("heading", { level: 3 })).toBeNull();
     // Its title is the kind's name, and it stays out of Recent.
-    expect(jali.model().title("broken")).toBe("order");
-    expect(jali.env.kinds.isRecordable({ kind: "order", params: {} })).toBe(false);
+    expect(storeOf(jali).model().title("broken")).toBe("order");
+    expect(storeOf(jali).env.kinds.isRecordable({ kind: "order", params: {} })).toBe(false);
   });
 
   it("shows the kind's Missing instead, with the params as they came, the problems and a close", () => {
@@ -248,7 +247,7 @@ describe("a ref its kind can't read", () => {
     expect(props.problems).toEqual([{ param: "id", value: "lost" }]);
     expect(props.node.id).toBe("broken");
     // It is inside the pane: the pane's hooks work there.
-    expect(jali.model().title("broken")).toBe("No such order");
+    expect(storeOf(jali).model().title("broken")).toBe("No such order");
     // A way on: show another order here, then the next one closes.
     act(() => fireEvent.click(screen.getByRole("button", { name: "Order 7" })));
     expect(screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent)).toContain(
@@ -361,7 +360,7 @@ describe("every new value goes through every link", () => {
       ]);
     const again = make(search);
     expect(again.model().panes.map((p) => p.ref)).toEqual([order({ id: 1 }), full, off]);
-    expect(again.env.kinds.params(off)).toEqual({ id: 5, draft: false });
+    expect(storeOf(again).env.kinds.params(off)).toEqual({ id: 5, draft: false });
   });
 
   it("a ref as text (what a page's open= holds)", () => {

@@ -5,7 +5,6 @@
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 import {
   createJali,
-  layout,
   memoryLocation,
   memoryStorage,
   pane,
@@ -13,7 +12,7 @@ import {
   type Direction,
   type Edge,
 } from "@jali/core";
-import { storeOf } from "@jali/core/adapter";
+import { storeOf, layout } from "@jali/core/adapter";
 import { definePane } from "@jali/react";
 import { createTestStore } from "../../core/tests/fixtures/workspace";
 import type { JaliStore } from "../../core/src/state/store";
@@ -47,7 +46,10 @@ const make = (
     ...(dir ? { dir } : {}),
   });
 type J = ReturnType<typeof make>;
-const box = (jali: J, id: string) => jali.model().resolved.panes.find((b) => b.id === id)!.rect;
+const box = (jali: J, id: string) =>
+  storeOf(jali)
+    .model()
+    .resolved.panes.find((b) => b.id === id)!.rect;
 const said = (jali: J) => storeOf(jali).get().announcement.text;
 
 describe("openBeside with an edge, in a free workspace", () => {
@@ -110,9 +112,9 @@ describe("openBeside with an edge, in a free workspace", () => {
 
   it("on a phone, goes in the layout on that edge, shown one pane at a time", () => {
     const jali = make({ width: 390, height: 800 });
-    expect(jali.model().onePane).toBe(true);
+    expect(storeOf(jali).model().onePane).toBe(true);
     const t = jali.actions.openBeside("v", transcript({ id: 1 }), { edge: "bottom" }).pane!;
-    const col = layout.tree.parent(jali.get().layout.root, t);
+    const col = layout.tree.parent(storeOf(jali).get().layout.root, t);
     expect(col?.type).toBe("column");
     expect(col?.children.map((c) => c.id)).toEqual(["v", t]);
   });

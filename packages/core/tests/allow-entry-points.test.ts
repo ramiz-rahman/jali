@@ -4,16 +4,8 @@
  * and the curated page's "Back to the page" keeps an opened pane the app won't let close, as `close` does.
  */
 import { describe, expect, it } from "vite-plus/test";
-import {
-  createJali,
-  layout as L,
-  memoryStorage,
-  pane,
-  row,
-  type JaliOptions,
-  type Layout,
-} from "@jali/core";
-import { definePageEngine as definePage } from "@jali/core/adapter";
+import { createJali, memoryStorage, pane, row, type JaliOptions, type Layout } from "@jali/core";
+import { definePageEngine as definePage, layout as L } from "@jali/core/adapter";
 import { storeOf } from "@jali/core/adapter";
 
 const free = { kind: "free", title: "Free", params: { id: Number }, width: { min: 400 } };
@@ -45,7 +37,7 @@ describe("a pane that may not be resized", () => {
       size: { width: 1000, height: 800 },
     });
     const store = storeOf(jali);
-    const d = jali.model().resolved.dividers[0]!;
+    const d = storeOf(jali).model().resolved.dividers[0]!;
     expect(d.neighbours![1]).toContain("c");
     const layout = jali.getLayout();
     store.actions.resizeDivider(d.parentId, d.index, 40);
@@ -63,7 +55,7 @@ describe("a pane that may not be resized", () => {
     });
     const store = storeOf(jali);
     const layout = jali.getLayout();
-    const d = jali.model().resolved.dividers[0]!;
+    const d = storeOf(jali).model().resolved.dividers[0]!;
     // What a drag would preview, made without the check.
     const preview = L.resizeDivider(layout as Layout, d.parentId, d.index, 60, store.ctx());
     store.actions.commitDividerDrag(preview, d.parentId, d.index);

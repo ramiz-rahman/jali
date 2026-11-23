@@ -32,7 +32,10 @@ type Refs = Ref<"note", { id: number }> | Ref<"order", { id: number; tab?: strin
 export function Status() {
   expectTypeOf(useJali()).toEqualTypeOf<Jali<Refs, undefined>>();
   expectTypeOf(useJaliModel().panes[0]!.ref).toEqualTypeOf<Refs>();
-  expectTypeOf(useJaliState((s) => s.recent)[0]).toEqualTypeOf<Refs | undefined>();
+  expectTypeOf(useJaliState((s) => s.selection.list?.ref)).toEqualTypeOf<Refs | undefined>();
+  expectTypeOf(useJaliModel((m) => m.paneOf(note({ id: 1 }))?.selected)).toEqualTypeOf<
+    Refs | undefined
+  >();
   useJaliEvent("open", ({ ref }) => {
     if (ref.kind === "order") expectTypeOf(ref.params.tab).toEqualTypeOf<string | undefined>();
   });

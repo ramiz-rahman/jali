@@ -37,7 +37,7 @@ const finite = (layout: Layout) => {
     moveFocus: false,
   });
   for (const j of [jali, again])
-    for (const p of j.model().resolved.panes)
+    for (const p of storeOf(j).model().resolved.panes)
       expect([p.rect.x, p.rect.y, p.rect.width, p.rect.height].every(Number.isFinite)).toBe(true);
 };
 

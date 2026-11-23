@@ -3,8 +3,8 @@
  * CORE-3). Unmerge and Hide read the missing sibling's id and threw.
  */
 import { describe, expect, it } from "vite-plus/test";
-import { createJali, layout as L, memoryStorage, pane, row, tabs } from "@jali/core";
-import { storeOf } from "@jali/core/adapter";
+import { createJali, memoryStorage, pane, row, tabs } from "@jali/core";
+import { storeOf, layout as L } from "@jali/core/adapter";
 
 const item = { kind: "item", title: "Item", params: { id: Number }, width: { min: 200 } };
 const ref = (id: number) => ({ kind: "item", params: { id } });

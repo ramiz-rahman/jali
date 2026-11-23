@@ -7,6 +7,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from "vite-plus/
 import { createJali, memoryLocation, memoryStorage, tabs } from "@jali/core";
 import { JaliRoot, definePane } from "@jali/react";
 import { defaultFeatures, urlSync } from "./features";
+import { storeOf } from "@jali/core/adapter";
 
 const note = definePane("note", {
   params: { id: Number },
@@ -62,7 +63,7 @@ describe("a lone pane", () => {
   it("gets its island and buttons back when a second pane opens", () => {
     const jali = make(note({ id: 1 }));
     const { container } = render(<JaliRoot jali={jali} />);
-    act(() => void jali.actions.openBeside(jali.model().visible[0]!, note({ id: 2 })));
+    act(() => void jali.actions.openBeside(storeOf(jali).model().visible[0]!, note({ id: 2 })));
     expect(container.querySelector("[data-alone]")).toBeNull();
     expect(container.querySelectorAll(".jali-act-tuck").length).toBe(2);
   });
@@ -70,8 +71,8 @@ describe("a lone pane", () => {
   it("is not a maximised pane: the others are behind it, and it keeps Restore", () => {
     const jali = make(note({ id: 1 }));
     const { container } = render(<JaliRoot jali={jali} />);
-    act(() => void jali.actions.openBeside(jali.model().visible[0]!, note({ id: 2 })));
-    act(() => void jali.actions.toggleZoom(jali.model().visible[0]!));
+    act(() => void jali.actions.openBeside(storeOf(jali).model().visible[0]!, note({ id: 2 })));
+    act(() => void jali.actions.toggleZoom(storeOf(jali).model().visible[0]!));
     expect(container.querySelector("[data-alone]")).toBeNull();
     expect(container.querySelector(".jali-pane[data-zoomed] .jali-act-zoom")).not.toBeNull();
   });

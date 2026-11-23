@@ -14,6 +14,7 @@ import {
 } from "@jali/core";
 import { withInput } from "../src/dom/input";
 import { urlSync } from "../src/features/url-sync";
+import { storeOf } from "@jali/core/adapter";
 
 const item = { kind: "item", title: "Item", params: { id: Number }, width: { min: 200 } };
 const ref = (id: number) => ({ kind: "item", params: { id } });
@@ -26,7 +27,10 @@ const make = () =>
     size: { width: 1400, height: 800 },
     moveFocus: false,
   });
-const ids = (j: ReturnType<typeof make>) => j.model().resolved.panes.map((p) => p.id);
+const ids = (j: ReturnType<typeof make>) =>
+  storeOf(j)
+    .model()
+    .resolved.panes.map((p) => p.id);
 
 describe("one notification per action", () => {
   it.each([

@@ -26,7 +26,7 @@ describe("the model", () => {
         },
       },
     });
-    const first = jali.model().resolved.panes[0]!.id;
+    const first = storeOf(jali).model().resolved.panes[0]!.id;
     reads = 0;
     storeOf(jali).snapshot();
     expect(reads).toBe(0);

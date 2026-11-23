@@ -31,7 +31,9 @@ describe("destroy() ends everything pending", () => {
     const location = memoryLocation();
     const held = deferred();
     const jali = make({ features: [urlSync({ location })], beforeClose: () => held.promise });
-    const panes = jali.model().resolved.panes.map((p) => p.id);
+    const panes = storeOf(jali)
+      .model()
+      .resolved.panes.map((p) => p.id);
     const r = jali.actions.close(panes[1]!);
     expect(r.reason).toBe("pending");
     const entries = location.entries.length;
@@ -40,7 +42,11 @@ describe("destroy() ends everything pending", () => {
     held.answer(true);
     await expect(r.settled).resolves.toEqual({ ok: false, reason: "unavailable" });
     await Promise.resolve();
-    expect(jali.model().resolved.panes.map((p) => p.id)).toEqual(panes);
+    expect(
+      storeOf(jali)
+        .model()
+        .resolved.panes.map((p) => p.id),
+    ).toEqual(panes);
     expect(location.entries.length).toBe(entries + 1);
     expect(location.search()).toBe("?route=next");
   });
@@ -48,7 +54,7 @@ describe("destroy() ends everything pending", () => {
   it("settles a held host answer as unavailable at once, before the host answers", async () => {
     const held = deferred();
     const jali = make({ beforeClose: () => held.promise });
-    const r = jali.actions.close(jali.model().resolved.panes[1]!.id);
+    const r = jali.actions.close(storeOf(jali).model().resolved.panes[1]!.id);
     let end: unknown;
     void r.settled!.then((v) => (end = v));
     jali.destroy();
@@ -61,7 +67,7 @@ describe("destroy() ends everything pending", () => {
     const jali = make({});
     const layout = jali.getLayout();
     jali.destroy();
-    expect(jali.actions.openBeside(jali.model().resolved.panes[0]!.id, ref(3))).toEqual({
+    expect(jali.actions.openBeside(storeOf(jali).model().resolved.panes[0]!.id, ref(3))).toEqual({
       ok: false,
       reason: "unavailable",
     });
@@ -76,7 +82,7 @@ describe("destroy() ends everything pending", () => {
     const at = location.search();
     sync.cancel!();
     storeOf(jali).writeUrl("push");
-    jali.actions.openBeside(jali.model().resolved.panes[0]!.id, ref(5));
+    jali.actions.openBeside(storeOf(jali).model().resolved.panes[0]!.id, ref(5));
     expect(location.search()).toBe(at);
   });
 

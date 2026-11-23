@@ -67,7 +67,6 @@ describe("the instance", () => {
       "actions",
       "destroy",
       "dialogs",
-      "env",
       "get",
       "getLayout",
       "href",
@@ -75,6 +74,7 @@ describe("the instance", () => {
       "messages",
       "model",
       "on",
+      "presets",
       "setLayout",
       "start",
       "subscribe",
@@ -182,7 +182,7 @@ describe("the convention: the pane first, by id or by the object it shows", () =
     const jali = make();
     expect(jali.actions.peek("orders", order({ id: 5 })).ok).toBe(true);
     expect(jali.get().view.peek).toEqual(order({ id: 5 }));
-    expect(jali.get().peekSource).toBe("orders");
+    expect(storeOf(jali).get().peekSource).toBe("orders");
     jali.actions.closePeek();
     expect(jali.get().view.peek).toBeUndefined();
     expect(jali.actions.select(list(), order({ id: 3 })).ok).toBe(true);
@@ -499,8 +499,8 @@ describe("getLayout and setLayout", () => {
   it("fits the layout to the room", () => {
     const jali = make({ size: { width: 700, height: 800 } });
     jali.setLayout(row(list(), order({ id: 1 }), order({ id: 2 }), order({ id: 3 })));
-    expect(jali.model().folded.length).toBeGreaterThan(0);
-    expect(jali.model().visible.length).toBeLessThan(4);
+    expect(storeOf(jali).model().folded.length).toBeGreaterThan(0);
+    expect(storeOf(jali).model().visible.length).toBeLessThan(4);
   });
 
   it("refuses a layout it can't show", () => {
@@ -698,9 +698,9 @@ describe("keeping in step with the host's documents", () => {
     const jali = make();
     const r = jali.actions.addTab(order({ id: 1 }), order({ id: 8 }));
     expect(r.ok).toBe(true);
-    expect(jali.model().pane(r.pane)?.ref).toEqual(order({ id: 8 }));
+    expect(storeOf(jali).model().pane(r.pane)?.ref).toEqual(order({ id: 8 }));
     expect(
-      jali
+      storeOf(jali)
         .model()
         .stackOf(r.pane)
         ?.children.map((c) => c.ref),
@@ -715,14 +715,14 @@ describe("keeping in step with the host's documents", () => {
       size: { width: 1000, height: 800 },
     });
     const entries = location.entries.length;
-    const folded = jali.model().folded;
+    const folded = storeOf(jali).model().folded;
     const geometry = geometryOf(storeOf(jali).model());
     const heard = record(jali);
     const r = jali.actions.addTab("order", order({ id: 9 }));
     expect(r.ok).toBe(true);
     expect(location.entries.length).toBe(entries + 1);
     expect(heard.filter(([name]) => name === "layout")).toHaveLength(1);
-    expect(jali.model().folded).toEqual(folded);
+    expect(storeOf(jali).model().folded).toEqual(folded);
     // The tab takes the pane's slot: every rect on screen is where it was.
     expect(geometryOf(storeOf(jali).model())).toBe(geometry);
     expect(jali.get().view.focused).toBe(r.pane);

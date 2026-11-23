@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, row, type JaliInput } from "@jali/core";
 import { definePane } from "@jali/react";
 import { defaultFeatures, urlSync } from "./features";
+import { storeOf } from "@jali/core/adapter";
 
 const note = definePane("note", {
   params: { id: Number },
@@ -28,7 +29,7 @@ function make() {
   stops.push(jali.start());
   const seen: JaliInput[] = [];
   jali.on("close", ({ input }) => seen.push(input));
-  const pane = () => jali.model().visible[0]!;
+  const pane = () => storeOf(jali).model().visible[0]!;
   return { jali, seen, pane };
 }
 

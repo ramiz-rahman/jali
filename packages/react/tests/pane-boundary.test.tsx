@@ -225,7 +225,7 @@ describe("useTitle", () => {
     const jali = make([customer], pane(customer({ id: 1 }), { id: "c" }));
     render(<JaliRoot jali={jali} />);
     expect(heading()).toBe("Acme Ltd");
-    expect(jali.model().title("c")).toBe("Acme Ltd");
+    expect(storeOf(jali).model().title("c")).toBe("Acme Ltd");
     expect(storeOf(jali).get().titles).toEqual({ c: "Acme Ltd" });
   });
 

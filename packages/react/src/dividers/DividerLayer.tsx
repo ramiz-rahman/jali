@@ -3,7 +3,7 @@
  * commit on release); keys commit per keypress; double-click resets; the URL is written 120ms after the last change.
  */
 import { memo } from "react";
-import type { ScrollerBox } from "@jali/core";
+import type { ScrollerBox } from "@jali/core/adapter";
 import {
   paneDomId,
   dividerKey,

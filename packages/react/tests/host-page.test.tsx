@@ -5,7 +5,7 @@
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { createJali, memoryLocation, memoryStorage, pane, row } from "@jali/core";
-import { GAP } from "@jali/core/adapter";
+import { GAP, storeOf } from "@jali/core/adapter";
 import type { JaliOptions } from "@jali/core";
 import { JaliRoot, JaliView, Shelf, definePane } from "@jali/react";
 import { defaultFeatures, urlSync } from "./features";
@@ -92,7 +92,7 @@ describe("without ResizeObserver", () => {
     const ws = document.querySelector<HTMLElement>(".jali-layout")!;
     for (const [k, v] of Object.entries(sizes)) Object.defineProperty(ws, k, { value: v });
     act(() => void window.dispatchEvent(new Event("resize")));
-    expect(jali.get().area).toEqual({ width: 1000 - GAP * 2, height: 500 - GAP * 2 });
+    expect(storeOf(jali).get().area).toEqual({ width: 1000 - GAP * 2, height: 500 - GAP * 2 });
     expect(screen.queryAllByRole("tab")).toHaveLength(0);
   });
 });

@@ -15,7 +15,7 @@ const kinds = [
 const item = (id: number) => ({ kind: "item", params: { id } });
 const geometry = (j: Jali) =>
   JSON.stringify(
-    j
+    storeOf(j)
       .model()
       .resolved.panes.filter((p) => !p.hidden)
       .map((p) => [p.id, Math.round(p.rect.x), Math.round(p.rect.width)]),

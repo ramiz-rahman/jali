@@ -22,21 +22,19 @@ import type {
   OpenBesideOptions,
   PaneDefinition,
   PaneKindBase,
-  PaneKinds,
   PaneNode,
   PaneOptions,
   ParamProblem,
   Params,
   ParamsOf,
   ParamsDeclaration,
-  Env,
   ProfileBase,
   RoleBase,
   ItemId,
 } from "@jali/core";
 import type { ComponentType } from "react";
 
-import { defineKind, warnUnknown } from "@jali/core/adapter";
+import { defineKind, warnUnknown, type Env, type PaneKinds } from "@jali/core/adapter";
 
 declare const process: { env: { NODE_ENV?: string } };
 import type { JaliIcon } from "./icons/types";

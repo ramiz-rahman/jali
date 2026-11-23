@@ -19,6 +19,7 @@ import { useState } from "react";
 import { createJali, memoryLocation, memoryStorage, pane, row, tabs } from "@jali/core";
 import { JaliRoot, definePane, usePane } from "@jali/react";
 import { defaultFeatures, popOut, urlSync } from "./features";
+import { storeOf } from "@jali/core/adapter";
 
 function Note({ id }: { id: string }) {
   const [n, setN] = useState(0);
@@ -172,7 +173,8 @@ describe("what the panes remember between renders", () => {
     });
   /** The tab group's shown tab. */
   const activeTab = (jali: ReturnType<typeof tabbed>) =>
-    (jali.model().layout.root as { children: readonly { active?: string }[] }).children[0]!.active;
+    (storeOf(jali).model().layout.root as { children: readonly { active?: string }[] }).children[0]!
+      .active;
 
   it("starts over with a new instance: one pane at a time in the old one restores nothing in the new one", () => {
     width = 1200;
@@ -180,10 +182,10 @@ describe("what the panes remember between renders", () => {
     const b = tabbed("b");
     const { rerender } = render(<JaliRoot jali={a} />);
     resize(400);
-    expect(a.model().onePane).toBe(true);
+    expect(storeOf(a).model().onePane).toBe(true);
     width = 1200;
     rerender(<JaliRoot jali={b} />);
-    expect(b.model().onePane).toBe(false);
+    expect(storeOf(b).model().onePane).toBe(false);
     expect(activeTab(b)).toBe("b");
   });
 });

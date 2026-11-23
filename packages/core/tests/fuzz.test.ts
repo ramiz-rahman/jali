@@ -11,7 +11,6 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vite-plus/test";
 import {
   createJali,
-  layout as L,
   memoryLocation,
   memoryStorage,
   pane,
@@ -22,7 +21,7 @@ import {
   type ObjectRef,
   type PaneKindBase,
 } from "@jali/core";
-import { storeOf } from "@jali/core/adapter";
+import { storeOf, layout as L } from "@jali/core/adapter";
 import { urlSync } from "../src/features/url-sync";
 import { stabilityBreaches } from "./fixtures/stability";
 
@@ -55,7 +54,7 @@ function rng(seed: number) {
 
 const shown = (j: Jali) =>
   JSON.stringify(
-    j
+    storeOf(j)
       .model()
       .resolved.panes.filter((b) => !b.hidden)
       .map((b) => [b.id, Math.round(b.rect.x), Math.round(b.rect.y), Math.round(b.rect.width)]),
@@ -182,7 +181,7 @@ describe("random sequences of public actions", () => {
           break;
         }
         const layout = jali.getLayout();
-        const valid = L.validate(layout, jali.env.kinds.registry());
+        const valid = L.validate(layout, storeOf(jali).env.kinds.registry());
         if (!valid.ok) {
           fail(`invalid layout: ${valid.errors.slice(0, 2).join("; ")}`);
           break;
@@ -193,7 +192,7 @@ describe("random sequences of public actions", () => {
           fail(`focus or zoom on a pane that isn't there`);
           break;
         }
-        const m = jali.model();
+        const m = storeOf(jali).model();
         const area = store.get().area;
         const bad = m.resolved.panes.find(
           (b) =>
@@ -232,7 +231,7 @@ describe("random sequences of public actions", () => {
               .sort(([a], [b]) => a.localeCompare(b))
               .map(([k, v]) => {
                 if (k !== `${sync.prefix ?? ""}l`) return [k, v];
-                const read = L.decode(v, jali.env.kinds.registry());
+                const read = L.decode(v, storeOf(jali).env.kinds.registry());
                 if (!read?.overlay) return [k, read];
                 const { folds: _f, shown: _s, ...rest } = read.overlay;
                 // An empty list says what leaving it out says.

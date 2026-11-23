@@ -12,11 +12,10 @@ import {
   pane,
   row,
   tabs,
-  layout as L,
   type LayoutInput,
   type ObjectRef,
 } from "@jali/core";
-import { paneStateFor, storeOf } from "@jali/core/adapter";
+import { paneStateFor, storeOf, layout as L } from "@jali/core/adapter";
 import { createTestStore } from "./fixtures/workspace";
 import type { JaliStore } from "../src/state/store";
 

@@ -6,7 +6,6 @@
 import { describe, expect, it, vi } from "vite-plus/test";
 import {
   createJali,
-  layout as L,
   memoryLocation,
   memoryStorage,
   pane,
@@ -15,6 +14,7 @@ import {
   type LayoutInput,
 } from "@jali/core";
 import { urlSync } from "../src/features/url-sync";
+import { layout as L } from "@jali/core/adapter";
 
 const item = { kind: "item", title: "Item", params: { id: Number }, width: { min: 200 } };
 const ref = (id: number) => ({ kind: "item", params: { id } });

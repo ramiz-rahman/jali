@@ -5,14 +5,24 @@
  */
 export * from "./index";
 
-// ---------- the layout tree's types ----------
+// ---------- the layout tree: its pure operations, and its geometry's types ----------
+export * as layout from "./layout";
 export type {
+  ResolvedLayout,
+  ResolvedStack,
+  PaneBox,
+  DividerBox,
+  ScrollerBox,
+  PaneKind,
+  KindRegistry,
+  LayoutContext,
+  FitOptions,
+  ShelfEntry,
   HideRefusal,
   HideResult,
   OpenResult,
   PutBackResult,
   TuckCheck,
-  TuckRecord,
   TuckRefusal,
   TuckResult,
   UndoEntry,
@@ -68,6 +78,8 @@ export {
 export {
   buildModel,
   modelCache,
+  publicModel,
+  type Group,
   type Model,
   type ModelGeometry,
   type TuckedEntry,
@@ -148,6 +160,7 @@ export {
   parseParams,
   readParams,
   type PaneAttributes,
+  type PaneKinds,
 } from "./pane-kinds";
 export {
   PAGE,
@@ -159,7 +172,7 @@ export {
   type PageEngine,
   type PageOpening,
 } from "./profile";
-export { PHONE_BELOW, presetById, shownTitle, titleOf } from "./env";
+export { PHONE_BELOW, presetById, shownTitle, titleOf, type Env, type Preset } from "./env";
 export { ALONE_CHROME, CHROME, type Chrome, type Presentation } from "./pane/chrome";
 export { DEFAULT_BUTTONS, buttonsOf, type ButtonsState } from "./pane/buttons";
 

@@ -7,6 +7,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, expectTypeOf, it } from "vite-plus/test";
 import * as core from "@jali/core";
+import * as adapter from "@jali/core/adapter";
 import * as react from "@jali/react";
 
 describe("public API", () => {
@@ -21,7 +22,6 @@ describe("public API", () => {
       "en",
       "keyBelongsToContent",
       "keyHint",
-      "layout",
       "listCommands",
       "memoryLocation",
       "memoryStorage",
@@ -79,7 +79,6 @@ describe("public API", () => {
       "actions",
       "destroy",
       "dialogs",
-      "env",
       "get",
       "getLayout",
       "href",
@@ -87,20 +86,70 @@ describe("public API", () => {
       "messages",
       "model",
       "on",
+      "presets",
       "setLayout",
       "start",
       "subscribe",
     ]);
   });
 
-  it("the layout namespace is the pure tree API", () => {
-    expect(Object.keys(core.layout).sort()).toMatchSnapshot();
+  it("the layout namespace, in @jali/core/adapter, is the pure tree API", () => {
+    expect(Object.keys(adapter.layout).sort()).toMatchSnapshot();
   });
 
-  it("@jali/core/adapter lists its names: nothing reaches it by `export *` but the public API", () => {
+  it("an app reads its own state and model, not the engine's", () => {
+    expectTypeOf<keyof core.JaliState>().toEqualTypeOf<
+      | "layout"
+      | "page"
+      | "view"
+      | "presetId"
+      | "selection"
+      | "settings"
+      | "unsaved"
+      | "activity"
+      | "resizeMode"
+    >();
+    expectTypeOf<keyof core.JaliState["view"]>().toEqualTypeOf<"focused" | "zoomed" | "peek">();
+    expectTypeOf<keyof core.JaliModel>().toEqualTypeOf<"panes" | "pane" | "paneOf">();
+    expectTypeOf<keyof core.PaneOf>().toEqualTypeOf<
+      | "id"
+      | "ref"
+      | "title"
+      | "where"
+      | "focused"
+      | "box"
+      | "selected"
+      | "linkedTo"
+      | "follows"
+      | "kept"
+      | "pinned"
+    >();
+    const jali = core.createJali({
+      panes: [{ kind: "note", title: "Note" }],
+      layout: { kind: "note", params: {} },
+      storage: core.memoryStorage(),
+      size: { width: 800, height: 600 },
+      moveFocus: false,
+    });
+    expect(Object.keys(jali.get()).sort()).toEqual([
+      "activity",
+      "layout",
+      "page",
+      "presetId",
+      "resizeMode",
+      "selection",
+      "settings",
+      "unsaved",
+      "view",
+    ]);
+    expect(Object.keys(jali.model()).sort()).toEqual(["pane", "paneOf", "panes"]);
+  });
+
+  it("@jali/core/adapter lists its names: nothing reaches it by `export *` but the public API and the layout namespace", () => {
     const source = readFileSync(join(import.meta.dirname, "../../core/src/adapter.ts"), "utf8");
     expect([...source.matchAll(/^export (?:type )?\* .*$/gm)].map((m) => m[0])).toEqual([
       'export * from "./index";',
+      'export * as layout from "./layout";',
     ]);
   });
 

@@ -9,6 +9,7 @@ import { act, cleanup, render } from "@testing-library/react";
 import { createJali, memoryLocation, memoryStorage, pane, row } from "@jali/core";
 import { JaliRoot, definePane } from "@jali/react";
 import { defaultFeatures, urlSync } from "./features";
+import { storeOf } from "@jali/core/adapter";
 
 const day = definePane("day", {
   params: { n: Number },
@@ -70,7 +71,7 @@ describe("a row that scrolls brings panes into view", () => {
   it("a pane opened beside the last one in view scrolls in, while focus stays at its source", () => {
     const jali = make();
     render(<JaliRoot jali={jali} />);
-    const window = jali.model().content.scrollers[0]!.rect.width;
+    const window = storeOf(jali).model().content.scrollers[0]!.rect.width;
     act(() => void jali.actions.focus("d3"));
     scrolled = [];
     let opened: string | undefined;
@@ -78,8 +79,10 @@ describe("a row that scrolls brings panes into view", () => {
       opened = jali.actions.openBeside("d3", note({ n: 1 })).pane;
     });
     expect(jali.get().view.focused).toBe("d3");
-    const box = jali.model().content.panes.find((b) => b.id === opened)!.rect;
-    const strip = jali.model().content.scrollers[0]!;
+    const box = storeOf(jali)
+      .model()
+      .content.panes.find((b) => b.id === opened)!.rect;
+    const strip = storeOf(jali).model().content.scrollers[0]!;
     // Scrolled so the new pane's end meets the window's: the pane whole, and its source beside it when both fit.
     expect(scrolled.at(-1)?.left).toBeCloseTo(box.x + box.width - strip.rect.x - window, 0);
   });
@@ -88,8 +91,10 @@ describe("a row that scrolls brings panes into view", () => {
     const jali = make();
     render(<JaliRoot jali={jali} />);
     act(() => void jali.actions.focus("d6"));
-    const strip = jali.model().content.scrollers[0]!;
-    const box = jali.model().content.panes.find((b) => b.id === "d6")!.rect;
+    const strip = storeOf(jali).model().content.scrollers[0]!;
+    const box = storeOf(jali)
+      .model()
+      .content.panes.find((b) => b.id === "d6")!.rect;
     expect(scrolled.at(-1)?.left).toBeCloseTo(
       box.x + box.width - strip.rect.x - strip.rect.width,
       0,

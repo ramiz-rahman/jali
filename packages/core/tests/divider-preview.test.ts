@@ -4,8 +4,8 @@
  * lookups resolving makes, on a flat row of 64 panes.
  */
 import { describe, expect, it } from "vite-plus/test";
-import { createJali, layout as L, memoryStorage, pane, row } from "@jali/core";
-import { storeOf } from "@jali/core/adapter";
+import { createJali, memoryStorage, pane, row } from "@jali/core";
+import { storeOf, layout as L } from "@jali/core/adapter";
 
 const item = { kind: "item", title: "Item", params: { id: Number }, width: { min: 20 } };
 
@@ -29,7 +29,7 @@ describe("a divider drag's frames", () => {
     });
     const counted = { ...ctx, fit: { ...ctx.fit, kinds } };
     const layout = storeOf(jali).get().layout;
-    const d = jali.model().resolved.dividers[10]!;
+    const d = storeOf(jali).model().resolved.dividers[10]!;
     const committed = L.resolve(layout, L.tree.noFocus(), counted);
     lookups = 0;
     L.resizeDivider(layout, d.parentId, d.index, 5, counted);

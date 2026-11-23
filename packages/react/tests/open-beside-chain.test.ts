@@ -82,7 +82,7 @@ describe("Keep on a plain link", () => {
     jali.actions.setKept(c7, true);
     jali.actions.setKept(c7, false);
     expect(said(jali)).toBe("Customer 7 is no longer kept");
-    expect(jali.model().pane(c7)).not.toHaveProperty("follows");
+    expect(jali.model().pane(c7)?.follows).toBe(false);
     jali.actions.openBeside("o", customer({ id: 8 }));
     expect(shown(jali)).toEqual(["order 1", "customer 8"]);
   });

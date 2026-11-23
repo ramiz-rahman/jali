@@ -4,7 +4,8 @@
  * what Jali keeps and hands back, refs and the peek included, is frozen.
  */
 import { describe, expect, it } from "vite-plus/test";
-import { createJali, layout as L, memoryStorage, pane, row, type Layout } from "@jali/core";
+import { createJali, memoryStorage, pane, row, type Layout } from "@jali/core";
+import { layout as L } from "@jali/core/adapter";
 
 const item = { kind: "item", title: "Item", params: { id: Number }, width: { min: 200 } };
 const make = (o: Record<string, unknown> = {}) =>

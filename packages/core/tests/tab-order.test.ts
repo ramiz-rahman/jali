@@ -7,7 +7,6 @@
 import { describe, expect, it } from "vite-plus/test";
 import {
   createJali,
-  layout as L,
   memoryStorage,
   pane,
   row,
@@ -16,7 +15,7 @@ import {
   type Jali,
   type LayoutInput,
 } from "@jali/core";
-import { storeOf } from "@jali/core/adapter";
+import { storeOf, layout as L } from "@jali/core/adapter";
 import { stabilityBreaches } from "./fixtures/stability";
 
 const kinds = [
@@ -54,7 +53,7 @@ const SHAPES: LayoutInput[] = [
   ),
 ];
 const geometry = (j: Jali) =>
-  j
+  storeOf(j)
     .model()
     .resolved.panes.filter((b) => !b.hidden)
     .map((b) => `${b.rect.x},${b.rect.y},${b.rect.width},${b.rect.height}`)

@@ -14,6 +14,7 @@ import {
 } from "@jali/core";
 import { JaliRoot, definePane, type PaneProps } from "@jali/react";
 import { defaultFeatures, urlSync } from "./features";
+import { storeOf } from "@jali/core/adapter";
 
 beforeAll(() => {
   globalThis.ResizeObserver ??= class {
@@ -67,7 +68,7 @@ describe("a pane's actions return results", () => {
       r = props["order-1"]!.openBeside(order({ id: 6 }), { edge: "bottom" });
     });
     expect(r?.ok).toBe(true);
-    const parent = jali.model().layout.root;
+    const parent = storeOf(jali).model().layout.root;
     const column =
       parent.type === "pane" ? undefined : parent.children.find((c) => c.type === "column");
     expect(column?.type === "column" && column.children.map((c) => c.id)).toEqual([

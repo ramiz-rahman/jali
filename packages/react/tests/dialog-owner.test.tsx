@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, pane, type Feature } from "@jali/core";
 import { JaliRoot, definePane } from "@jali/react";
 import { defaultFeatures, noUrl, urlSync } from "./features";
+import { storeOf } from "@jali/core/adapter";
 
 afterEach(cleanup);
 
@@ -27,7 +28,7 @@ describe("one owner for Jali's dialogs", () => {
     const jali = make({ features: noUrl().filter((f) => f.id !== "settings") });
     render(<JaliRoot jali={jali} />);
     act(() => void jali.dialogs.openSettings());
-    expect(jali.get().settingsOpen).toBe(false);
+    expect(storeOf(jali).get().settingsOpen).toBe(false);
     expect(modals()).toBe(0);
   });
 

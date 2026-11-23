@@ -8,7 +8,6 @@
 import { describe, expect, expectTypeOf, it } from "vite-plus/test";
 import {
   createJali,
-  layout,
   memoryLocation,
   memoryStorage,
   row,
@@ -21,6 +20,7 @@ import {
   parseParams,
   toLayout,
   type PaneKindBase,
+  layout,
 } from "@jali/core/adapter";
 import { urlSync } from "../src/features/url-sync";
 

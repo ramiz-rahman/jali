@@ -45,7 +45,7 @@ const make = (location = memoryLocation()): Jali => {
 };
 /** The outer row's children, and the week's, by id. */
 const shape = (jali: Jali) => {
-  const outer = jali.model().layout.root as unknown as {
+  const outer = storeOf(jali).model().layout.root as unknown as {
     children: { id: string; children?: { id: string }[] }[];
   };
   return outer.children.map((c) =>
@@ -82,9 +82,9 @@ describe("move out of the row", () => {
   it("does nothing for a pane in no row that scrolls", () => {
     const jali = make();
     jali.actions.focus("left");
-    const before = jali.model().layout;
+    const before = storeOf(jali).model().layout;
     expect(runCommand(jali, "pane.move.out")).toBe(false);
-    expect(jali.model().layout).toBe(before);
+    expect(storeOf(jali).model().layout).toBe(before);
   });
 
   it("adds a history entry, as any move does, so Back puts the pane back", () => {

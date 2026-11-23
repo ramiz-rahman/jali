@@ -35,6 +35,10 @@ export const NOT_EXPORTED = {
   NodeBase: "the fields every LayoutNode shares",
   Node: "helper of layout.find",
   Read: "helper of layout.find",
+  // An adapter's kind registry (`createPaneKinds`, jali/adapter), which `createJali({ panes })` also takes.
+  PaneKinds: "an adapter's kind registry, which createJali({ panes }) also takes",
+  PaneKind: "inside an adapter's kind registry",
+  KindRegistry: "inside an adapter's kind registry",
 };
 
 /**

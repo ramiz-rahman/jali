@@ -5,16 +5,8 @@
  * already past one opens and may shrink; and every address written reads back whole in a fresh instance.
  */
 import { describe, expect, it, vi } from "vite-plus/test";
-import {
-  createJali,
-  layout as L,
-  memoryLocation,
-  memoryStorage,
-  pane,
-  row,
-  tabs,
-} from "@jali/core";
-import { definePageEngine as definePage, storeOf } from "@jali/core/adapter";
+import { createJali, memoryLocation, memoryStorage, pane, row, tabs } from "@jali/core";
+import { definePageEngine as definePage, storeOf, layout as L } from "@jali/core/adapter";
 import { urlSync } from "../src/features/url-sync";
 
 const loan = { kind: "loan", title: "Loan", params: { id: Number }, width: { min: 260 } };
@@ -46,7 +38,9 @@ const onPage = (o: { url?: boolean; search?: string } = {}) => {
   return { jali, location };
 };
 const opened = (jali: ReturnType<typeof onPage>["jali"]) =>
-  jali.model().panes.filter((p) => !p.role).length;
+  storeOf(jali)
+    .model()
+    .panes.filter((p) => !p.role).length;
 
 describe("a curated page's opened panes", () => {
   for (const url of [true, false])
@@ -59,7 +53,7 @@ describe("a curated page's opened panes", () => {
       const layout = jali.getLayout(),
         entries = [...location.entries],
         undo = storeOf(jali).get().undoStack;
-      const last = jali
+      const last = storeOf(jali)
         .model()
         .panes.filter((p) => !p.role)
         .at(-1)!.id;
@@ -73,7 +67,9 @@ describe("a curated page's opened panes", () => {
       expect(jali.actions.addTab("main", n(5)).ok).toBe(true);
       expect(jali.actions.openHere(last, n(40)).ok).toBe(true);
       expect(opened(jali)).toBe(32);
-      const first = jali.model().panes.find((p) => !p.role)!.id;
+      const first = storeOf(jali)
+        .model()
+        .panes.find((p) => !p.role)!.id;
       expect(jali.actions.close(first).ok).toBe(true);
       expect(jali.actions.addTab("main", n(33)).ok).toBe(true);
       expect(opened(jali)).toBe(32);
@@ -89,12 +85,12 @@ describe("a curated page's opened panes", () => {
     vi.useRealTimers();
     const again = onPage({ search: location.search() }).jali;
     expect(
-      again
+      storeOf(again)
         .model()
         .panes.filter((p) => !p.role)
         .map((p) => p.ref),
     ).toEqual(
-      jali
+      storeOf(jali)
         .model()
         .panes.filter((p) => !p.role)
         .map((p) => p.ref),
@@ -138,7 +134,9 @@ describe("a layout larger than a link", () => {
     for (let i = 299; i >= 255; i--) expect(jali.actions.remove(`p${i}`).ok).toBe(true);
     expect(location.search()).not.toBe("");
     const code = new URLSearchParams(location.search()).get("l")!;
-    expect(L.tree.panes(L.decode(code, jali.env.kinds.registry())!.root)).toHaveLength(255);
+    expect(L.tree.panes(L.decode(code, storeOf(jali).env.kinds.registry())!.root)).toHaveLength(
+      255,
+    );
     expect(warn).toHaveBeenCalledTimes(1);
     warn.mockRestore();
   });

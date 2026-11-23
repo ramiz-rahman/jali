@@ -72,12 +72,12 @@ describe("definePane", () => {
     const jali = make({
       layout: row(pane({ kind: "note", params: { id: "7" } }, { id: "seven" })),
     });
-    expect(jali.env.kinds.params(jali.model().pane("seven")!.ref)).toEqual({ id: 7 });
-    expect(jali.model().title("seven")).toBe("Note 7");
+    expect(storeOf(jali).env.kinds.params(jali.model().pane("seven")!.ref)).toEqual({ id: 7 });
+    expect(storeOf(jali).model().title("seven")).toBe("Note 7");
   });
 
   it("gives sizes defaults, so a kind only states what it needs", () => {
-    const kind = make().env.kinds.registry().note!;
+    const kind = storeOf(make()).env.kinds.registry().note!;
     expect([kind.minWidth, kind.minHeight, kind.maxWidth]).toEqual([240, 160, 600]);
     expect([kind.comfortableHeight, kind.maxHeight]).toEqual([undefined, undefined]);
   });
@@ -88,12 +88,12 @@ describe("definePane", () => {
       height: { min: 120, comfortable: 200, max: 260 },
       Component: () => null,
     });
-    const kind = make({ panes: [note, band] }).env.kinds.registry().band!;
+    const kind = storeOf(make({ panes: [note, band] })).env.kinds.registry().band!;
     expect([kind.minHeight, kind.comfortableHeight, kind.maxHeight]).toEqual([120, 200, 260]);
   });
 
   it("knows scratch kinds are never the same object and stay out of Recent by default", () => {
-    const { kinds } = make({ panes: [note, launcher] }).env;
+    const { kinds } = storeOf(make({ panes: [note, launcher] })).env;
     expect(kinds.sameObject(launcher(), launcher())).toBe(false);
     expect(kinds.isRecordable(launcher())).toBe(false);
     expect(kinds.sameObject(note({ id: 1 }), { kind: "note", params: { id: "1" } })).toBe(true);
@@ -125,7 +125,7 @@ describe("createJali", () => {
     const jali = make({ launcher });
     const opened = jali.actions.split(undefined, "right").pane;
     expect(jali.model().pane(opened)?.ref.kind).toBe("launcher");
-    expect(jali.env.kinds.isTransient(launcher())).toBe(true);
+    expect(storeOf(jali).env.kinds.isTransient(launcher())).toBe(true);
   });
 
   it("builds a preset each time it is chosen", () => {

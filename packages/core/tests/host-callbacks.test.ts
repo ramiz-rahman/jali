@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from "vite-plus/test";
 import { createJali, memoryStorage, row, type Layout } from "@jali/core";
-import { structureKey } from "@jali/core/adapter";
+import { structureKey, storeOf } from "@jali/core/adapter";
 
 describe("host callbacks and ref equality", () => {
   it("a kind's identity that throws doesn't break open", () => {
@@ -24,10 +24,10 @@ describe("host callbacks and ref equality", () => {
       size: { width: 1200, height: 800 },
       moveFocus: false,
     });
-    const first = jali.model().resolved.panes[0]!.id;
+    const first = storeOf(jali).model().resolved.panes[0]!.id;
     expect(jali.actions.openBeside(first, { kind: "thing", params: { id: 2 } }).ok).toBe(true);
     expect(
-      jali.env.kinds.sameObject(
+      storeOf(jali).env.kinds.sameObject(
         { kind: "thing", params: { id: 1 } },
         { kind: "thing", params: { id: 1 } },
       ),

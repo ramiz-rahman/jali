@@ -7,7 +7,6 @@ import { cleanup, render } from "@testing-library/react";
 import { afterEach, beforeAll, describe, expect, it } from "vite-plus/test";
 import {
   createJali,
-  layout,
   memoryLocation,
   memoryStorage,
   pane,
@@ -31,6 +30,7 @@ import {
   structureKey,
   urlKeys,
   toLayout,
+  layout,
 } from "@jali/core/adapter";
 import { JaliRoot, definePane, usePaneState } from "@jali/react";
 import { follow } from "../../core/src/actions/follow";
@@ -127,7 +127,7 @@ describe("C2: stored settings", () => {
       expect(jali!.get().settings.paneCap).toBe(8);
       // The fields that were fine are kept.
       expect(jali!.get().settings.theme).toBe("dark");
-      expect(() => jali!.model().resolved).not.toThrow();
+      expect(() => storeOf(jali!).model().resolved).not.toThrow();
     },
   );
 
@@ -150,7 +150,7 @@ describe("C2: stored settings", () => {
         reason: "invalid",
       });
     expect(jali.get().settings.paneCap).toBe(8);
-    expect(() => jali.model().resolved).not.toThrow();
+    expect(() => storeOf(jali).model().resolved).not.toThrow();
     expect(jali.actions.changeSettings({ paneCap: 4 })).toMatchObject({ ok: true });
     expect(jali.get().settings.paneCap).toBe(4);
   });
@@ -161,7 +161,7 @@ describe("C2: stored settings", () => {
     const before = store.get();
     expect(() => store.set({ settings: { ...before.settings, paneCap: 0 } })).toThrow();
     expect(store.get()).toBe(before);
-    expect(() => jali.model().resolved).not.toThrow();
+    expect(() => storeOf(jali).model().resolved).not.toThrow();
   });
 });
 
@@ -256,7 +256,7 @@ describe("C3: names on Object.prototype", () => {
       });
       const store = storeOf(jali);
       smuggle(jali, "second", id);
-      expect(jali.model().title(id)).toBe("Note 2");
+      expect(storeOf(jali).model().title(id)).toBe("Note 2");
       expect(() => listCommands(jali)).not.toThrow();
       // Not held for unsaved work it doesn't have: it follows its list.
       const r = store.apply((x) => follow(x, "list", note({ id: 3 })));
@@ -323,7 +323,7 @@ describe("C4: refs passed to public actions", () => {
         expect(out.message).toBeTruthy();
       }
       expect(jali.model().panes).toHaveLength(2);
-      expect(() => jali.model().resolved).not.toThrow();
+      expect(() => storeOf(jali).model().resolved).not.toThrow();
     },
   );
 
@@ -361,9 +361,9 @@ describe("C5: maximising a pane that is not on screen", () => {
   it("toggleZoom and toggleFullScreen refuse a hidden pane", () => {
     const jali = hidden();
     expect(jali.actions.toggleZoom("c")).toMatchObject({ ok: false, reason: "blocked" });
-    expect(() => jali.model().resolved).not.toThrow();
+    expect(() => storeOf(jali).model().resolved).not.toThrow();
     expect(jali.actions.toggleFullScreen("c")).toMatchObject({ ok: false, reason: "blocked" });
-    expect(() => jali.model().resolved).not.toThrow();
+    expect(() => storeOf(jali).model().resolved).not.toThrow();
     expect(jali.get().view.zoomed).toBeUndefined();
   });
 
@@ -371,7 +371,7 @@ describe("C5: maximising a pane that is not on screen", () => {
     const jali = hidden();
     const store = storeOf(jali);
     store.set({ view: { ...store.get().view, zoomed: "c" } });
-    expect(() => jali.model().resolved).not.toThrow();
+    expect(() => storeOf(jali).model().resolved).not.toThrow();
   });
 
   it("a link zooming a hidden pane opens unzoomed", () => {

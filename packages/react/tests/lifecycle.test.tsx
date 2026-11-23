@@ -9,6 +9,7 @@ import { afterEach, describe, expect, it } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage } from "@jali/core";
 import { JaliRoot, definePane } from "@jali/react";
 import { defaultFeatures, urlSync } from "./features";
+import { storeOf } from "@jali/core/adapter";
 
 const note = definePane("note", {
   params: { id: Number },
@@ -29,13 +30,13 @@ const make = () =>
 
 /** Ctrl+K on the page: the palette's key. Says whether the workspace took it. */
 function pressPaletteKey(jali: ReturnType<typeof make>): boolean {
-  const before = jali.get().paletteOpen;
+  const before = storeOf(jali).get().paletteOpen;
   act(() => {
     document.body.dispatchEvent(
       new KeyboardEvent("keydown", { key: "k", code: "KeyK", ctrlKey: true, bubbles: true }),
     );
   });
-  const took = jali.get().paletteOpen !== before;
+  const took = storeOf(jali).get().paletteOpen !== before;
   if (took) act(() => void jali.dialogs.closePalette());
   return took;
 }

@@ -91,7 +91,7 @@ describe("spacing", () => {
     for (const [k, v] of Object.entries({ clientWidth: 1000, clientHeight: 500 }))
       Object.defineProperty(ws, k, { value: v });
     act(() => void window.dispatchEvent(new Event("resize")));
-    expect(jali.get().area).toEqual({ width: 1000 - 30, height: 500 - 30 });
+    expect(storeOf(jali).get().area).toEqual({ width: 1000 - 30, height: 500 - 30 });
     expect(between(jali)).toBe(15);
   });
 });

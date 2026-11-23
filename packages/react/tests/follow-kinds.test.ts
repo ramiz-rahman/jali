@@ -207,7 +207,7 @@ describe("one selection, followers of every kind", () => {
     expect(jali.model().pane(opened.pane!)).toMatchObject({ kept: true });
     // A chart of something else is a plain link, not the selection.
     const other = jali.actions.openBeside("watch", chart({ symbol: "KSTR" }));
-    expect(jali.model().pane(other.pane!)?.follows).toBeUndefined();
+    expect(jali.model().pane(other.pane!)?.follows).toBe(false);
   });
 
   it("leaves the single-kind case as it was: a list of orders and its following order", () => {

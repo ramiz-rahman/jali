@@ -19,7 +19,7 @@ import {
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from "react";
-import { layout as core, type ScrollerBox } from "@jali/core";
+import { layout as core, type ScrollerBox } from "@jali/core/adapter";
 import { useGeometry, useStore, useUi } from "../state/react";
 import { STRIP_VIEWPORT } from "../dom";
 

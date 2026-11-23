@@ -8,6 +8,7 @@ import { afterEach, describe, expect, it } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, pane, row, tabs } from "@jali/core";
 import { JaliRoot, JaliView, definePage, definePane } from "@jali/react";
 import { defaultFeatures, urlSync } from "./features";
+import { storeOf } from "@jali/core/adapter";
 
 afterEach(cleanup);
 
@@ -61,7 +62,7 @@ describe("the stacked phone view", () => {
       moveFocus: false,
     });
     jali.actions.openBeside("a", note({ id: 2 }));
-    expect(jali.model().stacked).toBeDefined();
+    expect(storeOf(jali).model().stacked).toBeDefined();
     const size = { clientWidth: 390, clientHeight: 772 };
     for (const [k, v] of Object.entries(size))
       Object.defineProperty(HTMLElement.prototype, k, { configurable: true, get: () => v });

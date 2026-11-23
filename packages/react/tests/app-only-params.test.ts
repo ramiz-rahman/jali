@@ -6,7 +6,6 @@ import { describe, expect, expectTypeOf, it } from "vite-plus/test";
 import {
   appOnly,
   createJali,
-  layout,
   memoryLocation,
   memoryStorage,
   pane,
@@ -15,7 +14,7 @@ import {
   type ParamsOf,
   type UrlState,
 } from "@jali/core";
-import { definePageEngine as definePage } from "@jali/core/adapter";
+import { definePageEngine as definePage, layout } from "@jali/core/adapter";
 import { encodeRef, storeOf } from "@jali/core/adapter";
 import { definePane } from "@jali/react";
 import { defaultFeatures, urlSync } from "./features";
@@ -181,7 +180,7 @@ describe("a param only the app sets", () => {
   it("is set by the app, kept in the pane, and left out of the address", () => {
     const { jali, location } = make();
     const r = jali.actions.openBeside(
-      jali.model().panes[0]!.id,
+      storeOf(jali).model().panes[0]!.id,
       query({ sql: "select 2", autorun: true }),
     );
     expect(r.ok).toBe(true);
@@ -189,7 +188,7 @@ describe("a param only the app sets", () => {
     const address = location.entries.at(-1)!;
     const written = layout.decode(
       new URLSearchParams(address).get("l")!,
-      jali.env.kinds.registry(),
+      storeOf(jali).env.kinds.registry(),
     );
     const shown = layout.tree.panes(written!.root).map((p) => p.ref);
     expect(shown.find((x) => x.params.sql === "select 2")?.params).toEqual({ sql: "select 2" });
@@ -198,7 +197,7 @@ describe("a param only the app sets", () => {
 
   it("is not part of what the pane shows: with or without it, it is the same object", () => {
     const { jali } = make();
-    const kinds = jali.env.kinds;
+    const kinds = storeOf(jali).env.kinds;
     const plain = query({ sql: "select 1" }),
       running = query({ sql: "select 1", autorun: true });
     expect(kinds.sameObject(plain, running)).toBe(true);

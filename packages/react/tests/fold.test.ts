@@ -77,6 +77,6 @@ describe("across a fold", () => {
   });
 
   it("is left alone with phone: { fold: false }", () => {
-    expect(make(false).model().stacked).toBeUndefined();
+    expect(storeOf(make(false)).model().stacked).toBeUndefined();
   });
 });

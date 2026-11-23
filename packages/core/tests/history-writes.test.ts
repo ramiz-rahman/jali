@@ -168,7 +168,7 @@ describe("a gesture writes the address once, when it ends (SAFARI-3)", () => {
     vi.advanceTimersByTime(1000);
     expect(writes).toEqual(["replace"]);
     expect(new URLSearchParams(port.search()).get("scroll")).toBe("week:400");
-    expect(strip(memoryLocation(port.search())).get().view.scroll).toEqual({ week: 400 });
+    expect(storeOf(strip(memoryLocation(port.search()))).get().view.scroll).toEqual({ week: 400 });
   });
 
   it("a drop inside a drag is held with it, and written once it ends", () => {

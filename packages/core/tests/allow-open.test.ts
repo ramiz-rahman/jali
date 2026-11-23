@@ -39,7 +39,7 @@ describe("open off for the instance", () => {
     const before = ids(jali);
     expect(jali.actions.openBeside("a", c(1))).toEqual({ ok: true, pane: "a" });
     expect(jali.get().view.peek).toEqual(c(1));
-    expect(jali.get().peekSource).toBe("a");
+    expect(storeOf(jali).get().peekSource).toBe("a");
     expect(ids(jali)).toEqual(before);
     // Keeping it would open a pane: refused, and the peek stays where it was.
     expect(disabled(jali, "peek.open_beside")).toBe(true);
@@ -134,7 +134,11 @@ describe("open off on a curated page", () => {
     expect(jali.page!.setMode("split").ok).toBe(true);
     expect(jali.actions.openBeside("main", c(9)).ok).toBe(true);
     expect(jali.get().view.peek).toEqual(c(9));
-    expect(jali.model().panes.every((p) => p.role)).toBe(true);
+    expect(
+      storeOf(jali)
+        .model()
+        .panes.every((p) => p.role),
+    ).toBe(true);
     expect(jali.page!.back()).toMatchObject({ reason: "nothing-to-do" });
   });
 
@@ -142,7 +146,7 @@ describe("open off on a curated page", () => {
     const jali = make({ page, allow: { open: false } });
     jali.page!.open();
     jali.page!.setMode("split");
-    expect(jali.model().visible).not.toContain("side");
+    expect(storeOf(jali).model().visible).not.toContain("side");
     const layout = jali.getLayout();
     expect(storeOf(jali).actions.placeTab("side", "main", "right")).toMatchObject({
       reason: "not-allowed",

@@ -442,7 +442,7 @@ describe("pinned tabs", () => {
     const pin = screen.getByRole("menuitemcheckbox", { name: "Pin tab" });
     expect(pin.getAttribute("aria-checked")).toBe("true");
     act(() => void fireEvent.click(pin));
-    expect(jali.model().pane("b")).not.toHaveProperty("pinned");
+    expect(jali.model().pane("b")?.pinned).toBe(false);
   });
 
   it("survive a link: the codec carries them", () => {

@@ -47,7 +47,7 @@ const stackedPair = (first: "note" | "strip" = "note") => {
     layout: first === "strip" ? strip() : undefined,
     size: PHONE,
   });
-  jali.actions.openBeside(jali.model().visible[0]!, note({ id: 7 }));
+  jali.actions.openBeside(storeOf(jali).model().visible[0]!, note({ id: 7 }));
   return jali;
 };
 const placed = (

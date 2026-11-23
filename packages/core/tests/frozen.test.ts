@@ -5,6 +5,7 @@
  */
 import { describe, expect, it } from "vite-plus/test";
 import { createJali, memoryStorage, row, type DeepReadonly, type Layout } from "@jali/core";
+import { storeOf } from "@jali/core/adapter";
 
 const item = { kind: "item", title: "Item", params: { id: Number }, width: { min: 200 } };
 const ref = (id: number) => ({ kind: "item", params: { id } });
@@ -26,9 +27,9 @@ describe("public snapshots", () => {
     expect(() => ((jali.get().view as { focused?: string }).focused = "nope")).toThrow(TypeError);
     let heard: DeepReadonly<Layout> | undefined;
     jali.on("layout", (e) => (heard = e.layout));
-    jali.actions.openBeside(jali.model().resolved.panes[0]!.id, ref(3));
+    jali.actions.openBeside(storeOf(jali).model().resolved.panes[0]!.id, ref(3));
     expect(Object.isFrozen(heard!.root)).toBe(true);
-    expect(jali.model().resolved.panes.length).toBe(3);
+    expect(storeOf(jali).model().resolved.panes.length).toBe(3);
   });
 
   it("an app's own layout object is never frozen", () => {

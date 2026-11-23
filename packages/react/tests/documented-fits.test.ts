@@ -44,11 +44,13 @@ describe("a tab group's narrowest width is its widest member's", () => {
     );
     // 240 + 520 + gaps fits at 800; at 700 the group can't have 520, so something folds.
     const roomy = make({ layout, size: { width: 800, height: 600 } });
-    expect(roomy.model().folded).toEqual([]);
-    const box = roomy.model().resolved.panes.find((b) => b.id === "small")!;
+    expect(storeOf(roomy).model().folded).toEqual([]);
+    const box = storeOf(roomy)
+      .model()
+      .resolved.panes.find((b) => b.id === "small")!;
     expect(box.rect.width).toBeGreaterThanOrEqual(520);
     const tight = make({ layout, size: { width: 700, height: 600 } });
-    expect(tight.model().folded.length).toBeGreaterThan(0);
+    expect(storeOf(tight).model().folded.length).toBeGreaterThan(0);
   });
 });
 

@@ -106,7 +106,13 @@ describe("selectors that return objects", () => {
     function Probe() {
       renders++;
       const v = useJaliModel(
-        (m) => ({ ids: m.onScreen.map((n) => n.id).join(), t: m.title("a") }),
+        (m) => ({
+          ids: m.panes
+            .filter((p) => p.where !== "hidden")
+            .map((p) => p.id)
+            .join(),
+          t: m.pane("a")?.title,
+        }),
         shallow,
       );
       return <p>{v.t}</p>;
@@ -121,6 +127,56 @@ describe("selectors that return objects", () => {
     expect(renders).toBe(before);
     act(() => void storeOf(jali).actions.setTitle("a", "Mine"));
     expect(container.textContent).toBe("Mine");
+  });
+
+  it("a whole-state or whole-model read doesn't re-render for what only the engine holds", () => {
+    const jali = make();
+    let renders = 0;
+    function Probe() {
+      renders++;
+      const s = useJaliState((x) => x);
+      const m = useJaliModel();
+      return (
+        <p>
+          {s.view.focused} {m.panes.map((p) => `${p.id}:${p.where}`).join(" ")}
+        </p>
+      );
+    }
+    const { container } = render(
+      <JaliProvider jali={jali}>
+        <Probe />
+      </JaliProvider>,
+    );
+    const before = renders;
+    const store = storeOf(jali);
+    act(() => store.set({ paletteOpen: true }));
+    act(() => void store.actions.setPaneState("a", "draft", "x"));
+    act(() => store.announce("Said"));
+    expect(renders).toBe(before);
+    act(() => void jali.actions.focus("b"));
+    expect(renders).toBe(before + 1);
+    expect(container.textContent).toBe("b a:shown b:shown");
+  });
+
+  it("a selector over one pane doesn't re-render when another pane changes", () => {
+    const jali = make();
+    let renders = 0;
+    function Probe() {
+      renders++;
+      const a = useJaliModel((m) => m.pane("a"));
+      return <p>{a?.title}</p>;
+    }
+    render(
+      <JaliProvider jali={jali}>
+        <Probe />
+      </JaliProvider>,
+    );
+    const before = renders;
+    act(() => void storeOf(jali).actions.setTitle("b", "Other"));
+    act(() => void jali.actions.select("b", note({ id: 7 })));
+    expect(renders).toBe(before);
+    act(() => void jali.actions.focus("b"));
+    expect(renders).toBe(before + 1);
   });
 
   it("shallow compares one level of objects and arrays", () => {

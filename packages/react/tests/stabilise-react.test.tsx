@@ -6,7 +6,7 @@
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { memo, useEffect, useState } from "react";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite-plus/test";
-import { lastPressedControl, trackInput } from "@jali/core/adapter";
+import { lastPressedControl, trackInput, storeOf } from "@jali/core/adapter";
 import { createJali, memoryLocation, memoryStorage, pane, row, type AnyJali } from "@jali/core";
 import { JaliRoot, definePane, useCommands, useHeaderActions, useUnsaved } from "@jali/react";
 import { defaultFeatures, urlSync } from "./features";
@@ -205,7 +205,7 @@ describe("boundaries reset with the instance", () => {
     render(<JaliRoot jali={jali} onError={onError} />);
     act(() => void jali.dialogs.openPalette());
     expect(onError).toHaveBeenCalled();
-    expect(jali.get().paletteOpen).toBe(false);
+    expect(storeOf(jali).get().paletteOpen).toBe(false);
     expect(screen.queryByRole("dialog")).toBeNull();
     act(() => void jali.dialogs.openSettings());
     expect(screen.getByRole("dialog", { name: "Settings" })).toBeTruthy();

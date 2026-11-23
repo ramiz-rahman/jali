@@ -5,12 +5,12 @@
  */
 import * as core from "../layout/engine";
 import type {
-  DeepReadonly,
   ObjectRef,
   Layout,
   LayoutContext,
   NodeId,
   PaneNode,
+  Rect,
   ResolvedLayout,
   ShelfEntry,
   StackNode,
@@ -19,7 +19,11 @@ import type {
 } from "../layout/types";
 import { PHONE_BELOW, titleOf, type Env } from "../env";
 import { foldPair, stackPair, type Hinge, type StackPair } from "../workspace/stack";
+import { frames } from "../workspace/frames";
+import { sameRef } from "../layout/ops/ref";
+import { own } from "../own";
 import { messagesOf } from "./messages";
+import type { Selection } from "./store";
 
 /** A tab group as the frame shows it: a deliberate stack, or a fold or tuck group made by resolve. */
 export interface Group {
@@ -29,26 +33,51 @@ export interface Group {
   active: NodeId;
 }
 
-/** A pane as an app reads it: read-only, with its ref typed by the instance's kinds. */
-export type PaneOf<R extends ObjectRef = ObjectRef> = DeepReadonly<Omit<PaneNode, "ref">> & {
+/**
+ * A pane as an app reads it (`jali.model().panes`): what it shows, its name, where it is and what it is linked to.
+ * Read-only; the same object while none of these changed. `R` is the refs of the instance's kinds.
+ */
+export interface PaneOf<R extends ObjectRef = ObjectRef> {
+  readonly id: NodeId;
   readonly ref: R;
-};
+  /** Its name: its role on a curated page, else the title its content set (`useTitle`), else its kind's title. */
+  readonly title: string;
+  /**
+   * Where it is: `"shown"` (on screen, its content visible), `"tab"` (behind another tab, or another pane's turn while
+   * one pane shows at a time), `"folded"` (folded for room, behind its place's "N folded" chip), `"tucked"` (the
+   * person tucked it onto the shelf) or `"hidden"` (no slot: hidden by a curated page, behind a maximised pane, or
+   * scrolled out of its row's window).
+   */
+  readonly where: "shown" | "tab" | "folded" | "tucked" | "hidden";
+  /** It has focus. */
+  readonly focused: boolean;
+  /** Where it is while shown, in CSS pixels from the top left of the panes' area; null while it isn't shown. */
+  readonly box: Readonly<Rect> | null;
+  /** A list pane's selected item (`select`), when it has one. */
+  readonly selected?: R;
+  /** The pane it was opened from. */
+  readonly linkedTo?: NodeId;
+  /** It shows what its `linkedTo` list selects. */
+  readonly follows: boolean;
+  /** The person kept it: it never shows another object by itself. */
+  readonly kept: boolean;
+  /** Its tab is pinned. */
+  readonly pinned: boolean;
+}
 
 /**
- * The layout as it is on screen (`jali.model()`, `useJaliModel`): panes, their boxes and titles, the groups and the
- * shelf. Read-only. `R` is the refs of the instance's kinds.
+ * The layout as it is on screen (`jali.model()`, `useJaliModel`): every pane in tree order, with where each is.
+ * Read-only; the same object while nothing in it changed. `R` is the refs of the instance's kinds.
  */
-export type JaliModel<R extends ObjectRef = ObjectRef> = DeepReadonly<
-  Omit<Model, "env" | "panes" | "pane" | "onScreen">
-> & {
-  /** The pane kinds and profile it was built with. */
-  readonly env: Env;
-  /** Every pane in tree order. */
+export interface JaliModel<R extends ObjectRef = ObjectRef> {
+  /** Every pane in tree order: shown, tabbed, folded, tucked or hidden. */
   readonly panes: readonly PaneOf<R>[];
+  /** A pane by id. */
   pane(id: NodeId | undefined): PaneOf<R> | undefined;
-  /** Every pane except hidden ones, in tree order: what the pane switcher lists while one pane shows at a time. */
-  readonly onScreen: readonly PaneOf<R>[];
-};
+  /** The first pane showing the same object as `ref` (its kind's `shows` and identity), whatever its kind. A ref of
+   *  a scratch kind matches none. */
+  paneOf(ref: ObjectRef): PaneOf<R> | undefined;
+}
 
 /** The model as the engine and adapters read it. */
 export interface Model {
@@ -267,5 +296,109 @@ export function modelCache() {
     const model = buildModel(input);
     last = { key, geometry: model, titles: input.titles, model };
     return last.model;
+  };
+}
+
+const sameRect = (a: Readonly<Rect> | null, b: Readonly<Rect> | null) =>
+  a === b ||
+  (!!a && !!b && a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height);
+
+const samePane = (a: PaneOf, b: PaneOf) =>
+  a.id === b.id &&
+  (a.ref === b.ref || sameRef(a.ref, b.ref)) &&
+  a.title === b.title &&
+  a.where === b.where &&
+  a.focused === b.focused &&
+  sameRect(a.box, b.box) &&
+  (a.selected === b.selected || sameRef(a.selected, b.selected)) &&
+  a.linkedTo === b.linkedTo &&
+  a.follows === b.follows &&
+  a.kept === b.kept &&
+  a.pinned === b.pinned;
+
+/** What the public model is made from: the engine's model, focus, the selection and the room. */
+export interface PublicInput {
+  view: ViewState;
+  selection: Readonly<Record<NodeId, Selection>>;
+  area: { width: number; height: number };
+}
+
+/**
+ * The public model (`jali.model()`), worked out again on every read and kept while nothing in it changed: each pane
+ * keeps its object while its fields are the same, and the model its object while every pane does. Titles are read
+ * each time, since a kind's title can read the app's own data.
+ */
+export function publicModel(env: Env) {
+  let last: JaliModel | undefined;
+  let from: unknown[] = [];
+  return (m: Model, { view, selection, area }: PublicInput): JaliModel => {
+    // Nothing it is made from changed: only a title can have (a kind's title reading the app's data).
+    const key = [m, view.focused, view.zoomed, selection, area];
+    if (
+      last &&
+      key.every((k, i) => k === from[i]) &&
+      last.panes.every((p) => p.title === m.title(p.id))
+    )
+      return last;
+    from = key;
+    const was = new Map(last?.panes.map((p) => [p.id, p]));
+    const boxes = new Map(m.resolved.panes.map((b) => [b.id, b]));
+    const flat = new Map(m.flat.panes.map((b) => [b.id, b]));
+    // One pane at a time: the frames the adapter draws say which show (stacked view and a fold too).
+    const single = m.onePane
+      ? new Map(frames(m, view, "single", area).map((f) => [f.node.id, f]))
+      : undefined;
+    const panes = m.panes.map((node): PaneOf => {
+      const { id } = node;
+      const b = boxes.get(id);
+      const f = single?.get(id);
+      const off = flat.get(id)?.hidden === "off";
+      const box: Rect | null = off
+        ? null
+        : single
+          ? f && !f.hidden
+            ? f.rect
+            : null
+          : b && !b.hidden && !m.outOfView.has(id)
+            ? view.zoomed === id
+              ? { x: 0, y: 0, ...area }
+              : b.rect
+            : null;
+      const where: PaneOf["where"] = off
+        ? "hidden"
+        : box
+          ? "shown"
+          : m.tuckOf(id)
+            ? "tucked"
+            : m.folded.includes(id)
+              ? "folded"
+              : single || flat.get(id)?.hidden === "tab"
+                ? "tab"
+                : "hidden";
+      const selected = own(selection, id)?.ref;
+      const p: PaneOf = Object.freeze({
+        id,
+        ref: node.ref,
+        title: m.title(id),
+        where,
+        focused: view.focused === id,
+        box: box && Object.freeze({ ...box }),
+        ...(selected ? { selected } : {}),
+        ...(node.linkedTo ? { linkedTo: node.linkedTo } : {}),
+        follows: !!node.follows,
+        kept: !!node.kept,
+        pinned: !!node.pinned,
+      });
+      const before = was.get(id);
+      return before && samePane(before, p) ? before : p;
+    });
+    if (last && last.panes.length === panes.length && panes.every((p, i) => p === last!.panes[i]))
+      return last;
+    const byId = new Map(panes.map((p) => [p.id, p]));
+    return (last = Object.freeze({
+      panes: Object.freeze(panes),
+      pane: (id: NodeId | undefined) => (id ? byId.get(id) : undefined),
+      paneOf: (ref: ObjectRef) => panes.find((p) => env.kinds.sameObject(p.ref, ref)),
+    }));
   };
 }

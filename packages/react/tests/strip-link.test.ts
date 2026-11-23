@@ -43,7 +43,7 @@ describe("a strip's place in the link", () => {
     expect(scrollParam(location.search())).toBe("week:732");
 
     const reader = make(memoryLocation(location.search()));
-    expect(reader.get().view.scroll).toEqual({ week: 732 });
+    expect(storeOf(reader).get().view.scroll).toEqual({ week: 732 });
   });
 
   it("replaces the history entry, so Back doesn't step through every swipe", () => {
@@ -68,10 +68,10 @@ describe("a strip's place in the link", () => {
     const code = new URLSearchParams(jali.href().split("?")[1]).get("l")!;
     const read = readSearch(
       `?l=${code}&scroll=week:abc,nowhere:300,week:-5`,
-      jali.env.kinds.registry(),
+      storeOf(jali).env.kinds.registry(),
     );
     expect(read && "layout" in read ? read.view.scroll : "unread").toBeUndefined();
-    const good = readSearch(`?l=${code}&scroll=week:250.6`, jali.env.kinds.registry());
+    const good = readSearch(`?l=${code}&scroll=week:250.6`, storeOf(jali).env.kinds.registry());
     expect(good && "layout" in good ? good.view.scroll : "unread").toEqual({ week: 251 });
   });
 });

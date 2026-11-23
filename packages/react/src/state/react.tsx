@@ -4,6 +4,8 @@ import type {
   AnyJali,
   JaliEvent,
   JaliEvents,
+  JaliModel,
+  JaliState,
   NodeId,
   Messages,
   RefsOf,
@@ -320,15 +322,15 @@ export function useJaliState<T, J extends AnyJali = RegisteredJali>(
   select: (s: ReturnType<J["get"]>) => T,
   isEqual?: (a: T, b: T) => boolean,
 ): T {
-  const store = useStore();
-  return useSelected(store.subscribe, store.get, select as (s: UiState) => T, isEqual);
+  const { subscribe, jali } = useStore();
+  return useSelected(subscribe, jali.get, select as (s: JaliState) => T, isEqual);
 }
 
 const whole = <T,>(m: T) => m;
 
 /**
- * The layout as it is on screen: its panes, their boxes and titles, the shelf. With a selector, only what it picks
- * (`useJaliModel((m) => m.title(id))`), re-rendering when that changes by `isEqual` (`Object.is` unless given).
+ * The layout as it is on screen: every pane, with its title and where it is. With a selector, only what it picks
+ * (`useJaliModel((m) => m.pane(id)?.where)`), re-rendering when that changes by `isEqual` (`Object.is` unless given).
  */
 export function useJaliModel<J extends AnyJali = RegisteredJali>(): ReturnType<J["model"]>;
 export function useJaliModel<T, J extends AnyJali = RegisteredJali>(
@@ -336,11 +338,11 @@ export function useJaliModel<T, J extends AnyJali = RegisteredJali>(
   isEqual?: (a: T, b: T) => boolean,
 ): T;
 export function useJaliModel<T>(
-  select: (m: Model) => T = whole as (m: Model) => T,
+  select: (m: JaliModel) => T = whole as (m: JaliModel) => T,
   isEqual?: (a: T, b: T) => boolean,
 ): T {
-  const store = useStore();
-  return useSelected(store.subscribe, store.model, select, isEqual);
+  const { subscribe, jali } = useStore();
+  return useSelected(subscribe, jali.model, select, isEqual);
 }
 
 /**

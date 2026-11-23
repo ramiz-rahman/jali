@@ -4,8 +4,8 @@
  * `decode` refuses. Such a change is refused as "blocked".
  */
 import { describe, expect, it } from "vite-plus/test";
-import { createJali, layout as L, memoryLocation, memoryStorage, pane, tabs } from "@jali/core";
-import { storeOf } from "@jali/core/adapter";
+import { createJali, memoryLocation, memoryStorage, pane, tabs } from "@jali/core";
+import { storeOf, layout as L } from "@jali/core/adapter";
 import { urlSync } from "../src/features/url-sync";
 
 const item = { kind: "item", title: "Item", params: { id: Number }, width: { min: 200 } };
@@ -29,7 +29,7 @@ describe("a layout's size", () => {
       reason: "blocked",
     });
     const code = new URLSearchParams(storeOf(jali).href().slice("memory:".length)).get("l")!;
-    expect(L.decode(code, jali.env.kinds.registry())).not.toBeNull();
+    expect(L.decode(code, storeOf(jali).env.kinds.registry())).not.toBeNull();
   });
 });
 
@@ -59,7 +59,7 @@ describe("a layout's text", () => {
     const { jali, location } = make();
     expect(jali.actions.openHere("a", huge)).toMatchObject({ ok: false, reason: "blocked" });
     const code = new URLSearchParams(location.search()).get("l")!;
-    expect(L.decode(code, jali.env.kinds.registry())).not.toBeNull();
+    expect(L.decode(code, storeOf(jali).env.kinds.registry())).not.toBeNull();
   });
 
   it("that fits is written, and reads back as the same panes", () => {
@@ -67,7 +67,7 @@ describe("a layout's text", () => {
     const long = { kind: "note", params: { text: "y".repeat(200_000) } };
     expect(jali.actions.openHere("a", long).ok).toBe(true);
     const code = new URLSearchParams(location.search()).get("l")!;
-    const back = L.decode(code, jali.env.kinds.registry());
+    const back = L.decode(code, storeOf(jali).env.kinds.registry());
     expect(back && L.tree.panes(back.root).map((p) => p.ref)).toEqual([long]);
   });
 

@@ -5,7 +5,7 @@
  */
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { createJali, memoryStorage, row, type JaliOptions } from "@jali/core";
-import { createPaneKinds } from "@jali/core/adapter";
+import { createPaneKinds, storeOf } from "@jali/core/adapter";
 
 const ref = (kind: string) => ({ kind, params: {} });
 const make = (o: Partial<JaliOptions>) =>
@@ -33,7 +33,7 @@ describe("pane kinds' sizes", () => {
         ],
         layout: row(ref("a"), ref("b")),
       });
-      for (const p of jali.model().resolved.panes)
+      for (const p of storeOf(jali).model().resolved.panes)
         expect([p.rect.x, p.rect.y, p.rect.width, p.rect.height].every(Number.isFinite)).toBe(true);
       expect(said()).toMatch(/kind "a": width.min/);
     },

@@ -95,7 +95,7 @@ describe("a command is offered exactly when its step would run", () => {
 
 describe("a menu runs the intent it names, when it is chosen", () => {
   const order = (jali: ReturnType<typeof base>) =>
-    jali
+    storeOf(jali)
       .model()
       .stackOf("a")!
       .children.map((t) => t.id);
@@ -229,7 +229,7 @@ describe("a curated page places a view only where the gate lets it (step 1b revi
     expect(can(store, "showViewBeside", "side").ok).toBe(false);
     // Choosing Split view itself stays anyone's, and shows the design.
     expect(jali.page!.setMode("split").ok).toBe(true);
-    expect(jali.model().visible).toContain("side");
+    expect(storeOf(jali).model().visible).toContain("side");
   });
 
   it("with open on, the same placement is previewed and made", () => {
@@ -238,6 +238,6 @@ describe("a curated page places a view only where the gate lets it (step 1b revi
     expect(can(store, "showViewBeside", "side").ok).toBe(true);
     expect(store.actions.showViewBeside("side").ok).toBe(true);
     expect(jali.get().page?.mode).toBe("split");
-    expect(jali.model().visible).toEqual(expect.arrayContaining(["main", "side"]));
+    expect(storeOf(jali).model().visible).toEqual(expect.arrayContaining(["main", "side"]));
   });
 });

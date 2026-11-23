@@ -2,7 +2,6 @@
 import { describe, expect, it } from "vite-plus/test";
 import {
   createJali,
-  layout,
   memoryLocation,
   memoryStorage,
   pane,
@@ -13,6 +12,7 @@ import {
 } from "@jali/core";
 import { definePane } from "@jali/react";
 import { defaultFeatures, urlSync } from "./features";
+import { layout, storeOf } from "@jali/core/adapter";
 
 const list = definePane("list", {
   title: () => "Orders",
@@ -51,7 +51,7 @@ describe("auto layout", () => {
     const after = layout.tree.panes(jali.getLayout().root);
     expect(after.map((p) => p.id).sort()).toEqual(before.map((p) => p.id).sort());
     expect(jali.getLayout().root.type).toBe("row");
-    expect(jali.model().visible.length).toBe(3);
+    expect(storeOf(jali).model().visible.length).toBe(3);
   });
 
   it("adds a second row, below, only for what doesn't fit across, when the height has room", () => {
@@ -65,7 +65,7 @@ describe("auto layout", () => {
     const s = shape(jali.getLayout()) as { column: { row: unknown[] }[] };
     expect(s.column.length).toBe(2);
     expect(s.column[0]!.row.length).toBe(3);
-    expect(jali.model().visible.length).toBe(5);
+    expect(storeOf(jali).model().visible.length).toBe(5);
   });
 
   it("puts what doesn't fit in tabs, and keeps the focused pane shown", () => {
@@ -80,7 +80,7 @@ describe("auto layout", () => {
     };
     walk(jali.getLayout().root);
     expect(stacks).toContain(last);
-    expect(jali.model().visible).toContain(last);
+    expect(storeOf(jali).model().visible).toContain(last);
   });
 
   it("says nothing-to-do with one pane, and is a layout change otherwise", () => {
@@ -110,10 +110,10 @@ describe("auto layout", () => {
   it("never shows fewer panes than the fit would", () => {
     // Four panes that fit across at their minimums: auto layout keeps them all on screen.
     const jali = make(row(list(), order({ id: 1 }), order({ id: 2 }), order({ id: 3 })), 1500, 300);
-    expect(jali.model().visible.length).toBe(4);
+    expect(storeOf(jali).model().visible.length).toBe(4);
     jali.actions.autoLayout();
-    expect(jali.model().visible.length).toBe(4);
-    expect(jali.model().folded).toEqual([]);
+    expect(storeOf(jali).model().visible.length).toBe(4);
+    expect(storeOf(jali).model().folded).toEqual([]);
   });
 
   it("gives the same layout when run again", () => {
@@ -169,7 +169,7 @@ describe("auto layout", () => {
     jali.actions.autoLayout();
     expect(shape(jali.getLayout())).toEqual({ row: ["list", { stack: ["c", "a", "b"] }] });
     // The cell's own pane shows.
-    expect(jali.model().visible).toEqual(["list", "c"]);
+    expect(storeOf(jali).model().visible).toEqual(["list", "c"]);
   });
 
   it("keeps a hidden pane hidden", () => {
@@ -178,10 +178,10 @@ describe("auto layout", () => {
       1600,
       900,
     );
-    expect(jali.model().off).toEqual(["off"]);
+    expect(storeOf(jali).model().off).toEqual(["off"]);
     jali.actions.autoLayout();
-    expect(jali.model().off).toEqual(["off"]);
-    expect(jali.model().visible).not.toContain("off");
+    expect(storeOf(jali).model().off).toEqual(["off"]);
+    expect(storeOf(jali).model().visible).not.toContain("off");
   });
 });
 

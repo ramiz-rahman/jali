@@ -89,7 +89,7 @@ describe("choose, headless", () => {
     const onChoose = vi.fn();
     const r = jali.dialogs.choose({ title: "Pick", items: [1, 2], label: String, onChoose });
     expect(r).toEqual({ ok: true });
-    expect(jali.get().paletteOpen).toBe(false);
+    expect(storeOf(jali).get().paletteOpen).toBe(false);
     expect(storeOf(jali).get().chooser).toMatchObject({ kind: "choose" });
   });
 

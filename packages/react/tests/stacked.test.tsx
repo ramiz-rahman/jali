@@ -36,7 +36,7 @@ const make = (size = { width: 378, height: 760 }, phone: PhoneOptions = { stack:
     moveFocus: false,
     phone,
   });
-  const orders = jali.model().visible[0]!;
+  const orders = storeOf(jali).model().visible[0]!;
   jali.actions.openBeside(orders, order({ id: 7 }));
   return { jali, orders };
 };
@@ -53,19 +53,19 @@ describe("stacked view", () => {
   });
 
   it("is off unless the app asks, without height for both, and for a kind that stays out", () => {
-    expect(make(undefined, {}).jali.model().stacked).toBeUndefined();
-    expect(make({ width: 378, height: 420 }).jali.model().stacked).toBeUndefined();
+    expect(storeOf(make(undefined, {}).jali).model().stacked).toBeUndefined();
+    expect(storeOf(make({ width: 378, height: 420 }).jali).model().stacked).toBeUndefined();
     const { jali, orders } = make();
     jali.actions.openHere(jali.model().panes.find((p) => p.ref.kind === "order")!.id, chart());
     jali.actions.focus(jali.model().panes.find((p) => p.ref.kind === "chart")!.id);
-    expect(jali.model().stacked).toBeUndefined();
+    expect(storeOf(jali).model().stacked).toBeUndefined();
     expect(orders).toBeTruthy();
   });
 
   it("follows focus, and a pane with no link shows alone", () => {
     const { jali, orders } = make();
     jali.actions.focus(orders);
-    expect(jali.model().stacked?.top).toBe(orders);
+    expect(storeOf(jali).model().stacked?.top).toBe(orders);
     const alone = createJali({
       panes: [list],
       layout: list(),
@@ -75,8 +75,8 @@ describe("stacked view", () => {
       moveFocus: false,
       phone: { stack: true },
     });
-    expect(alone.model().onePane).toBe(true);
-    expect(alone.model().stacked).toBeUndefined();
+    expect(storeOf(alone).model().onePane).toBe(true);
+    expect(storeOf(alone).model().stacked).toBeUndefined();
   });
 });
 
@@ -181,7 +181,7 @@ describe("stacked view, from the kinds' heights", () => {
       moveFocus: false,
       phone: { stack: true },
     });
-    jali.actions.openBeside(jali.model().visible[0]!, order({ id: 7 }));
+    jali.actions.openBeside(storeOf(jali).model().visible[0]!, order({ id: 7 }));
     return jali;
   };
   const tops = (jali: ReturnType<typeof setup>, stack?: number) => {
@@ -198,7 +198,7 @@ describe("stacked view, from the kinds' heights", () => {
 
   it("gives the top pane its max until the person moves the divider; the other pane takes the rest", () => {
     const jali = setup();
-    expect(jali.model().pane(jali.model().stacked!.top)!.ref.kind).toBe("strip");
+    expect(storeOf(jali).model().pane(storeOf(jali).model().stacked!.top)!.ref.kind).toBe("strip");
     expect(tops(jali)).toBe(260);
     // The person's choice wins, as a divider drag may pass a max.
     expect(tops(jali, 0.5)).toBe(Math.round((760 - STACK_GAP) / 2));

@@ -8,7 +8,6 @@ import { describe, expect, expectTypeOf, it } from "vite-plus/test";
 import {
   appOnly,
   createJali,
-  layout,
   memoryLocation,
   memoryStorage,
   optional,
@@ -18,6 +17,7 @@ import {
 } from "@jali/core";
 import { definePane } from "@jali/react";
 import { defaultFeatures, urlSync } from "./features";
+import { layout } from "@jali/core/adapter";
 
 const chartParams = { runId: optional(String, { link: false }) };
 const chart = definePane("chart", {

@@ -8,17 +8,18 @@ import type { DeepReadonly, Layout, NodeId, ObjectRef } from "../layout/types";
 export type { DeepReadonly };
 import type { LayoutInput } from "../layout/build";
 import type { Keymap } from "../commands/keymap";
-import type { Env } from "../env";
 import type { Messages } from "./messages";
 import type { ActionName, JaliActions, JaliDialogs, JaliPage } from "../actions/public";
 import { bindSteps, isPublicStep } from "../actions";
 import { restoreLayout } from "../actions/layout";
 import { refuse, type ActionResult, type Toast } from "./apply";
 import { copyIn } from "./ingress";
-import type { JaliModel } from "./model";
+import { publicModel, type JaliModel } from "./model";
+import type { PaneActivity } from "../pane-kinds";
+import type { Settings } from "./settings";
 import type { JaliInput } from "../dom/input";
 import type { ProfileBase } from "../profile";
-import type { Selection, UiState, JaliStore } from "./store";
+import type { PageState, Selection, UiState, JaliStore } from "./store";
 
 /** What every event carries. */
 export interface JaliEventBase {
@@ -62,30 +63,77 @@ export interface JaliEvents<R extends ObjectRef = ObjectRef> {
 
 export type JaliEvent = keyof JaliEvents;
 
-/** The state an app reads (`jali.get()`, `useJaliState`), read-only. The rest of the store's state is the engine's. */
-export type JaliState<R extends ObjectRef = ObjectRef> = DeepReadonly<
-  Pick<
-    UiState,
-    | "layout"
-    | "page"
-    | "view"
-    | "presetId"
-    | "peekSource"
-    | "resizeMode"
-    | "settings"
-    | "activity"
-    | "area"
-    | "dir"
-    | "unsaved"
-    | "paletteOpen"
-    | "settingsOpen"
-  >
-> & {
+/**
+ * The state an app reads (`jali.get()`, `useJaliState`), read-only: a new object only when one of its fields changed,
+ * and each field the same object while it is the same. The rest of the store's state is the engine's.
+ */
+export interface JaliState<R extends ObjectRef = ObjectRef> {
+  /** The arrangement: what `getLayout()` gives. */
+  readonly layout: DeepReadonly<Layout>;
+  /** The curated page open, or null in the free layout. */
+  readonly page: Readonly<PageState> | null;
+  /** The focused pane, the maximised one, and what the peek shows. */
+  readonly view: {
+    readonly focused?: NodeId;
+    readonly zoomed?: NodeId;
+    readonly peek?: DeepReadonly<R>;
+  };
+  /** The preset last chosen ("Reset layout" rebuilds it); undefined in an instance without presets. */
+  readonly presetId: string | undefined;
   /** Each list pane's selected item. */
   readonly selection: Readonly<Record<NodeId, Readonly<Selection<R>>>>;
-  /** Objects opened this session, most recent first. */
-  readonly recent: readonly R[];
-};
+  /** The person's settings. */
+  readonly settings: Readonly<Settings>;
+  /** Panes with unsaved work, and what it is (`useUnsaved`). */
+  readonly unsaved: Readonly<Record<NodeId, string>>;
+  /** What each pane reports it is doing (`useActivity`); a pane with no entry is idle. */
+  readonly activity: Readonly<Record<NodeId, PaneActivity>>;
+  /** The pane in keyboard resize mode, or null. */
+  readonly resizeMode: NodeId | null;
+}
+
+const SAME = [
+  "layout",
+  "page",
+  "presetId",
+  "selection",
+  "settings",
+  "unsaved",
+  "activity",
+  "resizeMode",
+] as const;
+
+/** The public state, worked out from the store's: kept while none of its fields changed. */
+function publicState() {
+  let from: UiState | undefined;
+  let last: JaliState | undefined;
+  return (s: UiState): JaliState => {
+    if (s === from) return last!;
+    from = s;
+    const v = s.view;
+    const lv = last?.view;
+    const view =
+      lv && lv.focused === v.focused && lv.zoomed === v.zoomed && lv.peek === v.peek
+        ? lv
+        : Object.freeze({
+            ...(v.focused ? { focused: v.focused } : {}),
+            ...(v.zoomed ? { zoomed: v.zoomed } : {}),
+            ...(v.peek ? { peek: v.peek } : {}),
+          });
+    if (last && view === lv && SAME.every((k) => last![k] === s[k])) return last;
+    return (last = Object.freeze({
+      layout: s.layout,
+      page: s.page,
+      view,
+      presetId: s.presetId,
+      selection: s.selection,
+      settings: s.settings,
+      unsaved: s.unsaved,
+      activity: s.activity,
+      resizeMode: s.resizeMode,
+    }));
+  };
+}
 
 /** The page's actions an instance has: `JaliPage` for the page's item type, or none. */
 export type PageOf<P> = P extends ProfileBase<any, infer I> ? JaliPage<I> : undefined; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -111,7 +159,7 @@ export interface Jali<
   /** Called once after each change of state, before its events. Use `on` to hear what changed. One that throws is
    *  reported, and the others and the action carry on. */
   subscribe(fn: () => void): () => void;
-  /** The layout as it is on screen: panes, their boxes and titles, the shelf. Read-only. */
+  /** The layout as it is on screen: every pane, with its title and where it is. Read-only. */
   model(): JaliModel<R>;
   /** Hear one kind of change (`jali.on("open", ({ pane, ref }) => …)`, `jali.on("toast", show)`). Returns the
    *  unsubscribe. A change's events come once it is done: close, open, pin, focus, layout, then its toasts. */
@@ -123,8 +171,9 @@ export interface Jali<
   setLayout(layout: LayoutInput): ActionResult;
   /** Keys and the commands they run. Read-only. */
   readonly keymap: Keymap;
-  /** The pane kinds, presets and curated page it was made with. Read-only. */
-  readonly env: Env;
+  /** Its presets (`createJali({ presets })`) in menu order, for the app's own menu: each one's `id`, which
+   *  `actions.preset(id)` takes, and its `label`. Read-only. */
+  readonly presets: readonly { readonly id: string; readonly label: string }[];
   /** Every word it shows or says: English (`en`) with `createJali({ messages })` over it, for the app's own UI in
    *  the same language. Read-only. */
   readonly messages: Messages;
@@ -183,14 +232,16 @@ const group = (store: JaliStore, prefix: string) =>
   });
 
 export function createInstance(store: JaliStore): Jali {
+  const state = publicState();
+  const model = publicModel(store.env);
   const jali: Jali = {
     actions: group(store, "") as unknown as JaliActions,
     // Only with a page: without one there is no `page` at all.
     ...((store.env.page ? { page: group(store, "page") } : {}) as unknown as { page: JaliPage }),
     dialogs: group(store, "dialogs") as unknown as JaliDialogs,
-    get: store.get,
+    get: () => state(store.get()),
     subscribe: store.subscribe,
-    model: store.model,
+    model: () => model(store.model(), store.get()),
     on: store.on,
     getLayout: () => store.get().layout,
     setLayout: (layout) => {
@@ -203,7 +254,7 @@ export function createInstance(store: JaliStore): Jali {
       return store.apply((x) => restoreLayout(x, given), "setLayout");
     },
     keymap: store.keymap,
-    env: store.env,
+    presets: Object.freeze(store.env.presets.map(({ id, label }) => Object.freeze({ id, label }))),
     messages: store.messages,
     href: store.href,
     start: () => store.start(),

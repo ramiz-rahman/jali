@@ -44,7 +44,7 @@ describe("a workspace without a curated page", () => {
   const jali = make({ layout: { kind: "ticket", params: { id: "t-1" } } });
 
   it("has no page engine, page commands or page words", () => {
-    expect(jali.env.page).toBeUndefined();
+    expect(storeOf(jali).env.page).toBeUndefined();
     expect(listCommands(jali).filter((c) => c.id?.startsWith("page."))).toEqual([]);
     expect((jali.messages as { page?: unknown }).page).toBeUndefined();
   });
@@ -74,7 +74,7 @@ describe("a workspace without a curated page", () => {
 describe("a workspace with a page from definePage", () => {
   it("runs the page, lists its commands, and says its words", () => {
     const jali = make({ page: definePage(desk) });
-    expect(jali.env.page).toBeDefined();
+    expect(storeOf(jali).env.page).toBeDefined();
     expect(jali.get().page).toMatchObject({ profile: "desk", item: "t-1" });
     expect(listCommands(jali).some((c) => c.id === "page.open")).toBe(true);
     expect(jali.messages.page).toEqual(en.page);

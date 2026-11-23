@@ -33,7 +33,9 @@ const make = (layout: Parameters<typeof createJali>[0]["layout"], width = 1400) 
   return { jali, breaches };
 };
 const visible = (jali: ReturnType<typeof make>["jali"], id: string) =>
-  jali.model().resolved.panes.some((b) => b.id === id && !b.hidden);
+  storeOf(jali)
+    .model()
+    .resolved.panes.some((b) => b.id === id && !b.hidden);
 
 describe("focus shows the pane", () => {
   it("chooses the tab of a pane behind another tab, and nothing else moves", () => {
@@ -59,7 +61,7 @@ describe("focus shows the pane", () => {
       row(list(), order({ id: 1 }), order({ id: 2 }), order({ id: 3 })),
       900,
     );
-    const folded = jali.model().folded[0]!;
+    const folded = storeOf(jali).model().folded[0]!;
     expect(folded).toBeTruthy();
     jali.actions.focus(folded);
     expect(visible(jali, folded)).toBe(true);

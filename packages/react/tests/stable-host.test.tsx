@@ -10,6 +10,7 @@ import { StrictMode, useEffect, useState } from "react";
 import { createJali, memoryLocation, memoryStorage, pane, row } from "@jali/core";
 import { JaliRoot, definePane } from "@jali/react";
 import { defaultFeatures, urlSync } from "./features";
+import { storeOf } from "@jali/core/adapter";
 
 const mounts: string[] = [];
 function Counter({ id }: { id: string }) {
@@ -102,13 +103,13 @@ describe("a pane's content across responsive changes", () => {
     expect(counter("d1").textContent).toBe("d1:1");
 
     resize(400);
-    expect(jali.model().onePane).toBe(true);
+    expect(storeOf(jali).model().onePane).toBe(true);
     expect(counter("d1").textContent).toBe("d1:1");
     expect(counter("left").textContent).toBe("left:1");
     expect(counter("d1")).toBe(el);
 
     resize(1400);
-    expect(jali.model().onePane).toBe(false);
+    expect(storeOf(jali).model().onePane).toBe(false);
     expect(document.querySelector('.jali-strip [data-pane="d1"]')).not.toBeNull();
     expect(counter("d1").textContent).toBe("d1:1");
     expect(counter("d1")).toBe(el);

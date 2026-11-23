@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`public API > the layout namespace is the pure tree API 1`] = `
+exports[`public API > the layout namespace, in @jali/core/adapter, is the pure tree API 1`] = `
 [
   "SNAP_IN",
   "SNAP_OUT",

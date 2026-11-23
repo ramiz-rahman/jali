@@ -5,14 +5,8 @@
  * on screen.
  */
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
-import {
-  createJali,
-  layout as L,
-  memoryStorage,
-  row,
-  type JaliOptions,
-  type Layout,
-} from "@jali/core";
+import { createJali, memoryStorage, row, type JaliOptions, type Layout } from "@jali/core";
+import { layout as L } from "@jali/core/adapter";
 
 const item = { kind: "item", title: "Item", params: { id: Number }, width: { min: 200 } };
 const list = { kind: "list", title: "List", width: { min: 200 } };

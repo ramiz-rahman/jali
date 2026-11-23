@@ -7,6 +7,7 @@ import { cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { createJali, en, memoryStorage, row, type JaliOptions } from "@jali/core";
 import { Activity, JaliRoot, JaliView, definePane } from "@jali/react";
+import { storeOf } from "@jali/core/adapter";
 
 const note = definePane("note", { params: { id: Number }, title: "Note", Component: () => null });
 const warned = () => vi.mocked(console.warn).mock.calls.map((c) => String(c[0]));
@@ -92,8 +93,10 @@ describe("two instances with one name", () => {
 describe("one pane at a time, in the model and the DOM", () => {
   it("is model.onePane, and data-one-pane on the element named jali-layout", () => {
     const phone = make({ size: { width: 390, height: 844 } });
-    expect(phone.model().onePane).toBe(true);
-    expect(make({ id: "w", size: { width: 1200, height: 800 } }).model().onePane).toBe(false);
+    expect(storeOf(phone).model().onePane).toBe(true);
+    expect(storeOf(make({ id: "w", size: { width: 1200, height: 800 } })).model().onePane).toBe(
+      false,
+    );
     expect("single" in phone.model()).toBe(false);
     // jsdom measures nothing: the root is as wide as a phone.
     globalThis.ResizeObserver ??= class {

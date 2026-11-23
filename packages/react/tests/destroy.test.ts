@@ -65,7 +65,7 @@ describe("jali.destroy()", () => {
     const heard = vi.fn();
     jali.subscribe(heard);
     jali.destroy();
-    jali.env.kinds.register({ kind: "late", title: "Late" });
+    storeOf(jali).env.kinds.register({ kind: "late", title: "Late" });
     expect(heard).not.toHaveBeenCalled();
   });
 

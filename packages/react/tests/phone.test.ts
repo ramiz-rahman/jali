@@ -3,6 +3,7 @@ import { describe, expect, it } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, row, type PhoneOptions } from "@jali/core";
 import { definePane } from "@jali/react";
 import { defaultFeatures, urlSync } from "./features";
+import { storeOf } from "@jali/core/adapter";
 
 const note = definePane("note", {
   params: { id: Number },
@@ -12,15 +13,17 @@ const note = definePane("note", {
 });
 
 const at = (width: number, phone?: PhoneOptions) =>
-  createJali({
-    panes: [note],
-    layout: row(note({ id: 1 }), note({ id: 2 })),
-    features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
-    storage: memoryStorage(),
-    size: { width, height: 800 },
-    moveFocus: false,
-    ...(phone ? { phone } : {}),
-  }).model();
+  storeOf(
+    createJali({
+      panes: [note],
+      layout: row(note({ id: 1 }), note({ id: 2 })),
+      features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
+      storage: memoryStorage(),
+      size: { width, height: 800 },
+      moveFocus: false,
+      ...(phone ? { phone } : {}),
+    }),
+  ).model();
 
 describe("phone width", () => {
   it("is one pane at a time under 600px, even when narrow panes would tile", () => {
