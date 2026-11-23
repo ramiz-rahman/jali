@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from "vite-plus/test";
 import { fireEvent, render, screen } from "@testing-library/react";
+import { JogDial } from "./dial/JogDial";
+import { PanDial } from "./dial/PanDial";
+import { SelectorDial } from "./dial/SelectorDial";
 import { dbToFader, Fader, faderToDb, settle } from "./Fader";
-import { JogDial, PanDial, SelectorDial } from "./Knob";
 
 describe("the rotary controls are real sliders", () => {
   const box = (el: Element) => {
@@ -21,25 +23,12 @@ describe("the rotary controls are real sliders", () => {
 
   it("the jog dial follows the pointer round its centre: one full turn is ten seconds", () => {
     const onChange = vi.fn();
-    const onStart = vi.fn();
-    const onEnd = vi.fn();
-    render(
-      <JogDial
-        label="Scrub"
-        value={20}
-        min={0}
-        max={70}
-        secondsPerTurn={10}
-        onChange={onChange}
-        onStart={onStart}
-        onEnd={onEnd}
-      />,
-    );
+    render(<JogDial label="Scrub" value={20} min={0} max={70} perTurn={10} onChange={onChange} />);
     const dial = screen.getByRole("slider", { name: "Scrub" });
     box(dial.querySelector(".dial-body")!);
     // From 12 o'clock, a quarter turn at a time, all the way round.
     fireEvent.pointerDown(dial, { button: 0, clientX: 50, clientY: 0, pointerId: 1 });
-    expect(onStart).toHaveBeenCalledTimes(1);
+    expect(dial.hasAttribute("data-dragging")).toBe(true);
     fireEvent.pointerMove(dial, { clientX: 100, clientY: 50, pointerId: 1 });
     expect(onChange).toHaveBeenLastCalledWith(22.5);
     fireEvent.pointerMove(dial, { clientX: 50, clientY: 100, pointerId: 1 });
@@ -53,14 +42,15 @@ describe("the rotary controls are real sliders", () => {
     fireEvent.pointerMove(dial, { clientX: 0, clientY: 50, pointerId: 1 });
     expect(onChange).toHaveBeenLastCalledWith(27.5);
     fireEvent.pointerUp(dial, { pointerId: 1 });
-    expect(onEnd).toHaveBeenCalledTimes(1);
+    expect(dial.hasAttribute("data-dragging")).toBe(false);
+    // The hand is off: a move turns nothing.
+    fireEvent.pointerMove(dial, { clientX: 100, clientY: 50, pointerId: 1 });
+    expect(onChange).toHaveBeenLastCalledWith(27.5);
   });
 
   it("the jog dial steps with the keys and the mouse wheel, and stays in range", () => {
-    vi.useFakeTimers();
     const onChange = vi.fn();
-    const onEnd = vi.fn();
-    render(<JogDial label="Scrub" value={20} min={0} max={70} onChange={onChange} onEnd={onEnd} />);
+    render(<JogDial label="Scrub" value={20} min={0} max={70} perTurn={10} onChange={onChange} />);
     const dial = screen.getByRole("slider", { name: "Scrub" });
     fireEvent.keyDown(dial, { key: "ArrowRight" });
     expect(onChange).toHaveBeenLastCalledWith(21);
@@ -72,9 +62,6 @@ describe("the rotary controls are real sliders", () => {
     expect(onChange).toHaveBeenLastCalledWith(70);
     fireEvent.wheel(dial, { deltaY: 300 });
     expect(onChange).toHaveBeenLastCalledWith(23);
-    vi.advanceTimersByTime(300);
-    expect(onEnd).toHaveBeenCalledTimes(1);
-    vi.useRealTimers();
   });
 });
 
