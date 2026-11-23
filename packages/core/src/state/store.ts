@@ -49,7 +49,7 @@ import {
   type Toast,
 } from "./apply";
 import { createInstance, type Jali, type JaliEvent, type JaliEvents } from "./instance";
-import { trackInput } from "../dom/input";
+import { trackInput, type JaliInput } from "../dom/input";
 import { modelCache, type Model } from "./model";
 import type { Settings } from "./settings";
 import type { PagePrefs } from "./page-prefs";
@@ -102,6 +102,8 @@ export interface ConfirmState {
   /** How the question ended: what the answer did, or `"kept"` (Keep editing, or a newer question took its place). */
   settled: Promise<ActionResult>;
   settle(r: ActionResult | Promise<ActionResult>): void;
+  /** Whoever asked for the held action: Discard makes it as theirs, as a host's held yes does. */
+  input: JaliInput;
 }
 /** A chooser dialog: ⌘K "Add to tabs of…" (`merge`), or an item asked for by the app (`choose`, actions/choose.ts). */
 export type ChooserState =

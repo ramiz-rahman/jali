@@ -39,7 +39,7 @@ import { discardedReports, prunedReports, withMaps } from "./reports";
 import type { PaneKinds } from "../pane-kinds";
 import { ownedPaneState, ownedSelection } from "./pane-state";
 import { sameRef } from "../layout/ops/ref";
-import { currentInput, withInput } from "../dom/input";
+import { currentInput, withInput, type JaliInput } from "../dom/input";
 import { linkUsage, MAX_LINK_TEXT, pastLimits } from "../layout/codec/limits";
 
 /** The share of a state a link holds, as the budget measures it (`ApplyIO.linkText`). */
@@ -229,6 +229,8 @@ export interface AnswerStep {
   settle?: (r: ActionResult | Promise<ActionResult>) => void;
   /** The action that was held, which the `layout` event names when the answer makes it. */
   action?: ActionName;
+  /** Whoever asked for it, when not whoever answers: the commit's events carry it. */
+  input?: JaliInput;
   msg?: undefined;
 }
 
@@ -545,8 +547,9 @@ interface Run {
   hold?: Hold;
   /** The public action being made, if one is: the `layout` event names it. */
   action?: ActionName;
-  /** Shared by every part of one `apply`: the panes the host let go, and whether to stop (see `stop`). */
-  top: { host: Asked; stop: boolean };
+  /** Shared by every part of one `apply`: the panes the host let go, whether to stop (see `stop`), and the input of
+   *  whoever asked for an action it answers. */
+  top: { host: Asked; stop: boolean; input?: JaliInput };
 }
 
 /** A step's result, and whether a boundary inside it settled it already (a refusal said, a question held). */
@@ -628,13 +631,23 @@ function heldAnswer(
 export function apply(io: ApplyIO, o: Outcome, action?: ActionName): ActionResult {
   if (io.signal.aborted) return UNAVAILABLE;
   const intent = intentOf(o, io.get().layout);
-  const top = { host: [] as Asked, stop: false };
+  const top: Run["top"] = { host: [], stop: false };
   for (let tries = 0; ; tries++) {
     const base = io.get();
     const c: Run = { io, p: { state: base, effects: [] }, base, agreed: {}, action, top };
     top.stop = false;
     const res = whole(c, intent);
     if (io.signal.aborted) return UNAVAILABLE;
+    // Worked out again after the host wrote, and nothing left to do: what it let go is gone already (its
+    // `beforeClose` made the close itself). The action's goal is reached, so it is done, not refused.
+    const why = res.r.reason;
+    if (
+      tries &&
+      (why === "not-found" || why === "nothing-to-do") &&
+      top.host.length &&
+      top.host.every((p) => !core.tree.find(base.layout.root, p.pane))
+    )
+      return DONE;
     if (io.get() !== base) {
       // Held by the host: its answer is awaited already, and runs the whole action again against the state then.
       if (c.hold?.host) {
@@ -648,8 +661,8 @@ export function apply(io: ApplyIO, o: Outcome, action?: ActionName): ActionResul
     }
     const { state, effects } = c.p;
     // Each effect may run host code (a URL writer, a focus callback) that ends the instance.
-    if (state !== base || effects.length)
-      io.publish(state, () => effects.forEach((e) => io.signal.aborted || e()));
+    const publish = () => io.publish(state, () => effects.forEach((e) => io.signal.aborted || e()));
+    if (state !== base || effects.length) top.input ? withInput(top.input, publish) : publish();
     return res.r;
   }
 }
@@ -722,6 +735,7 @@ function step(c: Run, o: Outcome): Res {
   }
   if (o.op === "answer") {
     const inner: Run = { ...c, agreed: o.agreed, action: o.action, hold: undefined };
+    if (o.input) c.top.input = o.input;
     const res = whole(inner, o.intent);
     if (c.top.stop) return res;
     // Asked again: this question ends as that one does. Told once this commit lands.
@@ -817,6 +831,7 @@ function step(c: Run, o: Outcome): Res {
               intent: (x) => hold.intent(x),
               settled,
               settle,
+              input: currentInput(),
             },
           });
           return ok({ ok: false, reason: "unsaved", settled });

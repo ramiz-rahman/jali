@@ -13,7 +13,9 @@ import {
   type JaliOptions,
 } from "@jali/core";
 import { definePageEngine as definePage, paneDomId } from "@jali/core/adapter";
+import { answerDiscard, reportUnsaved } from "@jali/core/testing";
 import { urlSync } from "../src/features/url-sync";
+import { withInput } from "../src/dom/input";
 
 const record = { kind: "record", title: "Record", params: { id: Number }, width: { min: 260 } };
 const r = (id: number) => ({ kind: "record", params: { id } });
@@ -210,5 +212,42 @@ describe("6. a pane undo puts back under a new id never takes a container's", ()
     expect(ids).not.toContain("pane-1");
     expect(jali.getLayout().root.id).toBe("pane-1");
     expect(jali.model().panes.find((p) => p.ref.params.id === 2)).toBeDefined();
+  });
+});
+
+describe("7. a close answered through the discard question keeps the input that asked for it", () => {
+  it("a keyboard close of a dirty pane, Discard clicked: the close event says keyboard", () => {
+    const { jali } = make({
+      page: undefined,
+      layout: row(pane(r(1), { id: "a" }), pane(r(2), { id: "b" })),
+    });
+    const inputs: string[] = [];
+    jali.on("close", (e) => inputs.push(e.input));
+    reportUnsaved(jali, "b", "a draft");
+    expect(withInput("keyboard", () => jali.actions.close("b")).reason).toBe("unsaved");
+    expect(withInput("mouse", () => answerDiscard(jali, "discard")).ok).toBe(true);
+    expect(jali.model().pane("b")).toBeUndefined();
+    expect(inputs).toEqual(["keyboard"]);
+  });
+});
+
+describe("11. a close the host's beforeClose made itself", () => {
+  it("is done, not refused: the pane is gone and the close is heard once", () => {
+    let jali!: ReturnType<typeof make>["jali"];
+    let asked = 0;
+    ({ jali } = make({
+      page: undefined,
+      layout: row(pane(r(1), { id: "a" }), pane(r(2), { id: "b" }), pane(r(3), { id: "c" })),
+      beforeClose: ({ panes }) => {
+        // The host's own close asks it again; the second time it just agrees.
+        if (panes[0]?.pane === "b" && !asked++) expect(jali.actions.close("b").ok).toBe(true);
+        return true;
+      },
+    }));
+    const heard: string[] = [];
+    jali.on("close", (e) => heard.push(e.pane));
+    expect(jali.actions.close("b").ok).toBe(true);
+    expect(jali.model().pane("b")).toBeUndefined();
+    expect(heard).toEqual(["b"]);
   });
 });
