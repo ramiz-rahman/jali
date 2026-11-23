@@ -9,7 +9,6 @@ import builderCode from "../../samples/reference/builders.ts?raw";
 import keymapCode from "../../samples/reference/keymap.ts?raw";
 import formatCode from "../../samples/reference/format.ts?raw";
 import commandsCode from "../../samples/reference/commands.ts?raw";
-import activeCode from "../../samples/reference/active-item.ts?raw";
 import layoutCode from "../../samples/reference/layout-ops.ts?raw";
 import sameRefCode from "../../samples/reference/same-ref.ts?raw";
 import readCode from "../../samples/reference/read-store.ts?raw";
@@ -414,31 +413,6 @@ A binding string printed for the platform: `keyHint("Alt+Enter")` is "⌥↵" on
 <Entry name="en" kind="constant" from="jali" signature={`const en: Messages`} example={messagesCode} exampleFile="messages.ts">
 
 Jali's English messages: every word it shows or says, by area (`announcements`, `toasts`, `commands`, `commandGroups`, `keys`, `palette`, `chooser`, `confirmDiscard`, `settings`, `tabs`, `shelf`, `pane`, `peek`, `panes`, `page`, `drop`). An instance made without `messages` says these words. A curated page's own words (the `page` area, and the announcements, commands and toast only a page uses) come with the page from `definePage`, so an instance without a page has none of them in `jali.messages`, and an app that doesn't import `en` doesn't ship them. Spread it to start a translation. A message that needs values is a function, such as `en.announcements.closed(pane)`; a message with a bold part takes `bold` and returns its parts in order.
-
-</Entry>
-
-## Lists and their detail
-
-<Entry name="activeItemPort" kind="function" from="jali" signature={`activeItemPort(jali: Jali, pane: NodeId, mapping: ActiveItemMapping): ActiveItemPort`} example={activeCode} exampleFile="active-item.ts">
-
-Lets a list inside a pane keep its current item through the instance, so the pane's following detail follows it, Space shows it and an open peek steps with it. The shape matches Chakni's Quick Look port, so a Chakni collection plugs in with no dependency either way. In React, `useActiveItemPort`.
-
-`write(id, "step")` reports the selection (the detail follows once it rests, 150 ms). `"open"` also shows the item: in the following detail when it is on screen, else the peek sheet. `"close"` closes the peek only if this pane opened it; the selection stays. `itemId` reads the pane's selection through `idOf`.
-
-<Params>
-<Param name="jali" type="Jali" required />
-<Param name="pane" type="NodeId" required>The pane the list is in.</Param>
-<Param name="mapping" type="ActiveItemMapping" required>
-
-<ChildParams label="mapping">
-<Param name="toRef" type="(itemId: string) => ObjectRef" required>The object an item id shows.</Param>
-<Param name="idOf" type="(ref: ObjectRef) => string | null" required>The item id of an object, or `null` when it is not one of this list's items.</Param>
-</ChildParams>
-
-</Param>
-</Params>
-
-<Returns type="ActiveItemPort">`{ itemId, write(itemId, action) }`; `write` always returns `{ status: "accepted" }`.</Returns>
 
 </Entry>
 

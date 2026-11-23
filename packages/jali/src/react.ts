@@ -26,7 +26,6 @@ export {
   type LauncherSources,
 } from "@jali/react/internal";
 export { usePaneState, type PaneStateOptions } from "@jali/react/internal";
-export { useActiveItemPort } from "@jali/react/internal";
 
 // ---------- the instance in React ----------
 export {

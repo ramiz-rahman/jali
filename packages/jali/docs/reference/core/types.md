@@ -1710,55 +1710,6 @@ type ScreenDirection = "left" | "right" | "up" | "down"
 
 A direction on screen (right to left too), as command ids name it (`pane.focus.left`), passed to `commands.focusDirection` and `commands.moveDirection`.
 
-## Lists and their detail
-
-### ActiveItemPort
-
-*type*, from `jali`
-
-```ts
-interface ActiveItemPort {
-  readonly itemId: string | null;
-  readonly write: (itemId: string | null, action: ActiveItemAction) => ActiveItemWriteResult;
-}
-```
-
-The item a list is on, as a list and an instance both understand it. Not the multi-select set and not DOM focus.
-
-### ActiveItemAction
-
-*type*, from `jali`
-
-```ts
-type ActiveItemAction = "open" | "close" | "step"
-```
-
-- `step`: The cursor moved. A following detail follows once it rests.
-
-- `open`: Show the item (Space).
-
-- `close`: Stop showing it (Esc). The cursor stays.
-
-### ActiveItemWriteResult
-
-*type*, from `jali`
-
-```ts
-interface ActiveItemWriteResult { readonly status: "accepted" }
-```
-
-Always accepted.
-
-### ActiveItemMapping
-
-*type*, from `jali`
-
-```ts
-interface ActiveItemMapping { toRef(itemId: string): ObjectRef; idOf(ref: ObjectRef): string | null }
-```
-
-How a list's item ids map to refs; see [`activeItemPort`](../core.md#activeitemport).
-
 ## Actions
 
 ### PaneTarget

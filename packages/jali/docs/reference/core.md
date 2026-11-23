@@ -777,54 +777,6 @@ en.announcements.closed("Order 1041"); // "Order 1041 closed · Undo available"
 
 Jali's English messages: every word it shows or says, by area (`announcements`, `toasts`, `commands`, `commandGroups`, `keys`, `palette`, `chooser`, `confirmDiscard`, `settings`, `tabs`, `shelf`, `pane`, `peek`, `panes`, `page`, `drop`). An instance made without `messages` says these words. A curated page's own words (the `page` area, and the announcements, commands and toast only a page uses) come with the page from `definePage`, so an instance without a page has none of them in `jali.messages`, and an app that doesn't import `en` doesn't ship them. Spread it to start a translation. A message that needs values is a function, such as `en.announcements.closed(pane)`; a message with a bold part takes `bold` and returns its parts in order.
 
-## Lists and their detail
-
-### activeItemPort
-
-*function*, from `jali`
-
-```ts
-activeItemPort(jali: Jali, pane: NodeId, mapping: ActiveItemMapping): ActiveItemPort
-```
-
-Example, `active-item.ts`:
-
-```ts
-import { activeItemPort } from "jali";
-import { orderKind } from "./kinds";
-import { store } from "./store";
-
-// A list in pane "orders" keeps its current row through the port; Jali follows it.
-const port = activeItemPort(store, "orders", {
-  toRef: (itemId) => orderKind({ id: Number(itemId) }),
-  idOf: (ref) => (ref.kind === "order" ? String(ref.params.id) : null),
-});
-
-port.write("1042", "step"); // the cursor moved: the following detail shows order 1042 once it rests
-port.write("1042", "open"); // Space: show it (the following detail if on screen, else the peek sheet)
-port.write("1042", "close"); // Esc: close the peek this list opened; the cursor stays
-port.itemId; // "1042"
-```
-
-Lets a list inside a pane keep its current item through the instance, so the pane's following detail follows it, Space shows it and an open peek steps with it. The shape matches Chakni's Quick Look port, so a Chakni collection plugs in with no dependency either way. In React, `useActiveItemPort`.
-
-`write(id, "step")` reports the selection (the detail follows once it rests, 150 ms). `"open"` also shows the item: in the following detail when it is on screen, else the peek sheet. `"close"` closes the peek only if this pane opened it; the selection stays. `itemId` reads the pane's selection through `idOf`.
-
-**Parameters**
-
-- **`jali`** (`Jali`, required):
-- **`pane`** (`NodeId`, required): The pane the list is in.
-
-- **`mapping`** (`ActiveItemMapping`, required):
-
-**mapping**
-
-- **`toRef`** (`(itemId: string) => ObjectRef`, required): The object an item id shows.
-
-- **`idOf`** (`(ref: ObjectRef) => string | null`, required): The item id of an object, or `null` when it is not one of this list's items.
-
-**Returns** `ActiveItemPort`: `{ itemId, write(itemId, action) }`; `write` always returns `{ status: "accepted" }`.
-
 ## Geometry
 
 ### GAP

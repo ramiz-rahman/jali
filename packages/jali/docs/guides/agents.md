@@ -14,7 +14,12 @@ import type { Allow, Jali, ObjectRef } from "jali";
 // Your model client: anything that takes tools and runs a conversation with them.
 declare function runModel(options: {
   prompt: string;
-  tools: { name: string; description: string; inputSchema: object; execute(input: never): unknown }[];
+  tools: {
+    name: string;
+    description: string;
+    inputSchema: object;
+    execute(input: never): unknown;
+  }[];
 }): Promise<string>;
 
 // Limits, for the model and the person alike: pass as `createJali({ allow })`. A page keeps its panes.

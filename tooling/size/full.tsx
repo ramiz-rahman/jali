@@ -11,7 +11,6 @@ import {
   useLauncher,
   usePaneState,
   useUnsaved,
-  useActiveItemPort,
   useJaliCommands,
   useJaliShortcut,
   useJaliTheme,
@@ -30,7 +29,6 @@ const borrower = definePane("borrower", {
     useUnsaved(notes ? "a note" : null);
     useActivity(notes ? "working" : "idle");
     useCommands([{ id: "clear", title: "Clear the note", run: () => setNotes("") }]);
-    useActiveItemPort({ kind: "documents", param: "application" } as never);
     return <textarea value={notes} onChange={(e) => setNotes(e.target.value)} />;
   },
 });

@@ -995,32 +995,6 @@ What `createJali({ messages })` takes: any areas, and any keys in them. Keys you
 
 <Entry name="ScreenDirection" kind="type" from="jali" signature={`type ScreenDirection = "left" | "right" | "up" | "down"`} compact>A direction on screen (right to left too), as command ids name it (`pane.focus.left`), passed to `commands.focusDirection` and `commands.moveDirection`.</Entry>
 
-## Lists and their detail
-
-<Entry name="ActiveItemPort" kind="type" from="jali" signature={`interface ActiveItemPort {\n  readonly itemId: string | null;\n  readonly write: (itemId: string | null, action: ActiveItemAction) => ActiveItemWriteResult;\n}`} compact>
-
-The item a list is on, as a list and an instance both understand it. Not the multi-select set and not DOM focus.
-
-</Entry>
-
-<Entry name="ActiveItemAction" kind="type" from="jali" signature={`type ActiveItemAction = "open" | "close" | "step"`} compact>
-
-<Values>
-<Value name="step">The cursor moved. A following detail follows once it rests.</Value>
-<Value name="open">Show the item (Space).</Value>
-<Value name="close">Stop showing it (Esc). The cursor stays.</Value>
-</Values>
-
-</Entry>
-
-<Entry name="ActiveItemWriteResult" kind="type" from="jali" signature={`interface ActiveItemWriteResult { readonly status: "accepted" }`} compact>Always accepted.</Entry>
-
-<Entry name="ActiveItemMapping" kind="type" from="jali" signature={`interface ActiveItemMapping { toRef(itemId: string): ObjectRef; idOf(ref: ObjectRef): string | null }`} compact>
-
-How a list's item ids map to refs; see <Ref to="activeItemPort" page="/reference/core" />.
-
-</Entry>
-
 ## Actions
 
 <Entry name="PaneTarget" kind="type" from="jali" signature={`type PaneTarget = NodeId | ObjectRef`} compact>

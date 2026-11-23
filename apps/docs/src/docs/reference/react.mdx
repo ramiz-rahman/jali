@@ -8,7 +8,6 @@ import appCode from "../../samples/reference/app.tsx?raw";
 import kindsCode from "../../samples/reference/kinds.tsx?raw";
 import noteCode from "../../samples/reference/order-kind.tsx?raw";
 import paneStateCode from "../../samples/reference/pane-state.tsx?raw";
-import portCode from "../../samples/reference/active-item-port.tsx?raw";
 import hooksCode from "../../samples/reference/hooks.tsx?raw";
 import composeCode from "../../samples/reference/compose.tsx?raw";
 import profileCode from "../../samples/reference/profile.tsx?raw";
@@ -255,18 +254,6 @@ In the peek sheet there is no pane, so the state is local and goes with the shee
 <Entry name="PaneStateOptions" kind="type" from="jali/react" signature={`interface PaneStateOptions<T> {\n  parse?: (stored: unknown) => T | undefined;\n}`} compact>
 
 How <Ref to="usePaneState" /> reads a stored value. Stored state was written by an earlier version of the app, or edited by hand, so it isn't trusted as `T`: `parse` gets what storage held and returns the value to use, or `undefined` to use `initial`. A parse that throws counts as `undefined`. A rejected value stays stored until the pane sets its own. Each stored value is parsed once, so a parse that builds a new object still gives the same value on every render.
-
-</Entry>
-
-<Entry name="useActiveItemPort" kind="hook" from="jali/react" signature={`useActiveItemPort(mapping: ActiveItemMapping): ActiveItemPort | null`} example={portCode} exampleFile="OrdersPane.tsx">
-
-The active-item port for the pane this content is in (see <Ref to="activeItemPort" page="/reference/core" />). Re-renders when the pane's selection changes, so `itemId` reads fresh.
-
-<Params>
-<Param name="mapping" type="ActiveItemMapping" required>`toRef(itemId)` and `idOf(ref)`. The port always uses the latest render's mapping and stays the same object, so an inline object is fine.</Param>
-</Params>
-
-<Returns type="ActiveItemPort | null">`null` in the peek sheet.</Returns>
 
 </Entry>
 

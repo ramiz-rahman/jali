@@ -605,41 +605,6 @@ interface PaneStateOptions<T> {
 
 How `usePaneState` reads a stored value. Stored state was written by an earlier version of the app, or edited by hand, so it isn't trusted as `T`: `parse` gets what storage held and returns the value to use, or `undefined` to use `initial`. A parse that throws counts as `undefined`. A rejected value stays stored until the pane sets its own. Each stored value is parsed once, so a parse that builds a new object still gives the same value on every render.
 
-### useActiveItemPort
-
-*hook*, from `jali/react`
-
-```ts
-useActiveItemPort(mapping: ActiveItemMapping): ActiveItemPort | null
-```
-
-Example, `OrdersPane.tsx`:
-
-```tsx
-import type { ActiveItemPort } from "jali";
-import { useActiveItemPort } from "jali/react";
-import { orderKind } from "./kinds";
-
-// Any list that keeps its current item through an ActiveItemPort.
-declare function OrderList(props: { activeItem: ActiveItemPort | null }): React.ReactNode;
-
-export function OrdersPane() {
-  const port = useActiveItemPort({
-    toRef: (itemId) => orderKind({ id: Number(itemId) }),
-    idOf: (ref) => (ref.kind === "order" ? String(ref.params.id) : null),
-  });
-  return <OrderList activeItem={port} />;
-}
-```
-
-The active-item port for the pane this content is in (see [`activeItemPort`](core.md#activeitemport)). Re-renders when the pane's selection changes, so `itemId` reads fresh.
-
-**Parameters**
-
-- **`mapping`** (`ActiveItemMapping`, required): `toRef(itemId)` and `idOf(ref)`. The port always uses the latest render's mapping and stays the same object, so an inline object is fine.
-
-**Returns** `ActiveItemPort | null`: `null` in the peek sheet.
-
 ## The instance in React
 
 ### useJali

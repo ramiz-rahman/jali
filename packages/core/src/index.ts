@@ -191,11 +191,3 @@ export {
 export { GAP, type Spacing } from "./tokens";
 /** Scroll a row that scrolls sideways while a drag is held near its edge, for an app's own drag (Jali's does it). */
 export { edgeScroll, type EdgeScroll } from "./workspace/edge-scroll";
-
-// ---------- contracts with other libraries ----------
-export type {
-  ActiveItemPort,
-  ActiveItemAction,
-  ActiveItemWriteResult,
-} from "./contracts/active-item";
-export { activeItemPort, type ActiveItemMapping } from "./pane/activeItem";

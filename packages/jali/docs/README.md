@@ -37,7 +37,7 @@ Written from the docs site by tooling/agent-docs.mjs; don't edit these files.
 - [Build your own chrome](guides/custom-chrome.md): Put a top bar, a status line, the shelf and toasts around Jali's panes, inside one JaliRoot, so the panes take the room your chrome leaves.
 - [Theming](guides/theming.md): Make Jali match your app by setting a few tokens, mapping them from your Tailwind theme, or styling its parts.
 - [Translate Jali](guides/translating.md): Show and announce Jali's words in your app's language, or in your own wording, with English as the default.
-- [Use Jali with Chakni](guides/chakni.md): Let a list inside a pane drive the pane's following detail through the active-item port, and share one theme.
+- [Use Jali with Chakni](guides/chakni.md): Share one theme between Jali and Chakni, its sister library for collections.
 - [Test your layouts](guides/testing.md): Test your layouts and pane rules without a browser, by running Jali's actions and reading its state with jali/testing.
 - [Two instances on one page](guides/two-instances.md): Put two sets of panes side by side, or one in a dialog, without their links, saved settings or keys getting mixed up.
 - [Let an agent arrange panes](guides/agents.md): Give an AI model two tools of your own, built on jali.model() and jali.actions, so it can read what is open and open panes within the limits your app sets.

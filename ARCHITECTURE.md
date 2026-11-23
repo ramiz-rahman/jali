@@ -40,7 +40,6 @@ The core reaches the outside world only through small interfaces, so an app or a
 - **Location** (`LocationPort`: `search`, `href`, `navigate`, `subscribe`): the address. `browserLocation()` by default, `memoryLocation()` in tests and on a server, or a router adapter. Read and written only by the `urlSync()` feature.
 - **Storage** (`StoragePort`: `get`, `set`): what one person keeps on one device. `localStorage` under the instance's `id` in a browser, memory elsewhere.
 - **DOM** (`DomPort`, in `jali/adapter`): how the core finds the adapter's elements (the panes' box, a tab at a point, the dividers) for focus, drag and drop, and measuring. The React adapter provides it.
-- **Active item** (`ActiveItemPort`): how a list inside a pane reports and follows its current item, for a collection library that keeps its own cursor.
 
 ## The action path
 

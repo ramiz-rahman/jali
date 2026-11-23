@@ -33,7 +33,6 @@ export {
 // Declaring a kind's params: `params: { id: Number, tab: optional(String), autorun: appOnly(Boolean) }` (from @jali/core).
 export { optional, oneOf, appOnly } from "@jali/core/adapter";
 export { usePaneState, type PaneStateOptions } from "./pane/usePaneState";
-export { useActiveItemPort } from "./pane/useActiveItemPort";
 
 // ---------- the instance in React ----------
 export {

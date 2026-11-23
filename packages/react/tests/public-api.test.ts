@@ -15,7 +15,6 @@ describe("public API", () => {
     expect(Object.keys(core).sort()).toEqual([
       "DEFAULT_KEYMAP",
       "GAP",
-      "activeItemPort",
       "altClick",
       "appOnly",
       "browserLocation",
@@ -62,7 +61,6 @@ describe("public API", () => {
       "oneOf",
       "optional",
       "shallow",
-      "useActiveItemPort",
       "useActivity",
       "useCommands",
       "useHeaderActions",
