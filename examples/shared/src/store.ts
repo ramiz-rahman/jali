@@ -100,6 +100,18 @@ export const isRecord = (v: unknown): v is Record<string, unknown> =>
 export const finite = (v: unknown): number | undefined =>
   typeof v === "number" && Number.isFinite(v) ? v : undefined;
 
+/** A finite number above zero (a price, a quantity), or undefined. */
+export const positive = (v: unknown): number | undefined => {
+  const n = finite(v);
+  return n !== undefined && n > 0 ? n : undefined;
+};
+
+/** A whole number above zero (an id), or undefined. */
+export const positiveInteger = (v: unknown): number | undefined => {
+  const n = positive(v);
+  return n !== undefined && Number.isInteger(n) ? n : undefined;
+};
+
 /** A reader for one of `values` (a tab, a sort, a side), for `parse`. */
 export const oneOf =
   <T extends string | number>(values: readonly T[]) =>
@@ -108,6 +120,10 @@ export const oneOf =
 
 /** A reader for text, for `parse`. */
 export const text = (v: unknown): string | undefined => (typeof v === "string" ? v : undefined);
+
+/** Text with something in it (a symbol, a name), or undefined. */
+export const nonEmpty = (v: unknown): string | undefined =>
+  typeof v === "string" && v ? v : undefined;
 
 /** The entries of an array that `item` can read; undefined when `v` is not an array. */
 export function arrayOf<T>(v: unknown, item: (x: unknown) => T | undefined): T[] | undefined {
