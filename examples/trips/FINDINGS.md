@@ -10,7 +10,7 @@ Trips is built on the public API alone (`@jali/core`, `@jali/react`, and `storeO
 
 **What happened.** Jali's selection belongs to a list pane, and a detail follows one list (`linkedTo`). A place pane can follow the map, or the day plan, or Explore, but not "whichever the person used last". There is no workspace-level "current object".
 
-**Workaround.** The map is the hub. Every place pane follows the map (`linkedTo: "map"`). A day plan or Explore list reports its own selection as usual and then hands the same ref to every map pane with `jali.actions.select(mapId, ref)` (`selectPlace` in `src/actions.ts`). Components that want "the place" read the map pane's selection with `useJaliState` (`src/selection.ts`), which needs `jali.model()` inside the selector to find the map's id.
+**Workaround.** The map is the hub. Every place pane follows the map (`linkedTo: "map"`). A day plan or Explore list reports its own selection as usual and then hands the same ref to every map pane with `jali.actions.select(mapId, ref)` (`selectPlace` in `src/workspace/hub.ts`, the one module that knows the convention). Components that want "the place" read the map pane's selection with `useJaliState` (`useSelectedPlace` in `src/workspace/use-hub.ts`), which needs `jali.model()` inside the selector to find the map's id.
 
 It works, and it still runs through Jali's own selection and followers (the rest delay, Keep, comparing, one history entry). But it is a convention every app of this shape must invent, and calling `select` for a pane from outside it is not something the docs describe.
 
@@ -22,7 +22,7 @@ It works, and it still runs through Jali's own selection and followers (the rest
 
 **What happened.** The overview has the same id in both presets, so it keeps its selection (Day 1). The Budget preset's followers arrive showing their own refs (Day 7). The list says Day 1 and the panes that follow it say Day 5, until the person moves the cursor. The same happens to the map's selected place against the Days preset's place pane, and after Back, Forward or a link.
 
-**Workaround.** The overview and the map watch their followers' refs (`useJaliModel`) and, when a layout change gives a follower another object, select that object (`src/panes/trip.tsx`, `src/panes/map.tsx`). Moving the cursor still drives the followers; the watch only fires when a follower's object changes.
+**Workaround.** The overview and the map watch their followers' refs (`useJaliModel`) and, when a layout change gives a follower another object, select that object (`src/panes/trip/trip.tsx`, `src/panes/map/map.tsx`). Moving the cursor still drives the followers; the watch only fires when a follower's object changes.
 
 **Suggested change.** When a layout replaces a follower's ref (a preset, `setLayout`, Back, a link), set the source's selection to it, or drop the source's selection so a list's "start on what the follower shows" logic runs again. Either way, say which in the Following guide.
 
@@ -54,7 +54,7 @@ It works, and it still runs through Jali's own selection and followers (the rest
 
 **What happened.** `jali.actions.undo()` covers closes, close others and tucks. The app has no way to put its own changes on that history, so ⌘K ⌘Z undoes a closed pane and the app's Undo undoes the plan. And ⌘Z for the plan could not go in `keymap`: a binding there fires even while the person types in a field (Explore's search, the budget), where ⌘Z belongs to the field.
 
-**Workaround.** The plan keeps its own undo history (`src/store.ts`). Each change toasts with its own Undo button. ⌘Z (Ctrl+Z) is a `window` listener that skips text fields and keys already handled (`AppKeys` in `src/shell/App.tsx`), and ⌘K lists "Undo the last change to the plan". "/" is handled the same way, since `keymap` rightly refuses a single key.
+**Workaround.** The plan keeps its own undo history (`src/state/plan-store.ts`). Each change toasts with its own Undo button. ⌘Z (Ctrl+Z) is a `window` listener that skips text fields and keys already handled (`AppKeys` in `src/shell/app.tsx`), and ⌘K lists "Undo the last change to the plan". "/" is handled the same way, since `keymap` rightly refuses a single key.
 
 **Suggested change.** `jali.actions.pushUndo({ label, undo })`, so an app's change joins the same history, toast and ⌘K ⌘Z. And a `when` on app bindings, for example `keymap: { "trips.undo": { keys: "Mod+Z", when: "not-typing" } }`.
 
@@ -78,7 +78,7 @@ What doesn't work: a day folded into a tab can't be a drop target. Its pane is m
 
 **What happened.** A pane knows whether it is itself hidden (`paused`). Knowing that of another pane means reading `useJaliModel().resolved.panes` and its `hidden` field. Jali has no idea of "the results a list is showing", which is fair; the visibility check is the awkward part.
 
-**Workaround.** Explore publishes its result ids to an app store with its pane id, and clears them while `paused`. The map uses them only while that pane is on screen (`src/panes/map.tsx`).
+**Workaround.** Explore publishes its result ids to an app store with its pane id, and clears them while `paused`. The map uses them only while that pane is on screen (`src/panes/map/map.tsx`).
 
 **Suggested change.** `jali.model().isShown(id)` and a `useIsShown(id)` hook.
 
@@ -117,7 +117,7 @@ The trip changed from one compact city (Lisbon) to two cities 680 km apart (Bang
 
 **The default pane cap folds a preset on a screen with room.** Days lays out seven days, the map and the place: nine panes. Jali's default cap is 8, so one day folded even at 3200 pixels wide. The workspace test caught it, not the eye: the folded tab looked like any fold for room. The app passed `settings: { paneCap: 10 }`, but that is only the default for a person with no saved settings, and a preset can't say "I am nine panes". Suggested change: let a preset raise the cap while it is in use (`{ id, label, layout, paneCap }`), and say in the shelf when a pane folded for the cap rather than for room. Now: Days is a row that scrolls, which the cap counts as one pane, so Trips keeps Jali's default.
 
-**A selection can't say where it came from.** The map flies to a place when the person picks it, but must not fly when the app sets the map's selection to match a place pane the layout brought (finding 2's watch): on a Phuket day it would fly to a Bangkok place. Jali's events carry `input` (person, code, agent), but a selection fires no event and records no source. The map remembers the one selection it set itself and skips it (`quietSelection` in `src/panes/map.tsx`). Suggested change: a `select` event with `input`, or `select(ref, { quiet: true })` for selections the app makes that should not count as the person's. Now: Jali itself selects on the map when a preset brings a place pane (finding 2's fix), and that selection is indistinguishable from a pick too, so the map also treats a selection that arrives with a preset change as the layout's (`src/panes/map.tsx`). A `source` on the selection, or a `select` event with it, would replace both guesses.
+**A selection can't say where it came from.** The map flies to a place when the person picks it, but must not fly when the app sets the map's selection to match a place pane the layout brought (finding 2's watch): on a Phuket day it would fly to a Bangkok place. Jali's events carry `input` (person, code, agent), but a selection fires no event and records no source. Suggested change: a `select` event with `input`, or `select(ref, { quiet: true })` for selections the app makes that should not count as the person's. Now: the app no longer guesses from the selection. Every pick the person makes goes through one function (`selectPlace` in `src/workspace/hub.ts`), which also asks the maps to show the place (`services.reveal`); a layout, a link or Back changes the selection without asking, so the map keeps its framing. It works because the app owns every pick. A `source` on the selection would let an app with picks Jali makes for it (a list's own Space or click) tell them apart without that convention.
 
 **Saved state has no version.** The plan's own key could be versioned (`trips:plan:v2`). Jali's saved pane state (a cursor on a Lisbon place, Explore's filters) sits under the storage prefix with no version, so the app changed its prefix (`trips-thailand`) to leave it behind; a person's saved settings went with it. Suggested change: `createJali({ storage: { prefix, version } })`, dropping pane state from another version and keeping settings.
 
@@ -132,6 +132,16 @@ The trip changed from one compact city (Lisbon) to two cities 680 km apart (Bang
 **Suggested change.** In a row that scrolls, give the divider the first pane's `width.max` when it has one, and otherwise leave `aria-valuemax` out, so it takes ARIA's default for a separator (100).
 
 **Now.** Fixed in Jali (21 Nov 2026): a divider in a row that scrolls leaves `aria-valuemax` out. The `axeKnown` entries are gone from `e2e/quality.spec.ts`.
+
+## 13. A header keeps room for buttons it isn't showing, and the title pays
+
+**Wanted.** Stay's two hotels side by side at 1440, each header saying its hotel's name: "Riverside Teak House", with Kept beside it.
+
+**What happened.** The header reads "Riverside Tea…" with a gap of empty header before Close. A pane that isn't focused or hovered hides tuck, maximise, pop out and ⋯ with `opacity: 0`, so they still take their room (about 120px), and the title gives up its end to them. Below 20rem of header Jali drops them instead (`display: none`), but Stay's place panes are about 340px, just over the line. Jali keeps the room on purpose, so hovering never shifts the title, and Kept is a word that has to show.
+
+**Workaround.** None the app can make through Jali's documented parts: the buttons' classes (`.jali-act-zoom`, `.jali-act-tuck`…) and the 20rem line aren't among them, so the app leaves it.
+
+**Suggested change.** Drop the idle buttons whenever the title would otherwise be cut, not at a fixed width (a container query can't see the title, but the header can measure it, as the fold already measures panes). Or let an app set the width below which they drop (`--jali-header-quiet-below`).
 
 ## Not about Jali
 
