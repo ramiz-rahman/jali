@@ -1,5 +1,8 @@
 # Third-party notices
 
+> **In Jali's copy:** the recorded samples (`lib/sound-samples.ts`) are replaced with silence, because the
+> recordings below are excluded from CyberSpec's MIT licence and may not be redistributed. Nothing else is changed.
+
 CyberSpec's original source code is licensed under the MIT License in
 `LICENSE`. Third-party software and recordings retain their own terms.
 
