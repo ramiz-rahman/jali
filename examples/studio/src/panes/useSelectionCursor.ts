@@ -4,8 +4,10 @@
  *
  * Jali keeps a list's selection only while the page is open, so the cursor is also kept in pane state: a reload
  * comes back to the same row. Where the two differ, Jali's selection wins (it is what a command just set). On first
- * show (and again whenever `scope` changes: the transcript's session) the cursor starts on its row as kept, else the
- * row the list's follower already shows (a link), else `fallback()`.
+ * show (and again whenever `scope` changes: the transcript's session) the cursor starts on Jali's selection when it
+ * names one of these rows (the app set it as it started: Studio works on the transport's session), else its row as
+ * kept, else the row the list's follower already shows (a link), else `fallback()`. A kept row from an earlier visit
+ * never moves a layout a link has just opened onto another session.
  */
 import { useEffect } from "react";
 import type { ObjectRef } from "jali";
@@ -43,7 +45,13 @@ export function useSelectionCursor<Id extends string>({
   };
 
   useEffect(() => {
-    moveTo(known(kept) ? kept : (idOf(followerOf(jali, node.id)?.ref) ?? fallback()));
+    const start =
+      selected && ids.includes(selected)
+        ? selected
+        : known(kept)
+          ? kept
+          : (idOf(followerOf(jali, node.id)?.ref) ?? fallback());
+    moveTo(start);
     // Once a scope: later moves come from the person, the playhead and the commands.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scope]);

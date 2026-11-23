@@ -5,6 +5,7 @@
  */
 import { createRoot } from "react-dom/client";
 import { connectMediaKeys } from "./audio/mediaKeys";
+import { workOn } from "./panes/library";
 import { sessionInLayout } from "./panes/links";
 import { createServices } from "./services";
 import { FIRST_SESSION } from "./sessions/ids";
@@ -33,8 +34,9 @@ connectMediaKeys(services.engine);
 const jali = createStudioJali(services);
 const shown = sessionInLayout(jali);
 if (shown && shown !== FIRST_SESSION) await loadSession(shown).catch(() => undefined);
-// The transport starts on that session, and loads its audio now.
-services.engine.load(shown ?? FIRST_SESSION);
+// The transport starts on that session, and loads its audio now. The library works on it too, whatever row its cursor
+// kept from the last visit: the session being worked on is the transport's (workspace/followTransport.ts).
+workOn(jali, services.engine, shown ?? FIRST_SESSION);
 
 const root = document.getElementById("root");
 if (!root) throw new Error("Studio needs an element with the id “root” (index.html).");
