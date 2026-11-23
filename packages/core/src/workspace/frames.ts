@@ -123,11 +123,12 @@ export function frames(
             },
           ] as const;
         })();
-    const byId = { [top]: rects[0], [bottom]: rects[1] };
+    // The two panes by id; a pane id is anything ("toString" too), so not a property lookup.
+    const rectOf = (id: NodeId) => (id === top ? rects[0] : id === bottom ? rects[1] : undefined);
     return m.panes.map((node) => ({
       node,
-      rect: byId[node.id] ?? { x: 0, y: 0, ...size },
-      hidden: !byId[node.id],
+      rect: rectOf(node.id) ?? { x: 0, y: 0, ...size },
+      hidden: !rectOf(node.id),
       focused: node.id === view.focused,
       zoomed: false,
       covered: false,

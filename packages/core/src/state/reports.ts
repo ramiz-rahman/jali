@@ -18,6 +18,7 @@ import {
   type PaneCommand,
 } from "../pane-kinds";
 import type { UiState } from "./store";
+import { own } from "../own";
 
 /**
  * What one caller of the pane hooks reports. A pane's content may call each hook from several components; the
@@ -83,7 +84,7 @@ export function withReport(
   seq: number,
   patch: PaneReportPatch | null,
 ): Reports {
-  const all = reports[id] ?? {};
+  const all = own(reports, id) ?? {};
   const mine = Object.hasOwn(all, caller) ? all[caller] : undefined;
   if (!mine && !patch) return reports;
   const next: PaneReport = { ...mine, seq: mine?.seq ?? seq };

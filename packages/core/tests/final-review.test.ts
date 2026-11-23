@@ -346,3 +346,21 @@ describe("10. a menu's Maximise and Full screen set what the menu showed", () =>
     expect(storeOf(jali).get().fullScreen).toBe("a");
   });
 });
+
+describe("12. a pane id that names something on every object", () => {
+  it('"toString" in stacked phone view is a pane like any other: not one of the two, so not shown', () => {
+    const { jali } = make({
+      page: undefined,
+      size: { width: 378, height: 760 },
+      phone: { stack: true },
+      layout: row(
+        pane(r(1), { id: "a" }),
+        pane(r(2), { id: "b", linkedTo: "a" }),
+        pane(r(3), { id: "toString" }),
+      ),
+    });
+    const where = Object.fromEntries(jali.model().panes.map((p) => [p.id, p.where]));
+    expect(Object.values(where).filter((w) => w === "shown")).toHaveLength(2);
+    expect(where.toString).not.toBe("shown");
+  });
+});
