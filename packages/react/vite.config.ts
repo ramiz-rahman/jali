@@ -9,6 +9,8 @@ export default defineConfig({
     entry: { index: "src/index.ts", internal: "src/internal.ts" },
     format: "esm",
     dts: true,
+    // The packages' own source: an example that can't emit declarations never breaks the build.
+    tsconfig: "../../tsconfig.build.json",
     platform: "neutral",
     target: "es2022",
     sourcemap: true,
