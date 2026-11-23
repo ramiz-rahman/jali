@@ -2,12 +2,7 @@ import { own } from "@jali/core/adapter";
 import type { NodeId, ObjectRef, PaneNode } from "@jali/core";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useJaliIcons } from "../icons/context";
-import {
-  checkPeekBeside,
-  sameRef,
-  type PaneReportPatch,
-  type Presentation,
-} from "@jali/core/adapter";
+import { can, sameRef, type PaneReportPatch, type Presentation } from "@jali/core/adapter";
 import { KindIcon } from "../pane/icons";
 import { PaneBody, peekHost } from "../pane/PaneBody";
 import { UnsavedMark } from "../pane/Unsaved";
@@ -44,10 +39,11 @@ export function Peek({ presentation }: { presentation: Presentation }) {
   const keymap = useKeymap();
   const ref = useUi((s) => s.view.peek);
   const areaW = useUi((s) => s.area.width);
-  const page = useUi((s) => s.page);
-  // Re-rendered when the peek moves to another pane's object, so the answer is the current source's.
+  // Re-rendered when the peek moves to another pane's object, or the page's mode changes, so the answer is current.
   useUi((s) => s.peekSource);
-  const canPin = (!page || page.mode === "split") && !checkPeekBeside(store.snapshot());
+  useUi((s) => s.page?.mode);
+  // Open beside's own answer: a peek open, a pane it may open from, and a layout to open in (not Single view).
+  const canPin = can(store, "openPeekBeside").ok;
   // The sheet's own content may name its object (useTitle), for this object only: a new object starts unnamed.
   const shows = useShown(ref);
   const [ownTitle, setOwnTitle] = useState<{ shows: number; title: string | null }>();

@@ -5,7 +5,7 @@ import { TabMenu, type TabMenuAt } from "./TabMenu";
 import { useJaliIcons } from "../icons/context";
 import {
   ALONE_CHROME,
-  allows,
+  can,
   paneDomId,
   roleOf,
   shownTitle,
@@ -75,7 +75,7 @@ export const PaneFrame = /* @__PURE__ */ memo(
     const bare = useUi((s) => s.page?.mode === "single");
     const bareRef = useInert(bare);
     // A grip only where the pane may be dragged (Jali's chrome, and the app's `allow`).
-    const draggable = chrome.draggable && !bare && allows(store.snapshot(), node.id, "move");
+    const draggable = chrome.draggable && !bare && can(store, "startDrag", node.id).ok;
     const boundary = useUi((s) => s.settings.boundary);
     const env = store.env,
       profile = env.profile;

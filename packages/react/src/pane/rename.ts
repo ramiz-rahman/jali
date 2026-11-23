@@ -3,14 +3,14 @@
  * (features/rename.ts brings it, so an instance without renaming ships no field).
  */
 import type { NodeId } from "@jali/core";
-import { canRename, type JaliStore } from "@jali/core/adapter";
+import { can, type JaliStore } from "@jali/core/adapter";
 import { partOf } from "../features/feature-parts";
 import { useStore } from "../state/react";
 
 /** Whether pane `id` can be renamed now (`rename({ can })`), for a double-click to ask. */
 export function useCanRename() {
   const store = useStore();
-  return (id: NodeId) => canRename(store.snapshot(), id);
+  return (id: NodeId) => can(store, "startRename", id).ok;
 }
 
 /** The rename field, if the instance has renaming. */

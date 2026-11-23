@@ -5,13 +5,13 @@ import { say } from "../state/messages";
 import { openBeside } from "./open";
 import { follow, followerOnScreen, followLater, sameRef } from "./follow";
 import { own } from "../own";
-import { notAllowed } from "./allow";
+import type { Step } from "./step";
 
-export const checkPeek = ({ s }: Snapshot) => (s.view.peek ? undefined : refuse("nothing-to-do"));
-
-/** Whether the peek's Open beside can run: a peek is open, and the pane it came from allows `open`. */
-export const checkPeekBeside = (x: Snapshot) =>
-  checkPeek(x) ?? notAllowed(x, x.s.peekSource ?? x.s.view.focused, "open");
+/** Close the peek sheet. */
+export const closePeek: Step<[]> = {
+  check: ({ s }) => (s.view.peek ? undefined : refuse("nothing-to-do")),
+  run: (x) => peekSheet(x, null),
+};
 
 /**
  * Open (or move) the peek sheet; `null` closes it. It acts for the pane it came from. When that pane's following
@@ -40,15 +40,25 @@ export function peekSheet({ s, env }: Snapshot, ref: ObjectRef | null, source?: 
   };
 }
 
-/** Keep: close the peek, then open its object beside the pane it came from. */
-export function openPeekBeside(x: Snapshot): Outcome {
-  const ref = x.s.view.peek,
-    source = x.s.peekSource ?? x.s.view.focused;
-  if (!ref || !source) return null;
-  const denied = notAllowed(x, source, "open");
-  if (denied) return denied;
-  return [peek(x, null), (y: Snapshot) => openBeside(y, source, ref)];
-}
+/** The pane a peek acts for: the one it came from, else the focused one. */
+const peekSource = ({ s }: Snapshot) => s.peekSource ?? s.view.focused;
+
+/** Keep: close the peek, then open its object beside the pane it came from, which must allow `open`. A curated page
+ *  in Single view has no layout to open it in: there, a link peeks. */
+export const openPeekBeside: Step<[]> = {
+  check: (x) =>
+    !x.s.view.peek || !peekSource(x)
+      ? refuse("nothing-to-do")
+      : x.s.page?.mode === "single"
+        ? refuse("single-view", say(x).singleNoLayout)
+        : undefined,
+  control: (x) => [["open", peekSource(x)]],
+  run(x) {
+    const ref = x.s.view.peek!,
+      source = peekSource(x)!;
+    return [peek(x, null), (y: Snapshot) => openBeside(y, source, ref)];
+  },
+};
 
 /**
  * The pane's selection moved. An open peek from that pane follows it at once (Linear); its following detail follows

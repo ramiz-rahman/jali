@@ -29,6 +29,7 @@ import {
 } from "../pane-kinds";
 import { spacingOf } from "../tokens";
 import { bindSteps, stepOf, type Actions, type StepArgs, type StepName } from "../actions";
+import { refusalOf } from "../actions/step";
 import type { ActionName } from "../actions/public";
 import {
   apply,
@@ -655,8 +656,9 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
     toast: events.toast,
     run: (name, ...args) => {
       const [step, as] = stepOf(name);
-      // As a step, so a change held for an answer is the action itself, run again when the answer comes.
-      return commit((x: Snapshot) => step(x, ...args), as);
+      // Its check and controls, then its run, as one step: a change held for an answer is the action itself, checked
+      // and run again when the answer comes.
+      return commit((x: Snapshot) => refusalOf(x, step, args) ?? step.run(x, ...args), as);
     },
     actions: undefined as unknown as Actions,
     keymap: createKeymap(

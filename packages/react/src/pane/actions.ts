@@ -6,7 +6,7 @@
  */
 import type { NodeId } from "@jali/core";
 import {
-  allows,
+  can,
   appMenuOf,
   paneMenuOf,
   type JaliStore,
@@ -24,19 +24,20 @@ export interface PaneAction extends TabMenuItem {
 }
 
 /**
- * Pop out where the browser can (`can`; the header passes its hydration-safe answer) and the app allows it. While the
+ * Pop out where the browser can (`browser`; the header passes its hydration-safe answer) and the app allows it. While the
  * pane is out it is Bring back, which closes the window, offered whatever `allow` says now, as Restore and Exit full
  * screen are. Undefined without the `popOut()` feature.
  */
 export function popOutItem(
   store: JaliStore,
   id: NodeId,
-  can = !!popOutOf(store)?.can(),
+  browser = !!popOutOf(store)?.can(),
 ): PaneAction | undefined {
   const w = popOutOf(store);
-  if (!w || !can) return undefined;
+  if (!w || !browser) return undefined;
   const out = w.pane(store) === id;
-  if (!out && !allows(store.snapshot(), id, "popOut")) return undefined;
+  // The browser's part is `browser`'s; the app's is the step's.
+  if (!out && can(store, "popOut", id).reason === "not-allowed") return undefined;
   return out
     ? { id: "pop-out", title: store.messages.pane.bringBack, run: () => w.close(store) }
     : { id: "pop-out", title: store.messages.tabs.popOut, run: () => void w.open(store, id) };

@@ -4,16 +4,18 @@
  */
 import { act, cleanup, render } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vite-plus/test";
-import { createJali, memoryLocation, memoryStorage, pane, row, tabs, type Allow } from "@jali/core";
-import type { Feature } from "@jali/core";
 import {
-  allows,
-  commandDefsOf,
-  dividerAllowed,
-  STEPS,
-  storeOf,
-  tabMenuOf,
-} from "@jali/core/adapter";
+  createJali,
+  listCommands,
+  memoryLocation,
+  memoryStorage,
+  pane,
+  row,
+  tabs,
+  type Allow,
+} from "@jali/core";
+import type { Feature } from "@jali/core";
+import { can, storeOf, tabMenuOf } from "@jali/core/adapter";
 import { JaliRoot, definePane } from "@jali/react";
 import { defaultFeatures, popOut, urlSync } from "./features";
 
@@ -44,12 +46,14 @@ const make = (allow?: Allow, more: Feature[] = []) =>
 
 describe("allow", () => {
   it("allows everything by default; Pop out with its feature, unless the app turns it off", () => {
-    const x = storeOf(make()).snapshot();
-    expect(allows(x, "a", "close")).toBe(true);
-    expect(allows(x, "a", "popOut")).toBe(false);
-    expect(allows(storeOf(make(undefined, [popOut()])).snapshot(), "a", "popOut")).toBe(true);
-    expect(allows(storeOf(make({ popOut: false }, [popOut()])).snapshot(), "a", "popOut")).toBe(
-      false,
+    const store = storeOf(make());
+    expect(can(store, "close", "a").ok).toBe(true);
+    // Without the feature there is no window to pop out into: Jali's own rule.
+    expect(can(store, "popOut", "a").reason).toBe("not-allowed");
+    // With it, only the browser (jsdom has no Picture-in-Picture) stands in the way, until the app turns it off.
+    expect(can(storeOf(make(undefined, [popOut()])), "popOut", "a").reason).toBe("unavailable");
+    expect(can(storeOf(make({ popOut: false }, [popOut()])), "popOut", "a").reason).toBe(
+      "not-allowed",
     );
   });
 
@@ -75,7 +79,7 @@ describe("allow", () => {
     const jali = make({ when: ({ action, pane }) => !(action === "move" && pane.id === "a") });
     expect(jali.actions.moveTab("a", 1)).toMatchObject({ reason: "not-allowed" });
     expect(jali.actions.moveTab("b", 0)).toMatchObject({ ok: true });
-    expect(allows(storeOf(make({ close: true })).snapshot(), "board", "close")).toBe(false);
+    expect(can(storeOf(make({ close: true })), "close", "board").reason).toBe("not-allowed");
   });
 
   it("maximise can be turned off, but a maximised pane can always be restored", () => {
@@ -89,8 +93,10 @@ describe("allow", () => {
     const jali = make({ pin: false });
     jali.actions.focus("board");
     const store = storeOf(jali);
-    const close = commandDefsOf(store).find((c) => c.id === "pane.close")!;
-    expect(close.check?.(store.snapshot())).toMatchObject({ reason: "not-allowed" });
+    expect(listCommands(jali).find((c) => c.id === "pane.close")).toMatchObject({
+      disabled: true,
+      reason: "Board can't be closed here",
+    });
     const items = tabMenuOf(store, "a")
       .flat()
       .map((i) => i.id);
@@ -102,11 +108,11 @@ describe("allow", () => {
     const jali = make({
       when: ({ action, pane }) => !(action === "resize" && pane.id === "board"),
     });
-    const x = storeOf(jali).snapshot();
+    const store = storeOf(jali);
     const root = jali.getLayout().root.id;
-    expect(dividerAllowed(x, root, 0)).toBe(false);
-    expect(STEPS.resizeDivider[0](x, root, 0, 40)).toMatchObject({ reason: "not-allowed" });
-    expect(dividerAllowed(storeOf(make()).snapshot(), root, 0)).toBe(true);
+    expect(can(store, "resetDivider", root, 0).reason).toBe("not-allowed");
+    expect(store.run("resizeDivider", root, 0, 40)).toMatchObject({ reason: "not-allowed" });
+    expect(can(storeOf(make()), "resetDivider", root, 0).ok).toBe(true);
   });
 });
 

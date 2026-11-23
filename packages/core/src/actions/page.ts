@@ -45,7 +45,7 @@ import { pushUndo } from "../state/undo";
 import { closeMany } from "../layout/ops/close";
 import { keepOwnRef } from "../pane-kinds";
 import { preset } from "./layout";
-import { notAllowed } from "./allow";
+import { refusalOf, type ControlUse, type Step } from "./step";
 
 const unzoomed = core.tree.unzoom;
 
@@ -177,14 +177,26 @@ export const roleLabel = (p: ProfileBase | null, id: string) => (p ? label(p, id
 
 export type { BesidePreview, OpenPage };
 
-/** Open the curated page (or arrive at it from a link). A link with opened panes needs Split view to show them. */
-export function openPage(x: Snapshot, o: OpenPage = {}): Outcome {
-  const p = x.env.profile;
-  if (!p) return refuse("unavailable");
+/** Open the curated page (or arrive at it from a link). A link with opened panes needs Split view to show them. Asked
+ *  for the page already open, with nothing else, there is nothing to do. */
+const openPageStep: Step<[OpenPage?]> = {
+  check(x, o = {}) {
+    const p = x.env.profile;
+    if (!p) return refuse("unavailable");
+    // An item the page can't take: a link's falls back to the item before (or the first); an app's call is refused.
+    if (o.item !== undefined && readItem(o.item, p.firstItem) === undefined && !o.fromUrl)
+      return refuse("invalid");
+    const asked =
+      o.fromUrl || o.item !== undefined || o.tab !== undefined || o.investigation?.length;
+    return x.s.page && !asked ? refuse("nothing-to-do") : undefined;
+  },
+  run: (x, o) => openPage(x, o),
+};
+
+function openPage(x: Snapshot, o: OpenPage = {}): Outcome {
+  const p = x.env.profile!;
   const prev = x.s.page;
-  // An item the page can't take: a link's falls back to the item before (or the first); an app's call is refused.
   const item = o.item === undefined ? undefined : readItem(o.item, p.firstItem);
-  if (o.item !== undefined && item === undefined && !o.fromUrl) return refuse("invalid");
   // What the address doesn't hold (`appOnly` and `link: false` params) stays on an opened pane still on screen.
   const kinds = x.env.kinds.registry();
   const onScreen = core.tree.panes(x.s.layout.root).map((n) => n.ref);
@@ -219,18 +231,28 @@ export function openPage(x: Snapshot, o: OpenPage = {}): Outcome {
 }
 
 /** Back to the free layout: the person's own layout again. The page's mode and layout are kept for next time. */
-export function leavePage(x: Snapshot): Outcome {
+const leavePage: Step<[]> = {
   // A page-only app has no free layout to go back to.
-  if (!x.env.presets.length) return refuse("unavailable");
+  check: ({ s, env }) =>
+    !s.page ? refuse("nothing-to-do") : !env.presets.length ? refuse("unavailable") : undefined,
   // The preset closes the page, as any way into the free layout does (`intoFreeLayout`).
-  return preset(x, x.s.presetId);
-}
+  run: (x) => preset(x, x.s.presetId),
+};
+
+/** The page's steps that need it open, and its profile. */
+const needPage = ({ s, env }: Snapshot) =>
+  env.profile && s.page ? undefined : refuse("unavailable");
 
 /** Single or Split view. Leaving Split view keeps its layout exactly, opened panes included, for coming back. */
-export function setMode(x: Snapshot, mode: ViewMode): Outcome {
-  const p = x.env.profile,
-    r = x.s.page;
-  if (!p || !r) return refuse("unavailable");
+const setModeStep: Step<[ViewMode]> = {
+  check: (x, mode) =>
+    needPage(x) ?? (x.s.page!.mode === mode ? refuse("nothing-to-do") : undefined),
+  run: (x, mode) => setMode(x, mode),
+};
+
+function setMode(x: Snapshot, mode: ViewMode): Outcome {
+  const p = x.env.profile!,
+    r = x.s.page!;
   if (r.mode === mode) return null;
   if (mode === "single") {
     const tab = currentRole(x) ?? r.tab;
@@ -268,11 +290,15 @@ function slotFor({ s, m }: Snapshot): NodeId | undefined {
  * Split view: on screen, it is focused; behind another tab, its tab is chosen; off screen, it takes the place of the
  * view you're in, at exactly that size, and that view goes back to the tabs. Placing a view beside is a drag or ⌥-click.
  */
-export function openTab(x: Snapshot, role: string): Outcome {
-  const p = x.env.profile,
-    r = x.s.page;
-  if (!p || !r) return refuse("unavailable");
-  if (!roleOf(p, role)) return refuse("not-found");
+const showView: Step<[string]> = {
+  check: (x, role) =>
+    needPage(x) ?? (roleOf(x.env.profile!, role) ? undefined : refuse("not-found")),
+  run: (x, role) => openTab(x, role),
+};
+
+function openTab(x: Snapshot, role: string): Outcome {
+  const p = x.env.profile!,
+    r = x.s.page!;
   const patch = { page: { ...r, tab: role } };
   if (r.mode === "single") {
     if (r.tab === role) return null;
@@ -416,8 +442,10 @@ function beside(x: Snapshot, role: string) {
   return placed ? { base, target, placed } : undefined;
 }
 
-/** Where ⌥-click would put a view, and what else moves: the very placement the commit runs. Pure. */
+/** Where ⌥-click would put a view, and what else moves: the very placement the commit runs, and nothing where the
+ *  commit is refused (its check and controls: `showViewBeside`). Pure. */
 export function besidePreview(x: Snapshot, role: string): BesidePreview | undefined {
+  if (refusalOf(x, showViewBeside, [role])) return undefined;
   const b = beside(x, role);
   if (!b) return undefined;
   const shown = (l: Layout, v: ViewState) =>
@@ -439,23 +467,40 @@ export function besidePreview(x: Snapshot, role: string): BesidePreview | undefi
   return { incoming, moved, leaving: [...now.keys()].filter((id) => !next.has(id)) };
 }
 
-/** Drop a view from the tabs onto a pane's edge, a side of the screen (or centre: as a tab of its group). From Single, this switches to
- *  Split view first: dragging a tab out is asking for two views at once. Room is made by sending the least recently
- *  used views back to the tabs (settleRoles), never by folding views into tab groups. */
-export function placeTab(
-  x: Snapshot,
+/**
+ * A view coming in as a new pane needs `open` from the pane it is placed by (it is opened from there). Worked out on
+ * the page as it is: from Single view no other view is on screen, so every view comes in, even one Split view's design
+ * would show once the mode switches. The switch (`setMode`) is part of the placement, never a way past this.
+ */
+function placing(
+  { s, m }: Snapshot,
   role: string,
-  target: NodeId,
-  zone: Edge | "centre",
-): Outcome {
-  const p = x.env.profile,
-    r = x.s.page;
-  if (!p || !r || !roleOf(p, role)) return null;
-  const place = (y: Snapshot): Outcome => {
+  target: NodeId | undefined,
+): readonly ControlUse[] {
+  if (!s.page || !target || role === target) return [];
+  return s.page.mode === "single" || m.off.includes(role) || !m.pane(role)
+    ? [["open", target]]
+    : [];
+}
+
+/** A view of this page, while it is open. */
+const viewCheck = (x: Snapshot, role: string) =>
+  needPage(x) ?? (roleOf(x.env.profile!, role) ? undefined : refuse("not-found"));
+
+/** Drop a view from the tabs onto a pane's edge, a side of the screen (or centre: as a tab of its group). From Single,
+ *  this switches to Split view first: dragging a tab out is asking for two views at once. Room is made by sending the
+ *  least recently used views back to the tabs (settleRoles), never by folding views into tab groups. */
+const placeTab: Step<[string, NodeId, Edge | "centre"]> = {
+  check: viewCheck,
+  control: (x, role, target) => placing(x, role, target),
+  run: (x, role, target, zone) => place(x, role, target, zone),
+};
+
+function place(x: Snapshot, role: string, target: NodeId, zone: Edge | "centre"): Outcome {
+  const p = x.env.profile!,
+    r = x.s.page!;
+  const at = (y: Snapshot): Outcome => {
     if (role === target || !y.m.pane(target)) return openTab(y, role);
-    // A view off screen comes in as a new pane: the pane it goes beside must allow `open`.
-    const denied = (y.m.off.includes(role) || !y.m.pane(role)) && notAllowed(y, target, "open");
-    if (denied) return denied;
     const d = placeRole(y.s.layout, y.s.view, role, target, treeSide(zone, y.ctx.dir), y.ctx);
     if (!d) return openTab(y, role);
     const said =
@@ -473,19 +518,29 @@ export function placeTab(
         : said,
     };
   };
-  return r.mode === "single" ? [setMode(x, "split"), place] : place(x);
+  return r.mode === "single" ? [setMode(x, "split"), at] : at(x);
 }
 
+/** The pane ⌥-click on a view's tab places it beside: in Split view the one in front, in Single view the one view on
+ *  screen (from which Split view's own target is worked out once the mode switches). */
+const besideFrom = (x: Snapshot): NodeId | undefined =>
+  x.s.page?.mode === "single"
+    ? x.s.view.focused
+    : (besideTarget(x.s.layout, unzoomed(x.s.view), x.ctx) ?? x.s.page?.tab);
+
 /** ⌥-click a tab: that view beside the one you're in (the same placement besidePreview shows). */
-export function openTabBeside(x: Snapshot, role: string): Outcome {
-  const r = x.s.page;
-  if (!r) return null;
-  const target = (y: Snapshot) =>
-    besideTarget(y.s.layout, unzoomed(y.s.view), y.ctx) ?? y.s.page?.tab ?? r.tab;
-  if (r.mode === "single")
-    return [setMode(x, "split"), (y: Snapshot) => placeTab(y, role, target(y), endSide(y.ctx.dir))];
-  return placeTab(x, role, target(x), endSide(x.ctx.dir));
-}
+const showViewBeside: Step<[string]> = {
+  check: viewCheck,
+  control: (x, role) => placing(x, role, besideFrom(x)),
+  run(x, role) {
+    const r = x.s.page!;
+    const target = (y: Snapshot) =>
+      besideTarget(y.s.layout, unzoomed(y.s.view), y.ctx) ?? y.s.page?.tab ?? r.tab;
+    if (r.mode === "single")
+      return [setMode(x, "split"), (y: Snapshot) => place(y, role, target(y), endSide(y.ctx.dir))];
+    return place(x, role, target(x), endSide(x.ctx.dir));
+  },
+};
 
 /**
  * A link to an object that is already a view on this page goes to that view instead of opening it again: focused if on
@@ -503,7 +558,7 @@ export function goToRole(x: Snapshot, role: string, from?: NodeId): Outcome {
     const t = label(p, role);
     const prefix = (o: Outcome): Outcome =>
       isChange(o) && o.msg ? { ...o, msg: say(x).both(say(x).alreadyView(t), o.msg) } : o;
-    return (y: Snapshot) => prefix(apply1(placeTab(y, role, from, endSide(y.ctx.dir)), y));
+    return (y: Snapshot) => prefix(apply1(place(y, role, from, endSide(y.ctx.dir)), y));
   }
   const o = openTab(x, role);
   if (!isChange(o)) return o;
@@ -515,12 +570,17 @@ export function goToRole(x: Snapshot, role: string, from?: NodeId): Outcome {
 }
 
 /** Another item: every role shows it, in place, and the previous item's investigation closes. */
-export function activate(x: Snapshot, given: ItemId): Outcome {
-  const p = x.env.profile,
-    r = x.s.page;
-  if (!p || !r) return refuse("unavailable");
-  const item = readItem(given, p.firstItem);
-  if (item === undefined) return refuse("invalid");
+const showItem: Step<[ItemId]> = {
+  check: (x, given) =>
+    needPage(x) ??
+    (readItem(given, x.env.profile!.firstItem) === undefined ? refuse("invalid") : undefined),
+  run: (x, given) => activate(x, given),
+};
+
+function activate(x: Snapshot, given: ItemId): Outcome {
+  const p = x.env.profile!,
+    r = x.s.page!;
+  const item = readItem(given, p.firstItem)!;
   if (r.item === item) return null;
   const page = { ...r, item };
   const saved = x.s.prefs.split;
@@ -560,46 +620,54 @@ export function activate(x: Snapshot, given: ItemId): Outcome {
  * Close every pane opened by following links, as one close: the views stay as they are now, with what the person did
  * to them meanwhile (a resize, Keep, where they put them). Undo (⌘K ⌘Z) reopens only those panes, in their slots.
  */
-export function backToPage(x: Snapshot): Outcome {
-  const r = x.s.page;
-  if (!r) return refuse("unavailable");
-  const name = x.env.profile?.name ?? "page";
-  const opened = investigation(x.m.panes);
-  if (!opened.length) return refuse("nothing-to-do", say(x).nothingOpened);
+const back: Step<[]> = {
+  check: (x) =>
+    x.s.page
+      ? investigation(x.m.panes).length
+        ? undefined
+        : refuse("nothing-to-do", say(x).nothingOpened)
+      : refuse("unavailable"),
   // It closes every opened pane: one the app keeps (`allow` close false) keeps the investigation, as `close` would.
-  for (const p of opened) {
-    const denied = notAllowed(x, p.id, "close");
-    if (denied) return denied;
-  }
-  const view = unzoomed(x.s.view);
-  const closed = closeMany(
-    x.s.layout,
-    view,
-    opened.map((p) => p.id),
-    x.ctx,
-    "closeOthers",
-    // The views keep their sizes, a resize made meanwhile included: none takes an opened pane's room as its own.
-    { keepSizes: true },
-  );
-  const focused = x.m.pane(view.focused)?.role
-    ? closed.view
-    : core.focus(closed.view, currentRole(x) ?? r.tab, x.ctx);
-  return {
-    op: "close",
-    layout: closed.layout,
-    view: focused,
-    msg: say(x).backToPage(name, opened.length),
-    toast: messagesOf(x).toasts.backToPage(name, opened.length),
-    undo: closed.undo ? pushUndo(x.s.undoStack, closed.undo) : x.s.undoStack,
-  };
-}
+  control: (x) => investigation(x.m.panes).map((p) => ["close", p.id] as const),
+  run(x) {
+    const r = x.s.page!;
+    const name = x.env.profile?.name ?? "page";
+    const opened = investigation(x.m.panes);
+    const view = unzoomed(x.s.view);
+    const closed = closeMany(
+      x.s.layout,
+      view,
+      opened.map((p) => p.id),
+      x.ctx,
+      "closeOthers",
+      // The views keep their sizes, a resize made meanwhile included: none takes an opened pane's room as its own.
+      { keepSizes: true },
+    );
+    const focused = x.m.pane(view.focused)?.role
+      ? closed.view
+      : core.focus(closed.view, currentRole(x) ?? r.tab, x.ctx);
+    return {
+      op: "close",
+      layout: closed.layout,
+      view: focused,
+      msg: say(x).backToPage(name, opened.length),
+      toast: messagesOf(x).toasts.backToPage(name, opened.length),
+      undo: closed.undo ? pushUndo(x.s.undoStack, closed.undo) : x.s.undoStack,
+    };
+  },
+};
 
 /** Close a view in Split view: it leaves the screen and waits in the tabs. Never the last one on screen. */
-export function hideRole(x: Snapshot, id: NodeId): Outcome {
+const hideRole: Step<[NodeId]> = {
+  // In Single view there is no layout to take a view out of.
+  check: (x) =>
+    x.s.page?.mode === "single" ? refuse("single-view", say(x).singleNoLayout) : undefined,
+  run: (x, id) => hide(x, id),
+};
+
+function hide(x: Snapshot, id: NodeId): Outcome {
   const p = x.env.profile,
     node = x.m.pane(id);
-  // In Single view there is no layout to take a view out of.
-  if (x.s.page?.mode === "single") return refuse("single-view", say(x).singleNoLayout);
   if (!p || x.s.page?.mode !== "split" || !node?.role) return null;
   const r = core.hide(x.s.layout, unzoomed(x.s.view), id, x.ctx);
   if (!r.ok)
@@ -616,11 +684,14 @@ export function hideRole(x: Snapshot, id: NodeId): Outcome {
 }
 
 /** Reset Split view to the design, dropping this person's layout. The investigation stays. */
-export function resetPage(x: Snapshot): Outcome {
-  const p = x.env.profile,
-    r = x.s.page;
-  if (!p || !r) return refuse("unavailable");
-  if (r.mode !== "split") return refuse("single-view");
+const reset: Step<[]> = {
+  check: (x) => needPage(x) ?? (x.s.page!.mode === "split" ? undefined : refuse("single-view")),
+  run: (x) => resetPage(x),
+};
+
+function resetPage(x: Snapshot): Outcome {
+  const p = x.env.profile!,
+    r = x.s.page!;
   const tab = currentRole(x) ?? r.tab;
   const opened = investigation(x.m.panes).map((o) => o.ref);
   const y = { ...x, s: { ...x.s, prefs: { ...x.s.prefs, split: null } } };
@@ -644,50 +715,14 @@ export function resetPage(x: Snapshot): Outcome {
 function pageCommands(env: Env): CommandDef[] {
   const profile = env.profile;
   const { commands: t, commandGroups: g } = messagesOf(env);
+  const group = g.layout;
   return [
-    {
-      id: "page.back",
-      title: t.pageBack(profile?.name),
-      group: g.layout,
-      check: ({ s, m }) =>
-        s.page && m.panes.some((p) => !p.role) ? undefined : refuse("unavailable"),
-      run: (u) => u.run("page.back"),
-    },
-    {
-      id: "page.reset",
-      title: t.pageReset,
-      group: g.layout,
-      check: ({ s }) => (s.page?.mode === "split" ? undefined : refuse("unavailable")),
-      run: (u) => u.run("page.reset"),
-    },
-    {
-      id: "page.single",
-      title: t.pageSingle,
-      group: g.layout,
-      check: ({ s }) => (s.page?.mode === "split" ? undefined : refuse("unavailable")),
-      run: (u) => u.run("page.setMode", "single"),
-    },
-    {
-      id: "page.split",
-      title: t.pageSplit,
-      group: g.layout,
-      check: ({ s }) => (s.page?.mode === "single" ? undefined : refuse("unavailable")),
-      run: (u) => u.run("page.setMode", "split"),
-    },
-    {
-      id: "page.open",
-      title: t.pageOpen(profile?.name),
-      group: g.layout,
-      check: ({ s }) => (s.page || !profile ? refuse("unavailable") : undefined),
-      run: (u) => u.run("page.open"),
-    },
-    {
-      id: "page.leave",
-      title: t.pageLeave(env.name, profile?.name),
-      group: g.layout,
-      check: ({ s }) => (s.page && env.presets.length ? undefined : refuse("unavailable")),
-      run: (u) => u.run("page.leave"),
-    },
+    { id: "page.back", title: t.pageBack(profile?.name), group, step: "page.back" },
+    { id: "page.reset", title: t.pageReset, group, step: "page.reset" },
+    { id: "page.single", title: t.pageSingle, group, step: "page.setMode", args: () => ["single"] },
+    { id: "page.split", title: t.pageSplit, group, step: "page.setMode", args: () => ["split"] },
+    { id: "page.open", title: t.pageOpen(profile?.name), group, step: "page.open" },
+    { id: "page.leave", title: t.pageLeave(env.name, profile?.name), group, step: "page.leave" },
   ];
 }
 
@@ -777,16 +812,16 @@ function prefsToSave(s: UiState, prev: UiState, ctx: LayoutContext): PagePrefs |
 
 /** The curated page's engine: what `definePage` puts on a page. */
 export const pageEngine: PageEngine = {
-  open: openPage,
+  open: openPageStep,
   leave: leavePage,
-  setMode,
-  showView: openTab,
-  showViewBeside: openTabBeside,
+  setMode: setModeStep,
+  showView,
+  showViewBeside,
   placeTab,
-  showItem: activate,
-  back: backToPage,
+  showItem,
+  back,
   hideRole,
-  reset: resetPage,
+  reset,
   opening,
   leaving,
   prefsToSave,

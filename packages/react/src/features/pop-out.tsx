@@ -23,7 +23,7 @@
 import type { NodeId } from "@jali/core";
 import type { ReactParts } from "./feature-parts";
 import {
-  allows,
+  can as gate,
   installKeyboard,
   popOutFeature,
   spacingVars,
@@ -141,10 +141,9 @@ function createWindow(): ReactPopOut & { started(store: JaliStore): () => void }
     async open(store: JaliStore, pane: NodeId) {
       const pip = api();
       if (!pip || !can() || !store.model().pane(pane)) return false;
-      if (!allows(store.snapshot(), pane, "popOut")) {
-        store.announce(
-          store.messages.announcements.notAllowed("popOut", store.model().title(pane)),
-        );
+      const answer = gate(store, "popOut", pane);
+      if (!answer.ok) {
+        if (answer.message) store.announce(answer.message);
         return false;
       }
       const x = slot(store);

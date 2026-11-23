@@ -4,7 +4,7 @@
  * outside a pane cancels, as does the instance stopping (`store.gesture`). Zoomed and single-pane layouts don't drag.
  * The drag lives in this closure and in `dnd` state; there is no module state.
  */
-import { allows } from "../actions/allow";
+import { can } from "../actions";
 import { edgeScroll } from "./edge-scroll";
 import type { Edge, Rect } from "../layout/types";
 import type { DndState, JaliStore } from "../state/store";
@@ -128,9 +128,14 @@ function startDrag(
 ) {
   let started = false;
   const handle = { dragged: () => started };
+  const accepts = (target: string, zone: Edge | "centre") =>
+    (fromOutside
+      ? can(store, "placeTab", paneId, target, zone)
+      : can(store, "drop", paneId, target, zone)
+    ).ok;
   if (e.button !== 0) return handle;
   // A pane the app doesn't let move never starts a drag (from outside, the dragged thing isn't a pane yet).
-  if (!fromOutside && !allows(store.snapshot(), paneId, "move")) return handle;
+  if (!fromOutside && !can(store, "startDrag", paneId).ok) return handle;
   const workspace = store.dom.port.panes(store.dom.root(), e.currentTarget as Element | null);
   const sx = e.clientX,
     sy = e.clientY;
@@ -200,6 +205,9 @@ function startDrag(
       zone === "centre"
     )
       zone = undefined;
+    // Only where the drop would be made: a target is offered by the step the drop runs (`placeTab` for a page's view,
+    // `drop` for a pane), never one it would refuse.
+    if (target && zone && !accepts(target.id, zone)) zone = undefined;
     put({
       dragged: paneId,
       x: p.x,

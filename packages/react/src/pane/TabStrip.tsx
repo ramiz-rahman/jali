@@ -3,7 +3,7 @@ import type { NodeId } from "@jali/core";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useJaliIcons } from "../icons/context";
 import type { Frame, Tab } from "@jali/core/adapter";
-import { allows, scrolledFromStart, observeResize } from "@jali/core/adapter";
+import { can, scrolledFromStart, observeResize } from "@jali/core/adapter";
 import { useStore, useUi } from "../state/react";
 import { useCanRename } from "./rename";
 import { TabIndicator } from "./TabIndicator";
@@ -42,7 +42,7 @@ function revealTab(el: HTMLDivElement | null) {
 export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>; owner: NodeId }) {
   const icon = useJaliIcons();
   const store = useStore();
-  const { actions, env } = store;
+  const { actions } = store;
   const tw = store.messages.tabs;
   // A curated page, or an instance without a launcher: no "+" (its views come from the page's tabs).
   const page = useUi((s) => !!s.page);
@@ -184,7 +184,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
         />
       ) : null}
       {/* No launcher kind, no "+": there is nothing to open in the new tab. Nor where the tab doesn't allow `open`. */}
-      {page || !env.launcher || !allows(store.snapshot(), group.active, "open") ? null : (
+      {page || !can(store, "newTab", group.active).ok ? null : (
         <button
           type="button"
           className="jali-tab-add"

@@ -108,6 +108,7 @@ export { loadPrefs, savePrefs, type PagePrefs } from "./state/page-prefs";
 // ---------- actions: the engine's steps, and what the chrome asks of them ----------
 export {
   STEPS,
+  can,
   stepOf,
   mergeReports,
   type Actions,
@@ -118,14 +119,13 @@ export {
   type StepName,
   type Steps,
 } from "./actions";
-export { PANE_CONTROLS, allows, dividerAllowed, notAllowed } from "./actions/allow";
+export { PANE_CONTROLS } from "./actions/allow";
+export type { ControlUse, Step } from "./actions/step";
 export { openPaneFor } from "./actions/open";
-export { checkPeekBeside } from "./actions/peek";
 export { paneFor } from "./actions/public";
 export { restoreLayout, arrive } from "./actions/layout";
 export { mergeTargets, type MergeTarget } from "./actions/tabs";
-export { checkTuck, tuckHome } from "./actions/tuck";
-export { canRename } from "./actions/rename";
+export { tuckHome } from "./actions/tuck";
 export { besidePreview, definePageEngine, investigation, pageEngine } from "./actions/page";
 
 // ---------- pane kinds, profiles and pane chrome ----------
@@ -219,6 +219,7 @@ export {
   appMenuOf,
   paneMenuOf,
   tabMenuOf,
+  chooseMenuItem,
   type PaneMenuId,
   type PaneMenuItem,
 } from "./commands/tab-menu";

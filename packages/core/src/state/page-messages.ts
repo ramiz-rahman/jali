@@ -71,12 +71,15 @@ const page = {
   tabOff: "Not on screen",
   tabBehind: "Behind another tab",
   tabOn: "On screen",
-  /** `altClick` is the platform's words for it ("⌥-click"). */
-  tabTipOff: (view: string, altClick: string) =>
-    `${view} in place of the view you're in · drag to place it · ${altClick}: beside`,
+  /** `altClick` is the platform's words for it ("⌥-click"); undefined where the view can't be placed beside (the app's
+   *  `allow` turns `open` off there), so the tip offers only what a click does. */
+  tabTipOff: (view: string, altClick?: string) =>
+    altClick
+      ? `${view} in place of the view you're in · drag to place it · ${altClick}: beside`
+      : `${view} in place of the view you're in`,
   tabTipFocus: (view: string) => `Focus ${view} · drag to move it`,
-  tabTipSingle: (view: string, altClick: string) =>
-    `${view} · drag or ${altClick} to see it beside`,
+  tabTipSingle: (view: string, altClick?: string) =>
+    altClick ? `${view} · drag or ${altClick} to see it beside` : view,
   /** The ⌥ preview: where a view opens, and the views it sends back to the tabs. */
   ghost: (view: string, leaving: string[]) =>
     `${view} opens here${leaving.length ? ` · ${leaving.join(", ")} back to the tabs` : ""}`,

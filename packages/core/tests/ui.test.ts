@@ -304,10 +304,14 @@ describe("apply and the command registry", () => {
     expect(pressKeys("Mod+K Mod+Z")).toBe(true);
     expect(announced()).toBe("Nothing to restore");
     actions.closeOthers("orders");
-    const seq = getState().announcement.seq;
+    // Close on the last pane says why, as the action does.
     expect(pressKeys("Mod+K Mod+Backspace")).toBe(true);
-    expect(getState().announcement.seq).toBe(seq);
+    expect(announced()).toBe("The last pane stays open");
     expect(allPanes()).toHaveLength(1);
+    // Move out of tabs, with no tabs, is refused silently.
+    const seq = getState().announcement.seq;
+    expect(pressKeys("Mod+K Shift+Mod+G")).toBe(true);
+    expect(getState().announcement.seq).toBe(seq);
   });
   it("announces only what happened: an unchanged layout says nothing", () => {
     actions.preset("order-chain");

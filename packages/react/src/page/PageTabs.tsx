@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { paneDomId, startTabDrag } from "@jali/core/adapter";
+import { can, paneDomId, startTabDrag } from "@jali/core/adapter";
 import { useRovingKeys } from "../a11y/roving";
 import { useLandmarkName } from "../a11y/landmark";
 import { useGeometry, useProfile, useStore, useUi } from "../state/react";
@@ -75,6 +75,8 @@ export function PageTabs() {
         {p.roles.map((r) => {
           const st = state(r.id);
           const Icon = r.icon;
+          // Placing it beside (⌥-click, or a drag) is offered only where the action would make it.
+          const beside = can(store, "showViewBeside", r.id).ok ? altClick : undefined;
           return (
             <button
               type="button"
@@ -99,9 +101,9 @@ export function PageTabs() {
               title={
                 multi
                   ? st === "off"
-                    ? t.tabTipOff(r.label, altClick)
+                    ? t.tabTipOff(r.label, beside)
                     : t.tabTipFocus(r.label)
-                  : t.tabTipSingle(r.label, altClick)
+                  : t.tabTipSingle(r.label, beside)
               }
               onPointerDown={(e) => {
                 drag.current = startTabDrag(store, e, r.id, r.label);

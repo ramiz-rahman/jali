@@ -1,5 +1,5 @@
-import { appMenuOf, own } from "@jali/core/adapter";
-import { buttonsOf, checkTuck, tuckHome, type PaneButton } from "@jali/core/adapter";
+import { appMenuOf, can, chooseMenuItem, own } from "@jali/core/adapter";
+import { buttonsOf, tuckHome, type PaneButton } from "@jali/core/adapter";
 import { useJaliIcons } from "../icons/context";
 import { useDerived, useStore, useUi } from "../state/react";
 import { useCanPopOut, usePoppedOut } from "./popped";
@@ -79,7 +79,7 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs, narrow = 0, onM
       // When tuck is refused, the button says why in the announcer's own words (state/messages.ts).
       const tuckLabel = home
         ? keys.withKeys(t.tuckInto(x.m.title(home)), keymap.label("pane.tuck"))
-        : (checkTuck(x, id)?.msg ?? t.cantTuck(title));
+        : (can(store, "tuck", id).message ?? t.cantTuck(title));
       // A curated page's view closes back into the tabs above.
       const closeHint = x.s.page && x.m.pane(id)?.role ? t.closeViewTip : t.closeTip;
       // Jali's own items in the menu (pane/actions.ts): Pop out or Bring back, as the button is now.
@@ -137,7 +137,10 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs, narrow = 0, onM
             aria-pressed={popped}
             title={popped ? t.bringBack : t.popOutTip}
             // The menu's own action (pane/actions.ts), so the button and ⋯ can't disagree on what it does.
-            onClick={() => popOutItem(store, id, pop)?.run()}
+            onClick={() => {
+              const item = popOutItem(store, id, pop);
+              if (item) chooseMenuItem(store, id, item);
+            }}
           >
             <icon.popOut {...ICON.header} aria-hidden />
           </button>

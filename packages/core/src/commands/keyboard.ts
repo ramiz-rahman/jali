@@ -19,7 +19,7 @@ import type { JaliStore } from "../state/store";
 import { topDialog } from "../state/dialogs";
 import { isModifierKey, matchChord, type Chord } from "./format";
 import { PALETTE_ID } from "./keymap";
-import { commandById } from "./registry";
+import { commandAvailable, commandById, runDef } from "./registry";
 import { STEP, STEP_BIG } from "../dividers/resize";
 
 const ARROWS: Record<string, "left" | "right" | "top" | "bottom"> = {
@@ -67,9 +67,9 @@ function run(store: JaliStore, id: string): boolean {
   }
   const command = commandById(store, id);
   if (!command) return false;
-  const refusal = command.check?.(store.snapshot(), store);
-  if (refusal?.msg) store.announce(refusal.msg);
-  if (!refusal) command.run(store);
+  const answer = commandAvailable(store, command);
+  if (answer.message) store.announce(answer.message);
+  if (answer.ok) runDef(store, command);
   return true;
 }
 

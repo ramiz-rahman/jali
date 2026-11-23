@@ -3,7 +3,7 @@ import type { NodeId } from "@jali/core";
 import { useMemo } from "react";
 import { Menu, type MenuAt } from "../a11y/Menu";
 import { paneMenu } from "./actions";
-import type { TabMenuItem } from "@jali/core/adapter";
+import { chooseMenuItem, type TabMenuItem } from "@jali/core/adapter";
 import { useJaliIcons } from "../icons/context";
 import { useModelValue, useStore } from "../state/react";
 import { ICON } from "../icons/sized";
@@ -53,7 +53,8 @@ export function TabMenu({
   const choose = (item: TabMenuItem) => {
     if (item.disabled) return;
     onClose(true);
-    item.run();
+    // As an intent, with the pane as it is now (pane/tab-menu.ts).
+    chooseMenuItem(store, at.pane, item);
   };
   if (!node) return null;
   return (

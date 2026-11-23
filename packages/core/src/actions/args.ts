@@ -11,6 +11,7 @@ import { checkRef } from "../pane-kinds";
 import { refuse, type Outcome, type RefusalStep, type Snapshot } from "../state/apply";
 import { say } from "../state/messages";
 import type { PaneTarget } from "./public";
+import type { Step } from "./step";
 
 declare const VALUE: unique symbol;
 
@@ -33,10 +34,8 @@ export type ArgsOf<A extends readonly unknown[]> = A extends readonly [infer H, 
       : never
   : [];
 
-/** A step whose arguments are checked before it runs. `args` are its checks, in order. */
-export type CheckedStep<P extends unknown[]> = ((x: Snapshot, ...a: P) => Outcome) & {
-  readonly args: readonly Arg<unknown>[];
-};
+/** A step whose arguments are checked before its check, its controls and its run. `args` are its checks, in order. */
+export type CheckedStep<P extends unknown[]> = Step<P> & { readonly args: readonly Arg<unknown>[] };
 
 const INVALID: RefusalStep = /* @__PURE__ */ refuse("invalid");
 const is =
@@ -112,17 +111,11 @@ export const shape =
     return undefined;
   };
 
-/** `step`, run only once each argument passes its check in `args`. */
+/** `step` (or a step that is only a run), with its arguments checked first, each by its check in `args`. */
 export function checked<const A extends readonly Arg<unknown>[]>(
   args: A,
-  step: (x: Snapshot, ...a: ArgsOf<A>) => Outcome,
+  // Its types come from `args` alone.
+  step: NoInfer<Step<ArgsOf<A>> | ((x: Snapshot, ...a: ArgsOf<A>) => Outcome)>,
 ): CheckedStep<ArgsOf<A>> {
-  const run = (x: Snapshot, ...a: ArgsOf<A>): Outcome => {
-    for (let i = 0; i < args.length; i++) {
-      const problem = args[i]!(x, a[i]);
-      if (problem) return problem;
-    }
-    return step(x, ...a);
-  };
-  return Object.assign(run, { args });
+  return { ...(typeof step === "function" ? { run: step } : step), args };
 }

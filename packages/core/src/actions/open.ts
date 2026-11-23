@@ -2,12 +2,13 @@ import * as core from "../layout/engine";
 import { treeSide } from "../layout/geometry/direction";
 import type { Edge, NodeId, ObjectRef, PaneNode, ViewState } from "../layout/types";
 import type { PaneKinds } from "../pane-kinds";
-import { refuse, type Outcome, type RefusalStep, type Snapshot } from "../state/apply";
+import { refuse, type Outcome, type Snapshot } from "../state/apply";
 import type { Model } from "../state/model";
 import { say } from "../state/messages";
 import { follow, followLater, sameRef, setKept } from "./follow";
 import { own } from "../own";
-import { notAllowed } from "./allow";
+import { allows } from "./allow";
+import { uses, type Step } from "./step";
 import { peekSheet } from "./peek";
 
 /** What a new split or a stack's "+" shows until the person chooses an object: the instance's launcher. */
@@ -69,7 +70,7 @@ export function openBeside(
   opts: OpenBesideOptions = {},
 ): Outcome {
   const { s, m, ctx } = x;
-  if (notAllowed(x, source, "open")) return peekSheet(x, ref, source);
+  if (!allows(x, source, "open")) return peekSheet(x, ref, source);
   // `edge` is a screen side, as for move and split; the tree's own sides swap right to left. Default: after the source.
   const edge = opts.edge ? treeSide(opts.edge, ctx.dir) : "right";
   // A curated page decides how its links open (actions/page.ts `opening`): a peek, the pane already showing the
@@ -142,39 +143,49 @@ export function openBeside(
   };
 }
 
-/**
- * Whether Split can act on pane `id` (default: the focused one): what `split` refuses, and what every surface that
- * offers it (the tab menu, ⌘K, keys) asks. It needs a launcher to put beside the pane, and the free layout: a curated
- * page's layout is its design, and links open panes there. The pane must allow `open`.
- */
-export function checkSplit(x: Snapshot, id = x.s.view.focused): RefusalStep | undefined {
-  if (!x.env.launcher || x.s.page) return refuse("unavailable");
-  return id && x.m.pane(id) ? notAllowed(x, id, "open") : refuse("not-found");
-}
+/** What Split needs of pane `id` (default: the focused one): a launcher to put beside it, and the free layout (a
+ *  curated page's layout is its design, and links open panes there). The pane must allow `open`. */
+const splitCheck = ({ s, m, env }: Snapshot, id = s.view.focused) =>
+  !env.launcher || s.page
+    ? refuse("unavailable")
+    : !id || !m.pane(id)
+      ? refuse("not-found")
+      : undefined;
 
-/** Split opens a launcher beside the pane, not a copy of it; focus moves in, because the person is about to choose. */
-export function split(x: Snapshot, dir: "right" | "bottom", target = x.s.view.focused): Outcome {
-  const { s, m, ctx } = x;
-  const cannot = checkSplit(x, target);
-  if (cannot) return cannot;
-  const p = m.pane(target)!;
-  const launcher = launcherOf(x)!;
-  // `dir` is the screen's: "Split right" opens on the right in either reading direction.
-  const r = core.split(s.layout, unzoomed(s.view), p.id, treeSide(dir, ctx.dir), launcher, ctx);
-  return {
-    op: "split",
-    layout: r.layout,
-    view: core.focus(r.view, r.opened, ctx),
-    msg: say(x).split(r.mode, dir, m.title(p.id)),
-    result: r.opened,
-  };
-}
+/** Split opens a launcher beside the pane, not a copy of it; focus moves in, because the person is about to choose.
+ *  Without a direction: right for a wide pane, down for a tall one. */
+export const split: Step<[NodeId?, ("right" | "bottom")?]> = {
+  check: splitCheck,
+  control: uses("open"),
+  run(x, target = x.s.view.focused!, direction) {
+    const { s, m, ctx } = x;
+    const box = m.resolved.panes.find((b) => b.id === target);
+    const dir = direction ?? (box && box.rect.height > box.rect.width ? "bottom" : "right");
+    // `dir` is the screen's: "Split right" opens on the right in either reading direction.
+    const r = core.split(
+      s.layout,
+      unzoomed(s.view),
+      target,
+      treeSide(dir, ctx.dir),
+      launcherOf(x)!,
+      ctx,
+    );
+    return {
+      op: "split",
+      layout: r.layout,
+      view: core.focus(r.view, r.opened, ctx),
+      msg: say(x).split(r.mode, dir, m.title(target)),
+      result: r.opened,
+    };
+  },
+};
 
-/** "Split auto": right for a wide pane, down for a tall one. */
-export function splitAuto(x: Snapshot): Outcome {
-  const b = x.m.resolved.panes.find((p) => p.id === x.s.view.focused);
-  return split(x, b && b.rect.height > b.rect.width ? "bottom" : "right");
-}
+/** "Split auto": the focused pane, right for a wide pane, down for a tall one. */
+export const splitAuto: Step<[]> = {
+  check: (x) => splitCheck(x),
+  control: (x) => uses("open")(x),
+  run: (x) => split.run(x),
+};
 
 /**
  * Show `ref` in pane `id`, in place (same node, new ref). If the object is already open elsewhere, focus that pane
@@ -239,51 +250,53 @@ export function dismiss({ s, m, ctx }: Snapshot, id: NodeId): Outcome {
 }
 
 /** "+" on a tab strip and ⌘K "New tab here": a launcher as a new tab of the pane's stack (or a new stack). */
-export function newTab(x: Snapshot, id = x.s.view.focused): Outcome {
-  const { s, m, ctx } = x;
-  const p = m.pane(id);
-  const launcher = launcherOf(x);
-  if (!p) return refuse("not-found");
-  if (!launcher) return refuse("unavailable");
-  const denied = notAllowed(x, p.id, "open");
-  if (denied) return denied;
-  const r = core.addTab(s.layout, unzoomed(s.view), p.id, launcher, ctx);
-  return {
-    op: "newTab",
-    layout: r.layout,
-    view: r.view,
-    msg: say(x).newTab(m.title(p.id)),
-    result: r.opened,
-  };
-}
+export const newTab: Step<[NodeId?]> = {
+  check: ({ s, m, env }, id = s.view.focused) =>
+    !m.pane(id) ? refuse("not-found") : !env.launcher ? refuse("unavailable") : undefined,
+  control: uses("open"),
+  run(x, id = x.s.view.focused!) {
+    const { s, m, ctx } = x;
+    const r = core.addTab(s.layout, unzoomed(s.view), id, launcherOf(x)!, ctx);
+    return {
+      op: "newTab",
+      layout: r.layout,
+      view: r.view,
+      msg: say(x).newTab(m.title(id)),
+      result: r.opened,
+    };
+  },
+};
 
 /** `ref` as a new tab of pane `id`'s group (or a new group), shown and focused. Already open: that pane is shown. */
-export function addTab(x: Snapshot, id: NodeId, ref: ObjectRef): Outcome {
-  const { s, m, ctx } = x;
-  if (s.page?.mode === "single") return refuse("single-view", say(m).singleNoLayout);
-  if (!m.pane(id)) return refuse("not-found");
-  if (!Object.hasOwn(ctx.fit.kinds, ref.kind)) return refuse("invalid");
-  const denied = notAllowed(x, id, "open");
-  if (denied) return denied;
-  const dup = openPaneFor(m, ref);
-  if (dup)
+export const addTab: Step<[NodeId, ObjectRef]> = {
+  check({ s, m, ctx }, id, ref) {
+    if (s.page?.mode === "single") return refuse("single-view", say(m).singleNoLayout);
+    if (!m.pane(id)) return refuse("not-found");
+    return Object.hasOwn(ctx.fit.kinds, ref.kind) ? undefined : refuse("invalid");
+  },
+  control: uses("open"),
+  run(x, id, ref) {
+    const { s, m, ctx } = x;
+    const dup = openPaneFor(m, ref);
+    if (dup)
+      return {
+        op: "focusExisting",
+        layout: core.reveal(s.layout, dup.id, ctx),
+        view: core.focus(unzoomed(s.view), dup.id, ctx),
+        msg: say(m).alreadyOpen(m.title(dup.id)),
+        result: dup.id,
+      };
+    const r = core.addTab(s.layout, unzoomed(s.view), id, ref, ctx);
     return {
-      op: "focusExisting",
-      layout: core.reveal(s.layout, dup.id, ctx),
-      view: core.focus(unzoomed(s.view), dup.id, ctx),
-      msg: say(m).alreadyOpen(m.title(dup.id)),
-      result: dup.id,
+      op: "newTab",
+      layout: r.layout,
+      view: r.view,
+      msg: say(m).opened(m.env.kinds.title(ref)),
+      patch: { recent: withRecent(m.env.kinds, s.recent, [ref]) },
+      result: r.opened,
     };
-  const r = core.addTab(s.layout, unzoomed(s.view), id, ref, ctx);
-  return {
-    op: "newTab",
-    layout: r.layout,
-    view: r.view,
-    msg: say(m).opened(m.env.kinds.title(ref)),
-    patch: { recent: withRecent(m.env.kinds, s.recent, [ref]) },
-    result: r.opened,
-  };
-}
+  },
+};
 
 /** Seed Recent with what is already on screen (boot, link open), reading order first. */
 export const noteOpen = ({ s, env }: Snapshot, refs: ObjectRef[]): Outcome => ({

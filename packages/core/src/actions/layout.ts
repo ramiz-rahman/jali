@@ -2,10 +2,10 @@ import * as core from "../layout/engine";
 import type { Layout, ViewState } from "../layout/types";
 import { keepOwnParams } from "../pane-kinds";
 import { presetById } from "../env";
-import { refuse, type Change, type Outcome, type RefusalStep, type Snapshot } from "../state/apply";
-import { notAllowed } from "./allow";
+import { refuse, type Change, type Outcome, type Snapshot } from "../state/apply";
+import type { Step } from "./step";
 import { toLayout, type LayoutInput } from "../layout/build";
-import { say } from "../state/messages";
+import { messagesOf, say } from "../state/messages";
 import { settingsWith, type Settings } from "../state/settings";
 import { withRecent } from "./open";
 import { agreeWithSelection, agreeOnArrival } from "./follow";
@@ -188,43 +188,51 @@ export function changeSettings({ s }: Snapshot, patch: Partial<Settings>): Outco
   return settings ? { op: "patch", patch: { settings } } : refuse("invalid");
 }
 
+/** The panes auto layout arranges: every one in the layout but those a curated page hides. */
+const arranged = ({ s }: Snapshot) => {
+  const hidden = new Set(s.layout.overlay?.hidden ?? []);
+  return core.tree.panes(s.layout.root).filter((p) => !hidden.has(p.id));
+};
+
 /**
  * `jali.actions.autoLayout()`: arrange every pane in the free layout from the room there is and the kinds' size
  * hints (`layout.arrange`). The same panes, so their state survives; tucked and folded panes are placed too, and the
  * fit runs after. Like a preset, the address gets a new entry, so Back returns to the arrangement before.
  */
-export function autoLayout(x: Snapshot): Outcome {
-  const { s, ctx, env } = x;
-  const cannot = checkAutoLayout(x);
-  if (cannot) return cannot;
-  const layout = core.arrange(s.layout, ctx, { focused: s.view.focused });
-  // Already arranged so: no new layout, and no history entry.
-  if (layout === s.layout) return refuse("nothing-to-do");
-  const view: ViewState = { ...s.view, zoomed: undefined };
-  return {
-    op: "setLayout",
-    layout: core.refit(layout, view, ctx),
-    view,
-    msg: say(env).arranged(core.tree.panes(layout.root).length),
-    // The same panes: a peek keeps following the pane it came from.
-    patch: { resizeMode: null },
-  };
-}
-
-/** Why auto layout can't run now, for the action and its command alike; undefined when it can. */
-export function checkAutoLayout(x: Snapshot): RefusalStep | undefined {
-  const { s, m } = x;
-  if (s.page) return refuse("unavailable");
-  // On a phone one pane shows at a time: there is nothing to arrange, and a tree arranged for a phone's width would
-  // be a poor one when the window is wide again.
-  if (m.onePane) return refuse("unavailable");
-  const hidden = new Set(s.layout.overlay?.hidden ?? []);
-  const panes = core.tree.panes(s.layout.root).filter((p) => !hidden.has(p.id));
-  if (panes.length < 2) return refuse("nothing-to-do");
+export const autoLayout: Step<[]> = {
+  check(x) {
+    // On a phone one pane shows at a time: there is nothing to arrange, and a tree arranged for a phone's width would
+    // be a poor one when the window is wide again.
+    if (x.s.page || x.m.onePane) return refuse("unavailable");
+    return arranged(x).length < 2 ? refuse("nothing-to-do") : undefined;
+  },
   // It moves every pane: a pane the app doesn't let move keeps the layout as it is.
-  for (const p of panes) {
-    const denied = notAllowed(x, p.id, "move");
-    if (denied) return denied;
-  }
-  return undefined;
-}
+  control: (x) => arranged(x).map((p) => ["move", p.id] as const),
+  run(x) {
+    const { s, ctx, env } = x;
+    const layout = core.arrange(s.layout, ctx, { focused: s.view.focused });
+    // Already arranged so: no new layout, and no history entry.
+    if (layout === s.layout) return refuse("nothing-to-do");
+    const view: ViewState = { ...s.view, zoomed: undefined };
+    return {
+      op: "setLayout",
+      layout: core.refit(layout, view, ctx),
+      view,
+      msg: say(env).arranged(core.tree.panes(layout.root).length),
+      // The same panes: a peek keeps following the pane it came from.
+      patch: { resizeMode: null },
+    };
+  },
+};
+
+/** ⌘K "Toggle centre drop": the setting and what is said of it, one change. */
+export const toggleCentreDrop: Step<[]> = {
+  run(x) {
+    const centreDrop = x.s.settings.centreDrop === "swap" ? "tab" : "swap";
+    return {
+      op: "patch",
+      patch: { settings: { ...x.s.settings, centreDrop } },
+      msg: messagesOf(x).announcements.centreDrop(centreDrop),
+    };
+  },
+};

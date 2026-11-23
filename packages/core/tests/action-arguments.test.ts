@@ -76,9 +76,10 @@ describe("a public action given what its type doesn't allow", () => {
   it("still takes what it allows: an option left out, a valid value", () => {
     const jali = make();
     jali.page.open();
-    expect(jali.page.setMode("single").ok).toBe(true);
-    expect(jali.get().page?.mode).toBe("single");
+    // The page opens in Single view: asked for again, there is nothing to do.
+    expect(jali.page.setMode("single")).toMatchObject({ ok: false, reason: "nothing-to-do" });
     expect(jali.page.setMode("split").ok).toBe(true);
+    expect(jali.get().page?.mode).toBe("split");
     expect(
       jali.actions.openBeside("main", { kind: "note", params: {} }, { edge: "bottom" }).ok,
     ).toBe(true);

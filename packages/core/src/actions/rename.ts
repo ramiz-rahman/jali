@@ -5,6 +5,7 @@
  */
 import type { NodeId, ObjectRef } from "../layout/types";
 import { refuse, type Outcome, type Snapshot } from "../state/apply";
+import type { Step } from "./step";
 
 /** `createJali({ rename })`: which panes can be renamed, and how to save a new name. */
 export interface Rename {
@@ -18,22 +19,24 @@ export interface Rename {
 }
 
 /** Whether pane `id` can be renamed now. */
-export function canRename({ m, env }: Snapshot, id: NodeId | undefined): boolean {
+function canRename({ m, env }: Snapshot, id: NodeId | undefined): boolean {
   const p = m.pane(id);
   return !!p && !!env.rename && (env.rename.can?.({ id: p.id, ref: p.ref }) ?? true);
 }
 
 /** Open the rename field on pane `id`'s tab or title (default: the focused pane). */
-export function startRename(x: Snapshot, id = x.s.view.focused): Outcome {
-  if (!id || !x.m.pane(id)) return refuse("not-found");
-  if (!canRename(x, id)) return refuse("unavailable");
-  return x.s.renaming === id ? null : { op: "patch", patch: { renaming: id } };
-}
+export const startRename: Step<[NodeId?]> = {
+  check: (x, id = x.s.view.focused) =>
+    !id || !x.m.pane(id)
+      ? refuse("not-found")
+      : canRename(x, id)
+        ? undefined
+        : refuse("unavailable"),
+  run: ({ s }, id = s.view.focused!) =>
+    s.renaming === id ? null : { op: "patch", patch: { renaming: id } },
+};
 
 /** Close pane `id`'s rename field, saved or not. Only its own: a save that settles after another pane's field opened
  *  closes nothing. */
 export const endRename = ({ s }: Snapshot, id: NodeId): Outcome =>
   s.renaming === id ? { op: "patch", patch: { renaming: null } } : null;
-
-export const checkRename = (x: Snapshot) =>
-  canRename(x, x.s.view.focused) ? undefined : refuse("unavailable");

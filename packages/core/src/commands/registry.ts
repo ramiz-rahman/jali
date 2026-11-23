@@ -1,30 +1,16 @@
 /**
- * One command registry (spec §0.2): every instance command has a stable id, a title, a check and a run. Keys are
+ * One command registry (spec §0.2): every instance command has a stable id, a title and the step it runs. Keys are
  * not here: the store's keymap (commands/keymap.ts) binds ids to keys, so a host can rebind or unbind any of them.
- * The palette lists every command (disabled while the check refuses) with its keys; the keyboard runs the command a
- * binding names (and says a refusal's reason); tooltips print `store.keymap.label(id)`.
+ * A command is available exactly when its step's gate lets it run (`can`): the palette lists every command (disabled,
+ * saying why, while it can't) with its keys; the keyboard runs the command a binding names (and says a refusal's
+ * reason); tooltips print `store.keymap.label(id)`.
  */
-import { checkAutoLayout } from "../actions/layout";
-import { notAllowed, type PaneControl } from "../actions/allow";
 import type { Edge } from "../layout/types";
-import { checkCloseOthers, checkUndo } from "../actions/close";
-import { changeSettings } from "../actions/layout";
-import { checkFullScreen, checkZoom } from "../actions/focus";
-import { checkSplit } from "../actions/open";
-import { checkPeek, checkPeekBeside } from "../actions/peek";
-import { checkPutBack, checkTuck } from "../actions/tuck";
-import { checkMerge, checkMoveTab, checkUnmerge } from "../actions/tabs";
-import { checkRename } from "../actions/rename";
 import { serviceOf, type FeatureId } from "../features/feature";
 import { activeTabId, focusShelfChip } from "../dom/focus";
 import type { Env } from "../env";
-import {
-  isChange,
-  refuse,
-  type ActionResult,
-  type RefusalStep,
-  type Snapshot,
-} from "../state/apply";
+import { can, type StepArgs, type StepName } from "../actions";
+import { DONE, type ActionResult } from "../state/apply";
 import { messagesOf, type ScreenDirection } from "../state/messages";
 import type { JaliStore } from "../state/store";
 import { storeOf, type AnyJali, type Jali } from "../state/instance";
@@ -40,36 +26,17 @@ export interface Command {
   run: (jali: Jali) => void;
 }
 
-/** A command as the registry holds it (adapters): with its check, run on the store. */
+/** A command as the registry holds it (adapters): the step it runs, with the arguments worked out as it is listed and
+ *  again as it runs. It can run exactly when the step can (`can`). Without a step (a host's command, F6) it always
+ *  can. */
 export interface CommandDef extends Omit<Command, "run"> {
-  /** Why the command can't run now (silent without a message); undefined when it can. `store` is the instance the
-   *  snapshot is of: a check that asks the instance's adapter (Pop out) needs it, and can't run without it. */
-  check?: (x: Snapshot, store?: JaliStore) => RefusalStep | undefined;
-  /** Run it. A command that runs an action returns its result, so `runCommand` can say whether it ran. */
-  run: (store: JaliStore) => ActionResult | void;
+  step?: StepName;
+  /** The step's arguments: which pane, which way. Never a rule: whether it can run is the step's to say. */
+  args?: (store: JaliStore) => readonly unknown[];
+  /** What it does in place of running its step, once its step says it can (a dialog, a window, DOM focus). */
+  run?: (store: JaliStore) => ActionResult | void;
 }
 
-/** `check`, then the app's `allow` for the focused pane (a command for something it doesn't allow is greyed out,
- *  saying why). Leaving maximise or full screen is always allowed. */
-const also =
-  (check: (x: Snapshot, store?: JaliStore) => RefusalStep | undefined, control: PaneControl) =>
-  (x: Snapshot, store?: JaliStore): RefusalStep | undefined => {
-    const id = x.s.view.focused;
-    const leaving =
-      (control === "maximise" && x.s.view.zoomed === id) ||
-      (control === "fullScreen" && x.s.fullScreen === id);
-    return check(x, store) ?? (leaving ? undefined : notAllowed(x, id, control));
-  };
-const needFocus = ({ s }: Snapshot) => (s.view.focused ? undefined : refuse("unavailable"));
-const needLauncher = (x: Snapshot) =>
-  x.s.view.focused && x.env.launcher ? undefined : refuse("unavailable");
-const inStrip = (x: Snapshot) =>
-  needFocus(x) ??
-  (x.m.resolved.scrollers.some((r) => r.paneIds.includes(x.s.view.focused!))
-    ? undefined
-    : refuse("unavailable"));
-const needOthers = (x: Snapshot) =>
-  needFocus(x) ?? (x.m.panes.length > 1 ? undefined : refuse("unavailable"));
 const DIRS: [Edge, ScreenDirection][] = [
   ["left", "left"],
   ["right", "right"],
@@ -101,30 +68,19 @@ function buildCommands(env: Env): CommandDef[] {
       id: `pane.focus.${w}`,
       title: t.focusDirection(w),
       group: g.focus,
-      check: needFocus,
-      run: (u) => u.actions.focusDirection(d),
+      step: "focusDirection",
+      args: () => [d],
     })),
     ...[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n): CommandDef => ({
       id: `pane.focus.${n}`,
       title: t.focusIndex(n),
       group: g.focus,
-      run: (u) => u.actions.focusIndex(n),
+      step: "focusIndex",
+      args: () => [n],
     })),
 
-    {
-      id: "pane.zoom",
-      title: t.zoom,
-      group: g.pane,
-      check: (x) => checkZoom(x),
-      run: (u) => u.actions.toggleZoom(),
-    },
-    {
-      id: "pane.fullscreen",
-      title: t.fullScreen,
-      group: g.pane,
-      check: (x) => checkFullScreen(x),
-      run: (u) => u.actions.toggleFullScreen(),
-    },
+    { id: "pane.zoom", title: t.zoom, group: g.pane, step: "toggleZoom" },
+    { id: "pane.fullscreen", title: t.fullScreen, group: g.pane, step: "toggleFullScreen" },
     // With `popOut()`: the pane menu's Pop out, from ⌘K or a key, through the feature's window.
     ...(popOut
       ? [
@@ -132,197 +88,91 @@ function buildCommands(env: Env): CommandDef[] {
             id: "pane.pop_out",
             title: t.popOut,
             group: g.pane,
-            check: also(
-              (x) => needFocus(x) ?? (popOut.can() ? undefined : refuse("unavailable")),
-              "popOut",
-            ),
-            run: (u: JaliStore) => {
-              const id = u.get().view.focused;
-              if (id) void popOut.open(u, id);
-            },
+            step: "popOut" as const,
+            run: (u: JaliStore) => void popOut.open(u, u.get().view.focused!),
           },
         ]
       : []),
-    {
-      id: "pane.tuck",
-      title: t.tuck,
-      group: g.pane,
-      check: (x) => checkTuck(x),
-      run: (u) => u.actions.tuck(),
-    },
+    { id: "pane.tuck", title: t.tuck, group: g.pane, step: "tuck" },
     // A tucked tab with DOM focus is the one put back first.
     {
       id: "pane.putBack",
       title: t.putBack,
       group: g.pane,
-      check: checkPutBack,
-      run: (u) => u.actions.putBack(undefined, activeTabId(u.dom)),
+      step: "putBack",
+      args: (u) => [undefined, activeTabId(u.dom)],
     },
     {
       id: "shelf.reveal",
       title: t.revealFromShelf,
       group: g.pane,
-      check: (x) => (x.m.resolved.shelf.length ? undefined : refuse("unavailable")),
+      step: "revealShelf",
       run: revealFromShelf,
     },
-    {
-      id: "pane.resize_mode",
-      title: t.resizeMode,
-      group: g.pane,
-      check: needFocus,
-      run: (u) => u.actions.enterResizeMode(),
-    },
-    {
-      id: "pane.close",
-      title: t.close,
-      group: g.pane,
-      check: also(needOthers, "close"),
-      run: (u) => u.actions.close(),
-    },
-    {
-      id: "pane.close_others",
-      title: t.closeOthers,
-      group: g.pane,
-      check: (x) => needFocus(x) ?? checkCloseOthers(x),
-      run: (u) => u.actions.closeOthers(),
-    },
-    {
-      id: "pane.undo_close",
-      title: t.undoClose,
-      group: g.pane,
-      check: checkUndo,
-      run: (u) => u.actions.undo(),
-    },
+    { id: "pane.resize_mode", title: t.resizeMode, group: g.pane, step: "enterResizeMode" },
+    { id: "pane.close", title: t.close, group: g.pane, step: "close" },
+    { id: "pane.close_others", title: t.closeOthers, group: g.pane, step: "closeOthers" },
+    { id: "pane.undo_close", title: t.undoClose, group: g.pane, step: "undo" },
     // Splits open a launcher (a "New pane" to choose an object in), never a copy of the focused object.
     {
       id: "pane.split.right",
       title: t.splitRight,
       group: g.pane,
-      check: (x) => checkSplit(x),
-      run: (u) => u.actions.split(undefined, "right"),
+      step: "split",
+      args: () => [undefined, "right"],
     },
     {
       id: "pane.split.down",
       title: t.splitDown,
       group: g.pane,
-      check: (x) => checkSplit(x),
-      run: (u) => u.actions.split(undefined, "bottom"),
+      step: "split",
+      args: () => [undefined, "bottom"],
     },
-    {
-      id: "pane.split.auto",
-      title: t.splitAuto,
-      group: g.pane,
-      check: (x) => checkSplit(x),
-      run: (u) => u.actions.splitAuto(),
-    },
+    { id: "pane.split.auto", title: t.splitAuto, group: g.pane, step: "splitAuto" },
 
     ...DIRS.map(([d, w]): CommandDef => ({
       id: `pane.move.${w}`,
       title: t.moveDirection(w),
       group: g.move,
-      check: also(needOthers, "move"),
-      run: (u) => u.actions.moveDirection(d),
+      step: "moveDirection",
+      args: () => [d],
     })),
     // Out of a row that scrolls sideways, beside it: without dragging, and from the middle of the row in one step.
-    {
-      id: "pane.move.out",
-      title: t.moveOutOfRow,
-      group: g.move,
-      check: also(inStrip, "move"),
-      run: (u) => u.actions.moveOutOfRow(),
-    },
-    {
-      id: "pane.swap",
-      title: t.swap,
-      group: g.move,
-      check: also(needOthers, "move"),
-      run: (u) => u.actions.swapWithNext(),
-    },
+    { id: "pane.move.out", title: t.moveOutOfRow, group: g.move, step: "moveOutOfRow" },
+    { id: "pane.swap", title: t.swap, group: g.move, step: "swapWithNext" },
 
     // Merge (with the chooser, `chooser()`) and unmerge without dragging (WCAG 2.5.7).
     ...(has("chooser")
-      ? [
-          {
-            id: "pane.merge",
-            title: t.merge,
-            group: g.tabs,
-            check: also(checkMerge, "move"),
-            run: (u: JaliStore) =>
-              u.set({ chooser: { kind: "merge", source: u.get().view.focused! } }),
-          },
-        ]
+      ? [{ id: "pane.merge", title: t.merge, group: g.tabs, step: "openMergeChooser" as const }]
       : []),
-    {
-      id: "pane.unmerge",
-      title: t.unmerge,
-      group: g.tabs,
-      check: also(checkUnmerge, "move"),
-      run: (u) => u.actions.unmerge(),
-    },
-    ...(["left", "right"] as const).map((side) => ({
+    { id: "pane.unmerge", title: t.unmerge, group: g.tabs, step: "unmerge" },
+    ...(["left", "right"] as const).map((side): CommandDef => ({
       id: `tab.move.${side}`,
       title: t.moveTab(side),
       group: g.tabs,
-      check: also(checkMoveTab, "move"),
-      run: (u: JaliStore) => u.actions.moveTabToward(side),
+      step: "moveTabToward",
+      args: () => [side],
     })),
     ...(has("rename")
-      ? [
-          {
-            id: "pane.rename",
-            title: t.rename,
-            group: g.pane,
-            check: checkRename,
-            run: (u: JaliStore) => u.actions.startRename(),
-          },
-        ]
+      ? [{ id: "pane.rename", title: t.rename, group: g.pane, step: "startRename" as const }]
       : []),
-    {
-      id: "stack.new-tab",
-      title: t.newTab,
-      group: g.tabs,
-      check: also(needLauncher, "open"),
-      run: (u) => u.actions.newTab(),
-    },
+    { id: "stack.new-tab", title: t.newTab, group: g.tabs, step: "newTab" },
 
     ...env.presets.map((p): CommandDef => ({
       id: `layout.preset.${p.id}`,
       title: t.preset(p.label),
       group: g.layout,
-      run: (u) => u.actions.preset(p.id),
+      step: "preset",
+      args: () => [p.id],
     })),
-    {
-      id: "layout.reset",
-      title: t.resetLayout,
-      group: g.layout,
-      check: () => (env.presets.length ? undefined : refuse("unavailable")),
-      run: (u) => u.actions.resetLayout(),
-    },
-    {
-      id: "layout.auto",
-      title: t.autoLayout,
-      group: g.layout,
-      check: checkAutoLayout,
-      run: (u) => u.actions.autoLayout(),
-    },
+    { id: "layout.reset", title: t.resetLayout, group: g.layout, step: "resetLayout" },
+    { id: "layout.auto", title: t.autoLayout, group: g.layout, step: "autoLayout" },
     { id: "layout.copy_link", title: t.copyLink, group: g.layout, run: (u) => copyLink(u.jali) },
     // A curated page's own commands, from its engine (actions/page.ts): only an instance with a page has them.
     ...(env.page?.commands(env) ?? []),
 
-    {
-      id: "peek.close",
-      title: t.peekClose,
-      group: g.peek,
-      check: checkPeek,
-      run: (u) => u.actions.closePeek(),
-    },
-    {
-      id: "peek.open_beside",
-      title: t.peekOpenBeside,
-      group: g.peek,
-      check: checkPeekBeside,
-      run: (u) => u.actions.openPeekBeside(),
-    },
+    { id: "peek.close", title: t.peekClose, group: g.peek, step: "closePeek" },
+    { id: "peek.open_beside", title: t.peekOpenBeside, group: g.peek, step: "openPeekBeside" },
 
     ...(has("settings")
       ? [
@@ -330,7 +180,7 @@ function buildCommands(env: Env): CommandDef[] {
             id: "settings.open",
             title: t.settingsOpen,
             group: g.settings,
-            run: (u: JaliStore) => u.run("dialogs.openSettings"),
+            step: "dialogs.openSettings" as const,
           },
         ]
       : []),
@@ -338,7 +188,7 @@ function buildCommands(env: Env): CommandDef[] {
       id: "settings.centre_drop.toggle",
       title: t.centreDropToggle,
       group: g.settings,
-      run: toggleCentreDrop,
+      step: "toggleCentreDrop",
     },
 
     // The host's own, last (a Jali id wins if a host repeats one).
@@ -374,17 +224,34 @@ export const commandDefsOf = (store: Pick<JaliStore, "env">): readonly CommandDe
   forEnv(store.env).defs;
 
 /** Whether a command's result means it ran: done, or held for an answer (the host's `beforeClose`, or "Discard
- *  unsaved changes?"). A command that isn't an action (it opens a dialog) ran if its check passed. */
+ *  unsaved changes?"). A command that isn't an action (it opens a window) ran once its step said it can. */
 const ran = (r: ActionResult | void) =>
   !r || r.ok || r.reason === "pending" || r.reason === "unsaved";
 
-function run(store: JaliStore, id: string): boolean {
-  const c = forEnv(store.env).byId.get(id);
-  if (!c || store.ended() || c.check?.(store.snapshot(), store)) return false;
-  return ran(c.run(store));
+/** Whether command `c` can run now: what its step's gate says (`can`), with the arguments as they are now. */
+export function commandAvailable(store: JaliStore, c: CommandDef): ActionResult {
+  if (!c.step) return store.ended() ? { ok: false, reason: "unavailable" } : DONE;
+  const args = (c.args?.(store) ?? []) as StepArgs<StepName>;
+  return can(store, c.step, ...args);
 }
 
-/** Runs a command if it can run now. Returns whether it ran. */
+/** Run command `c` (adapters: after `commandAvailable` said it can). */
+export function runDef(store: JaliStore, c: CommandDef): ActionResult | void {
+  if (c.run) return c.run(store);
+  const args = (c.args?.(store) ?? []) as StepArgs<StepName>;
+  return store.run(c.step!, ...args);
+}
+
+function run(store: JaliStore, id: string): boolean {
+  const c = forEnv(store.env).byId.get(id);
+  if (!c) return false;
+  const answer = commandAvailable(store, c);
+  // As a key does: a command that can't run says why, when Jali has words for it.
+  if (answer.message) store.announce(answer.message);
+  return answer.ok && ran(runDef(store, c));
+}
+
+/** Runs a command if it can run now, else says why (when Jali says). Returns whether it ran. */
 export const runCommand = (jali: AnyJali, id: string): boolean => run(storeOf(jali), id);
 
 export const commandById = (store: Pick<JaliStore, "env">, id: string) =>
@@ -402,21 +269,10 @@ export function copyLink(jali: AnyJali) {
 
 /** One pane off screen: show it. Several: move focus to the shelf toolbar (arrows choose, Enter shows). */
 export function revealFromShelf(store: JaliStore) {
-  const { m } = store.snapshot();
-  const items = m.resolved.shelf;
+  const items = store.model().resolved.shelf;
   if (items.length > 1 && focusShelfChip(store.dom))
     return store.announce(store.messages.announcements.shelfChoose(items.length));
-  const first = items.find((i) => m.tuckOf(i.paneId)) ?? items[0];
-  if (first) store.actions.reveal(first.paneId);
-}
-
-/** The setting and what is said of it are one change: `changeSettings`, with its announcement. */
-function toggleCentreDrop(store: JaliStore): ActionResult {
-  return store.apply((x) => {
-    const centreDrop = x.s.settings.centreDrop === "swap" ? "tab" : "swap";
-    const o = changeSettings(x, { centreDrop });
-    return isChange(o) ? { ...o, msg: messagesOf(x).announcements.centreDrop(centreDrop) } : o;
-  }, "changeSettings");
+  return store.run("revealShelf");
 }
 
 /**
@@ -458,7 +314,7 @@ export function listCommands(jali: AnyJali): ListedCommand[] {
       run: c.run,
     })),
     ...commandDefsOf(store).map((c): ListedCommand => {
-      const refused = c.check?.(x, store);
+      const answer = commandAvailable(store, c);
       return {
         key: c.id,
         id: c.id,
@@ -468,8 +324,8 @@ export function listCommands(jali: AnyJali): ListedCommand[] {
         keys:
           store.keymap.label(c.id) ||
           (c.id === "peek.close" ? store.keymap.format([{ key: "Escape" }]) : ""),
-        disabled: !!refused,
-        ...(refused?.msg ? { reason: refused.msg } : {}),
+        disabled: !answer.ok,
+        ...(answer.message ? { reason: answer.message } : {}),
         run: () => void run(store, c.id),
       };
     }),

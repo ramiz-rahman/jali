@@ -22,6 +22,7 @@ import type { LayoutInput } from "./layout/build";
 import type { CommandDef } from "./commands/registry";
 import type { MessageOverrides } from "./state/messages";
 import type { Outcome, Snapshot } from "./state/apply";
+import type { Step } from "./actions/step";
 import type { Placement } from "./layout/ops/open";
 import type { UiState } from "./state/store";
 import type { PagePrefs } from "./state/page-prefs";
@@ -110,17 +111,18 @@ export interface BesidePreview {
  * `store.env.page`; apps never do.
  */
 export interface PageEngine {
-  open(x: Snapshot, o?: OpenPage): Outcome;
-  leave(x: Snapshot): Outcome;
-  setMode(x: Snapshot, mode: ViewMode): Outcome;
-  showView(x: Snapshot, role: string): Outcome;
+  // Its steps, each with its own check and controls (actions/step.ts).
+  open: Step<[OpenPage?]>;
+  leave: Step<[]>;
+  setMode: Step<[ViewMode]>;
+  showView: Step<[string]>;
   /** ⌥-click on a view's tab: the view opens beside the one in front. */
-  showViewBeside(x: Snapshot, role: string): Outcome;
-  placeTab(x: Snapshot, role: string, target: NodeId, zone: Edge | "centre"): Outcome;
-  showItem(x: Snapshot, item: ItemId): Outcome;
-  back(x: Snapshot): Outcome;
-  hideRole(x: Snapshot, id: NodeId): Outcome;
-  reset(x: Snapshot): Outcome;
+  showViewBeside: Step<[string]>;
+  placeTab: Step<[string, NodeId, Edge | "centre"]>;
+  showItem: Step<[ItemId]>;
+  back: Step<[]>;
+  hideRole: Step<[NodeId]>;
+  reset: Step<[]>;
   /** How a link from `source` opens while the page is open: `openBeside` asks, and does what it says. */
   opening(x: Snapshot, source: NodeId, ref: ObjectRef, edge?: Edge): PageOpening;
   /** What leaving the page for a layout keeps (a preset, `setLayout`, a link to a free layout). */

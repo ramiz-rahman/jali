@@ -11,8 +11,7 @@
 import type { NodeId, PaneNode } from "../layout/types";
 import type { ViewMode } from "../profile";
 import type { Snapshot } from "../state/apply";
-import { allows } from "../actions/allow";
-import { checkFullScreen, checkZoom } from "../actions/focus";
+import { refusalIn } from "../actions";
 import type { Chrome } from "./chrome";
 
 /** A button a pane's header can show. */
@@ -77,18 +76,21 @@ export function buttonsOf(x: Snapshot, id: NodeId, st: ButtonsState): PaneButton
   if (popped) way("popOut");
   return out.filter((b) => {
     switch (b) {
-      // The header decides what it shows; whether the action can happen is the action's own check. A tuck the app
-      // allows always shows: when it can't happen now, the header says why (`checkTuck`) on a disabled button.
+      // The header decides what it shows; whether the action can happen is its step's (`can`). A tuck the app
+      // allows always shows: when it can't happen now, the header says why on a disabled button.
       case "tuck":
-        return chrome.tuckable && !zoomed && allows(x, id, "tuck");
+        return chrome.tuckable && !zoomed && refusalIn(x, "tuck", id)?.reason !== "not-allowed";
       case "maximise":
-        return chrome.zoomable && !full && !checkZoom(x, id);
+        return chrome.zoomable && !full && !refusalIn(x, "toggleZoom", id);
       case "fullScreen":
-        return chrome.fullScreenable && !checkFullScreen(x, id);
+        return chrome.fullScreenable && !refusalIn(x, "toggleFullScreen", id);
       case "close":
-        return (chrome.closeWithTabs || !tabs) && allows(x, id, "close");
+        return (
+          (chrome.closeWithTabs || !tabs) && refusalIn(x, "close", id)?.reason !== "not-allowed"
+        );
       case "popOut":
-        return popped || allows(x, id, "popOut");
+        // The adapter says whether the browser can; here, whether the app allows it.
+        return popped || refusalIn(x, "popOut", id)?.reason !== "not-allowed";
       default:
         return false;
     }

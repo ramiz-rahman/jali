@@ -4,7 +4,7 @@ import type { Direction, NodeId, PaneNode } from "@jali/core";
 import { useLayoutEffect, useRef } from "react";
 import { useJaliIcons } from "../icons/context";
 import type { Tab, TabDrop } from "@jali/core/adapter";
-import { allows } from "@jali/core/adapter";
+import { can } from "@jali/core/adapter";
 import { roleOf, titleOf, startPaneDrag } from "@jali/core/adapter";
 import { useEnv, usePaneAttributesOf, useStore, useUi } from "../state/react";
 import { Activity, activityLabel } from "./Activity";
@@ -192,7 +192,7 @@ export function TabItem({
           </button>
         ) : null}
         {/* A tab the app keeps open (`allow: { close: false }`) has no ×. */}
-        {allows(store.snapshot(), t.id, "close") ? (
+        {can(store, "close", t.id).ok ? (
           <button
             type="button"
             className="jali-tab-close"

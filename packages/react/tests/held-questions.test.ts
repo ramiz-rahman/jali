@@ -105,7 +105,7 @@ describe("Discard unsaved changes?: the answer meets the state of the moment", (
     store.actions.setUnsaved("order", "a draft");
     const before = jali.getLayout();
     const r = store.apply([
-      (x) => close(x, "order"),
+      (x) => close.run(x, "order"),
       { op: "patch", patch: { peekSource: "orders" } },
     ]);
     expect(r.reason).toBe("unsaved");

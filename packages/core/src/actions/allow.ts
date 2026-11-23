@@ -1,12 +1,12 @@
 /**
- * What may happen to a pane: the app's rules, checked by the actions themselves, so every way in (a button, a key,
- * ⌘K, a tab's menu or a drag) obeys the same answer, and the chrome only draws what is allowed.
+ * What may happen to a pane: the app's rules. Each step names the controls it uses (actions/step.ts) and the store asks
+ * them before it runs, so every way in (a button, a key, ⌘K, a tab's menu or a drag) obeys the same answer, and the
+ * chrome, asking the same gate (`can`), only draws what is allowed.
  *
  * Each level can only take away: Jali's own rules (a lone pane has no maximise, a phone no drag), then the kind
  * (`definePane({ allow })`, what its content can handle), then the instance (`createJali({ allow })`: defaults, or a
  * function for "it depends"). Everything is allowed by default; `popOut` needs its feature, `popOut()`.
  */
-import * as core from "../layout/engine";
 import type { NodeId, PaneNode } from "../layout/types";
 import type { ViewMode } from "../profile";
 import { refuse, type RefusalStep, type Snapshot } from "../state/apply";
@@ -88,15 +88,4 @@ export function notAllowed(
   return allows(x, id, action)
     ? undefined
     : refuse("not-allowed", say(x).notAllowed(action, x.m.title(id)));
-}
-
-/** Whether a divider may move: every pane on both sides allows `resize`. The sides are the divider's on screen (a
- *  fold can put another pane beside it than the split's next child), whatever moves it: a drag, a key, a reset. */
-export function dividerAllowed(x: Snapshot, parentId: NodeId, index: number): boolean {
-  const shown = x.m.resolved.dividers.find((d) => d.parentId === parentId && d.index === index);
-  if (shown?.neighbours) return shown.neighbours.flat().every((id) => allows(x, id, "resize"));
-  const parent = core.tree.find(x.s.layout.root, parentId);
-  if (!parent || parent.type === "pane" || parent.type === "stack") return true;
-  const sides = [parent.children[index], parent.children[index + 1]];
-  return sides.every((n) => !n || core.tree.panes(n).every((p) => allows(x, p.id, "resize")));
 }

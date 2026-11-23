@@ -17,6 +17,7 @@ import {
   type Outcome,
   type Snapshot,
 } from "../state/apply";
+import { through } from "../actions/step";
 import { createUrlSync, type UrlSync, type UrlSyncOptions } from "../url";
 import type { Feature } from "./feature";
 import { urlSyncEn as words } from "../state/feature-messages";
@@ -54,7 +55,7 @@ function arriveFromUrl(
       return undefined;
     return store.apply(
       latest((x) =>
-        page.open(x, {
+        through(x, page.open, {
           tab: tab || undefined,
           item: item || undefined,
           investigation,
