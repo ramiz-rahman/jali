@@ -6,9 +6,9 @@
  * until none does). It is not always the best possible order, but for a day of a few stops it is close, and it is
  * the same every time.
  */
-import { dayTotals, routeOf, type Day, type Plan } from "./plan";
+import { cents } from "./money";
+import { dayTotals, type Day, type DayTotals, type Plan } from "./plan";
 import { leg } from "./travel";
-import { mustPlace } from "./places";
 
 export interface Optimised {
   stops: string[];
@@ -16,20 +16,23 @@ export interface Optimised {
   afterMin: number;
   /** Minutes saved, 0 when the day is already in its best order. */
   savedMin: number;
-  /** Transport cost saved, in euros (may be negative: a quicker day can cost a little more). */
+  /** Transport cost saved, in dollars (may be negative: a quicker day can cost a little more). */
   savedCost: number;
 }
 
-export function optimiseDay(plan: Plan, day: Day, stops: readonly string[] = day.stops): Optimised {
-  const before = dayTotals(plan, day, stops);
+export function optimiseDay(
+  plan: Plan,
+  day: Day,
+  before: DayTotals = dayTotals(plan, day),
+): Optimised {
+  const stops = day.stops;
   const n = stops.length;
-  if (n < 2) return result(plan, day, stops, stops, before);
+  const keep = () => result(stops, before, before);
+  if (n < 2) return keep();
 
   // Travel minutes between any two of: where the stops begin (index 0), the stops (1..n), the hotel (n + 1).
-  const route = routeOf(plan, day, stops);
-  const start = route.places[route.first - 1]!;
-  const end = route.places[route.places.length - 1]!;
-  const places = [start, ...stops.map(mustPlace), end];
+  const { places: route, first } = before.route;
+  const places = route.slice(first - 1);
   const ids = places.map((p) => p.id);
   const cost = places.map((a, i) =>
     places.map((b, j) => (i === j ? 0 : leg(a, b, plan.modes).minutes)),
@@ -79,29 +82,17 @@ export function optimiseDay(plan: Plan, day: Day, stops: readonly string[] = day
   }
 
   const candidate = order.map((i) => ids[i]!);
+  const after = dayTotals(plan, day, candidate);
   // Keep the person's order unless the new one is really quicker.
-  return result(
-    plan,
-    day,
-    stops,
-    dayTotals(plan, day, candidate).travelMin < before.travelMin ? candidate : stops,
-    before,
-  );
+  return after.travelMin < before.travelMin ? result(candidate, before, after) : keep();
 }
 
-function result(
-  plan: Plan,
-  day: Day,
-  original: readonly string[],
-  stops: readonly string[],
-  before: ReturnType<typeof dayTotals>,
-): Optimised {
-  const after = stops === original ? before : dayTotals(plan, day, stops);
+function result(stops: readonly string[], before: DayTotals, after: DayTotals): Optimised {
   return {
     stops: [...stops],
     beforeMin: before.travelMin,
     afterMin: after.travelMin,
     savedMin: before.travelMin - after.travelMin,
-    savedCost: Math.round((before.transport - after.transport) * 100) / 100,
+    savedCost: cents(before.transport - after.transport),
   };
 }

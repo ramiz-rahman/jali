@@ -7,11 +7,14 @@
  * city it leaves (`from`): a ride to the airport, the flight, then its stops in the new city and that city's hotel.
  * Stops are always in the day's city, so no leg but the flight crosses the country.
  *
- * The functions on a plan are pure, so tests and the optimiser use them without a store.
+ * The functions on a plan are pure, so tests and the optimiser use them without a store. Reading a stored plan back
+ * is the store's (state/plan-store.ts).
  */
-import { leg, type Leg, type Mode } from "./travel";
-import { AIRPORT, mustPlace, placeById, type CityId, type Place } from "./places";
-import { isRecord } from "../stored";
+import { CITY, type CityId } from "./cities";
+import { cents } from "./money";
+import type { Mode } from "./modes";
+import { isPlannableIn, mustPlace, placeById, type Place } from "./places";
+import { leg, type Leg } from "./travel";
 
 export interface Day {
   /** 1 to 7. */
@@ -141,8 +144,25 @@ export const DEFAULT_PLAN: Plan = {
       ],
     },
   ],
-  modes: {},
+  // Day 5 is already on a hired scooter; Day 7 still goes by taxi, and is over its allowance for it.
+  modes: {
+    "h-kata|old-town": "scooter",
+    "f-dimsum|khao-rang": "scooter",
+    "f-rang|wat-chalong": "scooter",
+    "big-buddha|wat-chalong": "scooter",
+    "big-buddha|f-chalong": "scooter",
+    "f-chalong|h-kata": "scooter",
+  },
 };
+
+/** How many days the trip has: a link or a stored cursor naming another (an older, shorter trip's) is not read. */
+export const DAY_COUNT = DEFAULT_PLAN.days.length;
+
+/** A day's number from a link or storage: 1 to DAY_COUNT, else undefined. */
+export function dayNumber(v: unknown): number | undefined {
+  const n = Number(v);
+  return typeof v !== "object" && Number.isInteger(n) && n >= 1 && n <= DAY_COUNT ? n : undefined;
+}
 
 export const dayOf = (plan: Plan, n: number): Day | undefined => plan.days.find((d) => d.n === n);
 
@@ -150,14 +170,21 @@ export const dayOf = (plan: Plan, n: number): Day | undefined => plan.days.find(
 export const dayWith = (plan: Plan, id: string): Day | undefined =>
   plan.days.find((d) => d.stops.includes(id));
 
-/** The days a place can go on: the days in its city. */
+/** The days in a city: the days a place there can go on. */
 export const daysIn = (plan: Plan, city: CityId) => plan.days.filter((d) => d.city === city);
+
+/** The day that flies from one city to the other. */
+export const transferDay = (plan: Plan): Day | undefined => plan.days.find((d) => d.from);
 
 /** The city's hotel. */
 export const hotelOf = (plan: Plan, city: CityId): Place => mustPlace(plan.hotels[city]);
 
 /** Whether `id` is one of the plan's hotels. */
 export const isHotel = (plan: Plan, id: string) => Object.values(plan.hotels).includes(id);
+
+/** Every stop planned in a city, in day order. */
+export const stopsIn = (plan: Plan, city: CityId): Place[] =>
+  daysIn(plan, city).flatMap((d) => d.stops.map(mustPlace));
 
 export interface Route {
   /** Every place the day passes, from its first hotel to its last. */
@@ -169,7 +196,11 @@ export interface Route {
 /** A day's route: from the hotel (and, on the transfer day, by the airports), through the stops, to the hotel. */
 export function routeOf(plan: Plan, day: Day, stops: readonly string[] = day.stops): Route {
   const start = day.from
-    ? [hotelOf(plan, day.from), mustPlace(AIRPORT[day.from]), mustPlace(AIRPORT[day.city])]
+    ? [
+        hotelOf(plan, day.from),
+        mustPlace(CITY[day.from].airport),
+        mustPlace(CITY[day.city].airport),
+      ]
     : [hotelOf(plan, day.city)];
   return {
     places: [...start, ...stops.map(mustPlace), hotelOf(plan, day.city)],
@@ -177,9 +208,29 @@ export function routeOf(plan: Plan, day: Day, stops: readonly string[] = day.sto
   };
 }
 
+/**
+ * What a place is to a day's route: where it starts, the transfer day's airports (the one it leaves from, the one it
+ * lands at), a stop, or where it ends (back at the hotel, or checking in at the new city's).
+ */
+export type StepRole = "start" | "airport" | "landing" | "stop" | "back" | "check-in";
+
+/** One place on a day's route, in order: what it is to the day, the leg that reaches it, and when the person is there. */
+export interface Step {
+  place: Place;
+  role: StepRole;
+  /** The leg that reaches it; the start has none. */
+  legIn?: Leg;
+  /** Reached, in minutes after midnight. */
+  arrive: number;
+  /** Left: after its visit for a stop; a hotel or an airport keeps no one. */
+  leave: number;
+}
+
 export interface DayTotals {
   route: Route;
   legs: Leg[];
+  /** The route as the day lives it, from 09:00: each place with the leg to it and its times. */
+  steps: Step[];
   travelMin: number;
   /** Fares within the city, in dollars (not the flight). */
   transport: number;
@@ -189,45 +240,70 @@ export interface DayTotals {
   visitMin: number;
   /** Tickets and meals, in dollars. */
   spend: number;
-  /** When each place is reached, in minutes after midnight, from 09:00. */
-  arrive: number[];
   /** Back at the hotel. */
   endsAt: number;
 }
 
 export const DAY_START_MIN = 9 * 60;
 
+/** The role of the place at `k` in a route of `count` places whose stops begin at `first`. */
+function roleAt(day: Day, k: number, count: number, first: number): StepRole {
+  if (k === 0) return "start";
+  if (k === count - 1) return day.from ? "check-in" : "back";
+  if (k < first) return k === first - 1 ? "landing" : "airport";
+  return "stop";
+}
+
 export function dayTotals(plan: Plan, day: Day, stops: readonly string[] = day.stops): DayTotals {
   const route = routeOf(plan, day, stops);
-  const { places } = route;
+  const { places, first } = route;
   const legs = places.slice(1).map((p, i) => leg(places[i]!, p, plan.modes));
-  const travelMin = legs.reduce((s, l) => s + l.minutes, 0);
-  const flight = round2(legs.reduce((s, l) => s + (l.mode === "flight" ? l.cost : 0), 0));
-  const transport = round2(legs.reduce((s, l) => s + (l.mode === "flight" ? 0 : l.cost), 0));
+  const sum = <T>(xs: readonly T[], of: (x: T) => number) => xs.reduce((s, x) => s + of(x), 0);
   const visits = stops.map(mustPlace);
-  const visitMin = visits.reduce((s, p) => s + p.visitMin, 0);
-  const spend = round2(visits.reduce((s, p) => s + p.price, 0));
-  let clock = DAY_START_MIN;
-  const arrive = [clock];
-  places.slice(1).forEach((p, i) => {
-    clock += legs[i]!.minutes;
-    arrive.push(clock);
-    clock += i + 1 >= route.first && i + 1 < places.length - 1 ? p.visitMin : 0;
+  // Each place is reached after the leg to it; a stop then keeps the person for its visit.
+  const steps: Step[] = [];
+  let at = DAY_START_MIN;
+  places.forEach((place, k) => {
+    const legIn = legs[k - 1];
+    const role = roleAt(day, k, places.length, first);
+    const arrive = at + (legIn?.minutes ?? 0);
+    at = arrive + (role === "stop" ? place.visitMin : 0);
+    steps.push({ place, role, legIn, arrive, leave: at });
   });
   return {
     route,
     legs,
-    travelMin,
-    transport,
-    flight,
-    visitMin,
-    spend,
-    arrive,
-    endsAt: arrive[arrive.length - 1]!,
+    steps,
+    travelMin: sum(legs, (l) => l.minutes),
+    transport: cents(sum(legs, (l) => (l.mode === "flight" ? 0 : l.cost))),
+    flight: cents(sum(legs, (l) => (l.mode === "flight" ? l.cost : 0))),
+    visitMin: sum(visits, (p) => p.visitMin),
+    spend: cents(sum(visits, (p) => p.price)),
+    endsAt: at,
   };
 }
 
-export const round2 = (n: number) => Math.round(n * 100) / 100;
+/** What a place is to the plan: a stop on a day (and which), one of the hotels, or not in it. */
+export type Standing =
+  | { kind: "stop"; day: Day; index: number }
+  | { kind: "hotel" }
+  | { kind: "unplanned" };
+
+export function standingOf(plan: Plan, id: string): Standing {
+  if (isHotel(plan, id)) return { kind: "hotel" };
+  const day = dayWith(plan, id);
+  return day ? { kind: "stop", day, index: day.stops.indexOf(id) } : { kind: "unplanned" };
+}
+
+/**
+ * The day to offer a sight or a meal: `preferred` when it is in the place's city, else the day it is on, else its
+ * city's first.
+ */
+export function dayToOffer(plan: Plan, p: Place, preferred?: number): Day | undefined {
+  const shown = preferred === undefined ? undefined : dayOf(plan, preferred);
+  if (shown?.city === p.city) return shown;
+  return dayWith(plan, p.id) ?? daysIn(plan, p.city)[0];
+}
 
 // ---------- changes: each returns a new plan ----------
 
@@ -236,50 +312,40 @@ const withDay = (plan: Plan, n: number, fn: (stops: string[]) => string[]): Plan
   days: plan.days.map((d) => (d.n === n ? { ...d, stops: fn(d.stops) } : d)),
 });
 
+/** `stops` with `id` put in at `index`, kept within the list (the end when undefined). */
+const insertAt = (stops: readonly string[], id: string, index = stops.length) => {
+  const out = stops.slice();
+  out.splice(Math.max(0, Math.min(out.length, index)), 0, id);
+  return out;
+};
+
 /** Move the stop at `from` to `to` within day `n`. */
 export function reorder(plan: Plan, n: number, from: number, to: number): Plan {
   return withDay(plan, n, (s) => {
-    const out = s.slice();
-    const [id] = out.splice(from, 1);
-    if (id === undefined) return s;
-    out.splice(Math.max(0, Math.min(out.length, to)), 0, id);
-    return out;
+    const id = s[from];
+    return id === undefined ? s : insertAt(s.toSpliced(from, 1), id, to);
   });
-}
-
-/** Whether `id` is a sight or a meal in `city`: what a day there may hold. */
-function canPlanIn(id: string, city: CityId): boolean {
-  const p = placeById(id);
-  return !!p && (p.category === "sight" || p.category === "food") && p.city === city;
 }
 
 /** Whether `id` may go on day `n`: a sight or a meal in that day's city. */
 export function canPlan(plan: Plan, id: string, n: number): boolean {
   const day = dayOf(plan, n);
-  return !!day && canPlanIn(id, day.city);
+  return !!day && isPlannableIn(id, day.city);
 }
-
-/** Move `id` to day `toDay` at `index` (default: the end), from whichever day had it. Refused across cities. */
-export function moveStop(plan: Plan, id: string, toDay: number, index?: number): Plan {
-  if (!canPlan(plan, id, toDay)) return plan;
-  const removed = {
-    ...plan,
-    days: plan.days.map((d) => ({ ...d, stops: d.stops.filter((s) => s !== id) })),
-  };
-  return withDay(removed, toDay, (s) => {
-    const out = s.slice();
-    out.splice(index === undefined ? out.length : Math.max(0, Math.min(out.length, index)), 0, id);
-    return out;
-  });
-}
-
-/** Add a place to a day: the same as moving it there, since a place is planned once. */
-export const addStop = moveStop;
 
 export const removeStop = (plan: Plan, id: string): Plan => ({
   ...plan,
   days: plan.days.map((d) => ({ ...d, stops: d.stops.filter((s) => s !== id) })),
 });
+
+/**
+ * Move `id` to day `toDay` at `index` (default: the end), from whichever day had it; a place is planned once, so
+ * this is also how one is added. Refused across cities.
+ */
+export function moveStop(plan: Plan, id: string, toDay: number, index?: number): Plan {
+  if (!canPlan(plan, id, toDay)) return plan;
+  return withDay(removeStop(plan, id), toDay, (s) => insertAt(s, id, index));
+}
 
 export const setStops = (plan: Plan, n: number, stops: string[]): Plan =>
   withDay(plan, n, () => stops);
@@ -299,54 +365,3 @@ export function setHotel(plan: Plan, id: string): Plan {
 
 export const setBudget = (plan: Plan, budget: number): Plan =>
   Number.isFinite(budget) && budget > 0 ? { ...plan, budget: Math.round(budget) } : plan;
-
-/**
- * A stored plan, checked: storage holds whatever an older version of the app, another tab or a hand edit left there,
- * so nothing in it is trusted. A plan of this version, with a hotel in each city and every day's stops known places
- * in that day's city, each planned once, is read back; anything else (an older plan, such as the Lisbon one, or a
- * damaged one) gives the bundled plan. The days' numbers, dates, titles and cities are the trip's, not the person's,
- * so they come from the bundled plan whatever was stored. A chosen mode that isn't a mode is dropped: that leg goes
- * back to its usual mode.
- */
-export function readPlan(raw: unknown): Plan {
-  if (!isRecord(raw) || raw.version !== 2) return DEFAULT_PLAN;
-  const { name, budget, hotels, days, modes } = raw;
-  if (typeof budget !== "number" || !Number.isFinite(budget) || budget <= 0) return DEFAULT_PLAN;
-  if (!isRecord(hotels) || !isRecord(modes)) return DEFAULT_PLAN;
-  const bkk = hotelIn(hotels.bkk, "bkk");
-  const hkt = hotelIn(hotels.hkt, "hkt");
-  if (!bkk || !hkt) return DEFAULT_PLAN;
-  if (!Array.isArray(days) || days.length !== DEFAULT_PLAN.days.length) return DEFAULT_PLAN;
-  const planned = new Set<string>();
-  const read: Day[] = [];
-  for (const [i, bundled] of DEFAULT_PLAN.days.entries()) {
-    const stops = isRecord(days[i]) ? days[i].stops : undefined;
-    if (!Array.isArray(stops)) return DEFAULT_PLAN;
-    for (const s of stops) {
-      if (typeof s !== "string" || planned.has(s) || !canPlanIn(s, bundled.city))
-        return DEFAULT_PLAN;
-      planned.add(s);
-    }
-    read.push({ ...bundled, stops: stops as string[] });
-  }
-  return {
-    version: 2,
-    name: typeof name === "string" && name.trim() ? name : DEFAULT_PLAN.name,
-    budget: Math.round(budget),
-    hotels: { bkk, hkt },
-    days: read,
-    modes: Object.fromEntries(
-      Object.entries(modes).filter(
-        (e): e is [string, Mode] => typeof e[1] === "string" && MODES.has(e[1] as Mode),
-      ),
-    ),
-  };
-}
-
-const MODES = new Set<Mode>(["walk", "transit", "taxi", "scooter", "flight"]);
-
-/** `id` when it names a hotel in `city`. */
-function hotelIn(id: unknown, city: CityId): string | undefined {
-  const p = typeof id === "string" ? placeById(id) : undefined;
-  return p?.category === "stay" && p.city === city ? p.id : undefined;
-}

@@ -2,29 +2,17 @@
  * Travel between two places, worked out offline and the same every time: the straight-line distance, times a
  * detour factor for streets, at a speed and a fare rule per mode and per city. No routing service is asked.
  *
- * Each city has its own modes. Bangkok walks short hops, rides the BTS, MRT or river boats further, and takes a taxi
- * or tuk-tuk; a place across the river is reached by ferry. Phuket is spread out and has little public transport:
- * a taxi, or a hired scooter, and walking only between neighbours. The one way between the cities is the flight.
+ * Each city has its own modes (cities.ts). Bangkok walks short hops, rides the BTS, MRT or river boats further, and
+ * takes a taxi or tuk-tuk; a place across the river is reached by ferry. Phuket is spread out and has little public
+ * transport: a taxi, or a hired scooter, and walking only between neighbours. The one way between the cities is the
+ * flight.
  *
  * Fares are in US dollars and made up for the example, at levels plausible for Thailand.
  */
-import { AIRPORT, type CityId, type Place } from "./places";
-
-export type Mode = "walk" | "transit" | "taxi" | "scooter" | "flight";
-
-/** The modes a person can pick from for a leg within each city. */
-export const CITY_MODES: Record<CityId, readonly Mode[]> = {
-  bkk: ["walk", "transit", "taxi"],
-  hkt: ["walk", "taxi", "scooter"],
-};
-
-const LABELS: Record<CityId, Partial<Record<Mode, string>>> = {
-  bkk: { walk: "Walk", transit: "BTS, MRT or boat", taxi: "Taxi or tuk-tuk" },
-  hkt: { walk: "Walk", taxi: "Taxi", scooter: "Scooter" },
-};
-
-export const modeLabel = (mode: Mode, city: CityId | "between" = "bkk"): string =>
-  mode === "flight" ? "Flight" : city === "between" ? mode : (LABELS[city][mode] ?? mode);
+import { CITY, cityModes, type CityId } from "./cities";
+import { cents } from "./money";
+import type { Mode } from "./modes";
+import type { Place } from "./places";
 
 interface ModeRule {
   /** Street distance over straight-line distance. */
@@ -36,9 +24,7 @@ interface ModeRule {
   fare(roadKm: number): number;
 }
 
-const cents = (n: number) => Math.round(n * 100) / 100;
-
-export const RULES: Record<CityId, Partial<Record<Mode, ModeRule>>> = {
+const RULES: Record<CityId, Partial<Record<Mode, ModeRule>>> = {
   bkk: {
     walk: { detour: 1.3, kmh: 4, fixedMin: 0, fare: () => 0 },
     // A ride on the BTS or MRT: a little per km, capped like the real fares. Longer rides (the Airport Rail Link)
@@ -82,12 +68,6 @@ const FERRY: ModeRule = { detour: 1, kmh: 8, fixedMin: 10, fare: () => 0.2 };
 /** Bangkok to Phuket: 1h 25m in the air, and about two hours at the airports. */
 export const FLIGHT = { airMin: 85, airportMin: 120, cost: 70 };
 
-/** Straight-line distances up to this are walked unless the person says otherwise. */
-export const WALK_UP_TO_KM: Record<CityId, number> = { bkk: 1.0, hkt: 0.7 };
-
-/** "Nearby", for a place's neighbours: on foot in Bangkok, a short ride in Phuket. */
-export const NEARBY_KM: Record<CityId, number> = { bkk: 1.2, hkt: 4 };
-
 /** The great-circle distance between two points, in km. */
 export function haversineKm(
   a: { lat: number; lng: number },
@@ -103,12 +83,12 @@ export function haversineKm(
 }
 
 /** A leg that crosses the Chao Phraya to or from the Thonburi bank. */
-export const crossesRiver = (a: Place, b: Place) =>
-  a.city === "bkk" && b.city === "bkk" && !!a.acrossRiver !== !!b.acrossRiver;
+const crossesRiver = (a: Place, b: Place) =>
+  a.city === b.city && !!a.acrossRiver !== !!b.acrossRiver;
 
 /** The flight between the two airports. */
-export const isFlight = (a: Place, b: Place) =>
-  a.city !== b.city && a.id === AIRPORT[a.city] && b.id === AIRPORT[b.city];
+const isFlight = (a: Place, b: Place) =>
+  a.city !== b.city && a.id === CITY[a.city].airport && b.id === CITY[b.city].airport;
 
 /** The modes a person can choose between for this leg. */
 export function modesFor(a: Place, b: Place): readonly Mode[] {
@@ -116,15 +96,15 @@ export function modesFor(a: Place, b: Place): readonly Mode[] {
   if (a.city !== b.city) return [];
   // Over the river, by the ferry (shown as transit) or a long way round by taxi.
   if (crossesRiver(a, b)) return ["transit", "taxi"];
-  return CITY_MODES[a.city];
+  return cityModes(a.city);
 }
 
 /** The mode a leg gets until the person picks one. */
 export function autoMode(a: Place, b: Place, km = haversineKm(a, b)): Mode {
   if (isFlight(a, b)) return "flight";
   if (crossesRiver(a, b)) return "transit";
-  if (km <= WALK_UP_TO_KM[a.city]) return "walk";
-  return a.city === "bkk" ? "transit" : "taxi";
+  if (km <= CITY[a.city].walkUpToKm) return "walk";
+  return CITY[a.city].ride;
 }
 
 export interface Trip {
@@ -155,8 +135,10 @@ export const legKey = (a: string, b: string) => (a < b ? `${a}|${b}` : `${b}|${a
 export interface Leg extends Trip {
   from: string;
   to: string;
-  /** The city whose rules it follows, or "between" for the flight. */
-  city: CityId | "between";
+  /** The city whose rules it follows (for the flight, the one it leaves). */
+  city: CityId;
+  /** Its transit is the river ferry. */
+  ferry: boolean;
   /** The person chose the mode; otherwise it is `autoMode`'s. */
   chosen: boolean;
   /** The modes the person could choose instead. */
@@ -172,7 +154,7 @@ export function leg(a: Place, b: Place, modes: Readonly<Record<string, Mode>> = 
   const wanted = modes[legKey(a.id, b.id)];
   const chosen = wanted && options.includes(wanted) ? wanted : undefined;
   const mode = chosen ?? autoMode(a, b, km);
-  const city = isFlight(a, b) ? "between" : a.city;
-  const trip = travel(km, mode, a.city, { ferry: crossesRiver(a, b) });
-  return { from: a.id, to: b.id, city, chosen: !!chosen, options, ...trip };
+  const ferry = crossesRiver(a, b);
+  const trip = travel(km, mode, a.city, { ferry });
+  return { from: a.id, to: b.id, city: a.city, ferry, chosen: !!chosen, options, ...trip };
 }
