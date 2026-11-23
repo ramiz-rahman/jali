@@ -457,7 +457,8 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
   /** What the batch running, and the gestures in progress, asked of the address: the strongest wins. */
   let batchMode: HistoryMode = "none",
     gestureMode: HistoryMode = "none";
-  /** Set as `destroy()` starts: what it ends (a gesture, a strip's last scroll) writes no address. */
+  /** Set as `destroy()` starts: no action commits, and what it ends (a gesture, a strip's last scroll) writes no
+   *  address. */
   let ending = false;
   const submitUrl = (mode: HistoryMode) => {
     if (mode === "none" || !url || ending || life.ended()) return;
@@ -689,8 +690,10 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
     ended: () => life.ended(),
     destroy() {
       if (life.ended()) return;
-      // Nothing is written to the address from here: the next route owns it.
+      // From here nothing is told (even from inside a batch or a listener), no action commits and nothing is written
+      // to the address: the next route owns it. Only the cleanup below still writes, unheard.
       ending = true;
+      events.end();
       // Stopping saves pane state still waiting to be saved; without a start, nothing saves it at all.
       stop?.();
       // A gesture in progress puts back what it previewed while the instance can still be written to.
@@ -698,9 +701,7 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
       // A question still open can never be answered now: the action it held is unavailable, so `settled` resolves.
       const asking = state.confirm;
       if (asking) store.set({ confirm: null });
-      // From here nothing is told, even from inside a batch or a listener; then everything waiting on the lifetime
-      // (a host's answer, a deferred step) ends.
-      events.end();
+      // Then everything waiting on the lifetime (a host's answer, a deferred step) ends.
       life.end();
       url?.cancel?.();
       offKinds();
@@ -723,7 +724,7 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
   }
   // A destroyed instance changes nothing more: a late answer, a timer or a caller that kept a handle is refused.
   function commit(o: Outcome, action?: ActionName): ActionResult {
-    return life.ended() ? UNAVAILABLE : apply(io, o, action);
+    return ending ? UNAVAILABLE : apply(io, o, action);
   }
   const io: ApplyIO = {
     get: store.get,

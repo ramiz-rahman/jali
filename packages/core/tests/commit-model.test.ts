@@ -201,6 +201,19 @@ describe("an instance destroyed inside the guard (A2-3)", () => {
     expect(storeOf(jali).get().announcement.text).toBe("");
   });
 
+  it("by destroy() itself: a subscriber woken by the question closing can't act", () => {
+    const jali = make(() => true);
+    storeOf(jali).actions.setUnsaved("b", "a draft");
+    expect(jali.actions.close("b").reason).toBe("unsaved");
+    const heard = listen(jali);
+    jali.subscribe(() => {
+      if (!storeOf(jali).get().confirm) jali.actions.close("c");
+    });
+    jali.destroy();
+    expect(ids(jali)).toEqual(["a", "b", "c"]);
+    expect(heard).toEqual([]);
+  });
+
   it("from a listener: the batches still to be told are dropped", () => {
     const jali = make(() => true);
     const heard: string[] = [];
