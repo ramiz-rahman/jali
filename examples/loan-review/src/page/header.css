@@ -1,0 +1,382 @@
+/* The application's header: who is asking, for what and on which home, then five figures as tiles. No rules between
+   them: the tiles' own ground sets them apart, and a figure outside the program's limits is coloured. One markup
+   (header.tsx) in two layouts: the card, and, with `data-compact`, one line. */
+.item-head {
+  display: grid;
+  gap: 18px;
+  padding: 20px 24px 18px;
+  background: var(--island);
+  border-bottom: 1px solid var(--line);
+}
+.item-id {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+.item-avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 48px;
+  height: 48px;
+  background: var(--text);
+  color: var(--island);
+  font-weight: 600;
+  font-size: var(--type-name);
+  letter-spacing: 0.02em;
+}
+.item-name {
+  min-width: 0;
+  flex: 1;
+}
+.item-kicker {
+  font-size: var(--type-meta);
+  color: var(--text-3);
+}
+.item-name h1 {
+  margin: 3px 0 2px;
+  font-size: var(--type-page);
+  line-height: 1.15;
+  font-weight: 600;
+  letter-spacing: var(--lr-track-display);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.item-where {
+  color: var(--text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.item-dot {
+  margin: 0 6px;
+  color: var(--text-4);
+}
+.item-state {
+  flex: none;
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+}
+.item-submitted {
+  font-size: var(--type-meta);
+  color: var(--text-3);
+}
+/* Status: volt while it waits for review; a soft tint in its colour once decided. */
+.item-status {
+  --tone: var(--text);
+  height: 26px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: var(--type-meta);
+  font-weight: 600;
+  background: color-mix(in oklab, var(--tone) 12%, var(--island));
+  color: var(--tone);
+}
+.item-status[data-status="pending"] {
+  background: var(--lr-volt);
+  color: var(--lr-on-volt);
+}
+/* Waiting: a small square that breathes, the one thing on the page asking for a decision. */
+.item-status[data-status="pending"]::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  background: currentColor;
+  animation: lr-breathe 2.4s ease-in-out infinite;
+}
+@keyframes lr-breathe {
+  50% {
+    opacity: 0.25;
+  }
+}
+.item-status[data-status="approved"] {
+  --tone: var(--act-done);
+}
+.item-status[data-status="conditions"] {
+  --tone: var(--act-working);
+}
+.item-status[data-status="suspended"] {
+  --tone: var(--red);
+}
+
+.item-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1px;
+  margin: 0;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+.item-facts > div {
+  --tone: var(--text-4);
+  position: relative;
+  min-width: 0;
+  padding: 11px 16px 12px;
+  background: var(--island);
+}
+.item-facts > div[data-tone="warn"] {
+  --tone: var(--amber);
+}
+.item-facts > div[data-tone="risk"] {
+  --tone: var(--red);
+}
+/* A figure outside the program's comfort: a short rule in its tone along the top, and the number in it. */
+.item-facts > div:is([data-tone="warn"], [data-tone="risk"])::before {
+  content: "";
+  position: absolute;
+  inset: -1px 0 auto;
+  height: 2px;
+  background: var(--tone);
+}
+.item-facts dt {
+  font-size: var(--type-meta);
+  color: var(--text-3);
+}
+.item-facts dd {
+  margin: 3px 0 0;
+  font-size: 24px;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: var(--lr-track-display);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.item-facts > div:is([data-tone="warn"], [data-tone="risk"]) dd:not(.pk-meta) {
+  color: var(--tone);
+}
+.item-facts dd.pk-meta {
+  margin-top: 2px;
+  font-size: var(--type-meta);
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0;
+  color: var(--text-3);
+}
+
+/* The header's collapse and expand: a quiet chevron, at its top right. */
+.item-toggle {
+  flex: none;
+  align-self: flex-start;
+  margin: -4px -8px 0 -4px;
+  color: var(--text-3);
+}
+
+/* A new application arrives: who it is and its figures settle in, quickly, so J/K through the queue reads as turning
+   pages rather than a flash. Keyed by item (header.tsx). */
+@media (prefers-reduced-motion: no-preference) {
+  .item-head:not([data-compact]) .item-name,
+  .item-head:not([data-compact]) .item-facts dd {
+    animation: lr-arrive 280ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  .item-head:not([data-compact]) .item-facts > div:nth-child(2) dd {
+    animation-delay: 20ms;
+  }
+  .item-head:not([data-compact]) .item-facts > div:nth-child(3) dd {
+    animation-delay: 40ms;
+  }
+  .item-head:not([data-compact]) .item-facts > div:nth-child(4) dd {
+    animation-delay: 60ms;
+  }
+  .item-head:not([data-compact]) .item-facts > div:nth-child(5) dd {
+    animation-delay: 80ms;
+  }
+  .item-head[data-compact] :is(.item-name > *, .item-facts) {
+    animation: lr-arrive 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+}
+@keyframes lr-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .item-status[data-status="pending"]::before {
+    animation: none;
+  }
+}
+
+/* Collapsed: one line. Who, the program, the five figures small (the first to go when it is narrow), the status.
+   The name's and the state's boxes dissolve, so their parts line up with the rest, in the order set here. */
+.item-head[data-compact] {
+  container: item-head / inline-size;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 3.5rem;
+  padding: 0 16px 0 24px;
+}
+.item-head[data-compact] :is(.item-id, .item-name) {
+  display: contents;
+}
+.item-head[data-compact] :is(.item-where, .item-purpose, .item-submitted) {
+  display: none;
+}
+.item-head[data-compact] .item-avatar {
+  width: 28px;
+  height: 28px;
+  font-size: var(--type-caption);
+}
+.item-head[data-compact] h1 {
+  order: 1;
+  margin: 0;
+  min-width: 6rem;
+  font-size: var(--type-heading);
+  line-height: inherit;
+  font-weight: 600;
+  letter-spacing: var(--lr-track-title);
+}
+.item-head[data-compact] .item-kicker {
+  order: 2;
+  flex: none;
+  white-space: nowrap;
+}
+.item-head[data-compact] .item-facts {
+  order: 3;
+  display: flex;
+  gap: 22px;
+  margin: 0 8px 0 auto;
+  padding-left: 12px;
+  min-width: 0;
+  background: none;
+  border: 0;
+}
+.item-head[data-compact] .item-facts > div {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 0;
+  background: none;
+  white-space: nowrap;
+}
+.item-head[data-compact] .item-facts > div:not([data-tone="warn"], [data-tone="risk"]) {
+  --tone: var(--text);
+}
+.item-head[data-compact] .item-facts > div::before {
+  content: none;
+}
+.item-head[data-compact] .item-facts dd {
+  margin: 0;
+  font-size: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+  color: var(--tone);
+}
+.item-head[data-compact] .item-state {
+  order: 5;
+  white-space: nowrap;
+}
+.item-head[data-compact] .item-toggle {
+  order: 6;
+  align-self: center;
+  margin: 0 -8px 0 0;
+}
+@container item-head (max-width: 1080px) {
+  .item-head[data-compact] .item-facts > div:nth-child(2) {
+    display: none;
+  }
+}
+@container item-head (max-width: 920px) {
+  .item-head[data-compact] .item-facts > div:first-child,
+  .item-head[data-compact] .item-kicker {
+    display: none;
+  }
+}
+@container item-head (max-width: 640px) {
+  .item-head[data-compact] .item-facts {
+    display: none;
+  }
+  .item-head[data-compact] .item-state {
+    margin-left: auto;
+  }
+}
+/* A phone: the name, the queue and the chevron; the status waits in the full header. */
+@container item-head (max-width: 480px) {
+  .item-head[data-compact] .item-state {
+    display: none;
+  }
+}
+
+/* Phones. The card: two figures across, the amount on its own line above, so five leave no orphan; the chevron at
+   the card's top right corner, so the status line keeps the width for itself. */
+/* The demo's persona switch (role.tsx). */
+.item-role {
+  flex: none;
+  display: inline-flex;
+  gap: 8px;
+  align-items: baseline;
+  font-size: var(--type-meta);
+  color: var(--text-2);
+}
+.item-role a {
+  color: inherit;
+}
+
+@media (max-width: 767px) {
+  /* The demo's persona switch stays off a phone's header: the page tabs need the height. */
+  .item-role {
+    display: none;
+  }
+  .item-head:not([data-compact]) {
+    position: relative;
+    gap: 14px;
+    padding: 14px 16px;
+  }
+  .item-head:not([data-compact]) .item-id {
+    flex-wrap: wrap;
+  }
+  .item-head:not([data-compact]) .item-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: var(--type-body);
+  }
+  .item-head:not([data-compact]) .item-name {
+    flex: 1 1 calc(100% - 52px);
+    padding-right: 28px;
+  }
+  .item-head:not([data-compact]) h1 {
+    font-size: 24px;
+    text-wrap: balance;
+    white-space: normal;
+    overflow: visible;
+  }
+  .item-head:not([data-compact]) .item-where {
+    white-space: normal;
+  }
+  /* The status and when it came in, on one line, with the queue at its end (queue.css). */
+  .item-head:not([data-compact]) .item-state {
+    order: 3;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .item-head:not([data-compact]) .item-submitted {
+    font-size: var(--type-caption);
+  }
+  .item-head:not([data-compact]) .item-id > .item-toggle {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    margin: 0;
+  }
+  .item-head:not([data-compact]) .item-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .item-head:not([data-compact]) .item-facts > div:first-child {
+    grid-column: 1 / -1;
+  }
+  .item-head:not([data-compact]) .item-facts > div {
+    padding: 9px 12px 10px;
+  }
+  .item-head:not([data-compact]) .item-facts dd:not(.pk-meta) {
+    font-size: 20px;
+  }
+  .item-head[data-compact] {
+    padding: 0 12px 0 16px;
+  }
+}

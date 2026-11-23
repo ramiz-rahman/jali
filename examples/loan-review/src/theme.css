@@ -1,0 +1,397 @@
+/*
+ * Loan review's own look, after Infisical's: black on white with hairline frames, square corners, Be Vietnam Pro, a
+ * forest green for links and volt (#f7fe62) as a highlighter. Volt marks only what is waiting for a decision: the
+ * queue's waiting count, an application waiting for review, its requested amount and "This request" on the ladder.
+ *
+ * Set on Jali's own tokens so every part of Jali follows (dialogs, ⌘K, panes, the page's tabs), on the scopes Jali uses
+ * for light and dark, unlayered, so they win over Jali's layer and the shared shell's. Imported last (main.tsx), so the
+ * shared --type-* scale (unlayered too) is overridden here by source order. The app's own tokens are --lr-*.
+ */
+:root {
+  --lr-volt: #f7fe62;
+  --lr-on-volt: #000000;
+  --lr-font:
+    "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    sans-serif;
+  /* Headings: medium weight, drawn in tight, as Infisical sets its headlines. */
+  --lr-track-display: -0.025em;
+  --lr-track-title: -0.015em;
+
+  --jali-font: var(--lr-font);
+  /* No second face: figures line up by tabular numerals (font-variant-numeric), not by a monospace. */
+  --jali-font-mono: var(--lr-font);
+  --jali-radius: 0;
+  --jali-radius-control: 0;
+  --jali-radius-menu: 0;
+  --jali-radius-chip: 2px;
+
+  /* A step up from the shared scale throughout: dense figures read at a glance only at a comfortable size. */
+  --type-caption: 12px;
+  --type-meta: 13px;
+  --type-body: 14px;
+  --type-name: 15px;
+  --type-title: 16px;
+  --type-heading: 18px;
+  --type-page: 28px;
+  --jali-text-xs: 0.75rem;
+  --jali-text-sm: 0.8125rem;
+  --jali-text-md: 0.875rem;
+  --jali-text-lg: 0.9375rem;
+}
+
+:root,
+.light,
+[data-theme="light"] {
+  --lr-link: #0b4f36;
+  --lr-paper-2: #fafafa;
+  --lr-request-edge: #000000;
+
+  --jali-canvas: #eeeeee;
+  --jali-surface: #ffffff;
+  --jali-surface-raised: #ffffff;
+  --jali-border: #e2e2e2;
+  --jali-border-strong: #d1d1d1;
+  --jali-control: #6f6f6f;
+  --jali-hover: #f5f5f5;
+  --jali-text: #000000;
+  --jali-text-muted: #3b3b3b;
+  --jali-text-subtle: #555555;
+  --jali-text-faint: #949494;
+  /* Selection and focus are black, as Infisical's; the brand is its forest green. */
+  --jali-accent: #000000;
+  --jali-accent-soft: #f3f8e2;
+  --jali-on-accent: #ffffff;
+  --jali-brand: #0b4f36;
+  --jali-working: #0b6197;
+  --jali-live: #416719;
+  --jali-blocked: #b45309;
+  --jali-done: #0f7a47;
+  --jali-failed: #b82924;
+  --jali-on-status: #ffffff;
+  --jali-chip: #000000;
+  --jali-on-chip: #ffffff;
+  --jali-scrim: rgba(0, 0, 0, 0.2);
+  --jali-scrim-light: rgba(0, 0, 0, 0.08);
+  /* Panes opened while investigating: Infisical's info blue, apart from black focus and volt requests. */
+  --jali-opened-bg: #f3f9ff;
+  --jali-opened-line: #c4e2fb;
+  --jali-opened-mark: #147bbb;
+  --jali-opened-ink: #0b4c76;
+  /* Shadows only where something floats: dialogs, menus, a peek. Panes sit flat in their frames. */
+  --jali-shadow-dialog: 0 24px 64px -16px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(0, 0, 0, 0.06);
+  --jali-shadow-menu: 0 12px 32px -8px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  --jali-shadow-chip: 0 8px 24px -8px rgba(0, 0, 0, 0.28);
+  --jali-shadow-peek: -16px 0 40px -20px rgba(0, 0, 0, 0.22);
+  --jali-shadow-zoom: 0 16px 40px -16px rgba(0, 0, 0, 0.22);
+  --jali-shadow-raised: 0 0 #0000;
+}
+
+.dark,
+[data-theme="dark"] {
+  --lr-link: #c5df58;
+  --lr-paper-2: #15181e;
+  --lr-request-edge: var(--lr-volt);
+
+  --jali-canvas: #0b0d10;
+  --jali-surface: #111419;
+  --jali-surface-raised: #1a1d22;
+  --jali-border: #26272b;
+  --jali-border-strong: #36383d;
+  --jali-control: #707174;
+  --jali-hover: #1e1f22;
+  --jali-text: #ebebeb;
+  --jali-text-muted: #cfd0d2;
+  --jali-text-subtle: #adaeb0;
+  --jali-text-faint: #707174;
+  /* Infisical's dark focus is volt. */
+  --jali-accent: var(--lr-volt);
+  --jali-accent-soft: #232c0e;
+  --jali-on-accent: #000000;
+  --jali-brand: #c5df58;
+  --jali-working: #71bef5;
+  --jali-live: #a6c83d;
+  --jali-blocked: #ffbd3d;
+  --jali-done: #a6c83d;
+  --jali-failed: #fca5a5;
+  --jali-on-status: #0b0d10;
+  --jali-chip: #ebebeb;
+  --jali-on-chip: #0b0d10;
+  --jali-scrim: rgba(0, 0, 0, 0.6);
+  --jali-scrim-light: rgba(0, 0, 0, 0.4);
+  --jali-opened-bg: #122129;
+  --jali-opened-line: #0d3b5a;
+  --jali-opened-mark: #379ddb;
+  --jali-opened-ink: #71bef5;
+  --jali-shadow-dialog: 0 24px 64px -16px rgba(0, 0, 0, 0.7), 0 0 0 1px #36383d;
+  --jali-shadow-menu: 0 12px 32px -8px rgba(0, 0, 0, 0.6), 0 0 0 1px #36383d;
+  --jali-shadow-chip: 0 8px 24px -8px rgba(0, 0, 0, 0.7);
+  --jali-shadow-peek: -16px 0 40px -20px rgba(0, 0, 0, 0.8);
+  --jali-shadow-zoom: 0 16px 40px -16px rgba(0, 0, 0, 0.8);
+  --jali-shadow-raised: 0 0 #0000;
+}
+
+/* The highlighter: volt behind the words, square, as Infisical marks its headlines. */
+.lr-mark {
+  background: var(--lr-volt);
+  color: var(--lr-on-volt);
+  padding: 0 0.2em;
+  margin: 0 -0.2em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+/* ---------- the shared shell, in Loan review's look (the shell's own rules are in the "app" layer) ---------- */
+body {
+  font-feature-settings: normal;
+}
+.topbar {
+  gap: 1.25rem;
+  padding: 0 1rem;
+}
+/* Loan review's own mark in the top bar: a black tile with one volt square, the application waiting. Jali's lockup
+   stays in the status line, which says the app is built with it. */
+.topbar .brand-lockup {
+  display: none;
+}
+.brand {
+  gap: 0.625rem;
+}
+.brand::before {
+  content: "";
+  flex: none;
+  width: 20px;
+  height: 20px;
+  background:
+    linear-gradient(var(--lr-volt), var(--lr-volt)) right 3px bottom 3px / 8px 8px no-repeat,
+    var(--jali-text);
+}
+:is(.dark, [data-theme="dark"]) .brand::before {
+  background:
+    linear-gradient(#000, #000) right 3px bottom 3px / 8px 8px no-repeat,
+    var(--lr-volt);
+}
+.brand-name {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: var(--lr-track-title);
+}
+.sample-note {
+  padding: 2px 6px;
+  border: 1px dashed var(--jali-border-strong);
+  color: var(--jali-text-subtle);
+}
+
+/* The page's mode, Single or Split: one framed control, the chosen side filled black (Infisical's primary). */
+.jali-page-bar [role="radiogroup"] {
+  gap: 0;
+  border: 1px solid var(--jali-border-strong);
+}
+.jali-page-bar [role="radio"] {
+  height: 30px;
+  padding: 0 12px;
+  border: 0;
+  color: var(--jali-text-subtle);
+  font-weight: 500;
+}
+.jali-page-bar [role="radio"]:hover {
+  background: var(--jali-hover);
+  color: var(--jali-text);
+}
+.jali-page-bar [role="radio"][aria-checked="true"] {
+  background: var(--jali-text);
+  color: var(--jali-surface);
+}
+
+/* ⌘K: Infisical's grey secondary button. */
+.kbd-btn {
+  height: 32px;
+  padding: 0 12px;
+  border: 0;
+  background: var(--jali-canvas);
+  color: var(--jali-text);
+  font-weight: 500;
+}
+.kbd-btn:hover {
+  background: var(--jali-border-strong);
+  color: var(--jali-text);
+}
+.kbd-btn span {
+  font-size: var(--type-meta);
+  font-variant-numeric: tabular-nums;
+}
+/* The keys already say ⌘: the glyph before them only on phones, where the keys are hidden. */
+.kbd-btn svg {
+  display: none;
+}
+
+/* Unlayered, the rules above beat the shell's own narrow-screen ones, so those are said again, as tight. */
+@media (max-width: 47.9375rem) {
+  .topbar {
+    gap: 0.625rem;
+    padding: 0 0.5rem;
+  }
+}
+@media (max-width: 26.875rem) {
+  .topbar {
+    gap: 0.5rem;
+  }
+  .brand {
+    gap: 0.5rem;
+  }
+  .kbd-btn {
+    padding: 0 0.5rem;
+  }
+  .kbd-btn svg {
+    display: block;
+  }
+}
+
+.status {
+  color: var(--jali-text-subtle);
+}
+.status-stats {
+  font-variant-numeric: tabular-nums;
+}
+
+.toast {
+  border-radius: 0 !important;
+}
+
+/* ---------- Jali's page: its tabs and panes ---------- */
+.jali-page-tab {
+  height: 2.75rem;
+  padding: 0 0.75rem;
+  color: var(--jali-text-subtle);
+}
+/* Unlayered, this colour beats every state Jali's layer gives a tab, so the states are said again here. */
+.jali-page-tab:hover,
+.jali-page-tab[data-state="focused"],
+.jali-page-tab[data-state="shown"] {
+  color: var(--jali-text);
+}
+.jali-page-tab[data-state="behind"] {
+  color: var(--jali-text-muted);
+}
+.jali-pane-title h2 {
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+/* ---------- Settings, in Loan review's look ----------
+   Jali's dialog is a plain list. Here: a wider sheet, each fieldset a titled block with its choices as framed options
+   (the chosen one darker-edged and filled), and the keyboard list as a quiet table with key caps. Square, as every other
+   frame in the app: its shadow, not its corners, says it floats. */
+.jali-settings {
+  width: min(34rem, calc(100vw - 2rem));
+  padding: 0 0 8px;
+}
+.jali-settings header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  height: 3.5rem;
+  padding: 0 12px 0 24px;
+  background: var(--jali-surface-raised);
+  border-bottom: 1px solid var(--jali-border);
+}
+.jali-settings h2 {
+  font-size: 17px;
+  letter-spacing: var(--lr-track-title);
+}
+.jali-settings fieldset {
+  border-top: 0;
+  padding: 18px 24px 6px;
+  gap: 8px;
+}
+.jali-settings fieldset + fieldset {
+  border-top: 1px solid var(--jali-border);
+  margin-top: 12px;
+}
+.jali-settings legend {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: var(--type-body);
+  font-weight: 600;
+  color: var(--jali-text);
+  margin-bottom: 10px;
+}
+/* Choices as framed options; the chosen one with a darker edge and a fill. */
+.jali-settings .jali-setting {
+  gap: 10px;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--jali-border);
+  color: var(--jali-text-muted);
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease;
+  line-height: 1.35;
+}
+.jali-settings .jali-setting:hover {
+  background: var(--jali-hover);
+}
+.jali-settings .jali-setting:has(input:checked) {
+  border-color: var(--jali-text-subtle);
+  background: var(--lr-paper-2);
+  color: var(--jali-text);
+}
+.jali-settings .jali-setting:has(input:focus-visible) {
+  outline: 2px solid var(--jali-accent);
+  outline-offset: 2px;
+}
+.jali-settings .jali-setting input {
+  accent-color: var(--jali-text);
+}
+/* Theme's three choices side by side. */
+.jali-settings fieldset:first-of-type {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.jali-settings fieldset:first-of-type legend {
+  grid-column: 1 / -1;
+}
+.jali-settings .jali-row-field {
+  gap: 12px;
+  line-height: 1.4;
+}
+.jali-settings .jali-row-field input {
+  width: 4rem;
+  height: 2.25rem;
+  border-color: var(--jali-border-strong);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+/* Keys: a quiet two-column table, each key a cap. */
+.jali-settings .jali-keys-list {
+  gap: 0;
+}
+.jali-settings .jali-keys-row {
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--jali-border);
+}
+.jali-settings .jali-keys-row:last-child {
+  border-bottom: 0;
+}
+.jali-settings .jali-keys-row dt {
+  font-size: var(--type-body);
+}
+.jali-settings .jali-keys-row kbd {
+  display: inline-block;
+  padding: 2px 7px;
+  border: 1px solid var(--jali-border-strong);
+  border-bottom-width: 2px;
+  border-radius: var(--jali-radius-chip);
+  background: var(--jali-surface);
+  font-family: var(--lr-font);
+  font-size: var(--type-caption);
+  color: var(--jali-text);
+}
+.jali-settings .jali-keys-note {
+  margin-top: 8px;
+  font-size: var(--type-meta);
+}
+@media (max-width: 30rem) {
+  .jali-settings fieldset:first-of-type {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

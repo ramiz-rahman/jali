@@ -1,0 +1,276 @@
+/* The queue: the rail at the left of the page, a list or, collapsed (`data-collapsed`), a slim strip, from one markup
+   (rail.tsx). Jali lays out the page (jali's page.css); these style what the page renders into it. The look is the
+   app's own (src/theme.css). */
+.rail {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--island);
+  border-right: 1px solid var(--line);
+}
+/* The page's own rail: none on phones, where the header's "N waiting" opens it as a sheet. Jali's layer hides the
+   rail there, but this file is unlayered, so its display above would win: it is said again here. */
+@media (max-width: 767px) {
+  .jali-page > .rail {
+    display: none;
+  }
+}
+/* The rail's width: Jali's 17rem (Split view's four views fit beside it at 1440); a slim strip when collapsed. The column eases
+   between the two, so the views slide over rather than jump. */
+@media (min-width: 768px) {
+  .jali-page:has(> .rail) {
+    grid-template-columns: 17rem minmax(0, 1fr);
+  }
+  .jali-page:has(> .rail[data-collapsed]) {
+    grid-template-columns: 3.25rem minmax(0, 1fr);
+  }
+}
+@media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+  .jali-page:has(> .rail) {
+    transition: grid-template-columns 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+}
+.rail {
+  overflow: hidden;
+}
+.rail > .rq-list,
+.rail > .rq-map {
+  overflow: auto;
+}
+/* The name, then the count on its own line: the rail is too narrow for both in Be Vietnam Pro. The collapse button at
+   the end. */
+.rail-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 14px 8px 12px 16px;
+  border-bottom: 1px solid var(--line);
+}
+.rail-title {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.rail-toggle {
+  flex: none;
+  margin-top: -4px;
+  color: var(--text-3);
+}
+
+/* Collapsed: the toggle, where this application sits in the queue, then the queue as squares. */
+.rail[data-collapsed] {
+  align-items: center;
+}
+.rail[data-collapsed] .rail-head {
+  display: grid;
+  place-items: center;
+  justify-content: center;
+  align-self: stretch;
+  height: 3.5rem;
+  padding: 0;
+}
+.rail[data-collapsed] .rail-title {
+  display: none;
+}
+.rail[data-collapsed] .rail-toggle {
+  margin: 0;
+}
+.rail:not([data-collapsed]) .rail-pos {
+  display: none;
+}
+.rail-pos {
+  display: grid;
+  justify-items: center;
+  padding: 12px 0 10px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.25;
+}
+.rail-pos b {
+  font-size: var(--type-name);
+  font-weight: 600;
+}
+.rail-pos span {
+  font-size: var(--type-caption);
+  color: var(--text-3);
+}
+.rail-pos span::before {
+  content: "of ";
+}
+.rq-map {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  align-self: stretch;
+  padding: 4px 0 16px;
+  min-height: 0;
+}
+.rq-dot {
+  --dot: 8px;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 18px;
+  cursor: pointer;
+}
+.rq-dot::before {
+  content: "";
+  width: var(--dot);
+  height: var(--dot);
+  background: var(--line-strong);
+  transition:
+    width 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    height 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 140ms ease;
+}
+.rq-dot[data-status="pending"]::before {
+  background: var(--lr-volt);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--text) 45%, transparent);
+}
+.rq-dot:hover::before {
+  --dot: 12px;
+}
+.rq-dot[aria-selected="true"]::before {
+  --dot: 14px;
+  background: var(--text);
+  box-shadow: none;
+}
+.rq-dot:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.rail-head b {
+  font-size: var(--type-name);
+  font-weight: 600;
+  letter-spacing: var(--lr-track-title);
+}
+/* How many wait: a quiet count chip. */
+.rail-count {
+  display: inline-block;
+  min-width: 1.5em;
+  padding: 0 5px;
+  background: var(--lr-volt);
+  color: var(--lr-on-volt);
+  font-weight: 600;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The queue's rows (shared panes.css), in this app's look: hairlines, the chosen row marked in black. */
+.rq-list {
+  padding: 0;
+}
+.rq-item {
+  gap: 3px;
+  padding: 10px 16px 11px;
+  border-bottom-color: var(--line);
+}
+.rq-item {
+  transition:
+    background-color 140ms ease,
+    box-shadow 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.rq-item:hover {
+  background: var(--lr-paper-2);
+}
+.rq-item:active {
+  background: var(--hover);
+}
+.rq-item[aria-selected="true"] {
+  background: var(--accent-soft);
+  box-shadow: inset 3px 0 0 var(--text);
+}
+.rq-item[aria-selected="true"] .rq-name {
+  font-weight: 600;
+}
+.rq-item:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+.rq-amount {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.rq-name {
+  font-weight: 500;
+}
+/* The program as a small tag before the purpose: Conventional, FHA, VA, USDA, Jumbo, HELOC. */
+.rq-program {
+  display: inline-block;
+  padding: 0 5px;
+  margin-right: 2px;
+  border-radius: var(--jali-radius-chip);
+  font-size: var(--type-caption);
+  line-height: 16px;
+  font-weight: 600;
+  background: var(--hover);
+  color: var(--text-2);
+}
+.rq-item .pk-meta {
+  color: var(--text-3);
+  /* The second line a step under the name, so "Conventional cash-out" and its date share the rail's width. */
+  font-size: var(--type-caption);
+  white-space: nowrap;
+}
+.rq-item[data-status="approved"] .rq-name,
+.rq-item[data-status="conditions"] .rq-name,
+.rq-item[data-status="suspended"] .rq-name {
+  color: var(--text-3);
+}
+.rq-item[data-status="suspended"] .rq-status {
+  color: var(--red);
+}
+.rq-item[data-status="conditions"] .rq-status {
+  color: var(--act-working);
+}
+.rq-item[data-status="approved"] .rq-status {
+  color: var(--act-done);
+}
+
+/* Phones: the queue is a sheet opened from the header's "N waiting" button (sheet.tsx). */
+.item-queue,
+.queue-sheet {
+  display: none;
+}
+@media (max-width: 767px) {
+  .item-queue {
+    order: 4;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex: none;
+    margin-left: auto;
+    height: 28px;
+    padding: 0 10px;
+    border: 0;
+    background: var(--ground);
+    color: var(--text);
+    font-size: var(--type-meta);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 140ms ease;
+  }
+  .item-queue:active {
+    transform: translateY(1px);
+  }
+  .item-queue:hover {
+    background: var(--line-strong);
+  }
+  .queue-sheet {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    flex-direction: column;
+    background: var(--island);
+    padding-top: 44px;
+  }
+  .queue-sheet .rail {
+    flex: 1;
+    border-right: 0;
+  }
+  .queue-sheet-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+  }
+}
