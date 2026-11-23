@@ -1823,6 +1823,13 @@ a commit on branch `stabilise`.
     wrote the state reruns the whole action on its yes. More than 8 restarts in one action refuse it as `"kept"`.
   - A waiting replace is dropped on Back or Forward rather than written over the new entry, and written first by
     `href()`.
+- **After review (Codex, seven findings):** a waiting write keeps this instance's share of the address as it was asked
+  for (a debounced resize included) and is merged into the address as it is when written, so a push can't slip its
+  state into the entry it leaves and a second instance's params stay; an answer step is replayed as an intent, so a
+  second guard that writes doesn't turn both yeses into `"kept"`; `destroy()` silences events and refuses actions from
+  its first line; a write waiting when a gesture starts is held (`UrlSync.hold`, adapter only) and becomes a replace of
+  the final state; a URL writer that runs an action as it writes gets that action's write before the batch ends; a
+  divider drag releases its gesture in a `finally`.
 - **Size:** unchanged budgets, none raised.
 - **Known limit:** the long-drag browser test runs in Data Studio, which has no row that scrolls, so it exercises the
   drop's single write rather than edge scrolling; the unit tests cover edge scrolling's ten-second hold.
