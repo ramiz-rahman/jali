@@ -7,6 +7,8 @@
  * first when there are any: `row({ weight: 2 }, a, b)`. Nodes without an `id` get one from what they hold ("orders",
  * "row", then "orders-2"); give an `id` to a pane that another one links to.
  */
+import { isDev } from "../dev";
+import { UNSAFE_IDS } from "./codec/validate";
 import type {
   DeepReadonly,
   Axis,
@@ -71,6 +73,11 @@ function parts<O>(args: unknown[]): [O, Child[]] {
 }
 
 export function pane(ref: ObjectRef, options: PaneNodeOptions = {}): PaneDraft {
+  // Elsewhere (production, a layout not built here) layout validation refuses it.
+  if (options.id !== undefined && UNSAFE_IDS.has(options.id) && isDev())
+    throw new Error(
+      `Jali: "${options.id}" can't be a pane id (it names something on every object).`,
+    );
   return { type: "pane", ref, options };
 }
 
@@ -132,7 +139,7 @@ export function toLayout(input: LayoutInput): Layout {
           ? "tabs"
           : d.type;
     let id = base;
-    for (let i = 2; taken.has(id); i++) id = `${base}-${i}`;
+    for (let i = 2; taken.has(id) || UNSAFE_IDS.has(id); i++) id = `${base}-${i}`;
     taken.add(id);
     return id;
   };

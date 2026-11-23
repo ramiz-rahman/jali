@@ -217,6 +217,21 @@ describe("C2b: stored sizes", () => {
   });
 });
 
+/**
+ * `jali`'s layout with node `from` renamed `to`, written past every check: ids like these can't enter any way Jali
+ * checks (tests/unsafe-ids.test.ts), and reads stay safe if one ever did.
+ */
+const smuggle = (jali: ReturnType<typeof make>, from: string, to: string) => {
+  const store = storeOf(jali);
+  const layout = structuredClone(store.get().layout) as unknown as { root: unknown };
+  const walk = (n: any): void => {
+    if (n.id === from) Object.defineProperty(n, "id", { value: to, enumerable: true });
+    n.children?.forEach(walk);
+  };
+  walk(layout.root);
+  store.set({ layout: layout as never, view: { ...store.get().view, focused: to } });
+};
+
 describe("C3: names on Object.prototype", () => {
   it.each(["constructor", "toString", "__proto__", "hasOwnProperty"])(
     "%s is not a kind",
@@ -236,12 +251,12 @@ describe("C3: names on Object.prototype", () => {
       const jali = make({
         layout: row(
           pane(note({ id: 1 }), { id: "list" }),
-          pane(note({ id: 2 }), { id, linkedTo: "list", follows: true }),
+          pane(note({ id: 2 }), { id: "second", linkedTo: "list", follows: true }),
         ),
       });
       const store = storeOf(jali);
+      smuggle(jali, "second", id);
       expect(jali.model().title(id)).toBe("Note 2");
-      store.set({ view: { ...store.get().view, focused: id } });
       expect(() => listCommands(jali)).not.toThrow();
       // Not held for unsaved work it doesn't have: it follows its list.
       const r = store.apply((x) => follow(x, "list", note({ id: 3 })));
@@ -263,12 +278,13 @@ describe("C3: names on Object.prototype", () => {
     });
     const jali = createJali({
       panes: [kept],
-      layout: row(pane(kept(), { id: "constructor" }), pane(kept(), { id: "other" })),
+      layout: row(pane(kept(), { id: "first" }), pane(kept(), { id: "other" })),
       features: noUrl(),
       storage: memoryStorage(),
       size: { width: 1200, height: 800 },
       moveFocus: false,
     });
+    smuggle(jali as never, "first", "constructor");
     render(<JaliRoot jali={jali} />);
     expect(seen.length).toBeGreaterThan(0);
     for (let i = 0; i < seen.length; i += 2) {
