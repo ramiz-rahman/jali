@@ -144,8 +144,51 @@ importers:
         specifier: 'catalog:'
         version: 1.7.0(@astrojs/compiler-rs@0.5.3)(@types/node@26.6.6)(@vitest/ui@5.1.0)(jsdom@31.0.1)(playwright@1.65.1)(typescript@7.0.2)(yaml@2.9.1)
 
+  examples/handshake:
+    dependencies:
+      '@fontsource/atkinson-hyperlegible-next':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource/jetbrains-mono':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource/rajdhani':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@jali-examples/shared':
+        specifier: workspace:*
+        version: link:../shared
+      '@ui-sdk/core':
+        specifier: 0.1.0-beta.5
+        version: 0.1.0-beta.5
+      '@ui-sdk/react':
+        specifier: 0.1.0-beta.5
+        version: 0.1.0-beta.5(@types/react@19.3.0)(@ui-sdk/core@0.1.0-beta.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      jali:
+        specifier: workspace:*
+        version: link:../../packages/jali
+      lucide-react:
+        specifier: 1.73.0
+        version: 1.73.0(@types/react@19.3.0)(react@19.3.1)
+      react:
+        specifier: ^19.3.1
+        version: 19.3.1
+      react-dom:
+        specifier: ^19.3.1
+        version: 19.3.1(react@19.3.1)
+    devDependencies:
+      '@vitejs/plugin-react':
+        specifier: ^6.3.0
+        version: 6.3.0(@voidzero-dev/vite-plus-core@8.3.8000(@types/node@26.6.6)(typescript@7.0.2)(yaml@2.9.1))
+      vite-plus:
+        specifier: 'catalog:'
+        version: 1.7.0(@astrojs/compiler-rs@0.5.3)(@types/node@26.6.6)(@vitest/ui@5.1.0)(jsdom@31.0.1)(playwright@1.65.1)(typescript@7.0.2)(yaml@2.9.1)
+
   examples/loan-review:
     dependencies:
+      '@fontsource/be-vietnam-pro':
+        specifier: ^5.3.0
+        version: 5.3.0
       '@jali-examples/shared':
         specifier: workspace:*
         version: link:../shared
@@ -343,6 +386,9 @@ importers:
       maplibre-gl:
         specifier: ^6.19.0
         version: 6.19.0(@types/react@19.3.0)(react@19.3.1)
+      radix-ui:
+        specifier: ^1.8.1
+        version: 1.8.1(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
         specifier: ^19.3.1
         version: 19.3.1
@@ -717,11 +763,20 @@ packages:
   '@fontsource/atkinson-hyperlegible-next@5.3.0':
     resolution: {integrity: sha512-8p1tHVoPDo6oYwSO3sMw5snGwFwSf3TmeSF9Gcj792GXdsg6oqvhoItbj6Hj/XZIk0Xs+Cwu6pkLBAl3Q5HrwA==}
 
+  '@fontsource/be-vietnam-pro@5.3.0':
+    resolution: {integrity: sha512-xhAQBGHDxP5BF8IJxedy5MoWUmc1DlPCcZbMLhvnPkf8TaYCbbUVs3LjpuJ4BYdTrdiCLaewNaY8z+owq/FqFw==}
+
   '@fontsource/chakra-petch@5.3.0':
     resolution: {integrity: sha512-QZvbM/q2R6n1pg2x+TJPftZmBNS+ADU37L4Z4L/6UJIz+JZ/SRaEf8usPFRiP7Ht28sIideMu/Bm1SnGlSrwNw==}
 
   '@fontsource/ibm-plex-mono@5.3.0':
     resolution: {integrity: sha512-eTgnZjZEGk1QtD3ZstF+Vclo2HLAni8YMy34/DxllwZvyz1lR/1RF/xTiAquOBO7MvqBx8D2Ig2WCPMVfdZu7Q==}
+
+  '@fontsource/jetbrains-mono@5.3.0':
+    resolution: {integrity: sha512-fqDfB5I9f1p1TV486aUgB9t8zP84P0O1FtQR5Ol9vjwPy+S+EIGlVYm1cvj2W5shcZMTg2nZFdVMoH5wFu8a1A==}
+
+  '@fontsource/rajdhani@5.3.0':
+    resolution: {integrity: sha512-oBJgSIibWJvVBKseme1JczqPLoDHN97LHti4uh0LjfcJqQoVmnQQlRKIpEjTJV559rmVQ6qbVZZwKwk2wkBTtw==}
 
   '@img/colour@1.1.0':
     resolution: {integrity: sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ==}
@@ -2583,6 +2638,20 @@ packages:
     cpu: [x64]
     os: [win32]
 
+  '@ui-sdk/core@0.1.0-beta.5':
+    resolution: {integrity: sha512-dmunrxWrZ+vwldKJ6THQNYyyfbLFY6K82hBvIZSnuGwpEQmXKmM0iuANgGXtaqw8unSB2p9E5s3y7zfE9rgP6Q==}
+
+  '@ui-sdk/react@0.1.0-beta.5':
+    resolution: {integrity: sha512-Zfvl94ulACX511lQKQDnK7wVjhYUYsR5LLnCZ800NzQ3983TxZasHxXyC+KYNlvppkYfpELPlAbVslsSIGQ9/A==}
+    peerDependencies:
+      '@types/react': '>=19.2.10'
+      '@ui-sdk/core': ^0.1.0-beta.5
+      react: '>=19'
+      react-dom: '>=19'
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+
   '@ungap/structured-clone@1.4.0':
     resolution: {integrity: sha512-1mEZtMKPM09vDmQt5y7YvmN2+DFTP7Tg0EWXdic8/C6VRnpb33e4ghisCIE3WZjsE2N8mf+QV1Zqh7ZFYLWInQ==}
 
@@ -3381,6 +3450,15 @@ packages:
   lru-cache@11.5.3:
     resolution: {integrity: sha512-U4N8FgzmWxc8k1VH8Kr6lQg18U7Fjvby6wXHVRX/ZZ7IwWbRMgrRbP0Wrb5q5NVinryp4SQampHKdvtecItxUg==}
     engines: {node: 20 || >=22}
+
+  lucide-react@1.73.0:
+    resolution: {integrity: sha512-fVOzGviL9mTfHenG1PbCfIceavyGlnpYNSYr+aGZHLRymAJ7DTP6KHuqt0uBkCKAoenr1UVkwSbDIYt2xIesEQ==}
+    peerDependencies:
+      '@types/react': '*'
+      react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
 
   lz-string@1.5.0:
     resolution: {integrity: sha512-h5bgJWpxJNswbU7qCrV0tIKQCaS3blPDrqKWx+QxzuzL1zGUzij9XCWLrSLsJPu5t+eWA/ycetzYAO5IOMcWAQ==}
@@ -4675,9 +4753,15 @@ snapshots:
 
   '@fontsource/atkinson-hyperlegible-next@5.3.0': {}
 
+  '@fontsource/be-vietnam-pro@5.3.0': {}
+
   '@fontsource/chakra-petch@5.3.0': {}
 
   '@fontsource/ibm-plex-mono@5.3.0': {}
+
+  '@fontsource/jetbrains-mono@5.3.0': {}
+
+  '@fontsource/rajdhani@5.3.0': {}
 
   '@img/colour@1.1.0':
     optional: true
@@ -6204,6 +6288,16 @@ snapshots:
   '@typescript/typescript-win32-x64@7.0.2':
     optional: true
 
+  '@ui-sdk/core@0.1.0-beta.5': {}
+
+  '@ui-sdk/react@0.1.0-beta.5(@types/react@19.3.0)(@ui-sdk/core@0.1.0-beta.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
+    dependencies:
+      '@ui-sdk/core': 0.1.0-beta.5
+      react: 19.3.1
+      react-dom: 19.3.1(react@19.3.1)
+    optionalDependencies:
+      '@types/react': 19.3.0
+
   '@ungap/structured-clone@1.4.0': {}
 
   '@vitejs/plugin-react@6.3.0(@voidzero-dev/vite-plus-core@8.3.8000(@types/node@26.6.6)(typescript@7.0.2)(yaml@2.9.1))':
@@ -6976,6 +7070,12 @@ snapshots:
   longest-streak@3.1.0: {}
 
   lru-cache@11.5.3: {}
+
+  lucide-react@1.73.0(@types/react@19.3.0)(react@19.3.1):
+    dependencies:
+      react: 19.3.1
+    optionalDependencies:
+      '@types/react': 19.3.0
 
   lz-string@1.5.0: {}
 
