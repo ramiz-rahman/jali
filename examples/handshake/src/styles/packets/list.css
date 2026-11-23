@@ -1,0 +1,296 @@
+/*
+ * The packet list: toolbar, rows drawn in view only, the flagged and cursor rows, help, and the drop target.
+ */
+@layer app {
+  /* The packet list. */
+  .pk-list {
+    --pk-row: 28px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 12px 8px;
+    overflow: hidden;
+    container-type: inline-size;
+  }
+
+  .pk-list > .state {
+    flex: 1;
+  }
+
+  .pk-toolbar {
+    display: grid;
+    grid-template-columns: minmax(180px, 300px) minmax(200px, 1fr);
+    align-items: end;
+    gap: 8px 12px;
+  }
+
+  @container (max-width: 640px) {
+    .pk-toolbar {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .pk-count {
+    font-family: var(--hs-mono);
+    font-size: var(--hs-text-micro);
+    color: var(--cy-ink-mute);
+    white-space: nowrap;
+  }
+
+  .pk-about {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+  }
+
+  .pk-summary {
+    margin: 0;
+    font-size: var(--hs-text-note);
+    line-height: var(--hs-leading-note);
+    max-width: 75ch;
+    font-family: var(--hs-read);
+    font-weight: 400;
+  }
+
+  .pk-warning,
+  .pk-error {
+    flex-basis: 100%;
+    margin: 0;
+    color: var(--cy-flag);
+    font-size: var(--hs-text-label);
+  }
+
+  .pk-open-error {
+    flex-basis: 100%;
+  }
+
+  .pk-head,
+  .pk-row {
+    display: grid;
+    grid-template-columns: 5ch 9ch minmax(10ch, 1.1fr) minmax(10ch, 1.1fr) 8ch 6ch minmax(16ch, 3fr);
+    gap: 0 10px;
+    align-items: center;
+    padding: 0 8px;
+    font-family: var(--hs-mono);
+    font-size: var(--hs-text-mono);
+  }
+
+  .pk-head {
+    flex: none;
+    padding-block: 4px;
+    border-block-end: 1px solid var(--cy-line-deco);
+    color: var(--cy-ink-mute);
+    font-family: var(--hs-font);
+    font-size: var(--hs-text-label);
+    font-weight: var(--hs-weight-strong);
+    letter-spacing: var(--hs-tracking-label);
+    text-transform: uppercase;
+  }
+
+  .pk-head[data-narrow] {
+    grid-template-columns: 5ch 9ch minmax(0, 1fr);
+  }
+
+  .pk-rows {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 120px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    outline: none;
+  }
+
+  .pk-rows:focus-visible {
+    box-shadow: inset 0 0 0 2px var(--cy-signal);
+  }
+
+  .pk-space {
+    position: relative;
+  }
+
+  .pk-row {
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    height: var(--pk-row);
+    color: var(--cy-ink-hi);
+    cursor: default;
+    border-inline-start: 3px solid transparent;
+  }
+
+  .pk-rows[data-narrow] .pk-row {
+    --pk-row: 46px;
+    grid-template-columns: 5ch 9ch minmax(0, 1fr);
+    grid-template-rows: 1fr 1fr;
+    align-content: center;
+    row-gap: 0;
+  }
+
+  .pk-rows[data-narrow] .pk-c-info {
+    grid-column: 1 / -1;
+    padding-inline-start: 2ch;
+    color: var(--cy-ink);
+  }
+
+  .pk-row > span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .pk-row:hover {
+    background: var(--cy-fill-hover);
+  }
+
+  /* The cursor's row: a light tint, and every cell in full ink, so the muted columns keep their contrast on it. */
+  .pk-row[aria-selected="true"] {
+    background: color-mix(in srgb, var(--cy-signal) 14%, transparent);
+    border-inline-start-color: var(--cy-signal);
+  }
+
+  .pk-row[aria-selected="true"] > span {
+    color: var(--cy-ink-hi);
+  }
+
+  .pk-row[data-active] {
+    box-shadow: inset 0 0 0 1px var(--cy-signal);
+  }
+
+  /* A faint tint: the yellow edge and the ! carry the flag, so the muted columns keep their contrast. */
+  .pk-row[data-flagged] {
+    background: color-mix(in srgb, var(--cy-flag) 5%, transparent);
+    border-inline-start-color: var(--cy-flag);
+  }
+
+  .pk-row[data-flagged][aria-selected="true"] {
+    background: color-mix(in srgb, var(--cy-flag) 16%, transparent);
+  }
+
+  .pk-flag {
+    display: inline-block;
+    margin-inline-end: 6px;
+    padding: 0 4px;
+    background: var(--cy-flag);
+    color: var(--cy-void);
+    font-weight: 700;
+  }
+
+  .pk-c-no,
+  .pk-c-len {
+    text-align: end;
+    color: var(--cy-ink-mute);
+  }
+
+  .pk-c-time {
+    color: var(--cy-ink-mute);
+  }
+
+  .pk-c-proto[data-layer] {
+    color: var(--pk-layer);
+    font-weight: 500;
+  }
+
+  .pk-c-addr {
+    color: var(--cy-ink);
+  }
+
+  .pk-legend {
+    margin: 0;
+    color: var(--cy-ink-mute);
+    font-size: var(--hs-text-label);
+    font-family: var(--hs-read);
+    font-weight: 400;
+    line-height: var(--hs-leading-body);
+  }
+
+  .pk-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px 12px;
+  }
+
+  /* The help opens under the list and scrolls on its own, so the list keeps some rows in view. */
+  .pk-list > [data-kit="collapsible"] {
+    flex: none;
+  }
+
+  .pk-help {
+    display: grid;
+    gap: 8px;
+    max-height: 40vh;
+    overflow-y: auto;
+  }
+
+  .pk-syntax {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+  }
+
+  .pk-syntax div {
+    display: grid;
+    grid-template-columns: minmax(12ch, auto) 1fr;
+    gap: 2px 12px;
+  }
+
+  @container (max-width: 480px) {
+    .pk-syntax div {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .pk-syntax dt code,
+  .pk-record code,
+  .pk-list .state code {
+    font-family: var(--hs-mono);
+    font-size: var(--hs-text-mono);
+    color: var(--cy-signal);
+    overflow-wrap: anywhere;
+  }
+
+  .pk-syntax dd {
+    margin: 0;
+    color: var(--cy-ink-mute);
+    font-size: var(--hs-text-note);
+    font-family: var(--hs-read);
+    font-weight: 400;
+    line-height: var(--hs-leading-note);
+  }
+
+  .pk-record {
+    display: grid;
+    gap: 8px;
+    font-size: var(--hs-text-note);
+    line-height: var(--hs-leading-note);
+    font-family: var(--hs-read);
+    font-weight: 400;
+  }
+
+  .pk-record p {
+    margin: 0;
+  }
+
+  /* Dropping a file: the whole list is the target. */
+  .pk-drop {
+    position: absolute;
+    inset: 6px;
+    display: none;
+    place-items: center;
+    margin: 0;
+    border: 2px dashed var(--cy-signal);
+    background: color-mix(in srgb, var(--cy-panel) 88%, transparent);
+    color: var(--cy-signal);
+    font-size: var(--hs-text-lead);
+    font-weight: var(--hs-weight-strong);
+    pointer-events: none;
+  }
+
+  .pk-list[data-dragging] .pk-drop {
+    display: grid;
+  }
+}

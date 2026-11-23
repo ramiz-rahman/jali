@@ -1,0 +1,44 @@
+/*
+ * Daylight: CyberSpec ships only a dark skin, and every example works in light and dark. This sets CyberSpec's
+ * surface and ink tokens for a light ground, and Jali's to match. The accent and the layer colours are darkened
+ * to hold 4.5:1 on white.
+ */
+[data-theme="light"] {
+  --jali-font: var(--hs-font);
+  --jali-font-mono: var(--hs-mono);
+  --jali-canvas: #e9e8ef;
+  --jali-surface: #f7f7fa;
+  --jali-surface-raised: #ffffff;
+  --jali-border: #cfcfdb;
+  --jali-border-strong: #a9a9bb;
+  --jali-hover: #ececf3;
+  --jali-radius: 0px;
+  --jali-radius-control: 0px;
+  --jali-radius-menu: 0px;
+
+  --hs-layer-link: #6a3fc4;
+  --hs-layer-net: #00727c;
+  --hs-layer-transport: #8a6200;
+  --hs-layer-app: #0f7a3a;
+  --hs-layer-crypt: #b3123c;
+}
+
+[data-theme="light"] [data-skin="cyber"] {
+  --cy-void: #e9e8ef;
+  --cy-panel: #f7f7fa;
+  --cy-panel-2: #ffffff;
+  --cy-panel-a: rgb(247 247 250 / 0.9);
+  --cy-ink: #2b2b3a;
+  --cy-ink-hi: #0e0e16;
+  --cy-ink-mute: #565670;
+  --hs-accent-ink: oklch(from var(--cy-accent) min(l, 0.47) c h);
+  --cy-signal: #00727c;
+  --cy-flag: #8a6200;
+  --cy-on-solid: #ffffff;
+}
+
+/* CyberSpec's skin sets `color-scheme: dark`, and Jali's colours are light-dark() pairs: without this, Jali's text in
+   daylight would take its dark-theme value. */
+[data-theme="light"] [data-skin="cyber"] {
+  color-scheme: light;
+}

@@ -1,0 +1,136 @@
+/* The shared parts (panes/parts/states.tsx): a pane's body, and its loading, empty and failed states. */
+@layer app {
+  .pane-body {
+    height: 100%;
+    overflow: auto;
+    font-size: var(--hs-text-body);
+    line-height: var(--hs-leading-body);
+  }
+
+  .state {
+    display: grid;
+    gap: 8px;
+    align-content: center;
+    justify-items: start;
+    max-width: 52ch;
+    min-height: 100%;
+    margin: 0 auto;
+    padding: 16px;
+  }
+
+  .state-title {
+    margin: 0;
+    font-size: var(--hs-text-lead);
+    font-weight: var(--hs-weight-strong);
+  }
+
+  .state-text {
+    color: var(--jali-text-subtle);
+  }
+
+  /* Lists of things people read (lessons, scans, terms) in sentence case and the reading ink. CyberSpec sets its
+     item names in tracked upper case, which is fine for a word and hard to scan for a list of titles. */
+  [data-kit="item-list-name"] {
+    color: var(--cy-ink-hi);
+    font-weight: var(--hs-weight-strong);
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  [data-kit="item-list-meta"] {
+    color: var(--cy-ink-mute);
+  }
+  /* The chosen row sits on a solid fill: its text takes the kit's ink for solids. */
+  [data-selected] [data-kit="item-list-name"],
+  [data-selected] [data-kit="item-list-meta"] {
+    color: var(--cy-on-solid);
+  }
+
+  /* Figures in the reading ink. CyberSpec draws every readout in cyan; here colour means something (a warning in
+     yellow, an "ok" in green), so a plain count is plain. */
+  [data-kit="readout"][data-tone="signal"] {
+    --readout-color: var(--cy-ink-hi);
+  }
+  [data-kit="readout-label"] {
+    color: var(--cy-ink-mute);
+  }
+
+  /* The prose (panes/parts/prose.tsx), wherever it is: sentences in the reading face, real lists, code in mono. The
+     lesson sets it larger. */
+  .prose {
+    display: grid;
+    gap: 10px;
+    font-family: var(--hs-read);
+    font-size: var(--hs-text-note);
+    font-weight: 400;
+    line-height: var(--hs-leading-note);
+  }
+  .prose :where(p, ul, ol) {
+    margin: 0;
+  }
+  .prose ul {
+    display: grid;
+    gap: 6px;
+    padding-inline-start: 1.2em;
+  }
+  .prose li::marker {
+    color: var(--cy-signal);
+  }
+  .prose strong {
+    color: var(--cy-ink-hi);
+    font-weight: 700;
+  }
+  .prose code {
+    padding: 0 0.25em;
+    background: color-mix(in srgb, var(--cy-signal) 12%, transparent);
+    font-family: var(--hs-mono);
+    font-size: 0.875em;
+    overflow-wrap: anywhere;
+  }
+  .prose pre {
+    margin: 0;
+    padding: 10px 12px;
+    overflow-x: auto;
+    border: 1px solid var(--cy-line-deco);
+    background: color-mix(in srgb, var(--cy-ink-hi) 7%, transparent);
+    line-height: 1.5;
+  }
+  .prose pre code {
+    padding: 0;
+    background: none;
+    overflow-wrap: normal;
+    white-space: pre;
+  }
+
+  /* The kit's sentences: a field's hint, an empty state's text, an alert's text. */
+  [data-kit="hint"],
+  [data-kit="alert-text"],
+  .state-text {
+    font-family: var(--hs-read);
+    font-size: var(--hs-text-note);
+    font-weight: 400;
+    line-height: var(--hs-leading-note);
+    letter-spacing: normal;
+  }
+
+  /* Case and size. CyberSpec upper-cases units, table cells and list meta, and sets some micro-print at 8 to 10px.
+     Upper case changes what data says (Mbps is not MBps; an SSID is case-sensitive), so it is kept for labels
+     only, and nothing is smaller than the app's smallest size. */
+  [data-kit="readout-unit"],
+  [data-kit="data-table-cell"],
+  [data-kit="select-value-text"],
+  [data-kit="item-list-meta"] {
+    text-transform: none;
+    letter-spacing: normal;
+  }
+  [data-kit="item-list-meta"],
+  [data-kit="select-value-code"],
+  [data-kit="text-field-tag"] {
+    font-size: var(--hs-text-micro);
+  }
+
+  /* Headings, three steps: a pane's own heading (--hs-text-title, sentence case), a panel's title (--hs-text-lead,
+     the kit's tracked capitals, at one size whether or not the panel has a title bar), then labels. */
+  [data-kit="panel-title"] {
+    font-size: var(--hs-text-lead);
+  }
+}

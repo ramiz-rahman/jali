@@ -1,0 +1,169 @@
+/*
+ * The ladder and the comparison of two ladders.
+ */
+@layer app {
+  /* The ladder. */
+  .pk-ladder-summary,
+  .pk-verdict {
+    margin: 0;
+    font-family: var(--hs-read);
+    font-size: var(--hs-text-note);
+    font-weight: 400;
+    line-height: var(--hs-leading-note);
+    max-width: 80ch;
+  }
+
+  .pk-verdict {
+    padding: 8px 10px;
+    border-inline-start: 3px solid var(--cy-signal);
+    background: color-mix(in srgb, var(--cy-signal) 8%, transparent);
+  }
+
+  /* No clipping here: the svg is drawn at this box's measured width, so the pane body is what scrolls it. */
+  .pk-ladder {
+    min-width: 0;
+  }
+
+  .pk-ladder-cols {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding-inline-start: 58px;
+    font-family: var(--hs-mono);
+    font-size: var(--hs-text-micro);
+    color: var(--cy-ink-hi);
+  }
+
+  .pk-ladder-cols span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .pk-ladder-cols span:last-child {
+    text-align: end;
+  }
+
+  .pk-ladder svg {
+    display: block;
+    max-width: 100%;
+    outline: none;
+    font-family: var(--hs-mono);
+  }
+
+  .pk-ladder svg:focus-visible {
+    outline: 2px solid var(--cy-signal);
+    outline-offset: 2px;
+  }
+
+  .pk-ladder-life {
+    stroke: var(--cy-line-ctl, var(--cy-line-deco));
+    stroke-width: 2;
+  }
+
+  .pk-ladder-phase rect {
+    fill: color-mix(in srgb, var(--cy-signal) 7%, transparent);
+    stroke: color-mix(in srgb, var(--cy-signal) 35%, transparent);
+    stroke-dasharray: 3 3;
+  }
+
+  /* Labels keep a halo of the panel's colour, so a label crossing a line or a band stays legible. */
+  .pk-ladder svg text {
+    paint-order: stroke;
+    stroke: var(--cy-panel);
+    stroke-width: 4px;
+    stroke-linejoin: round;
+  }
+
+  .pk-ladder-phase text,
+  .pk-ladder-break,
+  .pk-ladder-request text,
+  .pk-ladder-time {
+    font-size: var(--hs-text-micro);
+    fill: var(--cy-ink-mute);
+  }
+
+  .pk-ladder-phase text {
+    fill: var(--cy-signal);
+  }
+
+  .pk-ladder-request line {
+    stroke: var(--hs-layer-app);
+    stroke-dasharray: 6 4;
+  }
+
+  .pk-ladder-request text {
+    fill: var(--hs-layer-app);
+  }
+
+  .pk-ladder-arrow {
+    --pk-arrow: var(--cy-ink);
+    cursor: pointer;
+  }
+
+  .pk-ladder-arrow[data-kind="crypt"] {
+    --pk-arrow: var(--hs-layer-crypt);
+  }
+
+  .pk-ladder-arrow[data-kind="flag"] {
+    --pk-arrow: var(--cy-flag);
+  }
+
+  .pk-ladder-arrow[data-kind="current"] {
+    --pk-arrow: var(--cy-signal);
+  }
+
+  .pk-ladder-hit {
+    stroke: transparent;
+    stroke-width: 16;
+  }
+
+  .pk-ladder-line {
+    stroke: var(--pk-arrow);
+    stroke-width: 1.5;
+  }
+
+  .pk-ladder-arrow[data-kind="crypt"] .pk-ladder-line {
+    stroke-dasharray: 5 3;
+  }
+
+  .pk-ladder-arrow[data-kind="current"] .pk-ladder-line {
+    stroke-width: 3;
+  }
+
+  .pk-ladder-head {
+    fill: var(--pk-arrow);
+  }
+
+  .pk-ladder-label {
+    font-size: var(--hs-text-micro);
+    fill: var(--pk-arrow);
+  }
+
+  .pk-ladder-arrow[data-kind="plain"] .pk-ladder-label {
+    fill: var(--cy-ink-hi);
+  }
+
+  .pk-ladder-arrow:hover .pk-ladder-line {
+    stroke-width: 2.5;
+  }
+
+  /* The comparison. */
+  .pk-compare-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  @container (max-width: 720px) {
+    .pk-compare-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  .pk-compare-side {
+    display: grid;
+    align-content: start;
+    gap: 8px;
+    min-width: 0;
+  }
+}

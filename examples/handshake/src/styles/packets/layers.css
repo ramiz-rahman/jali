@@ -1,0 +1,115 @@
+/*
+ * The layers: what wraps what, and OSI beside TCP/IP.
+ */
+@layer app {
+  /* The layers. */
+  .pk-nest {
+    display: grid;
+  }
+
+  .pk-nest-box {
+    display: grid;
+    gap: 6px;
+    padding: 6px 0 6px 10px;
+    border-inline-start: 3px solid var(--pk-layer);
+    background: color-mix(in srgb, var(--pk-layer) 6%, transparent);
+  }
+
+  .pk-nest-box > .pk-nest-box {
+    margin-inline-end: 6px;
+  }
+
+  .pk-nest-label {
+    font-size: var(--hs-text-label);
+    overflow-wrap: anywhere;
+  }
+
+  .pk-nest-label b {
+    color: var(--pk-layer);
+    font-family: var(--hs-mono);
+    font-size: var(--hs-text-mono);
+  }
+
+  .pk-bar {
+    display: flex;
+    height: 10px;
+    border: 1px solid var(--cy-line-deco);
+  }
+
+  .pk-bar span {
+    flex-basis: 0;
+    min-width: 2px;
+    background: var(--pk-layer);
+  }
+
+  .pk-models {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.4fr) minmax(0, 0.8fr);
+    gap: 2px;
+  }
+
+  .pk-models-head,
+  .pk-models-row {
+    display: contents;
+  }
+
+  .pk-models-head span {
+    padding: 2px 6px;
+    font-size: var(--hs-text-label);
+    font-weight: var(--hs-weight-strong);
+    letter-spacing: var(--hs-tracking-label);
+    text-transform: uppercase;
+    color: var(--cy-ink-mute);
+  }
+
+  .pk-osi,
+  .pk-here,
+  .pk-tcpip {
+    padding: 6px;
+    background: var(--cy-panel-2, var(--cy-panel));
+    border: 1px solid var(--cy-line-deco);
+    min-width: 0;
+  }
+
+  .pk-osi {
+    display: grid;
+    gap: 2px;
+    font-size: var(--hs-text-label);
+  }
+
+  .pk-here {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: center;
+    gap: 4px;
+  }
+
+  .pk-tcpip {
+    display: grid;
+    place-items: center;
+    border-inline-start: 3px solid var(--pk-layer);
+    color: var(--pk-layer);
+    text-align: center;
+    font-size: var(--hs-text-label);
+  }
+
+  @container (max-width: 420px) {
+    .pk-models {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) minmax(0, 0.7fr);
+    }
+
+    .pk-osi .pk-muted {
+      display: none;
+    }
+  }
+
+  .pk-caveats {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding-inline-start: 18px;
+    font-size: var(--hs-text-body);
+    line-height: var(--hs-leading-prose);
+    max-width: 75ch;
+  }
+}

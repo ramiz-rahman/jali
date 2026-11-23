@@ -1,0 +1,296 @@
+/*
+ * The course's panes: the outline, the lesson (prose, step dots, the card that says what the lab is showing, the
+ * try-it card, the self-check) and the glossary. Sizes are the app's type tokens; colours are CyberSpec's.
+ */
+@layer app {
+  /* The outline. */
+  .lessons-body {
+    display: grid;
+    align-content: start;
+    gap: 16px;
+    padding: 14px;
+  }
+  /* A lesson's title is long: let it wrap rather than cut it, and keep the kit's meta column at the app's smallest size. */
+  .lessons [data-kit="item-list-row"] {
+    padding-block: 6px;
+  }
+  .lessons [data-kit="item-list-name"] {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .lessons [data-kit="item-list-meta"] {
+    font-size: var(--hs-text-micro);
+  }
+  /* Name over meta, so a long title gets the whole row. */
+  .lessons [data-kit="item-list-row"] {
+    grid-template-rows: auto auto;
+    row-gap: 2px;
+  }
+  .lessons [data-kit="item-list-lead"] {
+    grid-row: 1 / span 2;
+  }
+  .lessons [data-kit="item-list-name"] {
+    grid-column: 2 / -1;
+  }
+  .lessons [data-kit="item-list-meta"] {
+    display: block;
+    grid-column: 2 / -1;
+    grid-row: 2;
+  }
+  .lessons [data-kit="item-list-name"] {
+    font-size: var(--hs-text-body);
+    line-height: 1.25;
+  }
+
+  /* A lesson: its own scroller, so the step navigation can stay at the foot of the pane. */
+  .lesson {
+    container-type: inline-size;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: auto;
+    font-size: var(--hs-text-body);
+    line-height: var(--hs-leading-prose);
+    font-weight: var(--hs-weight-body);
+    /* CyberSpec's text is its accent; long prose reads in its high ink instead. */
+    color: var(--cy-ink-hi);
+    scroll-padding-block-end: 64px;
+  }
+  .lesson:focus-visible {
+    outline: 2px solid var(--cy-signal);
+    outline-offset: -2px;
+  }
+  .lesson :where(h2, h3, p, ul, ol) {
+    margin: 0;
+  }
+
+  .lesson-head {
+    display: grid;
+    gap: 6px;
+    padding: 16px 18px 12px;
+    border-block-end: 1px solid var(--cy-line-deco);
+  }
+  .lesson-kicker,
+  .lesson-count {
+    color: var(--cy-signal);
+    font-size: var(--hs-text-label);
+    font-weight: var(--hs-weight-strong);
+    letter-spacing: var(--hs-tracking-label);
+    text-transform: uppercase;
+  }
+  .lesson-head h2 {
+    color: var(--cy-ink-hi);
+    font-size: var(--hs-text-title);
+    font-weight: var(--hs-weight-title);
+    line-height: 1.2;
+  }
+  .lesson-promise {
+    color: var(--cy-ink-mute);
+    font-family: var(--hs-read);
+    font-size: var(--hs-text-read);
+    font-weight: 400;
+    line-height: var(--hs-leading-body);
+  }
+
+  /* Step dots: one per page, the current one lit. 24px hit areas around 10px marks. */
+  .lesson-dots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    padding: 0;
+    margin-block-start: 4px;
+    list-style: none;
+  }
+  .lesson-dot {
+    position: relative;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+  }
+  .lesson-dot::before {
+    content: "";
+    position: absolute;
+    inset: 7px;
+    border: 1px solid var(--cy-ink-mute);
+    background: transparent;
+  }
+  .lesson-dot[data-seen]::before {
+    background: var(--cy-ink-mute);
+  }
+  .lesson-dot[aria-current="step"]::before {
+    border-color: var(--cy-signal);
+    background: var(--cy-signal);
+    inset: 5px;
+  }
+  .lesson-dot:focus-visible {
+    outline: 2px solid var(--cy-signal);
+    outline-offset: -2px;
+  }
+
+  .lesson-page {
+    display: grid;
+    align-content: start;
+    gap: 12px;
+    flex: 1;
+    max-width: 64ch;
+    padding: 18px 20px 24px;
+  }
+
+  /* Reading. Everything in a step that is read as sentences is set in the reading face, at a size and leading made
+     for paragraphs, in the reading ink rather than the brightest: white on near-black glares over a whole page.
+     Headings, kickers and badges stay in Rajdhani, so the skin is unchanged. */
+  .lesson-page .prose,
+  .lesson-lab p:not(.lesson-lab-note),
+  .lesson-try p,
+  .glossary-def {
+    color: var(--cy-ink);
+    font-family: var(--hs-read);
+    font-size: var(--hs-text-read);
+    font-weight: 400;
+    line-height: var(--hs-leading-read);
+  }
+  .lesson-page .prose {
+    gap: 14px;
+  }
+  .lesson-page h3 {
+    color: var(--cy-ink-hi);
+    font-size: var(--hs-text-title);
+    font-weight: var(--hs-weight-title);
+    line-height: 1.2;
+  }
+
+  /* A glossary link: reads as text, behaves as a key. */
+  .term {
+    padding: 0;
+    border: 0;
+    border-block-end: 1px dotted var(--cy-signal);
+    background: none;
+    color: inherit;
+    font: inherit;
+    cursor: help;
+  }
+  .term:hover {
+    background: color-mix(in srgb, var(--cy-signal) 16%, transparent);
+  }
+  .term:focus-visible {
+    outline: 2px solid var(--cy-signal);
+    outline-offset: 1px;
+  }
+
+  /* What the lab is showing, and the try-it prompt. */
+  .lesson-lab,
+  .lesson-try {
+    display: grid;
+    gap: 8px;
+    justify-items: start;
+    padding: 10px 12px;
+    border: 1px solid var(--cy-line-deco);
+    border-inline-start: 3px solid var(--cy-signal);
+  }
+  .lesson-try {
+    border-inline-start-color: var(--cy-flag);
+  }
+  .lesson-lab p,
+  .lesson-try p {
+    margin-block-start: 4px;
+  }
+  .lesson-lab-note {
+    color: var(--cy-ink-mute);
+    font-size: var(--hs-text-note);
+    font-family: var(--hs-read);
+    font-weight: 400;
+  }
+
+  .lesson-check {
+    display: grid;
+    gap: 18px;
+    padding-inline-start: 1.4em;
+  }
+  .lesson-check > li {
+    display: grid;
+    gap: 8px;
+  }
+  .lesson-check > li::marker {
+    color: var(--cy-signal);
+    font-weight: var(--hs-weight-title);
+  }
+
+  .lesson-nav {
+    position: sticky;
+    inset-block-end: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 14px;
+    border-block-start: 1px solid var(--cy-line-deco);
+    background: var(--cy-panel);
+  }
+  .lesson-where {
+    color: var(--cy-ink-mute);
+    font-family: var(--hs-mono);
+    font-size: var(--hs-text-label);
+  }
+
+  /* The glossary: list beside the entry when there is room, above it when there is not. */
+  .glossary {
+    container-type: size;
+    height: 100%;
+  }
+  .glossary-grid {
+    display: grid;
+    grid-template-columns: minmax(180px, 240px) minmax(0, 1fr);
+    gap: 14px;
+    height: 100%;
+    padding: 12px;
+    overflow: hidden;
+  }
+  .glossary-list {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 10px;
+    min-height: 0;
+  }
+  .glossary-list [data-kit="item-list"] {
+    min-height: 0;
+    overflow: auto;
+  }
+  .glossary-entry {
+    min-height: 0;
+    overflow: auto;
+  }
+  .glossary-def {
+    margin: 0;
+  }
+  .glossary-ref {
+    margin: 12px 0 0;
+    color: var(--cy-ink-mute);
+    font-size: var(--hs-text-label);
+  }
+  .glossary-related h3 {
+    margin: 16px 0 6px;
+    color: var(--cy-signal);
+    font-size: var(--hs-text-label);
+    letter-spacing: var(--hs-tracking-label);
+    text-transform: uppercase;
+  }
+  .glossary-related ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+  @container (max-width: 520px) {
+    .glossary-grid {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: minmax(120px, 40%) minmax(0, 1fr);
+    }
+  }
+}

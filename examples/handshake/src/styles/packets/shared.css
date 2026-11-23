@@ -1,0 +1,98 @@
+/*
+ * What every packet pane shares: the head line, muted and mono text, and the layer chips. Sizes are the app's type
+ * scale (tokens.css); colours are CyberSpec's tokens and the layer colours, so both themes follow without anything
+ * here naming a theme.
+ */
+@layer app {
+  /* Shared. */
+  .pk-packet,
+  .pk-bytes,
+  .pk-layers,
+  .pk-ladder-pane,
+  .pk-compare {
+    display: grid;
+    align-content: start;
+    gap: 10px;
+    padding: 12px;
+    container-type: inline-size;
+  }
+
+  .pk-mono {
+    font-family: var(--hs-mono);
+    font-size: var(--hs-text-mono);
+  }
+
+  .pk-muted {
+    color: var(--cy-ink-mute);
+    font-size: var(--hs-text-label);
+  }
+
+  .pk-packet-head,
+  .pk-bytes-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 10px;
+    min-width: 0;
+  }
+
+  .pk-packet-title {
+    margin: 0;
+    min-width: 0;
+    font-size: var(--hs-text-body);
+    overflow-wrap: anywhere;
+  }
+
+  .pk-file {
+    color: var(--cy-ink-mute);
+    font-family: var(--hs-mono);
+    font-size: var(--hs-text-micro);
+    overflow-wrap: anywhere;
+  }
+
+  .pk-section {
+    margin: 6px 0 0;
+    font-size: var(--hs-text-label);
+    font-weight: var(--hs-weight-strong);
+    letter-spacing: var(--hs-tracking-label);
+    text-transform: uppercase;
+    color: var(--cy-ink-mute);
+  }
+
+  /* A layer's colour as a chip: legend entries, the lit field's layer, headers on the models. */
+  .pk-layer-chip {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 1px 7px;
+    border: 1px solid currentColor;
+    font-family: var(--hs-mono);
+    font-size: var(--hs-text-micro);
+    line-height: 1.6;
+    white-space: nowrap;
+  }
+
+  .pk-chip-size {
+    color: var(--cy-ink-mute);
+  }
+
+  [data-layer="link"] {
+    --pk-layer: var(--hs-layer-link);
+  }
+  [data-layer="net"] {
+    --pk-layer: var(--hs-layer-net);
+  }
+  [data-layer="transport"] {
+    --pk-layer: var(--hs-layer-transport);
+  }
+  [data-layer="app"] {
+    --pk-layer: var(--hs-layer-app);
+  }
+  [data-layer="crypt"] {
+    --pk-layer: var(--hs-layer-crypt);
+  }
+
+  .pk-layer-chip[data-layer] {
+    color: var(--pk-layer);
+  }
+}

@@ -1,0 +1,85 @@
+/*
+ * The lab's tokens. Jali's tokens are set from CyberSpec's (--cy-*), so Jali's frames, tabs, menus and ⌘K wear the
+ * same skin as the components inside the panes. Set unlayered on the scopes Jali uses for dark, so they win.
+ *
+ * The type scale: every size the app sets is one of these, named for what the text is for. Nothing is smaller than
+ * 11px. Rajdhani is condensed, so its sizes run a step larger than a text face's would.
+ *
+ * Rajdhani is a display face: narrow, with a small x-height. It is the skin for headings, labels and controls, but a
+ * paragraph of it tires the eye. The rule: a word or a label is Rajdhani; a sentence is --hs-read, a face drawn for
+ * legibility, at --hs-text-read in lessons and the glossary and --hs-text-note everywhere else; a value someone might
+ * copy (an address, a byte, a header) is mono. Case is never transformed on data or units: an SSID, a hostname and
+ * "dBm" mean what they say only as written.
+ */
+:root {
+  --hs-font: "Rajdhani", "Saira Condensed", system-ui, sans-serif;
+  --hs-read: "Atkinson Hyperlegible Next", system-ui, sans-serif;
+  --hs-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --hs-text-micro: 11px; /* micro-print, axis ticks (mono) */
+  --hs-text-label: 13px; /* field labels, column heads, badges */
+  --hs-text-body: 15px; /* lists, prose in lessons, values */
+  --hs-text-note: 14px; /* sentences inside a tool pane, in --hs-read: intros, notes, hints, reasons */
+  --hs-text-read: 16px; /* long-form prose in --hs-read: lessons, the glossary */
+  --hs-text-lead: 17px; /* a lesson's lead paragraph, pane intros */
+  --hs-text-title: 20px; /* a pane's own heading */
+  --hs-text-figure: 32px; /* big readouts: Mbps, ms */
+  --hs-text-mono: 12.5px; /* bytes, addresses, dissected values */
+
+  --hs-weight-body: 500;
+  --hs-weight-strong: 600;
+  --hs-weight-title: 700;
+  --hs-tracking-label: 0.08em; /* upper-case labels */
+  --hs-leading-body: 1.4;
+  --hs-leading-prose: 1.55;
+  --hs-leading-note: 1.5; /* --hs-read at note size */
+  --hs-leading-read: 1.65; /* --hs-read at reading size */
+
+  /* The protocol layers' colours, for bytes and layer diagrams: link, internet, transport, application, and the
+     encrypted part nobody on the path can read. Held to 4.5:1 as text on --cy-panel. */
+  --hs-layer-link: #b48cff;
+  --hs-layer-net: #5ef6ff;
+  --hs-layer-transport: #ffd23f;
+  --hs-layer-app: #5dff9e;
+  --hs-layer-crypt: #ff6b8b;
+}
+
+/*
+ * Ink. CyberSpec derives its text inks from the accent, so everything people read comes out red: lesson titles,
+ * table labels, notes, packet summaries. Red reads as "error", and a page of it tires the eye. Here text is a calm
+ * neutral in three steps (hi for what matters, ink for reading, mute for supporting), and the accent is kept for
+ * what the kit draws with it: frames, controls' edges, the active state and focus. Unlayered, so it wins.
+ */
+[data-skin="cyber"] {
+  --cy-ink-hi: #f1f1f6;
+  --cy-ink: #cfd0dc;
+  --cy-ink-mute: #9596ab;
+  /* Headings and kickers that should carry the accent use this, not --cy-ink. */
+  --hs-accent-ink: oklch(from var(--cy-accent) max(l, 0.7) min(c, 0.19) h);
+
+  /* Jali's accent is the theme red: the focused pane's ring, the chosen tab, drop targets and ⌘K's cursor all
+     speak the same colour as CyberSpec's controls. Jali derives its focus ring and tints from this. */
+  --jali-accent: var(--hs-accent-ink);
+  /* CyberSpec names the variable JetBrains Mono first, which this app doesn't load: one mono, at the weights loaded. */
+  --cy-mono: var(--hs-mono);
+  /* CyberSpec's micro-print is 8px (panel codes, list indexes, table counts); the app's floor is 11px. */
+  --cy-text-micro: var(--hs-text-micro);
+  --jali-accent-soft: color-mix(in srgb, var(--cy-accent) 18%, var(--cy-panel));
+  --jali-on-accent: var(--cy-on-solid);
+}
+
+.dark,
+[data-theme="dark"] {
+  --jali-font: var(--hs-font);
+  --jali-font-mono: var(--hs-mono);
+  --jali-canvas: #07070c;
+  --jali-surface: #0e0e17;
+  --jali-surface-raised: #151523;
+  --jali-border: #262638;
+  --jali-border-strong: #3a3a52;
+  --jali-hover: #171726;
+  --jali-text-faint: #8b8ba3;
+  --jali-radius: 0px;
+  --jali-radius-control: 0px;
+  --jali-radius-menu: 0px;
+}

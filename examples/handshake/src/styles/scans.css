@@ -1,0 +1,467 @@
+/*
+ * The scans area: the Scans, Wi-Fi, Devices and Path panes. Type sizes are the app's scale (tokens.css), colours are
+ * CyberSpec's tokens, so both themes follow without anything here naming a theme.
+ */
+@layer app {
+  /* Shared by the four panes. */
+  .scans,
+  .wifi,
+  .devices,
+  .path {
+    display: grid;
+    align-content: start;
+    gap: 12px;
+    padding: 12px;
+    container-type: inline-size;
+  }
+
+  .scan-head {
+    display: grid;
+    gap: 4px;
+  }
+
+  .scan-head-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 10px;
+    min-width: 0;
+  }
+
+  .scan-head-title {
+    font-size: var(--hs-text-title);
+    font-weight: var(--hs-weight-title);
+    line-height: 1.2;
+  }
+
+  .scan-head-format {
+    color: var(--cy-ink-mute);
+    font-size: var(--hs-text-label);
+    line-height: var(--hs-leading-body);
+  }
+
+  .scan-note {
+    color: var(--cy-ink-mute);
+    font-family: var(--hs-read);
+    font-size: var(--hs-text-note);
+    font-weight: 400;
+    line-height: var(--hs-leading-note);
+  }
+
+  .scan-note {
+    margin: 0;
+  }
+
+  .mono {
+    font-family: var(--hs-mono);
+    font-size: var(--hs-text-mono);
+  }
+
+  /* The tables' selection column is the kit's: these tables are read, not picked from. */
+  .net-table [data-col="select"],
+  .dev-table [data-col="select"],
+  .net-table [data-kit="data-table-foot"],
+  .dev-table [data-kit="data-table-foot"] {
+    display: none;
+  }
+
+  /* ---- Scans ---- */
+  .scans-grid {
+    display: grid;
+    gap: 12px;
+    align-items: start;
+  }
+
+  @container (min-width: 900px) {
+    .scans-grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+    }
+  }
+
+  .scans-col {
+    display: grid;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .scan-commands {
+    display: grid;
+    gap: 14px;
+    padding-top: 8px;
+  }
+
+  .scan-command {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .scan-command-title {
+    margin: 0;
+    font-size: var(--hs-text-body);
+    font-weight: var(--hs-weight-title);
+    letter-spacing: var(--hs-tracking-label);
+    text-transform: uppercase;
+  }
+
+  .scan-command-what {
+    margin: 0;
+    font-size: var(--hs-text-note);
+    line-height: var(--hs-leading-note);
+    font-family: var(--hs-read);
+    font-weight: 400;
+  }
+
+  .scan-drop {
+    display: grid;
+    gap: 10px;
+    padding: 8px;
+    border: 1px dashed var(--cy-line-deco);
+  }
+
+  .scan-drop[data-dragging] {
+    border-color: var(--cy-signal);
+    background: color-mix(in srgb, var(--cy-signal) 8%, transparent);
+  }
+
+  .scan-textarea {
+    font-family: var(--hs-mono);
+    font-size: var(--hs-text-mono);
+  }
+
+  .scan-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .scan-picked {
+    display: grid;
+    gap: 6px;
+    padding-top: 4px;
+  }
+
+  /* ---- Wi-Fi ---- */
+  .own {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 14px;
+  }
+
+  .own-figure {
+    display: grid;
+    gap: 6px;
+    justify-items: start;
+    align-content: start;
+  }
+
+  .band {
+    display: grid;
+    gap: 12px;
+    padding-top: 10px;
+    min-width: 0;
+  }
+
+  .map {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .map-focus {
+    min-width: 0;
+    border: 1px solid var(--cy-line-deco);
+    background: color-mix(in srgb, var(--cy-panel) 92%, var(--cy-signal));
+  }
+
+  .map-svg {
+    display: block;
+    font-family: var(--hs-mono);
+  }
+
+  .map-grid {
+    stroke: var(--cy-line-deco);
+    stroke-dasharray: 2 4;
+    stroke-width: 1;
+  }
+
+  .map-axis {
+    stroke: var(--cy-ink-mute);
+    stroke-width: 1;
+  }
+
+  .map-tick,
+  .map-name,
+  .map-suggest-label {
+    fill: var(--cy-ink-mute);
+    font-size: var(--hs-text-micro);
+  }
+
+  .map-name {
+    fill: var(--cy-ink-hi);
+    pointer-events: none;
+  }
+
+  .map-suggest {
+    fill: color-mix(in srgb, var(--cy-ok) 8%, transparent);
+    stroke: var(--cy-ok);
+    stroke-dasharray: 5 4;
+    stroke-width: 1.5;
+  }
+
+  .map-suggest-label {
+    fill: var(--cy-ok);
+  }
+
+  .map-net {
+    cursor: pointer;
+  }
+
+  .map-net path {
+    fill: color-mix(in srgb, var(--cy-signal) 16%, transparent);
+    stroke: var(--cy-signal);
+    stroke-width: 1.5;
+  }
+
+  .map-net[data-unknown] path {
+    stroke-dasharray: 3 3;
+  }
+
+  .map-net[data-current] path {
+    fill: color-mix(in srgb, var(--cy-accent) 26%, transparent);
+    stroke: var(--cy-accent);
+    stroke-width: 2.5;
+  }
+
+  /* The selected network is outlined in the brightest ink, whatever its colour, so "you" stays the accent. */
+  .map-net[data-selected] path {
+    fill: color-mix(in srgb, var(--cy-flag) 30%, transparent);
+    stroke: var(--cy-ink-hi);
+    stroke-width: 3;
+  }
+
+  .map-net[data-selected][data-current] path {
+    fill: color-mix(in srgb, var(--cy-accent) 30%, transparent);
+  }
+
+  .map-focus:focus-visible {
+    outline: 2px solid var(--cy-flag);
+    outline-offset: 2px;
+  }
+
+  .map-read {
+    margin: 0;
+    min-height: 2.8em;
+    font-size: var(--hs-text-label);
+    color: var(--cy-ink-mute);
+    line-height: var(--hs-leading-body);
+  }
+
+  .map-read b {
+    color: var(--cy-ink-hi);
+  }
+
+  .rec-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 14px;
+    margin: 0 0 8px;
+  }
+
+  .rec-big {
+    font-size: var(--hs-text-title);
+    font-weight: var(--hs-weight-title);
+    color: var(--cy-ink-hi);
+  }
+
+  .rec-sub {
+    color: var(--cy-ink-mute);
+    font-size: var(--hs-text-body);
+  }
+
+  .rec-reasons {
+    display: grid;
+    gap: 6px;
+    margin: 0 0 12px;
+    padding-left: 18px;
+    font-size: var(--hs-text-note);
+    line-height: var(--hs-leading-note);
+    font-family: var(--hs-read);
+    font-weight: 400;
+  }
+
+  .rec-ranked {
+    display: grid;
+    gap: 10px;
+  }
+
+  .net-name,
+  .net-signal,
+  .dev-notes {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 6px;
+  }
+
+  .net-name [data-hidden] {
+    color: var(--cy-ink-mute);
+    font-style: italic;
+  }
+
+  .dev-muted {
+    color: var(--cy-ink-mute);
+  }
+
+  /* ---- Devices ---- */
+  .dev-counts,
+  .path-figures {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 12px;
+  }
+
+  /* ---- Path ---- */
+  .hops {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border: 1px solid var(--cy-line-deco);
+  }
+
+  .hops:focus-visible {
+    outline: 2px solid var(--cy-flag);
+    outline-offset: 2px;
+  }
+
+  .hop {
+    position: relative;
+    display: grid;
+    grid-template-columns: 2ch minmax(0, 1fr) minmax(60px, 0.8fr) 7ch;
+    gap: 4px 12px;
+    align-items: center;
+    padding: 8px 10px 8px 12px;
+    border-top: 1px solid var(--cy-line-deco);
+    font-size: var(--hs-text-body);
+    cursor: pointer;
+  }
+
+  .hop:first-child {
+    border-top: 0;
+  }
+
+  .hop[data-selected] {
+    background: color-mix(in srgb, var(--cy-signal) 12%, transparent);
+    box-shadow: inset 3px 0 0 var(--cy-signal);
+  }
+
+  .hop[data-silent] .hop-addr {
+    color: var(--cy-ink-mute);
+  }
+
+  .hop-n {
+    font-family: var(--hs-mono);
+    font-size: var(--hs-text-mono);
+    color: var(--cy-ink-mute);
+  }
+
+  .hop-who {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .hop-addr {
+    overflow-wrap: anywhere;
+    font-family: var(--hs-mono);
+    font-size: var(--hs-text-mono);
+  }
+
+  .hop-ip {
+    color: var(--cy-ink-mute);
+    font-family: var(--hs-mono);
+    font-size: var(--hs-text-micro);
+  }
+
+  .hop-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .hop-bar {
+    position: relative;
+    display: block;
+    height: 12px;
+    background: color-mix(in srgb, var(--cy-ink-mute) 14%, transparent);
+  }
+
+  .hop-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: var(--cy-signal);
+  }
+
+  .hop[data-jump="real"] .hop-fill {
+    background: var(--cy-flag);
+  }
+
+  .hop[data-jump="artefact"] .hop-fill {
+    background: repeating-linear-gradient(135deg, var(--cy-flag) 0 3px, transparent 3px 6px);
+  }
+
+  .hop-range {
+    position: absolute;
+    top: 4px;
+    height: 4px;
+    background: color-mix(in srgb, var(--cy-ink-hi) 55%, transparent);
+  }
+
+  .hop-none {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    padding-left: 6px;
+    border: 1px dashed var(--cy-line-deco);
+    color: var(--cy-ink-mute);
+    font-size: var(--hs-text-micro);
+  }
+
+  .hop-ms {
+    text-align: right;
+    font-family: var(--hs-mono);
+    font-size: var(--hs-text-mono);
+  }
+
+  .hop-notes {
+    display: grid;
+    gap: 6px;
+    padding-left: 18px;
+  }
+
+  /* On a phone the bar drops under the address, full width, and the time sits beside the address. */
+  @container (max-width: 520px) {
+    .hop {
+      grid-template-columns: 2ch minmax(0, 1fr) 7ch;
+    }
+
+    .hop-bar {
+      grid-column: 2 / 4;
+      grid-row: 2;
+    }
+  }
+
+  .fig-none {
+    display: grid;
+    gap: 2px;
+  }
+
+  .fig-none-value {
+    color: var(--cy-ink-mute);
+    font-size: var(--hs-text-figure);
+    line-height: 1;
+  }
+}

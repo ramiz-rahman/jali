@@ -1,0 +1,69 @@
+/*
+ * The dissection: the header tree and the note on the lit field.
+ */
+@layer app {
+  /* The dissection. */
+  .pk-info {
+    margin: 0;
+    color: var(--cy-ink);
+    overflow-wrap: anywhere;
+  }
+
+  .pk-tree-tools {
+    display: flex;
+    gap: 6px;
+  }
+
+  .pk-packet [data-kit="tree-name"] {
+    font-family: var(--hs-mono);
+    font-size: var(--hs-text-mono);
+    overflow-wrap: anywhere;
+    white-space: normal;
+    /* A name that wraps (an IPv6 pair in a narrow pane) needs room between its lines and the next row's. */
+    line-height: 1.35;
+    padding-block: 3px;
+  }
+
+  /* CyberSpec's tree sets its rows in upper case with wide tracking, and its meta at 10px: field names and values
+     are read as written, and nothing in the app is under 11px. */
+  .pk-packet [data-kit="tree-row"] {
+    height: auto;
+    min-height: var(--row, 28px);
+    text-transform: none;
+    letter-spacing: normal;
+  }
+
+  .pk-packet [data-kit="tree-meta"] {
+    font-size: var(--hs-text-micro);
+    color: var(--cy-ink-mute);
+  }
+
+  .pk-hint {
+    margin: 0;
+    color: var(--cy-ink-mute);
+    font-size: var(--hs-text-note);
+    line-height: var(--hs-leading-note);
+    font-family: var(--hs-read);
+    font-weight: 400;
+  }
+
+  .pk-note p {
+    margin: 0 0 6px;
+  }
+
+  .pk-note-value {
+    color: var(--cy-ink-hi);
+    overflow-wrap: anywhere;
+  }
+
+  .pk-note-bytes {
+    color: var(--cy-signal);
+    overflow-wrap: anywhere;
+  }
+
+  .pk-note-why {
+    font-size: var(--hs-text-body);
+    line-height: var(--hs-leading-prose);
+    max-width: 70ch;
+  }
+}

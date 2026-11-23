@@ -1,0 +1,144 @@
+/* The chrome round the panes: the skin fills the window, the top bar, Jali's view, and the status line. */
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--jali-canvas);
+  color: var(--jali-text);
+  font-family: var(--hs-font);
+  font-weight: var(--hs-weight-body);
+}
+
+@layer app {
+  .skin {
+    height: 100%;
+  }
+
+  .app {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    height: 100%;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-width: 0;
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--jali-border);
+  }
+
+  .topbar-name {
+    font-size: var(--hs-text-title);
+    font-weight: var(--hs-weight-title);
+    letter-spacing: var(--hs-tracking-label);
+    text-transform: uppercase;
+  }
+
+  .topbar-presets {
+    display: flex;
+    gap: 4px;
+    min-width: 0;
+    overflow-x: auto;
+  }
+
+  .status {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    padding: 4px 12px;
+    border-top: 1px solid var(--jali-border);
+    font-size: var(--hs-text-label);
+  }
+
+  .status-focus {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@layer app {
+  .brand {
+    display: grid;
+    flex: none;
+    color: var(--cy-ink-hi);
+    text-decoration: none;
+  }
+
+  .brand-name {
+    font-size: var(--hs-text-title);
+    font-weight: var(--hs-weight-title);
+    letter-spacing: var(--hs-tracking-label);
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  /* Decoration, hidden from screen readers (the link's name says what it is), but still held to 4.5:1. */
+  .brand-micro {
+    color: var(--jali-text-subtle);
+    font-size: var(--hs-text-micro);
+    opacity: 1;
+  }
+
+  /* The maker's link is small type: give it a 24px target (WCAG 2.5.8). */
+  .status > .maker,
+  .status > .built-with {
+    min-height: 24px;
+  }
+
+  .topbar-presets {
+    flex: 1;
+  }
+
+  .topbar-presets-select {
+    display: none;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .topbar-end {
+    display: flex;
+    flex: none;
+    gap: 6px;
+    margin-left: auto;
+  }
+
+  .topbar kbd {
+    font-family: var(--hs-mono);
+    font-size: var(--hs-text-label);
+  }
+
+  /* Narrow: the layouts in a select, so the bar never scrolls sideways. */
+  @media (width < 900px) {
+    .topbar-presets {
+      display: none;
+    }
+
+    .topbar-presets-select {
+      display: block;
+    }
+
+    /* The select keeps its label for screen readers; on screen the chosen layout's name says enough. */
+    .topbar-presets-select [data-kit="label"] {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    .brand-micro {
+      display: none;
+    }
+  }
+}

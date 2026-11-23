@@ -1,0 +1,78 @@
+/*
+ * The bytes: the hex dump coloured by layer, and the status line under it.
+ */
+@layer app {
+  /* The bytes. */
+  .pk-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .pk-hex {
+    display: grid;
+    gap: 1px;
+    padding: 6px;
+    border: 1px solid var(--cy-line-deco);
+    font-family: var(--hs-mono);
+    font-size: var(--hs-text-mono);
+    line-height: 1.5;
+    outline: none;
+  }
+
+  .pk-hex:focus-visible {
+    box-shadow: 0 0 0 2px var(--cy-signal);
+  }
+
+  .pk-hex-row {
+    display: flex;
+    gap: 2ch;
+    white-space: pre;
+  }
+
+  .pk-hex-off {
+    color: var(--cy-ink-mute);
+  }
+
+  .pk-hex-bytes {
+    display: flex;
+    gap: 1ch;
+  }
+
+  .pk-hex-bytes span,
+  .pk-hex-ascii span {
+    color: var(--pk-layer, var(--cy-ink));
+    cursor: default;
+  }
+
+  .pk-hex-bytes span[data-lit],
+  .pk-hex-ascii span[data-lit] {
+    background: var(--pk-layer, var(--cy-signal));
+    color: var(--cy-void);
+  }
+
+  .pk-hex-bytes span[data-cursor],
+  .pk-hex-ascii span[data-cursor] {
+    outline: 2px solid var(--cy-ink-hi);
+    outline-offset: 0;
+  }
+
+  .pk-bytes-status {
+    margin: 0;
+    min-height: 2.8em;
+    color: var(--cy-ink);
+    font-family: var(--hs-mono);
+    font-size: var(--hs-text-mono);
+    overflow-wrap: anywhere;
+  }
+  /* Before a byte is chosen it says how to choose one: a sentence, so the reading face; a byte's field is mono. */
+  .pk-bytes-status[data-hint] {
+    color: var(--cy-ink-mute);
+    font-family: var(--hs-read);
+    font-size: var(--hs-text-note);
+    line-height: var(--hs-leading-note);
+  }
+}

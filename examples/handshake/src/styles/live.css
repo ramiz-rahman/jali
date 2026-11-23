@@ -1,0 +1,277 @@
+/* Measurement and domain-probe layout: narrow panes keep values readable and wrap long wire fields. */
+@layer app {
+  .hs-measure {
+    display: grid;
+    align-content: start;
+    gap: 22px;
+    min-width: 0;
+    padding: 16px;
+    --cy-text-micro: var(--hs-text-micro);
+    --cy-text-xs: var(--hs-text-micro);
+    --cy-text-sm: var(--hs-text-label);
+    --cy-text-md: var(--hs-text-body);
+    --cy-text-lg: var(--hs-text-lead);
+    --cy-text-xl: var(--hs-text-title);
+    --cy-text-2xl: var(--hs-text-figure);
+    --cy-text-3xl: var(--hs-text-figure);
+    font-size: var(--hs-text-body);
+    line-height: var(--hs-leading-body);
+  }
+  .hs-measure :where(h2, h3, h4, h5, p) {
+    margin: 0;
+  }
+  .hs-measure h2 {
+    font-size: var(--hs-text-title);
+    font-weight: var(--hs-weight-title);
+  }
+  .hs-measure h4 {
+    font-size: var(--hs-text-lead);
+    font-weight: var(--hs-weight-strong);
+  }
+  .hs-measure h5 {
+    font-size: var(--hs-text-label);
+    letter-spacing: var(--hs-tracking-label);
+    font-weight: var(--hs-weight-strong);
+  }
+  .hs-measure code {
+    font-family: var(--hs-mono);
+    font-size: var(--hs-text-mono);
+    overflow-wrap: anywhere;
+  }
+  .hs-measure :where([data-kit="panel-body"]) {
+    display: grid;
+    gap: 16px;
+    min-width: 0;
+  }
+  .hs-measure
+    :where(
+      [data-kit="panel"],
+      [data-kit="panel-surface"],
+      [data-kit="panel-head"],
+      [data-kit="panel-actions"]
+    ) {
+    min-width: 0;
+  }
+  .hs-measure [data-kit="panel-head"] {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  /* The kit's decorative micro-print is 8px and mixes its ink below contrast. Keep the code legible too. */
+  .hs-measure [data-micro] {
+    color: var(--cy-ink-mute);
+    opacity: 1;
+  }
+  .hs-measure [data-kit="panel-actions"] {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+  .hs-measure-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: start;
+    justify-content: space-between;
+    gap: 14px;
+  }
+  .hs-measure-head > div {
+    flex: 1 1 230px;
+  }
+  .hs-measure-head p {
+    color: var(--cy-ink-mute);
+    margin-top: 6px;
+    font-family: var(--hs-read);
+    font-size: var(--hs-text-note);
+    font-weight: 400;
+    line-height: var(--hs-leading-note);
+  }
+  .hs-measure-head [data-kit="badge"] {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    max-width: 100%;
+  }
+  .hs-note {
+    color: var(--cy-ink-mute);
+    font-size: var(--hs-text-note);
+    line-height: var(--hs-leading-note);
+    overflow-wrap: anywhere;
+    font-family: var(--hs-read);
+    font-weight: 400;
+  }
+  /* A sentence that matters more than a note: the reading face at note size, in the reading ink. */
+  .hs-say {
+    font-family: var(--hs-read);
+    font-size: var(--hs-text-note);
+    font-weight: 400;
+    line-height: var(--hs-leading-note);
+  }
+  .hs-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .hs-readouts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
+    gap: 22px;
+  }
+  .hs-facts {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    min-width: 0;
+  }
+  .hs-facts > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--cy-line-deco);
+  }
+  .hs-facts dt {
+    flex: 1 1 160px;
+    color: var(--cy-ink-mute);
+  }
+  .hs-facts dd {
+    flex: 2 1 160px;
+    margin: 0;
+    font-family: var(--hs-mono);
+    font-size: var(--hs-text-mono);
+    overflow-wrap: anywhere;
+  }
+  .hs-facts dt .hs-note {
+    display: block;
+    padding-top: 4px;
+  }
+  .hs-measure [data-kit="hex-stat-group"] {
+    max-width: 360px;
+    justify-self: center;
+    width: 100%;
+  }
+  .hs-measure [data-kit="signal-graph"] {
+    min-width: 0;
+  }
+  /* The transfer table is read, not picked from: no selection column or "N of M selected". */
+  .hs-measure [data-col="select"],
+  .hs-measure [data-kit="data-table-foot"] {
+    display: none;
+  }
+
+  .hs-measure [data-kit="data-table"] {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .hs-measure [data-kit="terminal"] {
+    min-width: 0;
+  }
+  .hs-measure [data-kit="feed-text"] {
+    overflow-wrap: anywhere;
+  }
+  .hs-measure details > summary {
+    cursor: pointer;
+    color: var(--cy-signal);
+    padding-block: 8px;
+    font-size: var(--hs-text-label);
+  }
+  .hs-probe-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 12px;
+  }
+  .hs-probe-form [data-kit="field"] {
+    flex: 1 1 220px;
+    min-width: 0;
+  }
+  .hs-dns-row {
+    border-top: 1px solid var(--cy-line-deco);
+    padding-top: 16px;
+    min-width: 0;
+  }
+  .hs-dns-row > header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .hs-dns-row > header h4 {
+    margin-right: auto;
+  }
+  .hs-dns-pair {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+    gap: 16px;
+  }
+  .hs-dns-pair > div,
+  .hs-dns-single > div {
+    min-width: 0;
+    display: grid;
+    align-content: start;
+    gap: 10px;
+  }
+  .hs-dns-answers {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 14px;
+  }
+  .hs-dns-answers li {
+    display: grid;
+    gap: 8px;
+    background: color-mix(in srgb, var(--cy-signal) 4%, transparent);
+    padding: 10px;
+    min-width: 0;
+    border-inline-start: 2px solid var(--cy-line-deco);
+  }
+  .hs-dns-answers li > div:first-child {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    justify-content: space-between;
+  }
+  .hs-dns-data {
+    display: block;
+    white-space: pre-wrap;
+  }
+  .hs-https-summary {
+    display: grid;
+    gap: 8px;
+    font-size: var(--hs-text-label);
+    overflow-wrap: anywhere;
+  }
+  .hs-https-summary [data-kit="badge"] {
+    justify-self: start;
+  }
+  .hs-networks,
+  .hs-certs {
+    display: grid;
+    gap: 18px;
+    min-width: 0;
+  }
+  .hs-networks > section,
+  .hs-certs > article {
+    display: grid;
+    gap: 10px;
+    border-top: 1px solid var(--cy-line-deco);
+    padding-top: 12px;
+    min-width: 0;
+  }
+  .hs-certs > article > header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: space-between;
+  }
+  .hs-certs h4 {
+    overflow-wrap: anywhere;
+  }
+  .hs-discoveries ul {
+    padding-inline-start: 20px;
+    columns: 2 180px;
+  }
+  .hs-discoveries li {
+    padding-block: 4px;
+    overflow-wrap: anywhere;
+  }
+}
