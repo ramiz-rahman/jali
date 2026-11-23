@@ -78,17 +78,20 @@ export function withInput<T>(input: JaliInput, fn: () => T): T {
   }
 }
 
+/** What each document is listened to for, in the capture phase. */
+const LISTENERS = [
+  ["pointerdown", onPointer],
+  ["pointerup", onPointer],
+  ["keydown", onKey],
+  ["click", onClick],
+] as [string, EventListener][];
+
 /** Listen for a person's input on `doc` while any instance is started there. Returns the stop. */
 export function trackInput(doc: Document | undefined = globalThis.document): () => void {
   if (!doc) return () => {};
   const n = listening.get(doc) ?? 0;
   listening.set(doc, n + 1);
-  if (n === 0) {
-    doc.addEventListener("pointerdown", onPointer, true);
-    doc.addEventListener("pointerup", onPointer, true);
-    doc.addEventListener("keydown", onKey, true);
-    doc.addEventListener("click", onClick, true);
-  }
+  if (n === 0) for (const [type, fn] of LISTENERS) doc.addEventListener(type, fn, true);
   let stopped = false;
   return () => {
     if (stopped) return;
@@ -97,10 +100,7 @@ export function trackInput(doc: Document | undefined = globalThis.document): () 
     listening.set(doc, left);
     if (left === 0) {
       pressed.delete(doc);
-      doc.removeEventListener("pointerdown", onPointer, true);
-      doc.removeEventListener("pointerup", onPointer, true);
-      doc.removeEventListener("keydown", onKey, true);
-      doc.removeEventListener("click", onClick, true);
+      for (const [type, fn] of LISTENERS) doc.removeEventListener(type, fn, true);
     }
   };
 }

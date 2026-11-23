@@ -42,6 +42,6 @@ export function pastLimits(from: LinkUsage, to: LinkUsage): boolean {
   return over("nodes", MAX_NODES) || over("depth", MAX_DEPTH) || over("opened", OPEN_MAX);
 }
 
-/** Whether a layout fits a link (its address can be written). */
+/** Whether a layout fits a link (its address can be written): it passes no limit an empty one is within. */
 export const fitsLink = (u: LinkUsage): boolean =>
-  u.nodes <= MAX_NODES && u.depth <= MAX_DEPTH && u.opened <= OPEN_MAX;
+  !pastLimits({ nodes: 0, depth: 0, opened: 0 }, u);

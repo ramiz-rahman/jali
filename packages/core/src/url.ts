@@ -284,6 +284,14 @@ export type LinkSizes = "link" | "local";
 export type PersonalSizes = Record<NodeId, Pick<LayoutNode, "size" | "base" | "userSized">>;
 
 /** The layout with every divider the person moved put back (each node's `base`, else an equal share), and those sizes. */
+/** A copy of the tree under `n`, each node's copy made by `copy`. */
+function copyTree(n: LayoutNode, copy: (n: LayoutNode) => LayoutNode): LayoutNode {
+  const out = copy(n);
+  if (out.type !== "pane")
+    (out as { children: LayoutNode[] }).children = out.children.map((c) => copyTree(c, copy));
+  return out;
+}
+
 export function splitPersonalSizes(layout: Layout): { layout: Layout; sizes: PersonalSizes } {
   const sizes: PersonalSizes = Object.create(null);
   const strip = (n: LayoutNode): LayoutNode => {
@@ -298,13 +306,9 @@ export function splitPersonalSizes(layout: Layout): { layout: Layout; sizes: Per
       delete out.base;
       delete out.userSized;
     }
-    if (out.type !== "pane")
-      (out as Exclude<LayoutNode, { type: "pane" }>).children = (
-        out as Exclude<LayoutNode, { type: "pane" }>
-      ).children.map(strip);
     return out;
   };
-  return { layout: { ...layout, root: strip(layout.root) }, sizes };
+  return { layout: { ...layout, root: copyTree(layout.root, strip) }, sizes };
 }
 
 /** One positive px or weight, as a node's size holds it. */
@@ -329,16 +333,8 @@ function sizesOf(entry: unknown): PersonalSizes[NodeId] | undefined {
 /** `layout` with the person's sizes put back on the nodes that still exist. Only sizes are taken from `sizes`, and
  *  only values a size can hold; anything else stored there is left out. */
 export function joinPersonalSizes(layout: Layout, sizes: PersonalSizes): Layout {
-  const put = (n: LayoutNode): LayoutNode => {
-    const own = sizesOf(ownOf(sizes, n.id));
-    const out = (own ? { ...n, ...own } : { ...n }) as LayoutNode;
-    if (out.type !== "pane")
-      (out as Exclude<LayoutNode, { type: "pane" }>).children = (
-        out as Exclude<LayoutNode, { type: "pane" }>
-      ).children.map(put);
-    return out;
-  };
-  return { ...layout, root: put(layout.root) };
+  const put = (n: LayoutNode) => ({ ...n, ...sizesOf(ownOf(sizes, n.id)) }) as LayoutNode;
+  return { ...layout, root: copyTree(layout.root, put) };
 }
 
 /** The layout's shape (ids, types and what each pane shows), so sizes kept for one layout never land on another. */
@@ -466,12 +462,14 @@ export function createUrlSync({
   const go = (next: string, mode: "push" | "replace") => {
     if (next !== location.search()) location.navigate(next, mode);
   };
-  /** Write the replace waiting, now. */
-  const flush = () => {
+  const stopTimer = () => {
     clearTimeout(timer);
     timer = undefined;
+  };
+  /** Write the replace waiting, now. */
+  const flush = () => {
     const s = waiting;
-    waiting = null;
+    drop();
     if (!s) return;
     replaced = Date.now();
     go(search(s), "replace");
@@ -479,6 +477,13 @@ export function createUrlSync({
   const schedule = (ms: number) => {
     clearTimeout(timer);
     timer = setTimeout(flush, Math.max(0, ms));
+  };
+  /** Drop the replace waiting, and say whether there was one. */
+  const drop = () => {
+    stopTimer();
+    const was = !!waiting;
+    waiting = null;
+    return was;
   };
   return {
     write(state: () => UrlState, mode: HistoryMode) {
@@ -514,9 +519,7 @@ export function createUrlSync({
     readWith: (kinds) => void (kindsNow = kinds),
     cancel() {
       closed = true;
-      clearTimeout(timer);
-      timer = undefined;
-      waiting = null;
+      drop();
     },
     // The page is leaving: a replace still waiting (up to 250 ms) is written now, so a reload reopens what was on screen.
     flush() {
@@ -526,18 +529,13 @@ export function createUrlSync({
     // Back or Forward left the entry a waiting replace was for: it would write that entry's address over this one's.
     onPop: (fn) =>
       location.subscribe(() => {
-        clearTimeout(timer);
-        timer = undefined;
-        waiting = null;
+        drop();
         fn();
       }),
     hold(on) {
-      clearTimeout(timer);
-      timer = undefined;
-      if (on) return !!waiting;
-      const was = !!waiting;
-      waiting = null;
-      return was;
+      if (!on) return drop();
+      stopTimer();
+      return !!waiting;
     },
     // "Copy link" copies what is on screen: a replace still waiting is written first.
     href: () => (flush(), location.href()),
