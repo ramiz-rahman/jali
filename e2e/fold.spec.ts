@@ -10,7 +10,12 @@ const SIZE = { width: 690, height: 840 };
 test("a fold puts a pane each side of the hinge, and unfolding restores the layout", async ({
   app,
   page,
+  browserName,
 }) => {
+  test.skip(
+    browserName !== "chromium",
+    "the fold is emulated through Chromium's DevTools protocol; Safari has none",
+  );
   await app.open({ size: SIZE });
   const cdp = await page.context().newCDPSession(page);
   const fold = (displayFeature?: object) =>

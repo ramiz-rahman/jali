@@ -42,7 +42,8 @@ test.describe("Loan review: Single (default)", () => {
     await expect(mode(page, "Single")).toHaveAttribute("aria-checked", "true");
     expect(await app.visibleIds()).toEqual(["application"]);
     await expect(pageTab(page, "Application")).toHaveAttribute("aria-selected", "true");
-    await expect(app.header("application")).not.toBeInViewport();
+    // Visually hidden, kept for assistive tech: clipped to nothing, 1px tall (WebKit counts it as in the viewport).
+    expect((await app.header("application").boundingBox())!.height).toBeLessThanOrEqual(1);
     await pageTab(page, "Borrower").click();
     expect(await app.visibleIds()).toEqual(["borrower"]);
     await expect(page).toHaveURL(/tab=borrower/);

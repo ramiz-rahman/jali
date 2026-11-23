@@ -8,8 +8,17 @@ test.describe("URL round-trip", () => {
   }) => {
     await app.open();
     await app.preset("Stress: 10 panes");
+    // What Copy link writes, read as it is written: WebKit lets a click write the clipboard but not a script read it.
+    await page.evaluate(() => {
+      const write = navigator.clipboard.writeText.bind(navigator.clipboard);
+      navigator.clipboard.writeText = (text) => {
+        document.body.dataset.copied = text;
+        return write(text);
+      };
+    });
     await page.getByRole("button", { name: "Copy link to this layout" }).click();
-    const link = await page.evaluate(() => navigator.clipboard.readText());
+    await expect(page.locator("body[data-copied]")).toHaveCount(1);
+    const link = await page.evaluate(() => document.body.dataset.copied!);
     expect(link).toContain("?l=");
     const snapshot = (l: typeof app) =>
       l.page.locator("section[data-pane]").evaluateAll((els) =>
