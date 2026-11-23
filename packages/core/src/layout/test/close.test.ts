@@ -5,7 +5,7 @@ import { find } from "../tree/tree";
 import type { PaneNode } from "../types";
 
 describe("close", () => {
-  it("returns a snapshot undo entry and space to the sibling opener", () => {
+  it("records the closed pane and its slot, and gives its space to the sibling opener", () => {
     const tree = freeze(
       layout(
         pane("a"),
@@ -18,8 +18,32 @@ describe("close", () => {
     expect(find(result.layout.root, "a")!.size).toEqual({ weight: 2 });
     expect(find(result.layout.root, "c")).toMatchObject({ size: { px: 150 }, userSized: true });
     expect(result.view).toEqual(view("a", ["a", "c"]));
-    expect(result.undo).toEqual({ kind: "close", before: { layout: tree, view: state } });
-    expect(result.undo.before.layout).not.toBe(tree);
+    // The undo entry is the operation, not the layout before: the pane, where it was, the link it had to it, and the
+    // sizes the close changed.
+    expect(result.undo).toEqual({
+      kind: "close",
+      closed: [
+        {
+          pane: find(tree.root, "b"),
+          slot: [
+            {
+              parent: tree.root.id,
+              type: "row",
+              index: 1,
+              size: { weight: 1 },
+              before: [{ id: "a", pane: "a" }],
+              after: [{ id: "c", pane: "c" }],
+              active: false,
+            },
+          ],
+          followers: [],
+        },
+      ],
+      sizes: [{ id: "a", size: { weight: 1 }, after: { weight: 2 } }],
+    });
+    expect(result.undo!.kind === "tuck" || result.undo!.closed[0]!.pane).not.toBe(
+      find(tree.root, "b"),
+    );
   });
   it("returns fixed pixels and the removed gap to the opener using resolved geometry", () => {
     const tree = layout(
@@ -98,14 +122,23 @@ describe("close", () => {
   it("never closes the final pane and handles missing IDs", () => {
     const tree = layout(pane("a"));
     expect(core.close(tree, view(), "a", ctx()).layout).toEqual(tree);
-    expect(core.close(tree, view(), "missing", ctx()).undo.before.layout).toEqual(tree);
+    // Nothing closed, nothing to undo.
+    expect(core.close(tree, view(), "missing", ctx()).undo).toBeUndefined();
+    expect(core.close(tree, view(), "a", ctx()).undo).toBeUndefined();
   });
   it("closeOthers retains the chosen pane, resets view and records undo", () => {
     const tree = freeze(layout(pane("a"), pane("b", "small", { linkedTo: "a" }), pane("c")));
     const result = core.closeOthers(tree, { ...view("a"), zoomed: "a" }, "b", ctx());
     expect(result.layout).toEqual(layout(pane("b")));
     expect(result.view).toEqual(view("b"));
-    expect(result.undo.before.layout).toEqual(tree);
+    // One entry, every closed pane in it, in reading order.
+    expect(
+      result.undo?.kind === "closeOthers" &&
+        result.undo.closed.map((c) => [c.pane.id, c.slot[0]!.index]),
+    ).toEqual([
+      ["a", 0],
+      ["c", 2],
+    ]);
     expect(core.closeOthers(tree, view(), "missing", ctx()).layout).toEqual(tree);
   });
 });

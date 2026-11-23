@@ -1,9 +1,13 @@
 import { allows, notAllowed } from "./allow";
 import * as core from "../layout/engine";
 import type { NodeId } from "../layout/types";
+import { closeMany } from "../layout/ops/close";
+import { restoreClosed } from "../layout/ops/restore";
 import { refuse, type Outcome, type RefusalStep, type Snapshot } from "../state/apply";
 import { messagesOf, say } from "../state/messages";
 import { pushUndo } from "../state/undo";
+import { objectKey } from "../state/pane-state";
+import { own } from "../own";
 import { putBack } from "./tuck";
 
 const unzoomed = core.tree.unzoom;
@@ -25,7 +29,7 @@ export function close(x: Snapshot, id = x.s.view.focused): Outcome {
     view: r.view,
     msg: say(x).closed(title),
     toast: messagesOf(x).toasts.closed(title),
-    undo: pushUndo(s.undoStack, r.undo),
+    undo: r.undo ? pushUndo(s.undoStack, r.undo) : s.undoStack,
     patch: s.peekSource === id ? { peekSource: undefined } : undefined,
   };
 }
@@ -78,33 +82,23 @@ export function closeOthers(x: Snapshot, id = x.s.view.focused): Outcome {
   if (!id) return null;
   const cannot = checkCloseOthers(x, id);
   if (cannot) return cannot;
-  // Panes the app keeps (`allow: { close: false }`) stay; the rest close in one change.
-  const kept = m.panes.filter((p) => p.id !== id && !allows(x, p.id, "close"));
-  if (kept.length) {
-    const closing = m.panes.filter((p) => p.id !== id && allows(x, p.id, "close")).map((p) => p.id);
-    let layout = s.layout,
-      view = unzoomed(s.view);
-    for (const p of closing) ({ layout, view } = core.close(layout, view, p, ctx));
-    return {
-      op: "closeOthers",
-      layout,
-      view: core.focus(view, id, ctx),
-      msg: say(x).othersClosed,
-      toast: messagesOf(x).toasts.othersClosed(),
-      undo: pushUndo(s.undoStack, {
-        kind: "closeOthers",
-        before: { layout: core.tree.clone(s.layout), view: core.tree.clone(s.view) },
-      }),
-    };
-  }
-  const r = core.closeOthers(s.layout, unzoomed(s.view), id, ctx);
+  // Panes the app keeps (`allow: { close: false }`) stay; the rest close in one change, one undo entry.
+  const kept = m.panes.some((p) => p.id !== id && !allows(x, p.id, "close"));
+  const r = kept
+    ? closeMany(
+        s.layout,
+        unzoomed(s.view),
+        m.panes.filter((p) => p.id !== id && allows(x, p.id, "close")).map((p) => p.id),
+        ctx,
+      )
+    : core.closeOthers(s.layout, unzoomed(s.view), id, ctx);
   return {
     op: "closeOthers",
     layout: r.layout,
-    view: r.view,
+    view: kept ? core.focus(r.view, id, ctx) : r.view,
     msg: say(x).othersClosed,
     toast: messagesOf(x).toasts.othersClosed(),
-    undo: pushUndo(s.undoStack, r.undo),
+    undo: r.undo ? pushUndo(s.undoStack, r.undo) : s.undoStack,
   };
 }
 
@@ -116,20 +110,14 @@ export function closeTabs(x: Snapshot, id: NodeId, which: "others" | "after"): O
   const { s, ctx } = x;
   const closing = tabsToClose(x, id, which);
   if (!closing.length) return refuse("nothing-to-do", say(x).noTabsToClose);
-  const before = { layout: s.layout, view: s.view };
-  let layout = s.layout,
-    view = unzoomed(s.view);
-  for (const tab of closing) ({ layout, view } = core.close(layout, view, tab, ctx));
+  const r = closeMany(s.layout, unzoomed(s.view), closing, ctx);
   return {
     op: "closeOthers",
-    layout,
-    view: core.focus(view, id, ctx),
+    layout: r.layout,
+    view: core.focus(r.view, id, ctx),
     msg: say(x).tabsClosed(closing.length),
     toast: messagesOf(x).toasts.tabsClosed(closing.length),
-    undo: pushUndo(s.undoStack, {
-      kind: "closeOthers",
-      before: { layout: core.tree.clone(before.layout), view: core.tree.clone(before.view) },
-    }),
+    undo: r.undo ? pushUndo(s.undoStack, r.undo) : s.undoStack,
     patch: s.peekSource && closing.includes(s.peekSource) ? { peekSource: undefined } : undefined,
     result: id,
   };
@@ -149,17 +137,35 @@ export function tabsToClose(x: Snapshot, id: NodeId, which: "others" | "after"):
 export const checkUndo = ({ s, env }: Snapshot) =>
   s.undoStack.length ? undefined : refuse("nothing-to-do", say(env).nothingToRestore);
 
-/** Undo (⌘K ⌘Z, the Undo toast): the last close or tuck. A tuck is undone by putting the pane back, so later changes survive. */
+/**
+ * Undo (⌘K ⌘Z, the Undo toast): the last close or tuck, reversed in the layout as it is now, so everything done since
+ * stays. A tuck is undone by putting the pane back; a close by putting each pane it closed back in its slot
+ * (layout/ops/restore.ts), with its pane state: a pane whose id another took meanwhile comes back under a new one, and
+ * its state with it.
+ */
 export function undo(x: Snapshot): Outcome {
-  const e = x.s.undoStack.at(-1);
+  const { s, ctx, env } = x;
+  const e = s.undoStack.at(-1);
   if (!e) return checkUndo(x);
-  if (e.tucked) return putBack(x, e.tucked);
-  const view = e.before.view;
+  if (e.kind === "tuck") return putBack(x, e.tucked);
+  const r = restoreClosed(s.layout, unzoomed(s.view), e, ctx, e.kind === "close");
+  // State kept for a pane under its old id is held for it under its new one: it is its state again as it lands
+  // (state/pane-state.ts), and what stays under the old id goes with no pane to show it.
+  let held = s.paneStateHeld;
+  for (const c of e.closed) {
+    const from = c.pane.id,
+      to = r.ids[from]!,
+      of = objectKey(env.kinds, c.pane.ref);
+    const values =
+      own(s.paneStateOf, from) === of ? own(s.paneState, from) : own(own(held, from), of);
+    if (to !== from && values) held = { ...held, [to]: { ...own(held, to), [of]: values } };
+  }
   return {
     op: "undo",
-    layout: core.refit(e.before.layout, view, x.ctx),
-    view,
-    msg: say(x).undone(e.kind === "close" ? "close" : "closeOthers"),
-    undo: x.s.undoStack.slice(0, -1),
+    layout: r.layout,
+    view: r.view,
+    msg: say(x).undone(e.kind),
+    undo: s.undoStack.slice(0, -1),
+    patch: held === s.paneStateHeld ? undefined : { paneStateHeld: held },
   };
 }

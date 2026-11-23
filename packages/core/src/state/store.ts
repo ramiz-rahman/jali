@@ -551,7 +551,7 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
 
   /**
    * A kind registered after a link gave refs of it: those refs drop the app-only params the link carried, wherever
-   * the instance keeps them (the layout, the peek, Recent, Undo, the page's way back). A link never sets one.
+   * the instance keeps them (the layout, the peek, Recent, Undo's closed panes, the page's way back). A link never sets one.
    */
   const rereadLinks = () => {
     const kinds = env.kinds.registry();
@@ -568,11 +568,12 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
     const recent = state.recent.map((r) => rereadRef(kinds, r));
     if (recent.some((r, i) => r !== state.recent[i])) patch.recent = recent;
     const undo = state.undoStack.map((e) => {
-      const bl = layout(e.before.layout),
-        bv = view(e.before.view);
-      return bl === e.before.layout && bv === e.before.view
-        ? e
-        : { ...e, before: { layout: bl, view: bv } };
+      if (e.kind === "tuck") return e;
+      const closed = e.closed.map((c) => {
+        const ref = rereadRef(kinds, c.pane.ref);
+        return ref === c.pane.ref ? c : { ...c, pane: { ...c.pane, ref } };
+      });
+      return closed.every((c, i) => c === e.closed[i]) ? e : { ...e, closed };
     });
     if (undo.some((e, i) => e !== state.undoStack[i])) patch.undoStack = undo;
     const back = state.page?.before && layout(state.page.before);

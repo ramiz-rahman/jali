@@ -3,7 +3,7 @@
  * about the object it shows (its own state, a list's selection) tied to that object: a pane id alone is reused after
  * a close, comes back with an undo, and names another object after a reload.
  */
-import type { Layout, NodeId, ObjectRef } from "../layout/types";
+import type { Layout, NodeId, ObjectRef, PaneNode } from "../layout/types";
 import * as core from "../layout/engine";
 import type { PaneKinds } from "../pane-kinds";
 import type { StoragePort } from "../ports";
@@ -199,27 +199,29 @@ export function paneStateFor(
 
 /**
  * Pane state for the panes that can still show it: an entry stays while a pane with its id shows its object in
- * `layouts` (the layout, and the undo stack's, so an undo brings it back). Returns the same objects when nothing goes.
+ * `layout`, or in `closed` (the closed panes the undo stack could bring back). Returns the same objects when nothing
+ * goes.
  */
 export function ownedPaneState(
   s: { paneState: PaneStates; paneStateOf: PaneOwners; paneStateHeld?: HeldStates },
   kinds: Pick<PaneKinds, "identityOf">,
-  layouts: readonly Layout[],
+  layout: Layout,
+  closed: readonly PaneNode[] = [],
 ): { paneState: PaneStates; paneStateOf: PaneOwners; paneStateHeld: HeldStates } {
   const held = s.paneStateHeld ?? {};
   const shown = new Map<NodeId, Set<string>>();
-  for (const l of layouts)
-    for (const p of core.tree.panes(l.root)) {
-      let keys = shown.get(p.id);
-      if (!keys) shown.set(p.id, (keys = new Set()));
-      keys.add(objectKey(kinds, p.ref));
-    }
+  const live = core.tree.panes(layout.root);
+  for (const p of [...live, ...closed]) {
+    let keys = shown.get(p.id);
+    if (!keys) shown.set(p.id, (keys = new Set()));
+    keys.add(objectKey(kinds, p.ref));
+  }
   // A pane back on screen with an object whose state was held for it (an undo) has that state again; the state it
   // replaces is held in turn, while an undo could bring its object back.
   let paneState = s.paneState,
     paneStateOf = s.paneStateOf,
     nextHeld = held;
-  for (const p of layouts[0] ? core.tree.panes(layouts[0].root) : []) {
+  for (const p of live) {
     const of = objectKey(kinds, p.ref),
       back = own(own(nextHeld, p.id), of);
     if (!back || own(paneStateOf, p.id) === of) continue;
@@ -234,7 +236,7 @@ export function ownedPaneState(
     const of = own(paneStateOf, id);
     return of !== undefined && !!shown.get(id)?.has(of);
   };
-  // Held state goes once no layout an undo could bring back shows its object under its id.
+  // Held state goes once no closed pane an undo could bring back shows its object under its id.
   const heldKept: HeldStates = {};
   let dropped = false;
   for (const [id, byObject] of Object.entries(nextHeld)) {

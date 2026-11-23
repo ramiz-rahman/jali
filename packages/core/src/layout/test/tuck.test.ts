@@ -66,7 +66,7 @@ describe("tuck", () => {
     expect(after.shelf).toEqual([
       { paneId: "customer", homeId: "order", stackId: stack.id, reason: "tucked" },
     ]);
-    expect(t.undo).toMatchObject({ kind: "tuck", tucked: "customer", before: { layout: tree } });
+    expect(t.undo).toEqual({ kind: "tuck", tucked: "customer" });
   });
 
   it.each([

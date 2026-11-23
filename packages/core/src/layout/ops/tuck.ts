@@ -10,7 +10,7 @@ import type {
   TuckResult,
   ViewState,
 } from "../types";
-import { clone, find, isSplit, noFocus, panes, parent, unzoom } from "../tree/tree";
+import { find, isSplit, noFocus, panes, parent, unzoom } from "../tree/tree";
 import { overlayOf, withOverlay } from "../fit/overlay";
 import { resolve } from "../fit/resolve";
 import { fitLayout } from "../fit/refit";
@@ -146,7 +146,7 @@ export function tuck(
     layout: next,
     view: focus(unzoom(view), result.home, ctx),
     home: result.home,
-    undo: { kind: "tuck", tucked: pane, before: { layout: clone(layout), view: clone(view) } },
+    undo: { kind: "tuck", tucked: pane },
   };
 }
 export function putBack(

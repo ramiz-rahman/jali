@@ -42,6 +42,7 @@ import type { PageState, UiState } from "../state/store";
 import { openPaneFor } from "./open";
 import { peekSheet } from "./peek";
 import { pushUndo } from "../state/undo";
+import { closeMany } from "../layout/ops/close";
 import { keepOwnRef } from "../pane-kinds";
 import { preset } from "./layout";
 import { notAllowed } from "./allow";
@@ -557,7 +558,10 @@ export function activate(x: Snapshot, given: ItemId): Outcome {
   };
 }
 
-/** Close every pane opened by following links; the layout comes back as the person left it. Undo (⌘K ⌘Z) reopens them. */
+/**
+ * Close every pane opened by following links, as one close: the views stay as they are now, with what the person did
+ * to them meanwhile (a resize, Keep, where they put them). Undo (⌘K ⌘Z) reopens only those panes, in their slots.
+ */
 export function backToPage(x: Snapshot): Outcome {
   const r = x.s.page;
   if (!r) return refuse("unavailable");
@@ -570,27 +574,26 @@ export function backToPage(x: Snapshot): Outcome {
     if (denied) return denied;
   }
   const view = unzoomed(x.s.view);
-  const plain = withoutOpened(x.s.layout, x.ctx);
-  // Exactly as before the investigation, unless the views were rearranged meanwhile (then: as they are now).
-  const before = r.before;
-  const layout =
-    before &&
-    core.tree.shape(before.root) === core.tree.shape(plain.root) &&
-    String(before.overlay?.hidden ?? []) === String(plain.overlay?.hidden ?? [])
-      ? core.refit(before, view, x.ctx)
-      : plain;
+  const closed = closeMany(
+    x.s.layout,
+    view,
+    opened.map((p) => p.id),
+    x.ctx,
+    "closeOthers",
+    // The views keep their sizes, a resize made meanwhile included: none takes an opened pane's room as its own.
+    { keepSizes: true },
+  );
   const focused = x.m.pane(view.focused)?.role
-    ? view
-    : core.focus(view, currentRole(x) ?? r.tab, x.ctx);
-  const undo = { kind: "closeOthers" as const, before: { layout: x.s.layout, view: x.s.view } };
+    ? closed.view
+    : core.focus(closed.view, currentRole(x) ?? r.tab, x.ctx);
   return {
     op: "close",
-    layout,
+    layout: closed.layout,
     view: focused,
-    patch: { page: { ...r, before: undefined } },
     msg: say(x).backToPage(name, opened.length),
+    patch: { page: { ...r, before: undefined } },
     toast: messagesOf(x).toasts.backToPage(name, opened.length),
-    undo: pushUndo(x.s.undoStack, undo),
+    undo: closed.undo ? pushUndo(x.s.undoStack, closed.undo) : x.s.undoStack,
   };
 }
 

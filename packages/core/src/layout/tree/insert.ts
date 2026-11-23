@@ -3,7 +3,18 @@ import { balance, find, newId, parent, replace } from "./tree";
 const axisFor = (edge: Edge) => (edge === "left" || edge === "right" ? "row" : "column");
 const before = (edge: Edge) => edge === "left" || edge === "top";
 
-export function beside(layout: Layout, targetId: string, edge: Edge, pane: PaneNode): void {
+/**
+ * Put `pane` on `edge` of `targetId`: in its split when that runs the same way, else in a new split around it. The
+ * children nobody sized share again (`balance`); with `keepSizes`, they keep their sizes and the new pane takes the
+ * mean of theirs, so taking it out again leaves them as they were.
+ */
+export function beside(
+  layout: Layout,
+  targetId: string,
+  edge: Edge,
+  pane: PaneNode,
+  keepSizes = false,
+): void {
   let target = find(layout.root, targetId)!;
   let container = parent(layout.root, targetId);
   if (container?.type === "stack") {
@@ -13,8 +24,15 @@ export function beside(layout: Layout, targetId: string, edge: Edge, pane: PaneN
   const axis = axisFor(edge);
   if (container && container.type === axis) {
     const index = container.children.findIndex((c) => c.id === target.id);
+    // Beside sized children, the mean of theirs (as `balance` gives); else the mean of all.
+    const sized = container.children.some((c) => c.userSized);
+    const weights = container.children.flatMap((c) =>
+      "weight" in c.size && (!sized || c.userSized) ? [c.size.weight] : [],
+    );
     container.children.splice(index + (before(edge) ? 0 : 1), 0, pane);
-    balance(container);
+    if (!keepSizes) balance(container);
+    else if (weights.length && !pane.userSized)
+      pane.size = { weight: weights.reduce((a, b) => a + b, 0) / weights.length };
   } else {
     const original = { ...target, size: target.userSized ? target.size : { weight: 1 } };
     const split: SplitNode = {

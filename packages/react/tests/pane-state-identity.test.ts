@@ -84,7 +84,7 @@ describe("pane state is the object's, not the id's", () => {
     expect(stateOf(store, "pane-2")).toEqual({ scroll: 240 });
   });
 
-  it("A, then B under the same id, then Undo: A comes back with its own state, and B's is B's (codex CORE-1)", () => {
+  it("A, then B under the same id, then Undo: A comes back under a new id with its own state, and B keeps its own (codex CORE-1)", () => {
     const store = make(
       row(
         pane(orders({ region: "north" }), { id: "pane-1" }),
@@ -96,8 +96,12 @@ describe("pane state is the object's, not the id's", () => {
     expect(store.actions.openBeside("pane-1", order({ id: 9 })).pane).toBe("pane-2");
     store.actions.setPaneState("pane-2", "sort", "date");
     store.actions.undo();
-    expect(store.model().pane("pane-2")?.ref).toEqual(order({ id: 1 }));
-    expect(stateOf(store, "pane-2")).toEqual({ scroll: 240 });
+    // Undo reverses the close: B, opened since, stays.
+    expect(store.model().pane("pane-2")?.ref).toEqual(order({ id: 9 }));
+    expect(stateOf(store, "pane-2")).toEqual({ sort: "date" });
+    const a = store.model().panes.find((p) => p.ref.params.id === 1)!;
+    expect(a.id).not.toBe("pane-2");
+    expect(stateOf(store, a.id)).toEqual({ scroll: 240 });
   });
 
   it("Discard forgets the discarded pane's own state too, so an undo doesn't bring the draft back", () => {

@@ -16,6 +16,9 @@ export type {
   TuckRefusal,
   TuckResult,
   UndoEntry,
+  ClosedPane,
+  SlotLevel,
+  SizeChange,
 } from "./layout/types";
 
 // ---------- the instance and start-up ----------

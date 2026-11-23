@@ -34,7 +34,7 @@ import type {
 import type { Model } from "./model";
 import type { UiState } from "./store";
 import type { ActionName } from "../actions/public";
-import { pruneUndo } from "./undo";
+import { closedPanes, pruneUndo } from "./undo";
 import { discardedReports, prunedReports, withMaps } from "./reports";
 import type { PaneKinds } from "../pane-kinds";
 import { ownedPaneState, ownedSelection } from "./pane-state";
@@ -483,7 +483,7 @@ function ask(guard: BeforeClose, request: CloseRequest): boolean | Promise<boole
 
 /**
  * Per-pane records for the panes that can still use them. A pane's own state stays while a pane with its id shows
- * its object, in the layout or an undo entry (an undo brings the pane back); a pane that now shows another object
+ * its object, in the layout or as a closed pane an undo could bring back; a pane that now shows another object
  * starts afresh. A list's selection stays with the list it was made in. `prior`: the state before this change.
  */
 function prunePanes(
@@ -506,7 +506,7 @@ function prunePanes(
   const reports = withMaps(prior, prunedReports(s.paneReports, live, moved));
   // A pane's own state stays while a pane with its id shows its object, here or in the undo stack; a list's selection
   // stays with the list it was made in (state/pane-state.ts).
-  const owned = ownedPaneState(s, kinds, [layout, ...undo.map((e) => e.before.layout)]);
+  const owned = ownedPaneState(s, kinds, layout, closedPanes(undo));
   const selected = ownedSelection(prior, s.selection, kinds, layout);
   return {
     ...(owned.paneState !== s.paneState || owned.paneStateHeld !== s.paneStateHeld ? owned : {}),

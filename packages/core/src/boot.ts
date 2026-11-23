@@ -24,7 +24,7 @@ export function boot(store: JaliStore) {
   // The lists' selections agree with what their followers show (a link has done it already).
   const selection = agreeOnArrival(store.env, layout, s.selection, s.selectionOf);
   // Saved pane state is only for panes that show the object it was saved for; selections belong to their lists.
-  const owned = ownedPaneState(s, store.env.kinds, [layout]);
+  const owned = ownedPaneState(s, store.env.kinds, layout);
   const selected = ownedSelection(s, selection, store.env.kinds, layout);
   store.set({
     layout,

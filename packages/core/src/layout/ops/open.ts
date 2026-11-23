@@ -79,6 +79,8 @@ export function open(
     place && find(next.root, place.target) ? place.target : target,
     place?.edge ?? edge,
     pane,
+    // Nothing gives way for it: the panes beside keep their sizes.
+    opts.yields === false,
   );
   const nextView = linked ? focus(unzoom(view), target, ctx) : focus(unzoom(view), pane.id, ctx);
   // No room, or over the cap: the fold is decided now, at open, and recorded. With no room the new pane becomes a tab

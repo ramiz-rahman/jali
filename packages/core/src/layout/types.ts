@@ -208,15 +208,54 @@ export type HideRefusal = "missing" | "hidden" | "last";
 export type HideResult =
   | { ok: true; layout: Layout; view: ViewState }
   | { ok: false; reason: HideRefusal };
-export interface UndoEntry {
-  kind: "close" | "closeOthers" | "tuck";
-  before: { layout: Layout; view: ViewState };
-  tucked?: NodeId;
+/**
+ * One level of where a closed pane was: the container (a split, or a tab group), its place among the container's
+ * children, and the size it had there. The first level is the pane's own container; each next one, the branch holding
+ * the pane in its container. Undo puts the pane back at the first level whose container, or one of whose neighbours,
+ * is still there.
+ */
+export interface SlotLevel {
+  /** The container's id and type: a split's axis, or `"stack"` for a tab group. */
+  parent: NodeId;
+  type: Axis | "stack";
+  /** The pane's (or its branch's) index among the container's children. */
+  index: number;
+  /** The size it had there, and whether the person sized it. */
+  size: Size;
+  userSized?: boolean;
+  /** Its neighbours, nearest first: the siblings before it, then those after. Each is a node id, and the pane in it
+   *  nearest the closed pane, for when that node is gone. */
+  before: { id: NodeId; pane: NodeId }[];
+  after: { id: NodeId; pane: NodeId }[];
+  /** A tab group's: whether the pane was its shown tab. */
+  active?: boolean;
 }
+/** A pane a close removed, as it was (its content, flags and links), and where it was. */
+export interface ClosedPane {
+  pane: PaneNode;
+  slot: SlotLevel[];
+  /** The panes linked to it then (their `linkedTo` was this pane), which the close unlinked. */
+  followers: { id: NodeId; follows?: boolean }[];
+}
+/** A size a close changed on a node that stayed (the space it gave, a split it collapsed): `size` is what it was,
+ *  `after` what the close left. Undo puts it back only while the node still has `after`. */
+export interface SizeChange {
+  id: NodeId;
+  size: Size;
+  userSized?: boolean;
+  after: Size;
+}
+/**
+ * What undo reverses: the panes one close removed (a batch for Close others, Close tabs, "Back to …"), and the sizes
+ * it changed; or a tuck. Undo reinserts into the layout as it is now, so everything done since stays.
+ */
+export type UndoEntry =
+  | { kind: "close" | "closeOthers"; closed: ClosedPane[]; sizes: SizeChange[] }
+  | { kind: "tuck"; tucked: NodeId };
 export type TuckRefusal = "missing" | "tab" | "hidden" | "last";
 export type TuckCheck = { ok: true; home: NodeId } | { ok: false; reason: TuckRefusal };
 export type TuckResult =
-  | { ok: true; layout: Layout; view: ViewState; home: NodeId; undo: UndoEntry }
+  | { ok: true; layout: Layout; view: ViewState; home: NodeId; undo: UndoEntry & { kind: "tuck" } }
   | { ok: false; reason: TuckRefusal };
 export type PutBackResult =
   | { ok: true; layout: Layout; view: ViewState; home: NodeId }
