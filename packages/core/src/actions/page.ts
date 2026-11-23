@@ -29,6 +29,7 @@ import {
   type BesidePreview,
   type ItemId,
   type OpenPage,
+  type PageClosing,
   type PageEngine,
   type PageOpening,
   type ViewMode,
@@ -43,8 +44,8 @@ import type { PagePrefs } from "../state/page-prefs";
 import type { PageState, UiState } from "../state/store";
 import { openPaneFor } from "./open";
 import { peekSheet } from "./peek";
-import { pushUndo } from "../state/undo";
 import { closeMany } from "../layout/ops/close";
+import { closed } from "./close";
 import { keepOwnRef } from "../pane-kinds";
 import { preset } from "./layout";
 import { refusalOf, type ControlUse, type Step } from "./step";
@@ -317,6 +318,7 @@ function openTab(x: Snapshot, role: string): Outcome {
     };
   }
   const view = unzoomed(x.s.view);
+  if (!x.m.pane(role)) return refuse("not-found");
   if (x.m.visible.includes(role))
     return { op: "focus", view: core.focus(view, role, x.ctx), patch, focusDom: role };
   if (!x.m.off.includes(role))
@@ -329,7 +331,8 @@ function openTab(x: Snapshot, role: string): Outcome {
       focusDom: role,
     };
   const slot = slotFor(x);
-  if (!slot) return null;
+  // One view is always on screen (closing): a tab click never succeeds without doing something.
+  if (!slot) return refuse("blocked");
   const rep = core.replace(x.s.layout, view, slot, role, x.ctx);
   return {
     op: "page",
@@ -641,70 +644,59 @@ const back: Step<[]> = {
   run(x) {
     const r = x.s.page!;
     const name = x.env.profile?.name ?? "page";
-    const opened = investigation(x.m.panes);
-    const view = unzoomed(x.s.view);
-    const closed = closeMany(
-      x.s.layout,
-      view,
-      opened.map((p) => p.id),
-      x.ctx,
-      "closeOthers",
-      // The views keep their sizes, a resize made meanwhile included: none takes an opened pane's room as its own.
-      { keepSizes: true },
+    const opened = investigation(x.m.panes).map((p) => p.id);
+    // The views keep their sizes, a resize made meanwhile included: none takes an opened pane's room as its own.
+    const plan = closing(x, opened, "closeOthers", true);
+    if ("op" in plan) return plan;
+    const view = x.m.pane(x.s.view.focused)?.role
+      ? plan.view
+      : core.focus(plan.view, currentRole(x) ?? r.tab, x.ctx);
+    return closed(
+      x,
+      { ...plan, view },
+      "close",
+      say(x).backToPage(name, opened.length),
+      messagesOf(x).toasts.backToPage(name, opened.length),
     );
-    const focused = x.m.pane(view.focused)?.role
-      ? closed.view
-      : core.focus(closed.view, currentRole(x) ?? r.tab, x.ctx);
-    return {
-      op: "close",
-      layout: closed.layout,
-      view: focused,
-      msg: say(x).backToPage(name, opened.length),
-      toast: messagesOf(x).toasts.backToPage(name, opened.length),
-      undo: closed.undo ? pushUndo(x.s.undoStack, closed.undo) : x.s.undoStack,
-    };
   },
 };
 
-/** Close a view in Split view: it leaves the screen and waits in the tabs. Never the last one on screen. */
-const hideRole: Step<[NodeId]> = {
-  // In Single view there is no layout to take a view out of; in Split view the last view on screen stays. Both are the
-  // check's, so a menu or header offers no Close it would refuse.
-  check(x, id) {
+/**
+ * Closing panes on the page, for every close (`close`, Close other tabs, Back): its views go back to the page tabs,
+ * never closed for good, and the other panes close, as one change with one undo entry. One view stays on screen,
+ * whatever opened panes are beside it; Single view has no layout to take a view out of. Both are found before anything
+ * changes, so a check that asks gets the refusal the action would give.
+ */
+function closing(
+  x: Snapshot,
+  ids: readonly NodeId[],
+  kind: "close" | "closeOthers",
+  keepSizes?: boolean,
+): PageClosing {
+  const { m, ctx } = x;
+  const views = ids.filter((id) => m.pane(id)?.role);
+  const names = views.map((id) => label(x.env.profile!, m.pane(id)!.role));
+  if (views.length) {
     if (x.s.page?.mode === "single") return refuse("single-view", say(x).singleNoLayout);
-    const r = hiding(x, id);
-    return r && !r.ok ? r.no : undefined;
-  },
-  run: (x, id) => hide(x, id),
-};
-
-/** Taking view `id` off screen in Split view, or undefined where there is none to take (not a view, no page). */
-function hiding(x: Snapshot, id: NodeId) {
-  const p = x.env.profile,
-    node = x.m.pane(id);
-  if (!p || x.s.page?.mode !== "split" || !node?.role) return undefined;
-  const r = core.hide(x.s.layout, unzoomed(x.s.view), id, x.ctx);
-  return r.ok
-    ? { ...r, name: label(p, node.role) }
-    : {
-        ok: false as const,
-        no:
-          r.reason === "last"
-            ? refuse("last-pane", say(x).lastView(label(p, node.role)))
-            : refuse("blocked"),
-      };
-}
-
-function hide(x: Snapshot, id: NodeId): Outcome {
-  const r = hiding(x, id);
-  if (!r) return null;
-  if (!r.ok) return r.no;
+    if (!m.panes.some((n) => n.role && !m.off.includes(n.id) && !views.includes(n.id)))
+      return refuse("last-pane", say(x).lastView(names[0]!));
+  }
+  // Views first: what closes is recorded where it is once they are out, so Undo never puts it beside a hidden view.
+  let layout = x.s.layout,
+    view = unzoomed(x.s.view);
+  for (const id of views) {
+    const r = core.hide(layout, view, id, ctx);
+    if (!r.ok) return refuse("blocked");
+    ({ layout, view } = r);
+  }
+  const others = ids.filter((id) => !views.includes(id));
+  const { undo, ...r } = closeMany(layout, view, others, ctx, kind, { keepSizes });
+  ({ layout, view } = r);
   return {
-    op: "hide",
-    layout: r.layout,
-    view: r.view,
-    msg: say(x).roleHidden(r.name),
-    focusDom: r.view.focused,
+    layout,
+    view,
+    undo,
+    sent: names.length ? say(x).roleHidden(names.join(", ")) : undefined,
   };
 }
 
@@ -845,8 +837,8 @@ export const pageEngine: PageEngine = {
   placeTab,
   showItem,
   back,
+  closing,
   restored: (x, placed, keep) => settleRoles(x.s.layout, placed, keep, x.ctx),
-  hideRole,
   reset,
   opening,
   leaving,

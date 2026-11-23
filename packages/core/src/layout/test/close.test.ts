@@ -44,9 +44,7 @@ describe("close", () => {
       sizes: [{ id: "a", size: { weight: 1 }, after: { weight: 2 } }],
       tucks: [],
     });
-    expect(result.undo!.kind === "tuck" || result.undo!.closed[0]!.pane).not.toBe(
-      find(tree.root, "b"),
-    );
+    expect(result.undo!.closed[0]!.pane).not.toBe(find(tree.root, "b"));
   });
   it("returns fixed pixels and the removed gap to the opener using resolved geometry", () => {
     const tree = layout(

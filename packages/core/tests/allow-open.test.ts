@@ -124,8 +124,12 @@ describe("open off on a curated page", () => {
       main: { kind: "card", params: { id: item } },
       side: { kind: "list", params: {} },
     }),
+    // Every view is in the design, Side off screen (a view the layout doesn't hold can't be shown: final review).
     build: (item: number) =>
-      pane({ kind: "card", params: { id: item } }, { id: "main", role: "main" }),
+      row(
+        pane({ kind: "card", params: { id: item } }, { id: "main", role: "main" }),
+        pane({ kind: "list", params: {} }, { id: "side", role: "side", hidden: true }),
+      ),
   });
 
   it("Split view is anyone's, and links from a view peek there", () => {
@@ -155,5 +159,6 @@ describe("open off on a curated page", () => {
     expect(jali.getLayout()).toBe(layout);
     // A click on its tab still shows it, in place of the view in use.
     expect(jali.page!.showView("side").ok).toBe(true);
+    expect(jali.model().pane("side")?.where).toBe("shown");
   });
 });

@@ -16,12 +16,13 @@ import type {
   NodeId,
   ObjectRef,
   Rect,
+  CloseUndo,
   ViewState,
 } from "./layout/types";
 import type { LayoutInput } from "./layout/build";
 import type { CommandDef } from "./commands/registry";
 import type { MessageOverrides } from "./state/messages";
-import type { Outcome, Snapshot } from "./state/apply";
+import type { Outcome, RefusalStep, Snapshot } from "./state/apply";
 import type { Step } from "./actions/step";
 import type { Placement } from "./layout/ops/open";
 import type { UiState } from "./state/store";
@@ -121,8 +122,15 @@ export interface PageEngine {
   placeTab: Step<[string, NodeId, Edge | "centre"]>;
   showItem: Step<[ItemId]>;
   back: Step<[]>;
-  hideRole: Step<[NodeId]>;
   reset: Step<[]>;
+  /** Closing `ids` on the page, for every close (`close`, Close other tabs, Back): views go back to the page tabs and
+   *  never close; the other panes close, as one change with one undo entry. */
+  closing(
+    x: Snapshot,
+    ids: readonly NodeId[],
+    kind: "close" | "closeOthers",
+    keepSizes?: boolean,
+  ): PageClosing;
   /** How a link from `source` opens while the page is open: `openBeside` asks, and does what it says. */
   opening(x: Snapshot, source: NodeId, ref: ObjectRef, edge?: Edge): PageOpening;
   /** Panes an undo put back (`keep`): views they would fold go back to the page tabs instead (`settleRoles`). */
@@ -142,6 +150,12 @@ export interface PageEngine {
   /** The page's English: the `page` area, and the announcements, command titles and toasts only a page uses. */
   words: MessageOverrides;
 }
+
+/** A close planned on a curated page (`PageEngine.closing`): the layout after it, the undo entry for what closed and
+ *  what to say about views sent back to the page tabs; or why it can't happen. */
+export type PageClosing =
+  | RefusalStep
+  | { layout: Layout; view: ViewState; undo?: CloseUndo; sent?: string };
 
 /**
  * How a link opens while a curated page is open (`PageEngine.opening`): `instead`, the page's own outcome (a peek,

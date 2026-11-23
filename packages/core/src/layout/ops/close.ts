@@ -6,7 +6,7 @@ import type {
   NodeId,
   SizeChange,
   SlotLevel,
-  UndoEntry,
+  CloseUndo,
   ViewState,
 } from "../types";
 import {
@@ -75,7 +75,7 @@ function record(
   before: Layout,
   after: Layout,
   targets: readonly NodeId[],
-): UndoEntry | undefined {
+): CloseUndo | undefined {
   const left = new Map(nodes(after.root).map((n) => [n.id, n]));
   const pane = (id?: NodeId) => panes(before.root).find((p) => p.id === id);
   const closed: ClosedPane[] = targets.map((id) => ({
@@ -147,7 +147,7 @@ export function closeMany(
   ctx: LayoutContext,
   kind: "close" | "closeOthers" = "closeOthers",
   options: { keepSizes?: boolean } = {},
-): { layout: Layout; view: ViewState; undo?: UndoEntry } {
+): { layout: Layout; view: ViewState; undo?: CloseUndo } {
   const original = panes(layout.root);
   const closing = new Set(targets.filter((t) => original.some((p) => p.id === t)));
   // The last pane stays.

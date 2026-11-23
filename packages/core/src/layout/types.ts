@@ -264,6 +264,8 @@ export type UndoEntry =
       tucks: TuckRecord[];
     }
   | { kind: "tuck"; tucked: NodeId };
+/** What undo reverses of a close. */
+export type CloseUndo = Exclude<UndoEntry, { kind: "tuck" }>;
 export type TuckRefusal = "missing" | "tab" | "hidden" | "last";
 export type TuckCheck = { ok: true; home: NodeId } | { ok: false; reason: TuckRefusal };
 export type TuckResult =

@@ -4,7 +4,8 @@ import * as core from "../layout/engine";
 import type { NodeId, ObjectRef, PaneNode } from "../layout/types";
 import { closeMany } from "../layout/ops/close";
 import { restoreClosed } from "../layout/ops/restore";
-import { refuse, type Outcome, type Snapshot } from "../state/apply";
+import { refuse, type Outcome, type RefusalStep, type Snapshot, type Toast } from "../state/apply";
+import type { PageClosing } from "../profile";
 import { messagesOf, say } from "../state/messages";
 import { closedPanes, forgetObject, pushUndo } from "../state/undo";
 import { objectKey } from "../state/pane-state";
@@ -17,34 +18,60 @@ const unzoomed = core.tree.unzoom;
 /** A curated page's engine, while its page is open. */
 const pageOf = (x: Snapshot) => (x.s.page ? x.env.page : undefined);
 
+/** Closing `ids` (or the one pane of a `"close"`), planned: on a curated page by the page (`closing`), which sends its
+ *  views back to the page tabs instead of closing them. */
+function plan(x: Snapshot, ids: NodeId[], kind: "close" | "closeOthers"): PageClosing {
+  const { s, ctx } = x;
+  const page = pageOf(x);
+  if (page) return page.closing(x, ids, kind);
+  const view = unzoomed(s.view);
+  return kind === "close"
+    ? core.close(s.layout, view, ids[0]!, ctx)
+    : closeMany(s.layout, view, ids, ctx, kind);
+}
+
+/** A close as a change: what closed has its toast and undo entry; views a page sent back to its tabs are said too (no
+ *  undo brings them back: they are in the tabs). */
+export function closed(
+  x: Snapshot,
+  r: Exclude<PageClosing, RefusalStep>,
+  op: "close" | "closeOthers",
+  msg: string,
+  toast: Toast,
+  result?: NodeId,
+): Outcome {
+  const { s } = x;
+  const gone = r.undo?.closed.some((c) => c.pane.id === s.peekSource);
+  return {
+    op: r.undo ? op : "hide",
+    layout: r.layout,
+    view: r.view,
+    msg: r.sent ? (r.undo ? say(x).both(msg, r.sent) : r.sent) : msg,
+    ...(r.undo ? { toast, undo: pushUndo(s.undoStack, r.undo) } : { focusDom: r.view.focused }),
+    patch: gone ? { peekSource: undefined } : undefined,
+    result,
+  };
+}
+
 /** Close pane `id` (default: the focused one), with an undo toast. On a curated page a view is never closed for good:
- *  the page puts it back in its tabs (`hideRole`). The last pane stays. */
+ *  the page puts it back in its tabs. The last pane stays. */
 export const close: Step<[NodeId?]> = {
   check(x, id = x.s.view.focused) {
     const { m } = x;
     if (!id || !m.pane(id)) return refuse("not-found");
-    const page = pageOf(x);
-    if (page && m.pane(id)!.role) return page.hideRole.check?.(x, id);
+    if (pageOf(x)) return refusal(plan(x, [id], "close"));
     return m.panes.length <= 1 ? refuse("last-pane", say(x).lastPaneStays) : undefined;
   },
   control: uses("close"),
   run(x, id = x.s.view.focused!) {
-    const { s, m, ctx } = x;
-    const page = pageOf(x);
-    if (page && m.pane(id)!.role) return page.hideRole.run(x, id);
-    const title = m.title(id);
-    const r = core.close(s.layout, unzoomed(s.view), id, ctx);
-    return {
-      op: "close",
-      layout: r.layout,
-      view: r.view,
-      msg: say(x).closed(title),
-      toast: messagesOf(x).toasts.closed(title),
-      undo: r.undo ? pushUndo(s.undoStack, r.undo) : s.undoStack,
-      patch: s.peekSource === id ? { peekSource: undefined } : undefined,
-    };
+    const r = plan(x, [id], "close");
+    if ("op" in r) return r;
+    const title = x.m.title(id);
+    return closed(x, r, "close", say(x).closed(title), messagesOf(x).toasts.closed(title));
   },
 };
+
+const refusal = (r: PageClosing) => ("op" in r ? r : undefined);
 
 /**
  * The host closed this pane's object elsewhere (`jali.actions.remove`): the pane goes quietly, with no undo, toast or
@@ -120,14 +147,13 @@ export const closeOthers: Step<[NodeId?]> = {
           ctx,
         )
       : core.closeOthers(s.layout, unzoomed(s.view), id, ctx);
-    return {
-      op: "closeOthers",
-      layout: r.layout,
-      view: kept ? core.focus(r.view, id, ctx) : r.view,
-      msg: say(x).othersClosed,
-      toast: messagesOf(x).toasts.othersClosed(),
-      undo: r.undo ? pushUndo(s.undoStack, r.undo) : s.undoStack,
-    };
+    return closed(
+      x,
+      { ...r, view: kept ? core.focus(r.view, id, ctx) : r.view },
+      "closeOthers",
+      say(x).othersClosed,
+      messagesOf(x).toasts.othersClosed(),
+    );
   },
 };
 
@@ -136,22 +162,23 @@ export const closeOthers: Step<[NodeId?]> = {
  * host's `beforeClose` is asked once, listing them all, and one Undo brings them back. Pinned tabs stay.
  */
 export const closeTabs: Step<[NodeId, "others" | "after"]> = {
-  check: (x, id, which) =>
-    tabsToClose(x, id, which).length ? undefined : refuse("nothing-to-do", say(x).noTabsToClose),
-  run(x, id, which) {
-    const { s, ctx } = x;
+  check(x, id, which) {
     const closing = tabsToClose(x, id, which);
-    const r = closeMany(s.layout, unzoomed(s.view), closing, ctx);
-    return {
-      op: "closeOthers",
-      layout: r.layout,
-      view: core.focus(r.view, id, ctx),
-      msg: say(x).tabsClosed(closing.length),
-      toast: messagesOf(x).toasts.tabsClosed(closing.length),
-      undo: r.undo ? pushUndo(s.undoStack, r.undo) : s.undoStack,
-      patch: s.peekSource && closing.includes(s.peekSource) ? { peekSource: undefined } : undefined,
-      result: id,
-    };
+    if (!closing.length) return refuse("nothing-to-do", say(x).noTabsToClose);
+    return pageOf(x) ? refusal(plan(x, closing, "closeOthers")) : undefined;
+  },
+  run(x, id, which) {
+    const r = plan(x, tabsToClose(x, id, which), "closeOthers");
+    if ("op" in r) return r;
+    const n = r.undo?.closed.length ?? 0;
+    return closed(
+      x,
+      { ...r, view: core.focus(r.view, id, x.ctx) },
+      "closeOthers",
+      say(x).tabsClosed(n),
+      messagesOf(x).toasts.tabsClosed(n),
+      id,
+    );
   },
 };
 

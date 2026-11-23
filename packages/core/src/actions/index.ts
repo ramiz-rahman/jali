@@ -110,7 +110,6 @@ export type PageSteps = Pick<
   | "reset"
   | "showItem"
   | "back"
-  | "hideRole"
 >;
 
 /** A step of the curated page's engine, as a step of the instance: each part is the page's own, and without a page
@@ -306,7 +305,6 @@ export const STEPS = /* @__PURE__ */ (() =>
     openPeekBeside: [openPeekBeside, "openBeside"],
     toggleCentreDrop: [toggleCentreDrop, "changeSettings"],
     showViewBeside: [pageStep("showViewBeside"), "page.showView"],
-    hideRole: [pageStep("hideRole"), "close"],
 
     // ---------- adapters: steps no action names ----------
     /** The page from a link, or the page an app starts on: an arrival, which writes no history. */
