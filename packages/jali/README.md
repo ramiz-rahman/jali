@@ -1,6 +1,6 @@
 # jali
 
-Panes that fold into tabs rather than squeeze, follow each other, and come back from a link exactly as they were.
+A new layout primitive for React apps. Split any part of your app into adaptive tiling panes, from two side by side to over a dozen in rows, columns and tabs. You describe each pane once; your users arrange them the way they work, on any screen.
 
 ```sh
 npm install jali
