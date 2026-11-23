@@ -4,7 +4,13 @@ import { useDataLayer } from "./react";
 
 type Pause = { paused?: boolean };
 export type RowsOpts = RowsQuery;
-const activity = (options?: Pause) => ({ enabled: !options?.paused, subscribed: !options?.paused });
+/**
+ * A paused read does no work but keeps listening: it never fetches (`enabled`), and it stays subscribed to its cache
+ * entry, so an answer someone else fetched for the same key reaches it while it is out of sight. Its pane shows the
+ * data when it comes back, with no fetch and no loading state, and a hidden pane is never left "loading" for a read
+ * that already finished. A paused read with nothing cached yet is pending, not loading; it fetches once unpaused.
+ */
+const activity = (options?: Pause) => ({ enabled: !options?.paused });
 export function useCatalog(options?: Pause) {
   const layer = useDataLayer();
   return useQuery(
