@@ -110,6 +110,11 @@ export function InstanceScope({ children }: { children?: ReactNode }) {
 /** An instance as React code sees it: its kinds have components, its page a rail and header (define.ts). */
 export type ReactJaliStore = JaliStore & { env: ReactEnv };
 
+/** The instance this is inside, or `null` outside any (a boundary that may sit above a provider). */
+export function useOptionalStore(): JaliStore | null {
+  return useContext(StoreContext);
+}
+
 export function useStore(): ReactJaliStore {
   const store = useContext(StoreContext);
   if (!store) throw new Error("useStore() outside <StoreProvider>");

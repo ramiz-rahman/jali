@@ -64,7 +64,7 @@ Two things are yours to render. **The shelf** (tucked panes as chips): put `Shel
 
 - **`aria-labelledby`** (`string`): The id of a visible heading that names the instance; the landmarks inside carry its text.
 
-- **`onError`** (`(error: unknown) => void`): Hears a throw in your code inside the root or in Jali's own parts. The root shows "… could not be shown" with Retry in place of what failed, and your app around it stays. A pane's own failures go to `onPaneError`.
+- **`onError`** (`(error: unknown) => void`): Hears a throw in your code inside the root or in Jali's own parts. The root shows "… could not be shown" with Retry in place of what failed, and your app around it stays. Giving the root another instance clears the failure and renders the new instance, without mounting your healthy children again. A dialog that throws closes itself, as Esc would, and reports here, so the next dialog opens normally. A pane's own failures go to `onPaneError`.
 
 - **`...rest`** (`HTMLAttributes<HTMLDivElement>`): Passed to the root `<div>` (`className`, `style`, `id`). `ref` and `data-jali` are Jali's.
 
@@ -507,7 +507,7 @@ Only `data-*` names are kept, and not the ones Jali's own parts use (`data-pane`
 useHeaderActions(controls: ReactNode): void
 ```
 
-Put the pane's own controls in its header. Jali places them in `.jali-pane-tools`, in this order: the grip, the title (or tabs), Following / Kept, your controls, then Jali's buttons. Pass them on every render, like any JSX. `null` takes them away, as does the component unmounting. Each pane has one set, and the last call wins.
+Put the pane's own controls in its header. Jali places them in `.jali-pane-tools`, in this order: the grip, the title (or tabs), Following / Kept, your controls, then Jali's buttons. Pass them on every render, like any JSX. `null` takes them away, as does the component unmounting. One set shows per pane: the latest mounted call's that has controls. Each call is its own, so a component that unmounts takes only its controls away, and the previous call's show again.
 
 They render inside the pane's context, so the pane's hooks work in them, as do providers above `<JaliRoot>`. A provider inside your own component doesn't reach them.
 

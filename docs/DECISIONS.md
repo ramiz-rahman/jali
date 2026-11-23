@@ -1781,3 +1781,22 @@ Second part of step 1 of docs/reviews/2026-11-23/PLAN.md: the cuts that change b
 - **`"agent"` leaves `JaliInput`.** Nothing produces it since the agent bridge went; an app's agent acts in the app's code, as `code`. `withInput` stays internal (a held action ends with the input of whoever asked) and leaves `jali/adapter`.
 - **Size:** unchanged budgets, none raised (full core 61.9 of 63.0 KB, `+page` 58.1 of 59.7).
 - **Tests:** the viewer tests (`page-viewer`, `viewer-downgrade`, the officer browser test) become `allow.open` tests that follow each action to its next consequence (a peek instead of a pane, then its Open beside refused and the layout unchanged; Split view on a page, then a link that peeks; `when` per source pane; the chrome drawn without the buttons), and the peek's address tests become "a peek writes nothing, and a fresh instance on the same address shows none".
+
+## 23 Nov 2026 · Stabilisation, React stream: focus in Safari, header controls, boundaries (23 Nov 2026)
+
+React-side items of docs/reviews/2026-11-23/PLAN.md (SAFARI-1, SAFARI-2, A1-4, A1-5), on branch `stabilise-react`.
+
+- **Focus never leaves an open dialog.**
+  - **What:** `ModalDialog` (which Settings, the discard question, ⌘K and the chooser all use) watches focus leaving while Tab is being pressed (`focusout` from the dialog, `focusin` outside it, within the key's own task) and sends it back in: the first tab stop after Tab, the last after Shift+Tab. Jali still doesn't drive Tab: the browser moves it, and the guard acts only when it would leave. The wrap at the first and last stop stays for browsers whose Tab reaches every button.
+  - **Why:** Safari's Tab skips buttons by default, so the last stop Jali wraps from is one Tab never reaches, and Tab left the dialog. A blur with no Tab behind it (a click on nothing) is left alone.
+  - **Tests:** a unit test (focus taken out by Tab comes back, a plain blur doesn't); the two axe tests check in WebKit that Tab, Shift+Tab, Option+Tab and Option+Shift+Tab never leave, and that Option+Tab reaches every button of the dialog. Chrome keeps its checks.
+- **Focus returns to what was pressed.**
+  - **What:** a menu's opener is taken from the event: the ⋯ button, or the pane for a right-click and Shift+F10 (tab menus and the overflow menu already were). For a dialog, `dom/input.ts` also keeps the element the last pointer press landed on, per document, until a key is pressed there (`lastPressedControl`, in `jali/adapter`); a dialog's opener is that control when there is one, else what has focus.
+  - **Why:** Safari doesn't focus a clicked button, so `document.activeElement` is the page or whatever had focus before. The pressed control wins over `activeElement` and not only when focus is on the body: in Safari a click can leave focus on the text field before it. In a browser that focuses the button, the two are the same.
+  - **Consequence:** Shift+F10 on a header control now returns focus to the pane, not to that control.
+- **Header controls belong to whoever registered them.**
+  - **What:** each `useHeaderActions` call registers in the pane's slot under its own owner (`useId`). The slot shows the controls of the latest owner to register that has some, and an unmounting call releases only its own. A call that passes `null` or `false` shows nothing and doesn't hide an earlier call's controls.
+  - **Why:** the last unmount used to clear the one slot, so a component that left took a sibling's controls with it, even when the sibling didn't render again (A1-4).
+- **Boundaries reset with the instance.**
+  - **What:** `Guard`, the one boundary around the host's code in Jali's chrome (the root's children, the dialog layer, Settings' extra fieldsets, icons, a page's rail and header), clears its failure when the instance it is in is replaced, without remounting the host's healthy children. Each dialog sits in a Guard of its own (keyed by dialog): one that throws closes through its close step (`keepEditing`, `closeChooser`, `dialogs.closePalette`, `dialogs.closeSettings`) and reports to `onError`, so it no longer stays open in state, drawing nothing over the dialogs after it. Panes are unchanged.
+  - **Why:** the boundaries sat outside the instance's scope, so `<JaliRoot jali={b}>` kept showing a's failure until Retry (A1-5).
