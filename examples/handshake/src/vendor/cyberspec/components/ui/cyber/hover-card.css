@@ -1,0 +1,187 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  /* The name. A link like any other in the kit, signal-colored and
+     underlined; while its card shows, the underline doubles, so it's clear
+     which name the card is about. */
+  [data-skin="cyber"] [data-kit="hover-card-trigger"] {
+    color: var(--cy-signal);
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    cursor: pointer;
+
+    @media (hover: hover) {
+      &:hover {
+        text-decoration-thickness: 2px;
+      }
+    }
+    &[data-open] {
+      text-decoration-thickness: 2px;
+      color: var(--cy-ink-hi);
+    }
+  }
+
+  /* The dossier: portrait beside the name, facts under both, a line of
+     print along the foot. */
+  [data-skin="cyber"] [data-kit="hover-card"] {
+    --frame-cut: var(--cy-cut);
+    --frame-line: var(--cy-line-hot);
+    --frame-fill: var(--cy-panel);
+    /* Frame variables inherit; this one is never patterned. */
+    --frame-image: none;
+
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 10px 12px;
+    width: min(264px, calc(100vw - 16px));
+    margin: 0;
+    padding: 12px 12px 8px;
+    /* It sits inside the text the link is in, and would inherit how that
+       text is set. */
+    font-family: var(--cy-font);
+    font-size: var(--cy-text-sm);
+    font-weight: 500;
+    line-height: 1.35;
+    letter-spacing: normal;
+    text-align: start;
+    text-transform: none;
+    white-space: normal;
+    color: var(--cy-ink-hi);
+
+    &[data-open] {
+      animation: var(--cy-fx-in) 200ms var(--cy-ease-snap) backwards;
+    }
+    &[data-ending-style] {
+      animation: var(--cy-fx-out) 120ms var(--cy-ease-snap) both;
+    }
+  }
+
+  /* The portrait: initials on a scanline field, lit from below in the
+     person's color, in a frame of its own with two corners cut. */
+  [data-skin="cyber"] [data-kit="hover-card-portrait"] {
+    --tone: var(--cy-signal);
+    --cut: 7px;
+
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 68px;
+    overflow: hidden;
+    font-size: var(--cy-text-xl);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.04em;
+    color: var(--tone);
+    background:
+      repeating-linear-gradient(to bottom, transparent 0 2px, color-mix(in srgb, var(--tone) 20%, transparent) 2px 3px),
+      linear-gradient(to top, color-mix(in srgb, var(--tone) 34%, var(--cy-panel-2)), var(--cy-panel-2) 72%);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tone) 60%, var(--cy-panel));
+    clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
+
+    &[data-tone="rare"] {
+      --tone: var(--cy-rare);
+    }
+    &[data-tone="epic"] {
+      --tone: var(--cy-epic);
+    }
+    &[data-tone="ok"] {
+      --tone: var(--cy-ok);
+    }
+
+    /* One pass of a scan band as the card opens. Without effects there's no
+       band at all. */
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, transparent 30%, color-mix(in srgb, var(--tone) 55%, transparent) 50%, transparent 54%);
+      opacity: var(--cy-fx);
+      /* Parked above the portrait; the pass ends below it. */
+      transform: translateY(-100%);
+      pointer-events: none;
+    }
+    [data-open] > &::after {
+      animation: var(--cy-fx-scan) 620ms linear 140ms both;
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="hover-card-id"] {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  [data-skin="cyber"] [data-kit="hover-card-name"] {
+    display: block;
+    font-size: var(--cy-text-lg);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: var(--cy-track);
+    text-transform: uppercase;
+    color: var(--cy-ink-hi);
+    overflow-wrap: anywhere;
+  }
+
+  /* The role, behind a mark in the accent, so it reads as a tag even
+     without its color. */
+  [data-skin="cyber"] [data-kit="hover-card-role"] {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--cy-mono);
+    font-size: var(--cy-text-xs);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--cy-ink);
+
+    &::before {
+      content: "";
+      flex: none;
+      width: 6px;
+      height: 6px;
+      background: var(--cy-accent);
+      clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+    }
+  }
+
+  /* The facts, side by side: what each is called over what it reads. */
+  [data-skin="cyber"] [data-kit="hover-card-facts"] {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 12px;
+    padding-block-start: 9px;
+    border-block-start: 1px solid var(--cy-line-deco);
+  }
+
+  [data-skin="cyber"] [data-kit="hover-card-fact"] {
+    display: grid;
+    gap: 1px;
+    min-width: 0;
+  }
+
+  [data-skin="cyber"] [data-kit="hover-card-fact-label"] {
+    font-size: var(--cy-text-xs);
+    font-weight: 600;
+    letter-spacing: var(--cy-track);
+    text-transform: uppercase;
+    color: var(--cy-ink-mute);
+  }
+
+  [data-skin="cyber"] [data-kit="hover-card-fact-value"] {
+    font-family: var(--cy-mono);
+    font-size: var(--cy-text-xs);
+    color: var(--cy-signal);
+    overflow-wrap: anywhere;
+  }
+
+  [data-skin="cyber"] [data-kit="hover-card-foot"] {
+    grid-column: 1 / -1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}

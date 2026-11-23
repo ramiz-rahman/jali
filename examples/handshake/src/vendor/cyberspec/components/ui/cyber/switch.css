@@ -1,0 +1,113 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  [data-skin="cyber"] [data-kit="switch-row"] {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    width: 100%;
+    min-height: var(--cy-h);
+    cursor: pointer;
+
+    &:has([data-disabled]) {
+      cursor: not-allowed;
+
+      & [data-kit="label"] {
+        color: var(--cy-ink-mute);
+      }
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="switch"] {
+    --frame-cut: 5px;
+    --frame-line: var(--cy-line-ctl);
+    --frame-fill: var(--cy-panel);
+    --w: 58px;
+    --thumb: 20px;
+
+    flex: none;
+    display: block;
+    width: var(--w);
+    height: 24px;
+    padding: 0;
+    cursor: inherit;
+    transition:
+      background-color var(--cy-t) var(--cy-ease-snap),
+      border-color var(--cy-t) var(--cy-ease-snap);
+
+    @media (hover: hover) {
+      &:hover:not([data-disabled]) {
+        --frame-line: var(--cy-line-hot);
+        --frame-fill: var(--cy-fill-hover);
+      }
+    }
+
+    &[data-checked] {
+      --frame-line: var(--cy-line-hot);
+      --frame-fill: var(--cy-fill-active);
+    }
+
+    &[data-disabled] {
+      --frame-line: var(--cy-line-deco);
+      --frame-image: repeating-linear-gradient(135deg, transparent 0 5px, var(--cy-line-deco) 5px 6px);
+    }
+  }
+
+  /* The block. Hollow while off, solid and lit while on. */
+  [data-skin="cyber"] [data-kit="switch-thumb"] {
+    --frame-cut: 4px;
+    --frame-line: var(--cy-line-ctl);
+    --frame-fill: transparent;
+    --frame-image: none;
+
+    position: absolute;
+    inset-block: 3px;
+    inset-inline-start: 3px;
+    width: var(--thumb);
+    transition:
+      translate var(--cy-t) var(--cy-ease-snap),
+      background-color var(--cy-t-fast) linear;
+
+    &[data-checked] {
+      translate: calc(var(--w) - var(--thumb) - 8px) 0;
+      --frame-line: var(--cy-ink-hi);
+      --frame-fill: var(--cy-ink-hi);
+    }
+
+    &[data-disabled] {
+      --frame-line: var(--cy-line-deco);
+    }
+
+    &:dir(rtl)[data-checked] {
+      translate: calc((var(--w) - var(--thumb) - 8px) * -1) 0;
+    }
+  }
+
+  /* ON / OFF, printed in the half of the track the block isn't in. */
+  [data-skin="cyber"] [data-kit="switch-state"] {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-end: 5px;
+    display: grid;
+    place-items: center;
+    font-family: var(--cy-mono);
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--cy-ink-mute);
+
+    &::before {
+      content: "OFF";
+    }
+
+    [data-checked] > & {
+      inset-inline: 6px auto;
+      color: var(--cy-ink-hi);
+
+      &::before {
+        content: "ON";
+      }
+    }
+  }
+}

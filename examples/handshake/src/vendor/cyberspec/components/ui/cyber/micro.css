@@ -1,0 +1,115 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+/* Printed decoration. All of it is drawn in the control-edge color at the
+   opacity of micro-print, takes `color` if a screen wants it louder, and
+   never catches the pointer. */
+@layer cyber.ui {
+  /* The line itself is base.css's [data-micro]; this only stands it on end. */
+  [data-skin="cyber"] [data-kit="micro"] {
+    display: inline-block;
+
+    &[data-vertical] {
+      writing-mode: vertical-rl;
+    }
+  }
+
+  /* One module is --barcode-unit wide, so bars land on whole pixels. */
+  [data-skin="cyber"] [data-kit="barcode"] {
+    flex: none;
+    display: block;
+    width: calc(var(--barcode-modules) * var(--barcode-unit, 1px));
+    max-width: 100%;
+    height: var(--barcode-size, 18px);
+    fill: currentColor;
+    color: var(--cy-line-ctl);
+    opacity: 0.75;
+    shape-rendering: crispEdges;
+    pointer-events: none;
+
+    &[data-vertical] {
+      width: var(--barcode-size, 18px);
+      height: calc(var(--barcode-modules) * var(--barcode-unit, 1px));
+      max-width: none;
+      max-height: 100%;
+    }
+  }
+
+  /* Two rows of ticks from one element: a short one every step, and a long
+     one over every fifth. */
+  [data-skin="cyber"] [data-kit="ruler"] {
+    --ruler-step: 4px;
+
+    flex: none;
+    display: block;
+    width: 100%;
+    height: 7px;
+    color: var(--cy-line-ctl);
+    opacity: 0.75;
+    background:
+      repeating-linear-gradient(to right, currentColor 0 1px, transparent 1px calc(var(--ruler-step) * 5)) left bottom / 100% 100% no-repeat,
+      repeating-linear-gradient(to right, currentColor 0 1px, transparent 1px var(--ruler-step)) left bottom / 100% 3px no-repeat;
+    pointer-events: none;
+
+    &[data-vertical] {
+      width: 7px;
+      height: 100%;
+      background:
+        repeating-linear-gradient(to bottom, currentColor 0 1px, transparent 1px calc(var(--ruler-step) * 5)) left top / 100% 100% no-repeat,
+        repeating-linear-gradient(to bottom, currentColor 0 1px, transparent 1px var(--ruler-step)) left top / 3px 100% no-repeat;
+    }
+  }
+
+  /* A column of bytes. The row that was just rewritten reads in the signal
+     color until the next one is. */
+  [data-skin="cyber"] [data-kit="data-stream"] {
+    display: inline-grid;
+    line-height: 1.5;
+
+    & > span {
+      transition: color var(--cy-t-slow) linear;
+    }
+
+    & > [data-fresh] {
+      color: var(--cy-signal);
+      transition-duration: 0s;
+    }
+  }
+
+  /* Eight strokes, two to a corner, painted as backgrounds so the marks cost
+     one element and can't disturb the parent's layout. */
+  [data-skin="cyber"] [data-kit="corners"] {
+    --_s: var(--corners-size, 8px);
+
+    position: absolute;
+    inset: var(--corners-inset, 0px);
+    color: var(--cy-line-ctl);
+    background:
+      linear-gradient(currentColor, currentColor) left top / var(--_s) 1px,
+      linear-gradient(currentColor, currentColor) left top / 1px var(--_s),
+      linear-gradient(currentColor, currentColor) right top / var(--_s) 1px,
+      linear-gradient(currentColor, currentColor) right top / 1px var(--_s),
+      linear-gradient(currentColor, currentColor) right bottom / var(--_s) 1px,
+      linear-gradient(currentColor, currentColor) right bottom / 1px var(--_s),
+      linear-gradient(currentColor, currentColor) left bottom / var(--_s) 1px,
+      linear-gradient(currentColor, currentColor) left bottom / 1px var(--_s);
+    background-repeat: no-repeat;
+    pointer-events: none;
+
+    /* A cross sits on the corner itself, so the box grows by half an arm
+       and each stroke moves to the middle of the other. */
+    &[data-variant="cross"] {
+      --_h: calc((var(--_s) - 1px) / 2);
+
+      inset: calc(var(--corners-inset, 0px) - var(--_h) - 0.5px);
+      background-position:
+        left 0 top var(--_h),
+        left var(--_h) top 0,
+        right 0 top var(--_h),
+        right var(--_h) top 0,
+        right 0 bottom var(--_h),
+        right var(--_h) bottom 0,
+        left 0 bottom var(--_h),
+        left var(--_h) bottom 0;
+    }
+  }
+}

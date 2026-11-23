@@ -22,6 +22,8 @@ export default defineConfig({
       "examples/studio/licenses/**",
       "examples/studio/src/sessions/data/**",
       "examples/studio/scripts/audio/checks/**",
+      // CyberSpec's source, kept as its shadcn registry writes it, so an update from the registry diffs cleanly.
+      "examples/handshake/src/vendor/**",
     ],
   },
   // Docs samples show a value on its own line ("keymap.label(id); // \"⌘K ⌘↵\""), on purpose.

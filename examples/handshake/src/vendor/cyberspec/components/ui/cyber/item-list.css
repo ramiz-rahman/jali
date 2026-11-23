@@ -1,0 +1,270 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  /* A heading strip over a list of rows. Beside others in a row it shares
+     the width; alone it takes it all. */
+  [data-skin="cyber"] [data-kit="item-list"] {
+    --row: 34px;
+    --cut: 9px;
+
+    flex: 1 1 240px;
+    display: grid;
+    gap: 4px;
+    min-width: min(100%, 200px);
+    text-align: start;
+    container-type: inline-size;
+
+    &[data-compact] {
+      --row: 26px;
+      --cut: 7px;
+    }
+
+    @media (pointer: coarse) {
+      --row: 44px;
+    }
+  }
+
+  /* The strip: the list's name, how many rows it holds, and a rule with a
+     hot tick at its leading end. */
+  [data-skin="cyber"] [data-kit="item-list-head"] {
+    position: relative;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 2px 5px;
+    border-block-end: 1px solid var(--cy-line-deco);
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset-block-end: -1px;
+      inset-inline-start: 0;
+      width: 28px;
+      height: 3px;
+      background: var(--cy-accent);
+    }
+
+    [data-disabled] > & {
+      &::after {
+        background: var(--cy-line-deco);
+      }
+      & [data-kit="label"],
+      & [data-kit="value"] {
+        color: var(--cy-ink-mute);
+      }
+    }
+  }
+
+  /* The rows share one set of columns (number, name, meta, alert), so every
+     column lines up down the list whatever each row holds. */
+  [data-skin="cyber"] [data-kit="item-list-rows"] {
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr) auto auto;
+    column-gap: 10px;
+    row-gap: 2px;
+    align-content: start;
+    max-height: calc(var(--item-list-max, 999) * (var(--row) + 2px) - 2px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    outline: none;
+  }
+
+  [data-skin="cyber"] [data-kit="item-list-row"] {
+    position: relative;
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: subgrid;
+    align-items: center;
+    min-height: var(--row);
+    padding-inline: 8px 12px;
+    font-size: var(--cy-text-md);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: var(--cy-track);
+    text-transform: uppercase;
+    color: var(--cy-ink);
+    cursor: default;
+    user-select: none;
+    outline: none;
+    transition:
+      background-color var(--cy-t-fast) linear,
+      color var(--cy-t-fast) linear;
+
+    [data-compact] & {
+      font-size: var(--cy-text-sm);
+    }
+
+    @media (hover: hover) {
+      &:hover:not([data-disabled], [data-selected]) {
+        background: var(--cy-fill-hover);
+      }
+    }
+
+    /* Where the keyboard is, when that isn't the chosen row (a list that
+       waits for Enter): the kit's highlight. */
+    &[data-highlighted]:not([data-selected]) {
+      background: var(--cy-fill-active);
+      color: var(--cy-ink-hi);
+      box-shadow: inset 3px 0 0 var(--cy-signal);
+
+      &:dir(rtl) {
+        box-shadow: inset -3px 0 0 var(--cy-signal);
+      }
+    }
+
+    /* The chosen row: a solid signal bar, dark ink, its corner cut. */
+    &[data-selected] {
+      background: var(--cy-signal);
+      color: var(--cy-on-solid);
+      clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%);
+
+      &:dir(rtl) {
+        clip-path: polygon(0 0, 100% 0, 100% 100%, var(--cut) 100%, 0 calc(100% - var(--cut)));
+      }
+
+      @media (hover: hover) {
+        &:hover:not([data-disabled]) {
+          background: color-mix(in srgb, var(--cy-signal) 84%, white);
+        }
+      }
+
+      /* Keyboard focus on the solid bar: a dark ring drawn inside it. */
+      &:focus-visible {
+        box-shadow:
+          inset 0 0 0 2px var(--cy-signal),
+          inset 0 0 0 4px var(--cy-on-solid);
+      }
+    }
+
+    /* Unavailable: hatched and muted. A chosen row that can't be changed
+       keeps its shape, dimmed. */
+    &[data-disabled] {
+      background-image: repeating-linear-gradient(135deg, transparent 0 5px, var(--cy-line-deco) 5px 6px);
+      color: var(--cy-ink-mute);
+      cursor: not-allowed;
+
+      &[data-selected] {
+        background-color: var(--cy-signal-dim);
+        color: var(--cy-ink-hi);
+      }
+    }
+  }
+
+  /* The leading column: the row's number in micro-print, which gives way to
+     a pointer on the chosen row. */
+  [data-skin="cyber"] [data-kit="item-list-lead"] {
+    display: grid;
+    place-items: center;
+    height: 14px;
+  }
+
+  [data-skin="cyber"] [data-kit="item-list-index"] {
+    font-family: var(--cy-mono);
+    font-size: var(--cy-text-micro);
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    color: var(--cy-ink-mute);
+
+    [data-selected] > * > & {
+      display: none;
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="item-list-pointer"] {
+    display: grid;
+    place-items: center;
+    animation: var(--cy-fx-in) 200ms var(--cy-ease-snap) backwards;
+
+    & svg {
+      width: 14px;
+      height: 14px;
+      stroke-width: 2.5;
+    }
+
+    &:dir(rtl) svg {
+      scale: -1 1;
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="item-list-name"] {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  [data-skin="cyber"] [data-kit="item-list-meta"] {
+    font-family: var(--cy-mono);
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    color: var(--cy-ink-mute);
+
+    [data-highlighted] > &,
+    [data-selected] > & {
+      color: inherit;
+    }
+
+    /* In a narrow column the meta gives its room to the name. */
+    @container (max-width: 260px) {
+      display: none;
+    }
+  }
+
+  /* The alert column: a yellow badge, and a count that takes its color. */
+  [data-skin="cyber"] [data-kit="item-list-alert"] {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  [data-skin="cyber"] [data-kit="item-list-flag"] {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 16px;
+    height: 16px;
+    font-family: var(--cy-mono);
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0;
+    color: var(--cy-on-solid);
+    background: var(--cy-flag);
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%);
+
+    /* On the solid bar the badge inverts, so yellow still reads. */
+    [data-selected] > * > & {
+      color: var(--cy-flag);
+      background: var(--cy-on-solid);
+    }
+
+    [data-disabled]:not([data-selected]) > * > & {
+      color: var(--cy-panel);
+      background: var(--cy-ink-mute);
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="item-list-count"] {
+    min-width: 1ch;
+    font-family: var(--cy-mono);
+    font-size: var(--cy-text-xs);
+    font-weight: 500;
+    letter-spacing: 0;
+    text-align: end;
+    color: var(--cy-signal);
+
+    [data-flag] > * > & {
+      color: var(--cy-flag);
+    }
+
+    [data-selected] > * > &,
+    [data-disabled] > * > & {
+      color: inherit;
+    }
+  }
+}

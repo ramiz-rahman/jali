@@ -1,0 +1,167 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  [data-skin="cyber"] [data-kit="collapsible"] {
+    display: grid;
+    width: 100%;
+    min-width: 0;
+    text-align: start;
+  }
+
+  /* The key, in the kit's state language:
+       idle     line 70%, panel fill
+       hover    line 100%, fill 10%
+       open     line 100%, fill 40%, bright ink, chevron down
+       down     flashes to 70% (data-press-flash)
+       disabled hatched, muted */
+  [data-skin="cyber"] [data-kit="collapsible-trigger"] {
+    --frame-cut: var(--cy-cut-sm);
+    --frame-line: var(--cy-line-ctl);
+    --frame-fill: var(--cy-panel-a);
+    /* Frame variables inherit, and a surface behind may have set one. */
+    --frame-image: none;
+    --frame-notch-x: 30px;
+    --frame-notch: 4px;
+
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+    min-height: var(--cy-h);
+    padding-inline: 10px 12px;
+    font-size: var(--cy-text-md);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: var(--cy-track);
+    text-transform: uppercase;
+    text-align: start;
+    color: var(--cy-ink);
+    cursor: pointer;
+    user-select: none;
+    transition:
+      background-color var(--cy-t-fast) linear,
+      border-color var(--cy-t-fast) linear,
+      color var(--cy-t-fast) linear;
+
+    @media (hover: hover) {
+      &:hover:not([data-disabled]) {
+        --frame-line: var(--cy-line-hot);
+        --frame-fill: var(--cy-fill-hover);
+      }
+    }
+
+    &:is([data-open], :active):not([data-disabled]) {
+      --frame-line: var(--cy-line-hot);
+      --frame-fill: var(--cy-fill-active);
+      color: var(--cy-ink-hi);
+    }
+
+    &[data-disabled] {
+      --frame-line: var(--cy-line-deco);
+      --frame-image: repeating-linear-gradient(135deg, transparent 0 5px, var(--cy-line-deco) 5px 6px);
+      color: var(--cy-ink-mute);
+      cursor: not-allowed;
+    }
+  }
+
+  /* The chevron points along the line while closed and down while open. It
+     turns in steps, like a display redrawing it. */
+  [data-skin="cyber"] [data-kit="collapsible-glyph"] {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 16px;
+    height: 16px;
+    transition: rotate var(--cy-t) var(--cy-ease-step);
+
+    & svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    &:dir(rtl) {
+      rotate: 180deg;
+    }
+
+    [data-open] > & {
+      rotate: 90deg;
+    }
+  }
+
+  /* The label and its readout share a line while there's room, and the
+     readout drops under the label when there isn't. */
+  [data-skin="cyber"] [data-kit="collapsible-text"] {
+    flex: 1 1 auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 2px 10px;
+    min-width: 0;
+    padding-block: 6px;
+  }
+
+  [data-skin="cyber"] [data-kit="collapsible-label"] {
+    min-width: 0;
+    overflow-wrap: break-word;
+  }
+
+  [data-skin="cyber"] [data-kit="collapsible-summary"] {
+    flex: none;
+    font-family: var(--cy-mono);
+    font-size: var(--cy-text-xs);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--cy-signal);
+
+    [data-disabled] & {
+      color: var(--cy-ink-mute);
+    }
+  }
+
+  /* The section. Its height runs between zero and the content's measured
+     height, which the SDK writes to --collapsible-panel-height. */
+  [data-skin="cyber"] [data-kit="collapsible-panel"] {
+    height: var(--collapsible-panel-height);
+    overflow: hidden;
+    transition: height var(--cy-t-slow) var(--cy-ease-snap);
+
+    &:is([data-starting-style], [data-ending-style]) {
+      height: 0;
+    }
+    &[data-ending-style] {
+      transition-duration: var(--cy-t);
+    }
+  }
+
+  /* What was behind the key: set in from it, on a thick rule that ends in
+     a foot. */
+  [data-skin="cyber"] [data-kit="collapsible-content"] {
+    position: relative;
+    display: grid;
+    gap: 8px;
+    margin: 6px 0 2px 4px;
+    padding: 6px 10px 8px 14px;
+    border-inline-start: 2px solid var(--cy-line-hot);
+    font-size: var(--cy-text-sm);
+    line-height: 1.45;
+    color: var(--cy-ink-hi);
+    text-wrap: pretty;
+    transition: opacity var(--cy-t) linear;
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset-block-end: 0;
+      inset-inline-start: 0;
+      width: 8px;
+      height: 2px;
+      background: var(--cy-line-hot);
+    }
+
+    :is([data-starting-style], [data-ending-style]) > & {
+      opacity: 0;
+    }
+  }
+}

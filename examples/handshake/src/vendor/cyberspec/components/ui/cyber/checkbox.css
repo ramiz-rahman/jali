@@ -1,0 +1,202 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  /* One box with its text, and the hint under the text if there is one. */
+  [data-skin="cyber"] [data-kit="checkbox-item"] {
+    --box: 18px;
+    --box-gap: 10px;
+
+    display: grid;
+    width: 100%;
+    min-width: 0;
+    text-align: start;
+
+    & > [data-kit="hint"] {
+      /* Tucked up under the text, whatever the row's height. */
+      margin-block: calc((var(--cy-h) - 20px) / -2 + 2px) 6px;
+      padding-inline-start: calc(var(--box) + var(--box-gap));
+    }
+  }
+
+  /* The row is the target: the whole line toggles the box, and it's as tall
+     as any other control. The box sits on the first line of the text. */
+  [data-skin="cyber"] [data-kit="checkbox-row"] {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--box-gap);
+    min-height: var(--cy-h);
+    padding-block: calc((var(--cy-h) - 20px) / 2);
+    cursor: pointer;
+
+    &:has([data-readonly]) {
+      cursor: default;
+    }
+
+    &:has([data-disabled]) {
+      cursor: not-allowed;
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="checkbox"] {
+    --frame-cut: 5px;
+    --frame-line: var(--cy-line-ctl);
+    --frame-fill: var(--cy-panel);
+    /* A frame inherits the variables of a frame around it, so this one says
+       it has no image of its own. */
+    --frame-image: none;
+
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: var(--box);
+    height: var(--box);
+    margin-block-start: 1px;
+    padding: 0;
+    cursor: inherit;
+    transition:
+      background-color var(--cy-t-fast) linear,
+      border-color var(--cy-t-fast) linear;
+
+    @media (hover: hover) {
+      [data-kit="checkbox-row"]:hover > &:not([data-disabled], [data-readonly]) {
+        --frame-line: var(--cy-line-hot);
+        --frame-fill: var(--cy-fill-hover);
+      }
+    }
+
+    &:is([data-checked], [data-indeterminate]) {
+      --frame-line: var(--cy-line-hot);
+      --frame-fill: var(--cy-fill-active);
+    }
+
+    @media (hover: hover) {
+      [data-kit="checkbox-row"]:hover > &:is([data-checked], [data-indeterminate]):not([data-disabled], [data-readonly]) {
+        --frame-fill: color-mix(in srgb, var(--cy-accent) 52%, var(--cy-panel));
+      }
+    }
+
+    /* Yellow, not red: red is what every box already is. */
+    &:is([aria-invalid="true"], [data-invalid]) {
+      --frame-line: var(--cy-flag);
+    }
+
+    &[data-disabled] {
+      --frame-line: var(--cy-line-deco);
+      --frame-fill: var(--cy-panel);
+      --frame-image: repeating-linear-gradient(135deg, transparent 0 4px, var(--cy-line-deco) 4px 5px);
+    }
+  }
+
+  /* The mark, in the signal color like every selection mark: a tick, or a
+     bar for a partly checked set. It arrives oversized and steps down onto
+     the box, like a reticle locking. */
+  [data-skin="cyber"] [data-kit="checkbox-indicator"] {
+    display: block;
+    width: 10px;
+    height: 10px;
+    background: var(--cy-signal);
+    clip-path: polygon(0 52%, 15% 37%, 38% 60%, 85% 10%, 100% 25%, 38% 90%);
+    transition:
+      opacity var(--cy-t-fast) linear,
+      scale var(--cy-t) var(--cy-ease-step);
+
+    &[data-indeterminate] {
+      clip-path: inset(4px 0);
+    }
+
+    &[data-disabled] {
+      background: var(--cy-ink-mute);
+    }
+
+    &:is([data-starting-style], [data-ending-style]) {
+      opacity: 0;
+      scale: 1.9;
+    }
+  }
+
+  /* What the box is for. It's whatever was written, a word or a sentence, so
+     it isn't uppercased. The box's hidden native input sits between the two,
+     so the state is read from any earlier sibling. */
+  [data-skin="cyber"] [data-kit="checkbox-label"] {
+    min-width: 0;
+    font-size: var(--cy-text-md);
+    font-weight: 500;
+    line-height: 20px;
+    color: var(--cy-ink);
+    text-wrap: pretty;
+    user-select: none;
+    transition: color var(--cy-t-fast) linear;
+
+    :is([data-checked], [data-indeterminate]) ~ & {
+      color: var(--cy-ink-hi);
+    }
+
+    [data-disabled] ~ & {
+      color: var(--cy-ink-mute);
+    }
+  }
+
+  /* A set of boxes: a legend with a rule running off it and a count at the
+     end of the rule, then the boxes. */
+  [data-skin="cyber"] [data-kit="checkbox-set"] {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 8px;
+    width: 100%;
+    min-width: 0;
+    text-align: start;
+    counter-reset: cy-box cy-box-on;
+
+    & > :is([data-kit="hint"], [data-kit="checkbox-group"]) {
+      grid-column: 1 / -1;
+    }
+
+    & > [data-kit="hint"] {
+      margin-block-start: 2px;
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="checkbox-legend"] {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+
+    &::after {
+      content: "";
+      flex: 1;
+      min-width: 12px;
+      height: 1px;
+      background: var(--cy-line-deco);
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="checkbox-group"] {
+    display: grid;
+    margin-block-start: 4px;
+
+    /* Every box counts, and every ticked one counts twice; a box that checks
+       the whole set isn't one of the things being counted. */
+    & [data-kit="checkbox"]:not([data-parent]) {
+      counter-increment: cy-box;
+
+      &[data-checked] {
+        counter-increment: cy-box cy-box-on;
+      }
+    }
+  }
+
+  /* The count comes after the boxes in the page, where the counters have
+     their totals, and is placed back up beside the legend. */
+  [data-skin="cyber"] [data-kit="checkbox-count"] {
+    grid-area: 1 / 2;
+    align-self: center;
+    font-family: var(--cy-mono);
+    font-size: var(--cy-text-xs);
+    color: var(--cy-signal);
+
+    &::before {
+      content: counter(cy-box-on, decimal-leading-zero) "/" counter(cy-box, decimal-leading-zero);
+    }
+  }
+}

@@ -1,0 +1,162 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  /* A key that latches. It runs the same states as a Button, and adds the
+     one a Button doesn't have: pressed is the lit fill, held.
+       idle     line 70%, no fill, lamp hollow
+       hover    line 100%, fill 10%
+       pressed  line 100%, fill 40%, bright ink, lamp solid
+       down     a flash to 70% as it lands (data-press-flash) */
+  [data-skin="cyber"] [data-kit="toggle"] {
+    --frame-cut: var(--cy-cut-sm);
+    --frame-line: var(--cy-line-ctl);
+    --frame-fill: var(--cy-panel-a);
+    --frame-notch-x: 22px;
+    --frame-notch: 4px;
+    /* How far the lamp sits from the key's top edge. Under a notch the edge
+       is lower, so the lamp is too. */
+    --lamp-top: 4px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: 72px;
+    height: var(--cy-h);
+    padding-inline: 16px;
+    font-size: var(--cy-text-md);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: var(--cy-track);
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--cy-ink);
+    cursor: pointer;
+    user-select: none;
+    transition:
+      background-color var(--cy-t-fast) linear,
+      border-color var(--cy-t-fast) linear,
+      color var(--cy-t-fast) linear;
+
+    &[data-frame~="notch"] {
+      --lamp-top: 8px;
+    }
+
+    @media (hover: hover) {
+      &:hover:not([data-disabled]) {
+        --frame-line: var(--cy-line-hot);
+        --frame-fill: var(--cy-fill-hover);
+      }
+    }
+
+    &:active:not([data-disabled]) {
+      --frame-line: var(--cy-line-hot);
+      --frame-fill: var(--cy-fill-active);
+      color: var(--cy-ink-hi);
+    }
+
+    &[data-pressed] {
+      --frame-line: var(--cy-line-hot);
+      --frame-fill: var(--cy-fill-active);
+      color: var(--cy-ink-hi);
+
+      @media (hover: hover) {
+        &:hover:not([data-disabled]) {
+          --frame-fill: color-mix(in srgb, var(--cy-accent) 52%, var(--cy-panel));
+        }
+      }
+    }
+
+    &[data-size="sm"] {
+      min-width: 56px;
+      height: var(--cy-h-sm);
+      padding-inline: 14px;
+      font-size: var(--cy-text-sm);
+    }
+
+    /* One icon and nothing else: a square. */
+    &[data-icon-only] {
+      min-width: 0;
+      width: var(--cy-h);
+      padding-inline: 0;
+
+      &[data-size="sm"] {
+        width: var(--cy-h-sm);
+      }
+    }
+
+    /* A cell of a strip (a toggle group, a toolbar): no minimum, tighter
+       sides, so three words fit a narrow panel. */
+    &[data-joined]:not([data-icon-only]) {
+      min-width: 0;
+      padding-inline: 12px;
+    }
+
+    /* A row of a column reads from its leading edge, like a list. */
+    &[data-orientation="vertical"]:not([data-icon-only]) {
+      justify-content: flex-start;
+      padding-inline-end: 22px;
+    }
+
+    /* Unavailable: hatched, and a pressed one keeps a trace of its fill and
+       its solid lamp, so it still says which way it was left. */
+    &[data-disabled] {
+      --frame-line: var(--cy-line-deco);
+      --frame-image: repeating-linear-gradient(135deg, transparent 0 5px, var(--cy-line-deco) 5px 6px);
+      color: var(--cy-ink-mute);
+      cursor: not-allowed;
+
+      &[data-pressed] {
+        --frame-fill: var(--cy-fill-hover);
+      }
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="toggle-icon"] {
+    display: grid;
+    place-items: center;
+
+    & svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    &[data-mirror]:dir(rtl) {
+      scale: -1 1;
+    }
+  }
+
+  /* The lamp: a block in the corner away from the notch. Hollow while off;
+     solid, in the signal color, while on. It strikes like a tube as it
+     lights: one unsteady moment, then steady. */
+  [data-skin="cyber"] [data-kit="toggle-lamp"] {
+    position: absolute;
+    inset-block-start: var(--lamp-top);
+    inset-inline-end: 4px;
+    width: 5px;
+    height: 5px;
+    border: 1px solid var(--cy-line-ctl);
+    pointer-events: none;
+    transition:
+      background-color var(--cy-t-fast) linear,
+      border-color var(--cy-t-fast) linear;
+
+    [data-pressed] > & {
+      border-color: var(--cy-signal);
+      background: var(--cy-signal);
+      box-shadow: 0 0 calc(6px * var(--cy-fx)) var(--cy-signal);
+      animation: var(--cy-fx-flicker) 420ms linear 1;
+    }
+
+    [data-disabled] > & {
+      border-color: var(--cy-line-deco);
+      box-shadow: none;
+      animation: none;
+    }
+
+    [data-disabled][data-pressed] > & {
+      border-color: var(--cy-ink-mute);
+      background: var(--cy-ink-mute);
+    }
+  }
+}

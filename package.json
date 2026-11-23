@@ -27,7 +27,8 @@
     "studio": "vp dev examples/studio",
     "trips": "vp dev examples/trips",
     "minimal": "vp dev examples/minimal",
-    "own-icons": "vp dev examples/own-icons"
+    "own-icons": "vp dev examples/own-icons",
+    "handshake": "vp dev examples/handshake"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",

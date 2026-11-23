@@ -1,0 +1,186 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  /* The popover itself is unframed: a frame is clipped, and this needs to
+     paint past its own edge (the lead). ui-sdk places it with left and top,
+     so the tear in and out, which are transforms, don't fight it. */
+  [data-skin="cyber"] [data-kit="popover"] {
+    display: flex;
+    flex-direction: column;
+    width: min(288px, calc(100vw - 16px));
+    max-height: min(var(--available-height, 80vh), 440px);
+    margin: 0;
+    outline: none;
+
+    &[data-open] {
+      animation: var(--cy-fx-in) 200ms var(--cy-ease-snap) backwards;
+    }
+    &[data-ending-style] {
+      animation: var(--cy-fx-out) 120ms var(--cy-ease-snap) both;
+    }
+
+    /* The lead: a wire in the signal color across the gap, from the middle
+       of the key to the panel, ending in a node on the panel's edge. It
+       follows the side the panel landed on, flips included. */
+    &::before,
+    &::after {
+      content: "";
+      position: absolute;
+      background: var(--cy-signal);
+      pointer-events: none;
+    }
+    &::after {
+      width: 6px;
+      height: 6px;
+    }
+    &:is([data-side="top"], [data-side="bottom"])::before {
+      left: calc(var(--arrow-offset, 24px) - 1px);
+      width: 2px;
+      height: var(--popover-gap, 8px);
+    }
+    &:is([data-side="top"], [data-side="bottom"])::after {
+      left: calc(var(--arrow-offset, 24px) - 3px);
+    }
+    &:is([data-side="left"], [data-side="right"])::before {
+      top: calc(var(--arrow-offset, 24px) - 1px);
+      width: var(--popover-gap, 8px);
+      height: 2px;
+    }
+    &:is([data-side="left"], [data-side="right"])::after {
+      top: calc(var(--arrow-offset, 24px) - 3px);
+    }
+    &[data-side="bottom"]::before {
+      bottom: 100%;
+    }
+    &[data-side="bottom"]::after {
+      top: -3px;
+    }
+    &[data-side="top"]::before {
+      top: 100%;
+    }
+    &[data-side="top"]::after {
+      bottom: -3px;
+    }
+    &[data-side="right"]::before {
+      right: 100%;
+    }
+    &[data-side="right"]::after {
+      left: -3px;
+    }
+    &[data-side="left"]::before {
+      left: 100%;
+    }
+    &[data-side="left"]::after {
+      right: -3px;
+    }
+
+    /* As a sheet, ui-sdk moves it up from the bottom edge itself: it takes
+       the screen's width, and has no key to be wired to. */
+    &[data-presentation="sheet"] {
+      width: 100%;
+      max-height: 86dvh;
+      animation: none;
+
+      &::before,
+      &::after {
+        display: none;
+      }
+    }
+  }
+
+  /* The panel: a raised tab over the title, the close key in its corner.
+     The close key comes last in the page, so the grid puts it back in the
+     first row. */
+  [data-skin="cyber"] [data-kit="popover-surface"] {
+    --frame-cut: var(--cy-cut);
+    --frame-line: var(--cy-line-hot);
+    /* Opaque: it sits over whatever the page has under it. */
+    --frame-fill: var(--cy-panel);
+    /* Frame variables inherit, so a panel opened from inside a patterned
+       frame would be drawn with that frame's pattern. */
+    --frame-image: none;
+    --frame-notch: 5px;
+    --frame-notch-x: 72px;
+
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 8px 10px;
+    padding: calc(var(--frame-notch) + 8px) 8px 8px 14px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+
+    & > :not([data-kit="popover-title"], [data-kit="popover-close"]) {
+      grid-column: 1 / -1;
+      margin-inline-end: 6px;
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="popover-title"] {
+    align-self: center;
+    font-size: var(--cy-text-md);
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: var(--cy-track);
+    text-transform: uppercase;
+    color: var(--cy-ink);
+    text-wrap: balance;
+  }
+
+  [data-skin="cyber"] [data-kit="popover-close"] {
+    grid-row: 1;
+    grid-column: 2;
+    display: flex;
+  }
+
+  [data-skin="cyber"] [data-kit="popover-description"] {
+    font-size: var(--cy-text-sm);
+    line-height: 1.4;
+    color: var(--cy-ink-hi);
+    text-wrap: pretty;
+  }
+
+  [data-skin="cyber"] [data-kit="popover-body"] {
+    display: grid;
+    gap: var(--cy-gap);
+    min-width: 0;
+    color: var(--cy-ink-hi);
+
+    /* A list of facts: the name of each on the left, what it reads on the
+       right, ruled between. */
+    & dl {
+      display: grid;
+      border-block-start: 1px solid var(--cy-line-deco);
+
+      & > div {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        padding-block: 5px;
+        border-block-end: 1px solid var(--cy-line-deco);
+      }
+      & dt {
+        font-size: var(--cy-text-xs);
+        font-weight: 600;
+        letter-spacing: var(--cy-track);
+        text-transform: uppercase;
+        color: var(--cy-ink);
+      }
+      & dd {
+        font-family: var(--cy-mono);
+        font-size: var(--cy-text-xs);
+        color: var(--cy-signal);
+        text-align: end;
+      }
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="popover-foot"] {
+    padding-block: 2px 1px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}

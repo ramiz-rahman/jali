@@ -1,0 +1,20 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  [data-skin="cyber"] [data-kit="glitch-text"] {
+    position: relative;
+    display: inline-block;
+    /* The decoding copy is the same length as the text, so the line never
+       reflows while it runs. */
+    white-space: pre-wrap;
+
+    & [data-kit="glitch-text-visible"] {
+      display: inline-block;
+    }
+
+    /* The tear: channels slip apart for a moment. */
+    &[data-glitching] [data-kit="glitch-text-visible"] {
+      animation: var(--cy-fx-rgb) 300ms var(--cy-ease-snap);
+    }
+  }
+}

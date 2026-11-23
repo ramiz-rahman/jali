@@ -1,0 +1,140 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  [data-skin="cyber"] [data-kit="readout"] {
+    --readout-color: var(--cy-signal);
+    --readout-size: var(--cy-text-2xl);
+
+    display: inline-grid;
+    gap: 3px;
+    justify-items: start;
+    min-width: 0;
+    text-align: start;
+
+    &[data-size="sm"] {
+      --readout-size: var(--cy-text-xl);
+    }
+    &[data-size="lg"] {
+      --readout-size: var(--cy-text-3xl);
+    }
+
+    &[data-tone="accent"] {
+      --readout-color: var(--cy-ink);
+    }
+    &[data-tone="flag"] {
+      --readout-color: var(--cy-flag);
+    }
+    &[data-tone="ok"] {
+      --readout-color: var(--cy-ok);
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="readout-label"] {
+    font-size: var(--cy-text-xs);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: var(--cy-track);
+    text-transform: uppercase;
+    color: var(--cy-ink);
+  }
+
+  /* The figure and its delta share a baseline, and the delta drops under
+     the figure when a narrow column can't hold both. */
+  [data-skin="cyber"] [data-kit="readout-line"] {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 10px;
+    row-gap: 2px;
+    max-width: 100%;
+  }
+
+  [data-skin="cyber"] [data-kit="readout-figure"] {
+    display: inline-flex;
+    align-items: baseline;
+    font-family: var(--cy-mono);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    color: var(--readout-color);
+    white-space: nowrap;
+
+    /* It lands: the channels slip once (lib/glitch's burst). */
+    &[data-glitching] {
+      animation: var(--cy-fx-rgb) 300ms var(--cy-ease-snap);
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="readout-whole"] {
+    display: inline-flex;
+    font-size: var(--readout-size);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+
+    /* Thousands are set apart by a gap, never a separator character. */
+    & > span + span {
+      margin-inline-start: 0.22em;
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="readout-decimals"] {
+    font-size: max(var(--cy-text-xs), calc(var(--readout-size) * 0.52));
+    font-weight: 500;
+  }
+
+  [data-skin="cyber"] [data-kit="readout-prefix"] {
+    margin-inline-end: 0.3em;
+    font-size: max(var(--cy-text-xs), calc(var(--readout-size) * 0.62));
+    font-weight: 500;
+  }
+
+  [data-skin="cyber"] [data-kit="readout-unit"] {
+    margin-inline-start: 0.4em;
+    font-family: var(--cy-font);
+    font-size: max(var(--cy-text-xs), calc(var(--readout-size) * 0.46));
+    font-weight: 600;
+    letter-spacing: var(--cy-track);
+    text-transform: uppercase;
+  }
+
+  /* Up is green and points up, down is yellow and points down: the glyph
+     carries it, the color only agrees. */
+  [data-skin="cyber"] [data-kit="readout-delta"] {
+    font-family: var(--cy-mono);
+    font-size: var(--cy-text-xs);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    white-space: nowrap;
+    color: var(--cy-ink-mute);
+
+    &[data-direction="up"] {
+      color: var(--cy-ok);
+    }
+    &[data-direction="down"] {
+      color: var(--cy-flag);
+    }
+  }
+
+  /* The rule under it: a lit stub, then a row of dots running out. */
+  [data-skin="cyber"] [data-kit="readout-rule"] {
+    justify-self: stretch;
+    min-width: 56px;
+    height: 2px;
+    margin-block-start: 2px;
+    background:
+      linear-gradient(var(--readout-color), var(--readout-color)) left / 22px 100% no-repeat,
+      repeating-linear-gradient(to right, var(--cy-line-ctl) 0 2px, transparent 2px 6px) left 28px top 0 / calc(100% - 28px) 100% no-repeat;
+
+    &:dir(rtl) {
+      background-position:
+        right,
+        right 28px top 0;
+    }
+  }
+
+  /* While it counts, the stub runs the width of the rule's lit part. */
+  [data-skin="cyber"] [data-kit="readout"][data-counting] [data-kit="readout-rule"] {
+    background-size:
+      100% 100%,
+      0 0;
+  }
+}

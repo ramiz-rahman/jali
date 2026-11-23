@@ -1,0 +1,69 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  /* A label, not a panel: one line of mono in a small cut frame, edged in
+     the dim signal color, with a bright bar on the side that faces what it
+     names. ui-sdk reports that side, flips included, as data-side. */
+  [data-skin="cyber"] [data-kit="tooltip"] {
+    --frame-cut: 5px;
+    --frame-line: var(--cy-signal-dim);
+    --frame-fill: var(--cy-panel-2);
+    /* Frame variables inherit; this one is never patterned. */
+    --frame-image: none;
+    --tooltip-bar: 0 -2px;
+
+    width: max-content;
+    max-width: min(232px, calc(100vw - 16px));
+    margin: 0;
+    padding: 4px 9px;
+    font-family: var(--cy-mono);
+    font-size: var(--cy-text-xs);
+    font-weight: 500;
+    line-height: 1.45;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: normal;
+    color: var(--cy-ink-hi);
+    box-shadow: inset var(--tooltip-bar) 0 0 var(--cy-signal);
+    /* The pointer can cross onto it without closing it, but it never takes
+       a selection or a press meant for what's under it. */
+    user-select: none;
+
+    &[data-side="bottom"] {
+      --tooltip-bar: 0 2px;
+    }
+    &[data-side="left"] {
+      --tooltip-bar: -2px 0;
+    }
+    &[data-side="right"] {
+      --tooltip-bar: 2px 0;
+    }
+
+    &[data-open] {
+      animation: var(--cy-fx-in) 160ms var(--cy-ease-snap) backwards;
+    }
+    /* The next one along a row is already "there": it switches, it doesn't
+       arrive. */
+    &[data-instant] {
+      animation: none;
+    }
+    &[data-ending-style] {
+      animation: var(--cy-fx-out) 90ms var(--cy-ease-snap) both;
+    }
+  }
+
+  /* The keys that do the same thing, as a keycap after the label. */
+  [data-skin="cyber"] [data-kit="tooltip-shortcut"] {
+    display: inline-block;
+    margin-inline-start: 8px;
+    padding-inline: 4px;
+    border: 1px solid var(--cy-signal-dim);
+    font-size: 10px;
+    letter-spacing: 0;
+    color: var(--cy-signal);
+
+    &:empty {
+      display: none;
+    }
+  }
+}

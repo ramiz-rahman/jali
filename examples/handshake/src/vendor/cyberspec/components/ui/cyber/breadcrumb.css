@@ -1,0 +1,152 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  /* The landmark takes the width it's given and is measured, so the trail
+     can fold when that width is short. */
+  [data-skin="cyber"] [data-kit="breadcrumb"] {
+    width: 100%;
+    min-width: 0;
+    text-align: start;
+    container-type: inline-size;
+  }
+
+  [data-skin="cyber"] [data-kit="breadcrumb-list"] {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* A level, with the slashes that lead into it. They travel together, so
+     a line never ends on a divider and a folded level takes its own away. */
+  [data-skin="cyber"] [data-kit="breadcrumb-item"] {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    min-height: 24px;
+    font-size: var(--cy-text-sm);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: var(--cy-track);
+    text-transform: uppercase;
+
+    /* The key that stands in for the middle shows only while the middle is
+       folded away. */
+    &[data-fold] {
+      display: none;
+    }
+
+    @container (max-width: 380px) {
+      &[data-folds] {
+        display: none;
+      }
+      &[data-fold] {
+        display: flex;
+      }
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="breadcrumb-slash"] {
+    flex: none;
+    font-family: var(--cy-mono);
+    font-size: var(--cy-text-xs);
+    font-weight: 400;
+    letter-spacing: -0.12em;
+    color: var(--cy-line-ctl);
+    user-select: none;
+  }
+
+  /* A level above: ink at rest, underlined and brighter under the pointer.
+     The padding makes the target 24px tall without moving the text. */
+  [data-skin="cyber"] [data-kit="breadcrumb-link"] {
+    min-width: 0;
+    padding-block: 4px;
+    color: var(--cy-ink);
+    text-decoration: underline transparent;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+    overflow-wrap: anywhere;
+    transition:
+      color var(--cy-t-fast) linear,
+      text-decoration-color var(--cy-t-fast) linear;
+
+    @media (hover: hover) {
+      &:hover {
+        color: var(--cy-ink-hi);
+        text-decoration-color: var(--cy-line-hot);
+      }
+    }
+
+    &:active {
+      color: var(--cy-ink-hi);
+      text-decoration-color: var(--cy-ink-hi);
+    }
+
+    @media (pointer: coarse) {
+      padding-block: 10px;
+    }
+  }
+
+  /* A level that leads nowhere. */
+  [data-skin="cyber"] [data-kit="breadcrumb-text"] {
+    min-width: 0;
+    color: var(--cy-ink-mute);
+    overflow-wrap: anywhere;
+  }
+
+  /* Here: the signal color, heavier, and not a link. */
+  [data-skin="cyber"] [data-kit="breadcrumb-current"] {
+    min-width: 0;
+    font-weight: 700;
+    color: var(--cy-signal);
+    overflow-wrap: anywhere;
+  }
+
+  /* The fold: a small cut key holding three dots. */
+  [data-skin="cyber"] [data-kit="breadcrumb-more"] {
+    --frame-cut: 5px;
+    --frame-line: var(--cy-line-ctl);
+    --frame-fill: var(--cy-panel-a);
+    --frame-image: none;
+
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 24px;
+    padding: 0;
+    color: var(--cy-ink);
+    cursor: pointer;
+    transition:
+      background-color var(--cy-t-fast) linear,
+      border-color var(--cy-t-fast) linear,
+      color var(--cy-t-fast) linear;
+
+    & svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    @media (hover: hover) {
+      &:hover {
+        --frame-line: var(--cy-line-hot);
+        --frame-fill: var(--cy-fill-hover);
+      }
+    }
+
+    &:active {
+      --frame-line: var(--cy-line-hot);
+      --frame-fill: var(--cy-fill-active);
+      color: var(--cy-ink-hi);
+    }
+
+    @media (pointer: coarse) {
+      width: var(--cy-h);
+      height: var(--cy-h-sm);
+    }
+  }
+}

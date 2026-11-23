@@ -1,0 +1,210 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  [data-skin="cyber"] [data-kit="code-block"] {
+    --code-fill: var(--cy-panel);
+    --code-line: 1.6;
+
+    position: relative;
+    display: grid;
+    width: 100%;
+    min-width: 0;
+    text-align: start;
+
+    & > [data-micro] {
+      margin-block-start: 5px;
+    }
+  }
+
+  /* The row over the panel: the file's tab stands on the panel's top edge,
+     and the language tag and the copy key float a little above it. */
+  [data-skin="cyber"] [data-kit="code-block-head"] {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  /* The tab. Its foot overlaps the panel's top edge by the width of a
+     line, so the two read as one outline. */
+  [data-skin="cyber"] [data-kit="code-block-file"] {
+    --frame-cut: 8px;
+    --frame-line: var(--cy-line-deco);
+    --frame-fill: var(--code-fill);
+    --frame-image: none;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+    height: var(--cy-h-sm);
+    margin-block-end: -1px;
+    padding-inline: 9px 16px;
+    font-family: var(--cy-mono);
+    font-size: var(--cy-text-xs);
+    color: var(--cy-ink);
+
+    & svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="code-block-filename"] {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  [data-skin="cyber"] [data-kit="code-block-lang"] {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    height: var(--cy-h-sm);
+    margin-block-end: 6px;
+    margin-inline-start: auto;
+    font-family: var(--cy-mono);
+    font-size: var(--cy-text-xs);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--cy-ink-mute);
+
+    /* With no tab before it, the tag takes the tab's place. */
+    &:first-child {
+      margin-inline: 0 auto;
+    }
+
+    /* Too narrow for both: the filename's extension says the language. */
+    [data-compact] [data-kit="code-block-file"] ~ & {
+      display: none;
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="code-block-copy"] {
+    flex: none;
+    display: flex;
+    margin-block-end: 6px;
+    margin-inline-start: auto;
+
+    [data-kit="code-block-lang"] + & {
+      margin-inline-start: 0;
+    }
+    [data-compact] [data-kit="code-block-file"] ~ & {
+      margin-inline-start: auto;
+    }
+  }
+
+  /* Wide enough for the longest of its words, so the key doesn't change
+     size as it confirms. */
+  [data-skin="cyber"] [data-kit="code-block-copy-label"] {
+    min-width: 3.2em;
+    text-align: start;
+
+    /* Compact: the word leaves the key's face but stays in its name. */
+    [data-compact] & {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      min-width: 0;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+  }
+
+  /* The panel is the scroller: long lines run off its edge rather than
+     wrap, and it takes focus whenever there's somewhere to scroll to. */
+  [data-skin="cyber"] [data-kit="code-block-body"] {
+    --frame-cut: var(--cy-cut);
+    --frame-line: var(--cy-line-deco);
+    --frame-fill: var(--code-fill);
+    --frame-image: none;
+
+    min-width: 0;
+    max-height: calc(var(--max-lines, 1000) * var(--code-line) * var(--cy-text-sm) + 22px);
+    padding-block: 10px;
+    overflow: auto;
+    overscroll-behavior-x: contain;
+    font-family: var(--cy-mono);
+    font-size: var(--cy-text-sm);
+    line-height: var(--code-line);
+    color: var(--cy-ink-hi);
+    tab-size: 2;
+    /* Code is read character by character: => stays two characters. */
+    font-variant-ligatures: none;
+  }
+
+  [data-skin="cyber"] [data-kit="code-block-pre"] {
+    width: max-content;
+    min-width: 100%;
+    margin: 0;
+    font: inherit;
+
+    & code {
+      font: inherit;
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="code-block-line"] {
+    display: flex;
+  }
+
+  /* The gutter stays put while the code scrolls under it. It isn't part of
+     the code, so it can't be selected with it. */
+  [data-skin="cyber"] [data-kit="code-block-number"] {
+    position: sticky;
+    inset-inline-start: 0;
+    flex: none;
+    min-width: calc(var(--digits, 2) * 1ch + 21px);
+    padding-inline: 10px;
+    border-inline-end: 1px solid var(--cy-line-deco);
+    text-align: end;
+    color: var(--cy-ink-mute);
+    background: var(--code-fill);
+    user-select: none;
+    transition: color var(--cy-t) linear;
+
+    /* Copied: the numbers light in the signal color for as long as the key
+       says so, as if the lines had just been read out. */
+    [data-state="copied"] & {
+      color: var(--cy-signal);
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="code-block-text"] {
+    flex: none;
+    padding-inline: 12px 16px;
+    white-space: pre;
+  }
+
+  /* Without a gutter the code starts at the panel's own padding. */
+  [data-skin="cyber"] [data-kit="code-block-body"]:not([data-numbers]) [data-kit="code-block-text"] {
+    padding-inline-start: 14px;
+  }
+
+  /* The palette: keywords in the accent, strings green, numbers and
+     constants in the signal color, comments muted. Names (a tag, a key, a
+     property, a command) take the violet, so a file's structure reads apart
+     from its keywords. Identifiers stay the near-white of body text. */
+  [data-skin="cyber"] [data-kit="code-block-text"] [data-token] {
+    &[data-token="comment"] {
+      color: var(--cy-ink-mute);
+    }
+    &[data-token="string"] {
+      color: var(--cy-ok);
+    }
+    &[data-token="keyword"] {
+      color: var(--cy-ink);
+    }
+    &:is([data-token="number"], [data-token="constant"]) {
+      color: var(--cy-signal);
+    }
+    &[data-token="name"] {
+      color: var(--cy-epic);
+    }
+    &[data-token="punct"] {
+      color: color-mix(in srgb, var(--cy-ink-hi) 62%, var(--cy-panel));
+    }
+  }
+}

@@ -1,0 +1,20 @@
+/* The cyber skin's foundation. Everything is scoped to [data-skin="cyber"],
+   so it styles only what's inside the <Cyber> root, and everything is in
+   cascade layers, so an app's own unlayered CSS always wins:
+
+     ui-sdk        behavior CSS the SDK adds
+     cyber.tokens  the theme and its roles
+     cyber.base    the root's look, type roles and the frame system
+     cyber.ui      components, one stylesheet each, imported by the component;
+                   field.css and popup.css are the looks they share
+     cyber.blocks  screens built from components
+     cyber.fx      effects
+     cyber.a11y    focus, reduced motion and forced colors, last so they hold
+
+   Every stylesheet in the kit opens with the same @layer statement, so the
+   order is set whichever loads first. */
+@import "./tokens.css";
+@import "./base.css";
+@import "./fx.css";
+@import "./field.css";
+@import "./popup.css";

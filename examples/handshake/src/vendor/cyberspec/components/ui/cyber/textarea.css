@@ -1,0 +1,93 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+/* A textarea is the shared field box (field.css), taller, with a count
+   readout in its label's row and the same lit tick a text field has. */
+@layer cyber.ui {
+  [data-skin="cyber"] [data-kit="textarea-head"] {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
+
+    &:has([data-disabled]) [data-kit="label"] {
+      color: var(--cy-ink-mute);
+    }
+  }
+
+  /* Characters used, zero-padded so the readout never changes width as it
+     counts. A value, so it's the signal color; over the last tenth it's the
+     flag color, and at the limit it says so in a word as well. */
+  [data-skin="cyber"] [data-kit="textarea-count"] {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--cy-mono);
+    font-size: var(--cy-text-xs);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: var(--cy-signal);
+    transition: color var(--cy-t-fast) linear;
+
+    &[data-near] {
+      color: var(--cy-flag);
+    }
+
+    [data-kit="textarea-head"]:has([data-disabled]) > & {
+      color: var(--cy-ink-mute);
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="textarea-tag"] {
+    padding: 2px 4px 1px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--cy-on-solid);
+    background: var(--cy-flag);
+    animation: var(--cy-fx-in) 200ms var(--cy-ease-snap) backwards;
+  }
+
+  /* Named with its element so these win over the shared box's own textarea
+     rules (field.css), whichever stylesheet loads first. */
+  [data-skin="cyber"] [data-kit="control"] textarea[data-kit="textarea"] {
+    min-height: calc(1.4em * var(--rows, 3) + 16px);
+    max-height: calc(1.4em * 9 + 16px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    text-wrap: pretty;
+
+    /* The box shows focus for the textarea (data-frame-focus="within"), so
+       the textarea's own ring is cut off rather than drawn twice. */
+    clip-path: inset(0);
+
+    /* A fixed box can be dragged taller; one that sizes itself can't, so it
+       shows no grip. */
+    &[data-grow] {
+      resize: none;
+    }
+  }
+
+  /* A segment of the leading edge: the signal color once the field holds
+     something, the flag color when what it holds is wrong. */
+  [data-skin="cyber"] [data-kit="textarea-tick"] {
+    position: absolute;
+    inset-block: 9px auto;
+    inset-inline-start: -1px;
+    width: 3px;
+    height: 18px;
+    background: transparent;
+    pointer-events: none;
+    transition: background-color var(--cy-t) var(--cy-ease-snap);
+
+    [data-kit="control"]:has([data-filled]) > & {
+      background: var(--cy-signal);
+    }
+    [data-kit="control"]:has([aria-invalid="true"]) > & {
+      background: var(--cy-flag);
+    }
+    [data-kit="control"]:has([data-disabled]) > & {
+      background: transparent;
+    }
+  }
+}

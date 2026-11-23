@@ -1,0 +1,212 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  /* A frame like any other control, so the state language is the usual
+     one: the line goes 70% to 100%, the fill 0 to 10 to 40. What's its own
+     is printed on top: the rarity spine, sockets, count, flags. */
+  [data-skin="cyber"] [data-kit="item-slot"] {
+    --frame-cut: 14px;
+    --frame-line: var(--cy-line-ctl);
+    --frame-fill: var(--cy-panel);
+    /* A faint weave behind the artwork. */
+    --frame-image: repeating-linear-gradient(135deg, transparent 0 6px, color-mix(in srgb, var(--cy-accent) 10%, transparent) 6px 7px);
+    --slot-size: 72px;
+    --slot-rarity: var(--cy-accent);
+
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: var(--slot-size);
+    height: var(--slot-size);
+    padding: 0;
+    color: var(--cy-ink-hi);
+    cursor: pointer;
+    user-select: none;
+    transition:
+      background-color var(--cy-t-fast) linear,
+      border-color var(--cy-t-fast) linear;
+
+    &[data-size="lg"] {
+      --slot-size: 96px;
+      --frame-cut: var(--cy-cut-lg);
+    }
+
+    &[data-rarity="rare"] {
+      --slot-rarity: var(--cy-rare);
+    }
+    &[data-rarity="epic"] {
+      --slot-rarity: var(--cy-epic);
+    }
+    &[data-rarity="legend"] {
+      --slot-rarity: var(--cy-flag);
+    }
+
+    &[data-rarity] > [data-cipher-frame] > [data-frame]:not([data-cipher-edge]) {
+      border-inline-start: 5px solid var(--slot-rarity);
+    }
+
+    @media (hover: hover) {
+      &:hover:not(:disabled, [data-disabled]) {
+        --frame-line: var(--cy-line-hot);
+        --frame-fill: var(--cy-fill-hover);
+      }
+    }
+
+    &:is(:active, [aria-pressed="true"]):not(:disabled, [data-disabled]) {
+      --frame-line: var(--cy-line-hot);
+      --frame-fill: var(--cy-fill-active);
+    }
+
+    /* Nothing in it: no weave, and the "+" in the resting ink. */
+    &[data-empty] {
+      --frame-image: none;
+      color: var(--cy-ink);
+    }
+
+    &:is(:disabled, [data-disabled]) {
+      --frame-line: var(--cy-line-deco);
+      --frame-image: repeating-linear-gradient(135deg, transparent 0 5px, var(--cy-line-deco) 5px 6px);
+      --slot-rarity: var(--cy-line-ctl);
+      color: var(--cy-ink-mute);
+      cursor: not-allowed;
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="item-slot-plus"] {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Over the frame's own edge, so the leading edge is the rarity color top
+     to bottom. */
+  [data-skin="cyber"] [data-kit="item-slot-spine"] {
+    position: absolute;
+    inset-block: -1px;
+    inset-inline-start: -1px;
+    width: 5px;
+    background: var(--slot-rarity);
+  }
+
+  [data-skin="cyber"] [data-kit="item-slot-art"] {
+    display: grid;
+    place-items: center;
+    width: 64%;
+    /* Clear of the spine. */
+    margin-inline-start: 4px;
+
+    & > svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      fill: currentColor;
+    }
+  }
+
+  /* Sockets, two to a row. Fitted is solid, free is hollow: the shape says
+     it, the signal color only agrees. */
+  [data-skin="cyber"] [data-kit="item-slot-mods"] {
+    position: absolute;
+    inset-block-start: 5px;
+    inset-inline-start: 9px;
+    display: grid;
+    grid-template-columns: repeat(2, 7px);
+    gap: 2px;
+
+    & > span {
+      width: 7px;
+      height: 7px;
+      border: 1px solid var(--cy-signal-dim);
+      background: var(--cy-panel);
+    }
+
+    & > [data-fitted] {
+      border-color: var(--cy-signal);
+      background: var(--cy-signal);
+    }
+
+    :is(:disabled, [data-disabled]) > & > span {
+      border-color: var(--cy-line-ctl);
+      background: none;
+    }
+    :is(:disabled, [data-disabled]) > & > [data-fitted] {
+      background: var(--cy-line-ctl);
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="item-slot-count"] {
+    position: absolute;
+    inset-block-start: 4px;
+    inset-inline-end: 4px;
+    min-width: 18px;
+    padding: 2px 4px 1px;
+    font-family: var(--cy-mono);
+    font-size: var(--cy-text-xs);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+    text-align: center;
+    color: var(--cy-on-solid);
+    background: var(--cy-flag);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 4px 100%, 0 calc(100% - 4px));
+  }
+
+  [data-skin="cyber"] [data-kit="item-slot-new"] {
+    position: absolute;
+    inset-block-end: 4px;
+    inset-inline-start: 9px;
+    padding: 1px 4px 0;
+    border: 1px solid var(--cy-flag);
+    font-size: var(--cy-text-xs);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: var(--cy-track);
+    text-transform: uppercase;
+    color: var(--cy-flag);
+    background: var(--cy-panel);
+  }
+
+  /* Equipped: a stripe lying along the cut corner, just inside it. */
+  [data-skin="cyber"] [data-kit="item-slot-equipped"] {
+    position: absolute;
+    right: -1px;
+    bottom: -1px;
+    width: calc(var(--_cut) + 12px);
+    aspect-ratio: 1;
+    background: linear-gradient(135deg, transparent 58%, var(--cy-signal) 58% 68%, transparent 68%);
+  }
+
+  /* Selected: lock-on brackets on the three square corners. They sit a
+     little wide and invisible, and snap in when the slot is pressed. */
+  [data-skin="cyber"] [data-kit="item-slot-brackets"] {
+    --_b: 7px;
+
+    position: absolute;
+    inset: 2px;
+    color: var(--cy-signal);
+    background:
+      linear-gradient(currentColor, currentColor) left top / var(--_b) 2px,
+      linear-gradient(currentColor, currentColor) left top / 2px var(--_b),
+      linear-gradient(currentColor, currentColor) right top / var(--_b) 2px,
+      linear-gradient(currentColor, currentColor) right top / 2px var(--_b),
+      linear-gradient(currentColor, currentColor) left bottom / var(--_b) 2px,
+      linear-gradient(currentColor, currentColor) left bottom / 2px var(--_b);
+    background-repeat: no-repeat;
+    opacity: 0;
+    scale: 1.14;
+    pointer-events: none;
+    transition:
+      scale var(--cy-t) var(--cy-ease-snap),
+      opacity var(--cy-t-fast) linear;
+
+    [aria-pressed="true"] > & {
+      opacity: 1;
+      scale: 1;
+    }
+  }
+
+  @media (forced-colors: active) {
+    [data-skin="cyber"] [data-kit="item-slot"][aria-pressed="true"] {
+      border-color: Highlight;
+    }
+  }
+}

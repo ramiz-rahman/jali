@@ -1,0 +1,125 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+/* The shared look of a form field, so a text field, a select's trigger, a
+   combobox and a date picker all sit in the same box:
+
+     data-kit="field"        the column: label, control, hint, error
+     data-kit="label"        its label (styled in base.css)
+     data-kit="control"      the framed box. Either it wraps an <input>
+                             (add data-frame="br" data-frame-focus="within"),
+                             or it is the focusable thing itself, like a
+                             select's trigger (data-frame="br").
+     data-kit="control-icon" an icon or a unit at either end, inside it
+     data-kit="hint"         the line under it (styled in base.css)
+     data-kit="field-error"  what's wrong
+
+   Invalid is flagged in yellow, with a mark and a message: red is the
+   resting color of everything here, so it can't also mean "wrong". */
+@layer cyber.ui {
+  [data-skin="cyber"] [data-kit="field"] {
+    display: grid;
+    gap: 6px;
+    width: 100%;
+    min-width: 0;
+    text-align: start;
+  }
+
+  [data-skin="cyber"] [data-kit="control"] {
+    --frame-cut: var(--cy-cut-sm);
+    --frame-line: var(--cy-line-ctl);
+    --frame-fill: var(--cy-panel);
+
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+    min-height: var(--cy-h);
+    padding-inline: 10px;
+    font-size: var(--cy-text-md);
+    color: var(--cy-ink-hi);
+    text-align: start;
+    transition:
+      background-color var(--cy-t-fast) linear,
+      border-color var(--cy-t-fast) linear;
+
+    @media (hover: hover) {
+      &:hover:not([data-disabled], :has(:disabled)) {
+        --frame-line: var(--cy-line-hot);
+      }
+    }
+
+    &:is([data-open], :focus-within) {
+      --frame-fill: var(--cy-fill-hover);
+    }
+
+    & :is(input, textarea) {
+      flex: 1;
+      min-width: 0;
+      width: 100%;
+      height: 100%;
+      min-height: calc(var(--cy-h) - 2px);
+      padding: 0;
+      border: 0;
+      background: none;
+      color: inherit;
+      caret-color: var(--cy-signal);
+      outline: none;
+
+      &::placeholder {
+        color: var(--cy-ink-mute);
+        opacity: 1;
+      }
+    }
+
+    & textarea {
+      padding-block: 8px;
+      line-height: 1.4;
+      resize: vertical;
+    }
+
+    /* What a trigger shows before anything is chosen. */
+    & [data-placeholder] {
+      color: var(--cy-ink-mute);
+    }
+
+    &:is([data-invalid], :has([aria-invalid="true"])) {
+      --frame-line: var(--cy-flag);
+    }
+
+    &:is([data-disabled], :has(:disabled)) {
+      --frame-line: var(--cy-line-deco);
+      --frame-image: repeating-linear-gradient(135deg, transparent 0 5px, var(--cy-line-deco) 5px 6px);
+      color: var(--cy-ink-mute);
+      cursor: not-allowed;
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="control-icon"] {
+    flex: none;
+    display: grid;
+    place-items: center;
+    color: var(--cy-ink);
+    font-family: var(--cy-mono);
+    font-size: var(--cy-text-xs);
+
+    & svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="field-error"] {
+    display: flex;
+    gap: 6px;
+    font-size: var(--cy-text-sm);
+    font-weight: 600;
+    color: var(--cy-flag);
+
+    &::before {
+      content: "▲";
+      font-size: 9px;
+      line-height: 1.9;
+    }
+  }
+}

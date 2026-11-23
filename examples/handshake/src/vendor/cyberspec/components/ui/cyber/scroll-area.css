@@ -1,0 +1,148 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  /* The root only places the scrollbar and the edge marks; the viewport is
+     the scroller, and takes the height the component was given. */
+  [data-skin="cyber"] [data-kit="scroll-area"] {
+    --area-bar: 12px;
+    --area-shade: color-mix(in srgb, var(--cy-void) 88%, transparent);
+
+    width: 100%;
+    min-width: 0;
+    text-align: start;
+  }
+
+  [data-skin="cyber"] [data-kit="scroll-area-viewport"] {
+    height: var(--area-height, auto);
+    max-height: var(--area-max-height, none);
+    overscroll-behavior: contain;
+
+    /* The ring goes inside: outside, it would be cut off by whatever frame
+       the region sits in. */
+    &:focus-visible {
+      outline-offset: -2px;
+    }
+  }
+
+  /* Room for the scrollbar, kept whether or not there's anything to
+     scroll, so content doesn't rewrap as it starts to overflow, and a
+     little at the start so the focus ring doesn't touch the text. */
+  [data-skin="cyber"] [data-kit="scroll-area-content"] {
+    padding-inline: 4px calc(var(--area-bar) + 4px);
+  }
+
+  /* More above, or more below: a shade that deepens over the first 20px
+     scrolled past, with an arrow on the edge pointing the way. The shade
+     reads how far the content overflows from the root, which holds it. The
+     arrow is a shape, so the edge isn't told by the shade alone, and both
+     are gone at the end they mark. */
+  [data-skin="cyber"] [data-kit="scroll-area-edge"] {
+    --scroll-area-overflow-y-start: inherit;
+    --scroll-area-overflow-y-end: inherit;
+
+    position: absolute;
+    inset-inline: 0 var(--area-bar);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--cy-t-fast) linear;
+
+    &[data-edge="start"] {
+      inset-block-start: 0;
+      height: min(20px, var(--scroll-area-overflow-y-start, 0px));
+      background: linear-gradient(to bottom, var(--area-shade), transparent);
+    }
+    &[data-edge="end"] {
+      inset-block-end: 0;
+      height: min(20px, var(--scroll-area-overflow-y-end, 0px));
+      background: linear-gradient(to top, var(--area-shade), transparent);
+    }
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset-inline-start: calc(50% - 5px);
+      width: 10px;
+      height: 5px;
+      background: var(--cy-line-hot);
+    }
+    &[data-edge="start"]::after {
+      inset-block-start: 0;
+      clip-path: polygon(50% 0, 100% 100%, 0 100%);
+    }
+    &[data-edge="end"]::after {
+      inset-block-end: 0;
+      clip-path: polygon(0 0, 100% 0, 50% 100%);
+    }
+
+    [data-kit="scroll-area"][data-overflow-y]:not([data-at-y-start]) > &[data-edge="start"],
+    [data-kit="scroll-area"][data-overflow-y]:not([data-at-y-end]) > &[data-edge="end"] {
+      opacity: 1;
+    }
+  }
+
+  /* The scrollbar: a hairline track down the trailing edge, wide enough to
+     catch a pointer, with the thumb riding on it. */
+  [data-skin="cyber"] [data-kit="scroll-area-scrollbar"] {
+    width: var(--area-bar);
+    background: linear-gradient(var(--cy-line-deco), var(--cy-line-deco)) center / 1px 100% no-repeat;
+    opacity: 0;
+    transition: opacity var(--cy-t) linear;
+
+    &[data-visible] {
+      opacity: 1;
+    }
+  }
+
+  /* The thumb is sized and moved by the SDK, so the bar people see is
+     drawn inside it: 4px of the accent with its lower corner cut.
+       idle   70%
+       hover  100%, and half again as wide
+       drag   100%, twice as wide, glowing */
+  [data-skin="cyber"] [data-kit="scroll-area-thumb"] {
+    position: relative;
+    width: 100%;
+    min-height: 16px;
+    cursor: grab;
+
+    &::before {
+      content: "";
+      position: absolute;
+      inset-block: 0;
+      inset-inline-start: calc(50% - 2px);
+      width: 4px;
+      background: var(--cy-line-ctl);
+      clip-path: polygon(0 0, 100% 0, 100% calc(100% - 4px), 0 100%);
+      transition:
+        background-color var(--cy-t-fast) linear,
+        scale var(--cy-t-fast) var(--cy-ease-snap);
+    }
+
+    @media (hover: hover) {
+      [data-kit="scroll-area-scrollbar"]:hover > &::before {
+        background: var(--cy-line-hot);
+        scale: 1.5 1;
+      }
+    }
+
+    &[data-dragging] {
+      cursor: grabbing;
+      filter: drop-shadow(0 0 calc(4px * var(--cy-fx)) var(--cy-glow));
+    }
+    &[data-dragging]::before {
+      background: var(--cy-line-hot);
+      scale: 2 1;
+    }
+  }
+
+  /* Forced colors drop the gradients and fills; the system's colors stand
+     in for the track, the thumb and the arrows. */
+  @media (forced-colors: active) {
+    [data-skin="cyber"] [data-kit="scroll-area-scrollbar"] {
+      border-inline-start: 1px solid CanvasText;
+    }
+    [data-skin="cyber"] [data-kit="scroll-area-thumb"]::before,
+    [data-skin="cyber"] [data-kit="scroll-area-edge"]::after {
+      background: CanvasText;
+    }
+  }
+}

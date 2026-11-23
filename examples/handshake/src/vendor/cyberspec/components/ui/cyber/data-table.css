@@ -1,0 +1,381 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  /* The frame: the scrolling table, then a foot line. The table can be
+     wider than the frame; the frame never is wider than its column. */
+  [data-skin="cyber"] [data-kit="data-table"] {
+    --frame-cut: var(--cy-cut);
+    --frame-line: var(--cy-line-deco);
+    --frame-fill: var(--cy-panel);
+    /* Frame variables inherit, and a surface behind may have set one. */
+    --frame-image: none;
+    --row: calc(var(--cy-h) + 4px);
+    --pad: 12px;
+    --rule: color-mix(in srgb, var(--cy-accent) 16%, var(--cy-panel));
+
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-width: 0;
+    text-align: start;
+  }
+
+  /* What's visible of the table: the scroller, with a mark over each side
+     that has columns out of view, and the scroller's focus ring. */
+  [data-skin="cyber"] [data-kit="data-table-view"] {
+    position: relative;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+
+    /* The frame clips anything outside it, so the ring is drawn here,
+       inside, over the cells. A border, so forced colors keep it. */
+    &:has(> [data-kit="data-table-scroller"]:focus-visible)::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border: 2px solid var(--cy-signal);
+      pointer-events: none;
+    }
+  }
+
+  /* The scroller, in both directions. It's measured so the caption can
+     stay the width of what's visible while the table runs on past it. */
+  [data-skin="cyber"] [data-kit="data-table-scroller"] {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: var(--data-table-max, none);
+    overflow: auto;
+    /* Sideways only: reaching the end of the columns shouldn't swipe the
+       page away, but the page still scrolls under a pointer over the rows. */
+    overscroll-behavior-x: contain;
+    container-type: inline-size;
+    /* The headings stick above the rows, and stay under anything outside. */
+    isolation: isolate;
+  }
+
+  /* More columns this way: a shade over the edge, and an arrow pointing
+     out of it, so the edge isn't told by the shade alone. */
+  [data-skin="cyber"] [data-kit="data-table-edge"] {
+    --shade: color-mix(in srgb, var(--cy-void) 88%, transparent);
+
+    position: absolute;
+    inset-block: 0;
+    width: 22px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--cy-t-fast) linear;
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset-block-start: calc(50% - 5px);
+      width: 5px;
+      height: 10px;
+      background: var(--cy-line-hot);
+    }
+
+    &[data-edge="start"] {
+      inset-inline-start: 0;
+      background: linear-gradient(to right, var(--shade), transparent);
+
+      &::after {
+        inset-inline-start: 0;
+        clip-path: polygon(100% 0, 0 50%, 100% 100%);
+      }
+    }
+
+    &[data-edge="end"] {
+      inset-inline-end: 0;
+      background: linear-gradient(to left, var(--shade), transparent);
+
+      &::after {
+        inset-inline-end: 0;
+        clip-path: polygon(0 0, 100% 50%, 0 100%);
+      }
+    }
+
+    &:dir(rtl) {
+      scale: -1 1;
+    }
+
+    [data-more~="start"] > &[data-edge="start"],
+    [data-more~="end"] > &[data-edge="end"] {
+      opacity: 1;
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="data-table-grid"] {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  /* The caption is as wide as the table. Its bar is as wide as the frame
+     and holds to the leading edge, so the name stays put while the columns
+     scroll sideways. */
+  [data-skin="cyber"] [data-kit="data-table-caption"] {
+    padding: 0;
+    text-align: start;
+  }
+
+  [data-skin="cyber"] [data-kit="data-table-caption-bar"] {
+    position: sticky;
+    inset-inline-start: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100cqi;
+    min-height: 34px;
+    /* Clear of the cut corner at the trailing end. */
+    padding-inline: var(--pad) calc(var(--pad) + var(--cy-cut));
+
+    /* A hot tick under the start of the name, on the rule the headings
+       draw below. */
+    &::after {
+      content: "";
+      position: absolute;
+      inset-block-end: -1px;
+      inset-inline-start: 0;
+      width: 28px;
+      height: 3px;
+      background: var(--cy-accent);
+    }
+
+    /* The print gives way before it would be cut mid-word. */
+    @container (max-width: 340px) {
+      & [data-micro] {
+        display: none;
+      }
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="data-table-title"] {
+    flex: none;
+    font-size: var(--cy-text-md);
+    font-weight: 700;
+    letter-spacing: var(--cy-track);
+    text-transform: uppercase;
+    color: var(--cy-ink);
+  }
+
+  /* Headings: a raised strip that stays at the top while the rows scroll
+     under it. Opaque, so nothing shows through. */
+  [data-skin="cyber"] [data-kit="data-table-head"] {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 1;
+    height: var(--cy-h-sm);
+    padding: 0;
+    font-size: var(--cy-text-xs);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-align: start;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--cy-ink-mute);
+    background: var(--cy-panel-2);
+    border-block: 1px solid var(--cy-line-deco);
+
+    &[data-numeric] {
+      text-align: end;
+    }
+
+    &[data-col="select"] {
+      width: 1px;
+      padding-inline: var(--pad);
+      cursor: pointer;
+    }
+
+    &[data-col="actions"] {
+      width: 1px;
+    }
+  }
+
+  /* A plain heading starts where its column's text does. */
+  [data-skin="cyber"] [data-kit="data-table-heading"] {
+    display: block;
+    padding-inline: var(--pad);
+  }
+
+  /* A heading that orders its column is a key the size of its cell. At
+     rest it shows it can sort; pressed, it's lit and an arrow in the signal
+     color says which way. */
+  [data-skin="cyber"] [data-kit="data-table-sort"] {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    /* Inset from the cell by the reach of a focus ring, which the cells
+       either side would otherwise cover; the text still starts on the
+       column's line. */
+    width: calc(100% - 8px);
+    height: calc(var(--cy-h-sm) - 2px);
+    margin-inline: 4px;
+    padding: 0 calc(var(--pad) - 4px);
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    cursor: pointer;
+    transition:
+      background-color var(--cy-t-fast) linear,
+      color var(--cy-t-fast) linear;
+
+    /* Figures sit against the trailing edge, and so does their heading:
+       the arrow goes on the inside. */
+    [data-numeric] > & {
+      flex-direction: row-reverse;
+    }
+
+    @media (hover: hover) {
+      &:hover {
+        color: var(--cy-ink);
+        background: var(--cy-fill-hover);
+      }
+    }
+
+    &:active {
+      color: var(--cy-ink-hi);
+      background: var(--cy-fill-active);
+    }
+
+    &[data-sorted] {
+      color: var(--cy-ink-hi);
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="data-table-sort-glyph"] {
+    width: 12px;
+    height: 12px;
+    color: var(--cy-line-ctl);
+
+    [data-sorted] > & {
+      color: var(--cy-signal);
+      stroke-width: 2.5;
+    }
+  }
+
+  /* Cells. Nothing wraps: a table too wide for its frame scrolls. */
+  [data-skin="cyber"] [data-kit="data-table-cell"] {
+    height: var(--row);
+    padding: 0 var(--pad);
+    font-size: var(--cy-text-md);
+    font-weight: 500;
+    text-align: start;
+    white-space: nowrap;
+    vertical-align: middle;
+    color: var(--cy-ink-mute);
+    border-block-end: 1px solid var(--rule);
+    transition:
+      background-color var(--cy-t-fast) linear,
+      border-color var(--cy-t-fast) linear,
+      color var(--cy-t-fast) linear;
+
+    tr:last-child > & {
+      border-block-end-color: transparent;
+    }
+
+    /* The row's name: a label. */
+    &[data-name] {
+      font-weight: 600;
+      letter-spacing: var(--cy-track);
+      text-transform: uppercase;
+      color: var(--cy-ink);
+    }
+
+    /* Figures are values: the mono, the signal color, the trailing edge. */
+    &[data-numeric] {
+      font-family: var(--cy-mono);
+      font-size: var(--cy-text-sm);
+      font-variant-numeric: tabular-nums;
+      /* A mono space is a whole figure wide: too much between the groups
+         of a number such as 12 600. */
+      word-spacing: -0.3em;
+      text-align: end;
+      color: var(--cy-signal);
+    }
+
+    &[data-col="select"] {
+      cursor: pointer;
+    }
+
+    &[data-col="actions"] {
+      padding-inline: 4px 8px;
+      text-align: end;
+    }
+
+    @media (hover: hover) {
+      [data-kit="data-table-row"]:hover > & {
+        background: var(--cy-fill-hover);
+      }
+    }
+
+    /* A picked row is on: the lit fill between hot rules, brighter ink,
+       and the ticked box in its first cell. */
+    [data-kit="data-table-row"][data-selected] > & {
+      background: var(--cy-fill-active);
+      border-block-end-color: var(--cy-line-hot);
+      box-shadow: 0 -1px 0 var(--cy-line-hot);
+    }
+
+    /* On the lit fill, accent ink is only 3:1, so ink of either weight
+       becomes the bright one. Re-pointing the tokens, rather than setting a
+       color, lets whatever the cell holds (a Badge, a link) follow. The
+       actions cell is left alone: its menu opens inside it, on a panel. */
+    [data-kit="data-table-row"][data-selected] > &:not([data-col="actions"]) {
+      --cy-ink: var(--cy-ink-hi);
+      --cy-ink-mute: var(--cy-ink-hi);
+    }
+
+    @media (hover: hover) {
+      [data-kit="data-table-row"][data-selected]:hover > & {
+        background: color-mix(in srgb, var(--cy-accent) 48%, var(--cy-panel));
+      }
+    }
+  }
+
+  /* A window onto the box of a Checkbox. The checkbox lays out at its own
+     width behind it, so its label keeps to one line, out of view, and the
+     row stays one line tall. 18px is the kit's box. */
+  [data-skin="cyber"] [data-kit="data-table-box"] {
+    display: block;
+    width: 18px;
+    height: var(--cy-h);
+    overflow: clip;
+  }
+
+  [data-skin="cyber"] [data-kit="data-table-box-row"] {
+    display: block;
+    width: max-content;
+  }
+
+  /* The foot: how many rows are picked, the number in the signal color. */
+  [data-skin="cyber"] [data-kit="data-table-foot"] {
+    flex: none;
+    margin: 0;
+    /* Clear of the cut corner at the leading end. */
+    padding: 6px var(--pad) 6px calc(var(--pad) + var(--cy-cut));
+    font-size: var(--cy-text-xs);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--cy-ink-mute);
+    border-block-start: 1px solid var(--cy-line-deco);
+  }
+
+  [data-skin="cyber"] [data-kit="data-table-count"] {
+    font-family: var(--cy-mono);
+    font-size: var(--cy-text-sm);
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--cy-signal);
+
+    &[data-none] {
+      color: var(--cy-ink-mute);
+    }
+  }
+}

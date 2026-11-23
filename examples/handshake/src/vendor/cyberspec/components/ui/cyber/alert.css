@@ -1,0 +1,128 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  /* One color per tone, as --tone; everything else is mixed from it. The
+     spine is the frame's own thick leading edge, so it takes the tone at
+     full strength and the glyph is printed on it in dark ink. */
+  [data-skin="cyber"] [data-kit="alert"] {
+    --tone: var(--cy-signal);
+    --spine: 28px;
+    --frame-cut: var(--cy-cut);
+    /* Frame variables inherit, and a surface behind may have set one. */
+    --frame-image: none;
+    --frame-spine: var(--spine);
+    --frame-line: var(--tone);
+    --frame-fill: color-mix(in srgb, var(--tone) 7%, var(--cy-panel));
+
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+    width: 100%;
+    min-width: 0;
+    padding: 10px 14px 12px 12px;
+    text-align: start;
+
+    &[data-tone="success"] {
+      --tone: var(--cy-ok);
+    }
+    &[data-tone="warning"] {
+      --tone: var(--cy-flag);
+    }
+    /* Red is what everything here already is, so danger is the one that
+       lights its whole frame, and its text goes to the bright ink a lit
+       fill needs. */
+    &[data-tone="danger"] {
+      --tone: var(--cy-accent);
+      --frame-fill: var(--cy-fill-active);
+    }
+  }
+
+  /* The glyph sits on the spine, which is a border: outside the padding
+     box, so it's placed with a negative offset the width of the spine. */
+  [data-skin="cyber"] [data-kit="alert-glyph"] {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: calc(var(--spine) * -1);
+    display: grid;
+    place-items: center;
+    width: var(--spine);
+    color: var(--cy-on-solid);
+
+    & svg {
+      width: 16px;
+      height: 16px;
+      stroke-width: 2;
+    }
+
+    /* The critical one isn't quite steady. */
+    [data-tone="danger"] > & svg {
+      animation: var(--cy-fx-flicker) 3.2s linear infinite;
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="alert-body"] {
+    flex: 1 1 168px;
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  [data-skin="cyber"] [data-kit="alert-head"] {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 4px 12px;
+    flex-wrap: wrap;
+  }
+
+  [data-skin="cyber"] [data-kit="alert-title"] {
+    min-width: 0;
+    font-size: var(--cy-text-md);
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: var(--cy-track);
+    text-transform: uppercase;
+    color: var(--tone);
+    text-wrap: balance;
+
+    [data-tone="danger"] & {
+      color: var(--cy-ink-hi);
+    }
+  }
+
+  /* The tone, in words. */
+  [data-skin="cyber"] [data-kit="alert-word"] {
+    flex: none;
+    font-family: var(--cy-mono);
+    font-size: var(--cy-text-xs);
+    line-height: 1.4;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--tone);
+
+    &::before {
+      content: "// ";
+      opacity: 0.6;
+    }
+
+    [data-tone="danger"] & {
+      color: var(--cy-ink-hi);
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="alert-text"] {
+    max-width: 62ch;
+    font-size: var(--cy-text-sm);
+    line-height: 1.4;
+    color: var(--cy-ink-hi);
+    text-wrap: pretty;
+  }
+
+  [data-skin="cyber"] [data-kit="alert-action"] {
+    flex: none;
+    display: flex;
+    gap: var(--cy-gap);
+    margin-inline-start: auto;
+  }
+}

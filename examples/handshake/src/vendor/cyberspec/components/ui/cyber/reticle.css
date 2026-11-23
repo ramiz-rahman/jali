@@ -1,0 +1,140 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  /* Idle, the brackets stand --reticle-out away from the target, thin and
+     dim. Locked, they close to --reticle-gap (just clear of a focus ring),
+     thicken, and turn the signal color. */
+  [data-skin="cyber"] [data-kit="reticle"] {
+    --reticle-size: 9px;
+    --reticle-gap: 5px;
+    --reticle-out: 5px;
+    --reticle-color: var(--cy-line-ctl);
+    --reticle-weight: 1px;
+    --_out: var(--reticle-out);
+    /* Which way "inline start" is, so the corners travel the right way. */
+    --_dir: 1;
+
+    position: relative;
+    display: inline-grid;
+    min-width: 0;
+    vertical-align: middle;
+
+    &:dir(rtl) {
+      --_dir: -1;
+    }
+
+    &:is([data-active], :focus-within) {
+      --reticle-color: var(--cy-signal);
+      --reticle-weight: 2px;
+      --_out: 0px;
+    }
+
+    @media (hover: hover) {
+      &:hover {
+        --reticle-color: var(--cy-signal);
+        --reticle-weight: 2px;
+        --_out: 0px;
+      }
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="reticle-brackets"] {
+    position: absolute;
+    inset: calc(var(--reticle-gap) * -1);
+    pointer-events: none;
+
+    & > span {
+      position: absolute;
+      width: var(--reticle-size);
+      height: var(--reticle-size);
+      border: 0 solid var(--reticle-color);
+      /* Two steps in, like a display catching up, rather than a glide. */
+      transition:
+        translate var(--cy-t) steps(2, jump-none),
+        border-color var(--cy-t-fast) linear;
+    }
+
+    & > span:nth-child(1) {
+      inset-block-start: 0;
+      inset-inline-start: 0;
+      border-block-start-width: var(--reticle-weight);
+      border-inline-start-width: var(--reticle-weight);
+      translate: calc(var(--_out) * -1 * var(--_dir)) calc(var(--_out) * -1);
+    }
+    & > span:nth-child(2) {
+      inset-block-start: 0;
+      inset-inline-end: 0;
+      border-block-start-width: var(--reticle-weight);
+      border-inline-end-width: var(--reticle-weight);
+      translate: calc(var(--_out) * var(--_dir)) calc(var(--_out) * -1);
+    }
+    & > span:nth-child(3) {
+      inset-block-end: 0;
+      inset-inline-end: 0;
+      border-block-end-width: var(--reticle-weight);
+      border-inline-end-width: var(--reticle-weight);
+      translate: calc(var(--_out) * var(--_dir)) var(--_out);
+    }
+    & > span:nth-child(4) {
+      inset-block-end: 0;
+      inset-inline-start: 0;
+      border-block-end-width: var(--reticle-weight);
+      border-inline-start-width: var(--reticle-weight);
+      translate: calc(var(--_out) * -1 * var(--_dir)) var(--_out);
+    }
+  }
+
+  /* The tag: a solid chip in the signal color, outside one corner. It's
+     only there while locked, and tears in as the lock lands. */
+  [data-skin="cyber"] [data-kit="reticle-tag"] {
+    position: absolute;
+    display: none;
+    padding: 2px 5px 1px;
+    font-family: var(--cy-mono);
+    font-size: 9px;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--cy-on-solid);
+    background: var(--cy-signal);
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%);
+    pointer-events: none;
+
+    &[data-at="top-start"] {
+      inset-block-end: calc(100% + var(--reticle-gap) + 4px);
+      inset-inline-start: calc(var(--reticle-gap) * -1);
+    }
+    &[data-at="top-end"] {
+      inset-block-end: calc(100% + var(--reticle-gap) + 4px);
+      inset-inline-end: calc(var(--reticle-gap) * -1);
+    }
+    &[data-at="bottom-start"] {
+      inset-block-start: calc(100% + var(--reticle-gap) + 4px);
+      inset-inline-start: calc(var(--reticle-gap) * -1);
+    }
+    &[data-at="bottom-end"] {
+      inset-block-start: calc(100% + var(--reticle-gap) + 4px);
+      inset-inline-end: calc(var(--reticle-gap) * -1);
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="reticle"]:is([data-active], :focus-within) > [data-kit="reticle-tag"] {
+    display: block;
+    animation: var(--cy-fx-in) 200ms var(--cy-ease-snap) backwards;
+  }
+
+  @media (hover: hover) {
+    [data-skin="cyber"] [data-kit="reticle"]:hover > [data-kit="reticle-tag"] {
+      display: block;
+      animation: var(--cy-fx-in) 200ms var(--cy-ease-snap) backwards;
+    }
+  }
+
+  @media (forced-colors: active) {
+    [data-skin="cyber"] [data-kit="reticle-brackets"] > span {
+      border-color: CanvasText;
+    }
+  }
+}

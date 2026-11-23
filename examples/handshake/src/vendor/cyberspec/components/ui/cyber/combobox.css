@@ -1,0 +1,136 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+/* The input sits in the shared control frame and the results in the shared
+   popup (field.css, popup.css); this is only what a combobox adds to them. */
+@layer cyber.ui {
+  /* The two keys at the end of the control: clear, and show the list. They
+     sit inside the frame, which lights for whichever of its children has
+     focus, so each also marks itself when it's the one. */
+  [data-skin="cyber"] :is([data-kit="combobox-clear"], [data-kit="combobox-trigger"]) {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    margin-inline-end: -4px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--cy-ink);
+    cursor: pointer;
+    transition:
+      color var(--cy-t-fast) linear,
+      background-color var(--cy-t-fast) linear;
+
+    @media (pointer: coarse) {
+      width: 36px;
+      height: 36px;
+    }
+
+    & svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    @media (hover: hover) {
+      &:hover:not([data-disabled]) {
+        color: var(--cy-ink-hi);
+        background: var(--cy-fill-hover);
+      }
+    }
+
+    &:focus-visible {
+      color: var(--cy-on-solid);
+      background: var(--cy-signal);
+    }
+
+    &[data-disabled] {
+      color: var(--cy-ink-mute);
+      cursor: not-allowed;
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="combobox-clear"] svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* The chevron turns over, in steps, as the list opens. */
+  [data-skin="cyber"] [data-kit="combobox-trigger"] {
+    & svg {
+      transition: rotate var(--cy-t) var(--cy-ease-step);
+    }
+
+    &[data-open] {
+      color: var(--cy-ink-hi);
+
+      & svg {
+        rotate: 180deg;
+      }
+    }
+  }
+
+  /* The popup's heading: how many are left. A live region, so it's said as
+     well as shown. Nothing left is the empty line's to say. */
+  [data-skin="cyber"] [data-kit="combobox-status"] {
+    padding: 6px 12px 4px;
+    font-family: var(--cy-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--cy-ink-mute);
+
+    &:empty {
+      display: none;
+    }
+
+    & [data-kit="value"] {
+      font-size: inherit;
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="combobox-list"] {
+    display: grid;
+  }
+
+  /* A row: the name takes the room; the meta and the mark keep their own
+     columns, so they line up down the list. */
+  [data-skin="cyber"] [data-kit="combobox-item-text"] {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* The letters that matched: the signal color, and underlined, so the
+     emphasis doesn't rest on color. */
+  [data-skin="cyber"] [data-kit="combobox-match"] {
+    background: none;
+    color: var(--cy-signal);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+
+  [data-skin="cyber"] [data-kit="combobox-item-meta"] {
+    flex: none;
+    font-family: var(--cy-mono);
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0;
+    color: var(--cy-ink-mute);
+
+    [data-highlighted] > & {
+      color: var(--cy-ink-hi);
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="combobox-item-mark"] {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 14px;
+    height: 14px;
+  }
+}

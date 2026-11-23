@@ -1,0 +1,204 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+/* The one animation in the kit that isn't an effect: a toast's time
+   running out. It's information, so it has no FX token and runs at every
+   level (the bar is marked data-motion="essential"); it's a keyframe
+   rather than a transition because it has to pause. */
+@keyframes cy-toast-drain {
+  to {
+    transform: scaleX(0);
+  }
+}
+
+/* What one toast looks like. Where toasts go, and how they arrive, stack
+   and leave, is in toaster.css. */
+@layer cyber.ui {
+  /* What it's about decides one color, and everything that's lit takes it:
+     the edge, the strip, the drain bar. ui-sdk reports it as data-type.
+     Errors take the accent, which is the theme's own color, so they also
+     get the heaviest glyph. */
+  [data-skin="cyber"] [data-kit="toast"] {
+    --toast-tone: var(--cy-signal);
+
+    &[data-type="success"] {
+      --toast-tone: var(--cy-ok);
+    }
+    &[data-type="warning"] {
+      --toast-tone: var(--cy-flag);
+    }
+    &[data-type="error"] {
+      --toast-tone: var(--cy-accent);
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="toast-surface"] {
+    --frame-cut: var(--cy-cut);
+    --frame-line: var(--toast-tone);
+    /* Opaque: it sits over whatever the page has under it. */
+    --frame-fill: var(--cy-panel);
+    /* Frame variables inherit; this one is never patterned. */
+    --frame-image: none;
+
+    display: grid;
+  }
+
+  /* The title strip: solid, in the tone's color, with dark ink. */
+  [data-skin="cyber"] [data-kit="toast-strip"] {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 30px;
+    padding-inline-start: 9px;
+    color: var(--cy-on-solid);
+    background: var(--toast-tone);
+
+    @media (pointer: coarse) {
+      min-height: var(--cy-h);
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="toast-glyph"] {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 16px;
+    height: 16px;
+
+    & svg {
+      width: 16px;
+      height: 16px;
+      stroke-width: 2;
+    }
+  }
+
+  /* Still working: a block that breathes, in place of a glyph. */
+  [data-skin="cyber"] [data-kit="toast-busy"] {
+    width: 8px;
+    height: 8px;
+    background: currentColor;
+    animation: var(--cy-fx-pulse) 1.2s linear infinite;
+  }
+
+  [data-skin="cyber"] [data-kit="toast-title"] {
+    flex: 1;
+    min-width: 0;
+    padding-block: 5px;
+    font-size: var(--cy-text-md);
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: var(--cy-track);
+    text-transform: uppercase;
+    overflow-wrap: anywhere;
+  }
+
+  /* The tone again, as a word. */
+  [data-skin="cyber"] [data-kit="toast-tag"] {
+    flex: none;
+    font-family: var(--cy-mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    opacity: 0.72;
+
+    /* Without a close key it's the last thing in the strip. */
+    &:last-child {
+      margin-inline-end: 10px;
+    }
+  }
+
+  /* The close key: the end of the strip, darkening under the pointer. Its
+     ink and its focus ring are the dark of the strip's text. */
+  [data-skin="cyber"] [data-kit="toast-close"] {
+    --frame-cut: 0px;
+    --frame-line: transparent;
+    --frame-fill: transparent;
+    --frame-focus: var(--cy-on-solid);
+
+    flex: none;
+    align-self: stretch;
+    display: grid;
+    place-items: center;
+    width: 30px;
+    padding: 0;
+    color: inherit;
+    cursor: pointer;
+    transition: background-color var(--cy-t-fast) linear;
+
+    @media (pointer: coarse) {
+      width: var(--cy-h);
+    }
+
+    & svg {
+      width: 14px;
+      height: 14px;
+      stroke-width: 2;
+    }
+
+    @media (hover: hover) {
+      &:hover {
+        --frame-fill: color-mix(in srgb, var(--cy-on-solid) 18%, transparent);
+      }
+    }
+    &:active {
+      --frame-fill: color-mix(in srgb, var(--cy-on-solid) 34%, transparent);
+    }
+  }
+
+  /* The body: the detail, then the action at its trailing end. */
+  [data-skin="cyber"] [data-kit="toast-body"] {
+    display: grid;
+    justify-items: end;
+    gap: 8px;
+    padding: 8px 12px 12px 10px;
+  }
+
+  [data-skin="cyber"] [data-kit="toast-description"] {
+    justify-self: stretch;
+    font-size: var(--cy-text-sm);
+    line-height: 1.4;
+    color: var(--cy-ink-hi);
+    text-wrap: pretty;
+  }
+
+  /* Time left: a bar along the foot that drains toward the leading edge
+     over the toast's duration. It holds whenever ui-sdk holds the
+     countdown: the pointer or focus in the region, a swipe, an action
+     still running, the window or the page away. */
+  [data-skin="cyber"] [data-kit="toast-timer"] {
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 2px;
+    background: var(--toast-tone);
+    transform-origin: 0 50%;
+    animation: cy-toast-drain var(--toast-duration, 5000ms) linear forwards;
+
+    :dir(rtl) & {
+      transform-origin: 100% 50%;
+    }
+
+    @media (hover: hover) {
+      [data-kit="toaster"]:hover & {
+        animation-play-state: paused;
+      }
+    }
+    [data-kit="toaster"]:is(:focus-within, [data-away]) &,
+    [data-kit="toast"]:is([data-swiping], :has([data-pending])) & {
+      animation-play-state: paused;
+    }
+
+    /* A leaving toast is waited for until everything in it has stopped
+       moving, so the bar stops with it. */
+    [data-ending-style] & {
+      animation: none;
+      opacity: 0;
+    }
+  }
+
+  /* The row of keys that raise one toast each (ToastKeys). */
+  [data-skin="cyber"] [data-kit="toast-keys"] {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--cy-gap);
+  }
+}

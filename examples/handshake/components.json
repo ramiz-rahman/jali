@@ -1,0 +1,20 @@
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "new-york",
+  "rsc": false,
+  "tsx": true,
+  "tailwind": {
+    "config": "",
+    "css": "src/styles/cyber.css",
+    "baseColor": "neutral",
+    "cssVariables": true
+  },
+  "aliases": {
+    "components": "#src/vendor/cyberspec/components",
+    "ui": "#src/vendor/cyberspec/components/ui",
+    "lib": "#src/vendor/cyberspec/lib",
+    "utils": "#src/vendor/cyberspec/lib/utils",
+    "hooks": "#src/vendor/cyberspec/hooks"
+  },
+  "registries": { "@cyberspec-ui": "https://www.cyberspec.dev/r/{name}.json" }
+}

@@ -1,0 +1,175 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  /* The kit's state language, on its simplest control:
+       idle    line 70%, no fill
+       hover   line 100%, fill 10%
+       down    fill 40%, and a flash to 70% as it lands (data-press-flash)
+     Any element can borrow the look by carrying data-kit="button", which is
+     how a dialog's trigger or a popover's close key is styled. */
+  [data-skin="cyber"] [data-kit="button"] {
+    --frame-cut: var(--cy-cut-sm);
+    --frame-line: var(--cy-line-ctl);
+    --frame-fill: var(--cy-panel-a);
+    --frame-notch-x: 22px;
+    --frame-notch: 4px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: 72px;
+    height: var(--cy-h);
+    padding-inline: 16px;
+    font-size: var(--cy-text-md);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: var(--cy-track);
+    text-transform: uppercase;
+    text-decoration: none;
+    white-space: nowrap;
+    color: var(--cy-ink);
+    cursor: pointer;
+    user-select: none;
+    transition:
+      background-color var(--cy-t-fast) linear,
+      border-color var(--cy-t-fast) linear,
+      color var(--cy-t-fast) linear;
+
+    & svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    @media (hover: hover) {
+      &:hover:not(:disabled, [data-disabled]) {
+        --frame-line: var(--cy-line-hot);
+        --frame-fill: var(--cy-fill-hover);
+      }
+    }
+
+    &:is(:active, [data-open], [data-pressed]):not(:disabled, [data-disabled]) {
+      --frame-line: var(--cy-line-hot);
+      --frame-fill: var(--cy-fill-active);
+      color: var(--cy-ink-hi);
+    }
+
+    &[data-size="sm"] {
+      min-width: 56px;
+      height: var(--cy-h-sm);
+      padding-inline: 12px;
+      font-size: var(--cy-text-sm);
+    }
+
+    &[data-size="lg"] {
+      min-width: 96px;
+      height: var(--cy-h-lg);
+      padding-inline: 22px;
+      font-size: var(--cy-text-lg);
+    }
+
+    &[data-icon] {
+      min-width: 0;
+      width: var(--cy-h);
+      padding-inline: 0;
+
+      &[data-size="sm"] {
+        width: var(--cy-h-sm);
+      }
+      &[data-size="lg"] {
+        width: var(--cy-h-lg);
+      }
+    }
+
+    /* Lit: the 40% fill at rest, so it's the one the eye lands on. */
+    &[data-tone="primary"] {
+      --frame-line: var(--cy-line-hot);
+      --frame-fill: var(--cy-fill-active);
+      color: var(--cy-ink-hi);
+
+      @media (hover: hover) {
+        &:hover:not(:disabled, [data-disabled]) {
+          --frame-fill: color-mix(in srgb, var(--cy-accent) 52%, var(--cy-panel));
+        }
+      }
+      &:active:not(:disabled, [data-disabled]) {
+        --frame-fill: var(--cy-fill-flash);
+      }
+    }
+
+    &[data-tone="ghost"] {
+      --frame-line: transparent;
+      --frame-fill: transparent;
+    }
+
+    &[data-tone="signal"] {
+      --frame-line: var(--cy-signal-dim);
+      --frame-focus: var(--cy-ink-hi);
+      color: var(--cy-signal);
+
+      @media (hover: hover) {
+        &:hover:not(:disabled, [data-disabled]) {
+          --frame-line: var(--cy-signal);
+          --frame-fill: var(--cy-signal-fill);
+        }
+      }
+      &:is(:active, [data-open], [data-pressed]):not(:disabled, [data-disabled]) {
+        --frame-line: var(--cy-signal);
+        --frame-fill: color-mix(in srgb, var(--cy-signal) 30%, var(--cy-panel));
+        color: var(--cy-ink-hi);
+      }
+    }
+
+    /* Solid yellow, dark ink: the answer the screen wants. */
+    &[data-tone="flag"] {
+      --frame-line: var(--cy-flag);
+      --frame-fill: var(--cy-flag);
+      --frame-focus: var(--cy-on-solid);
+      color: var(--cy-on-solid);
+
+      @media (hover: hover) {
+        &:hover:not(:disabled, [data-disabled]) {
+          --frame-line: var(--cy-flag);
+          --frame-fill: color-mix(in srgb, var(--cy-flag) 86%, white);
+        }
+      }
+      &:is(:active, [data-open], [data-pressed]):not(:disabled, [data-disabled]) {
+        --frame-line: var(--cy-flag);
+        --frame-fill: color-mix(in srgb, var(--cy-flag) 78%, var(--cy-panel));
+        color: var(--cy-on-solid);
+      }
+    }
+
+    /* Unavailable: struck through with hatching rather than only dimmed, so
+       it doesn't rely on contrast alone. */
+    &:is(:disabled, [data-disabled]) {
+      --frame-line: var(--cy-line-deco);
+      --frame-fill: var(--cy-panel-a);
+      --frame-image: repeating-linear-gradient(135deg, transparent 0 5px, var(--cy-line-deco) 5px 6px);
+      color: var(--cy-ink-mute);
+      cursor: not-allowed;
+    }
+
+    /* Pending: a bar runs along the foot of the key. */
+    &[data-pending] {
+      cursor: progress;
+
+      &::after {
+        content: "";
+        position: absolute;
+        inset: auto 0 0 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, currentColor 50%, transparent) 0 0 / 300% 100% no-repeat;
+        animation: var(--cy-fx-sweep) 900ms linear infinite;
+      }
+    }
+  }
+
+  /* A row of keys that answer something: a dialog's, a popover's, a form's. */
+  [data-skin="cyber"] [data-kit="actions"] {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--cy-gap);
+  }
+}

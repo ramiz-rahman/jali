@@ -1,0 +1,139 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  /* The group's frame. It's decoration around controls, not a control, so
+     its edge is the faint one; the spine is drawn hot over it. */
+  [data-skin="cyber"] [data-kit="fieldset"] {
+    --frame-cut: var(--cy-cut);
+    --frame-line: var(--cy-line-deco);
+    --frame-fill: color-mix(in srgb, var(--cy-accent) 5%, var(--cy-panel));
+    --frame-spine: 6px;
+
+    display: block;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    padding: 12px 16px 12px 14px;
+    text-align: start;
+    transition: border-color var(--cy-t-fast) linear;
+
+    /* Being worked in: the frame comes up to a control's edge. */
+    &:focus-within {
+      --frame-line: var(--cy-line-ctl);
+    }
+
+    /* The spine: a solid bar over the frame's thick leading edge... */
+    &::before {
+      content: "";
+      position: absolute;
+      inset-block: -1px;
+      inset-inline-start: calc(var(--frame-spine) * -1);
+      width: var(--frame-spine);
+      background: var(--cy-accent);
+      transition: background-color var(--cy-t-fast) linear;
+    }
+
+    /* ...with one tick cut through it, level with the legend. */
+    &::after {
+      content: "";
+      position: absolute;
+      inset-block-start: 20px;
+      inset-inline-start: calc(var(--frame-spine) * -1);
+      width: var(--frame-spine);
+      height: 2px;
+      background: var(--cy-panel);
+    }
+
+    &[data-disabled] {
+      --frame-line: var(--cy-line-deco);
+      --frame-fill: var(--cy-panel);
+
+      &::before {
+        background: var(--cy-line-deco);
+      }
+    }
+  }
+
+  /* A native <legend> would sit in the frame's top edge and break it.
+     Floated, it's an ordinary row inside the frame, and still the element
+     that names the group. */
+  [data-skin="cyber"] [data-kit="fieldset-legend"] {
+    float: inline-start;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    margin: 0;
+    padding: 0 0 8px;
+    border-block-end: 1px solid var(--cy-line-deco);
+    font-size: var(--cy-text-md);
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: var(--cy-track);
+    text-transform: uppercase;
+    color: var(--cy-ink);
+
+    &[data-disabled] {
+      color: var(--cy-ink-mute);
+    }
+  }
+
+  /* LOCKED: printed while the group is disabled, so that doesn't rest on
+     the hatching of what's inside. */
+  [data-skin="cyber"] [data-kit="fieldset-lock"] {
+    display: none;
+    flex: none;
+    padding: 3px 5px 2px;
+    border: 1px solid var(--cy-line-deco);
+    font-family: var(--cy-mono);
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    line-height: 1;
+    color: var(--cy-ink-mute);
+
+    [data-disabled] > & {
+      display: block;
+    }
+  }
+
+  /* Everything under the legend. It's a size container, so the fields can
+     pair up by the room the frame has, not the page. */
+  [data-skin="cyber"] [data-kit="fieldset-body"] {
+    clear: both;
+    display: grid;
+    gap: 12px;
+    padding-block-start: 10px;
+    container-type: inline-size;
+
+    & > [data-kit="hint"] {
+      max-width: 52ch;
+      text-wrap: pretty;
+    }
+
+    & > [data-micro] {
+      min-width: 0;
+      margin-block-start: 2px;
+      overflow: hidden;
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="fieldset-group"] {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    min-width: 0;
+
+    @container (min-width: 420px) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 16px;
+      align-items: start;
+
+      /* A switch's row, a row of keys: not a field, so the full width. */
+      & > :not([data-kit="field"]) {
+        grid-column: 1 / -1;
+      }
+    }
+  }
+}

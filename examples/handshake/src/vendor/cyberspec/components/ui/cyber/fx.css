@@ -1,0 +1,436 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+/* The kit's effects. Components never name these keyframes directly: they
+   use the --cy-fx-* tokens, which resolve to a keyframe at FX "full", to a
+   plain fade at "calm", and to `none` at "off" (see tokens.css).
+
+   None of them animates clip-path, which a frame owns, or anything that
+   triggers layout: transform, opacity, filter, colors and background
+   position only.
+
+   Flashing: a glitch dips opacity at most three times, inside 300ms, and
+   only on small dark surfaces. Nothing here repeats faster than three times
+   a second, and nothing flashes a large bright fill (WCAG 2.3.1). */
+
+/* Something switching on: it tears in sideways over three frames. */
+@keyframes cy-glitch-in {
+  0% {
+    opacity: 0;
+    transform: translate3d(-10px, 0, 0) skewX(-12deg);
+    filter: brightness(1.8) saturate(1.5);
+    animation-timing-function: step-end;
+  }
+  30% {
+    opacity: 1;
+    transform: translate3d(6px, 0, 0) skewX(6deg);
+    filter: brightness(1.4) saturate(1.3);
+    animation-timing-function: step-end;
+  }
+  55% {
+    opacity: 0.55;
+    transform: translate3d(-3px, 0, 0);
+    filter: brightness(1.2);
+    animation-timing-function: step-end;
+  }
+  78% {
+    opacity: 1;
+    transform: translate3d(1px, 0, 0);
+    filter: none;
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+/* Switching off: one tear, then gone. */
+@keyframes cy-glitch-out {
+  0% {
+    opacity: 1;
+    transform: none;
+    animation-timing-function: step-end;
+  }
+  40% {
+    opacity: 0.6;
+    transform: translate3d(5px, 0, 0) skewX(8deg);
+    filter: brightness(1.5);
+    animation-timing-function: step-end;
+  }
+  75% {
+    opacity: 0.25;
+    transform: translate3d(-8px, 0, 0) scaleY(0.6);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(-8px, 0, 0) scaleY(0.2);
+  }
+}
+
+@keyframes cy-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes cy-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+/* The instant of a press: the fill jumps to 70% and bleeds back. */
+@keyframes cy-flash {
+  0% {
+    background-color: var(--cy-fill-flash);
+    box-shadow: inset 0 0 22px var(--cy-glow);
+  }
+  35% {
+    background-color: var(--cy-fill-flash);
+  }
+}
+
+/* A lamp that isn't quite steady. Slow: one dip every few seconds. */
+@keyframes cy-flicker {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  41% {
+    opacity: 1;
+    animation-timing-function: step-end;
+  }
+  42% {
+    opacity: 0.55;
+    animation-timing-function: step-end;
+  }
+  44% {
+    opacity: 1;
+    animation-timing-function: step-end;
+  }
+  81% {
+    opacity: 0.8;
+    animation-timing-function: step-end;
+  }
+  82% {
+    opacity: 1;
+  }
+}
+
+/* A band passing down a surface. For a pseudo-element the height of what it
+   scans. */
+@keyframes cy-scan {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+/* Channels slipping apart on text for a moment. */
+@keyframes cy-rgb {
+  0%,
+  100% {
+    text-shadow: none;
+    transform: none;
+  }
+  20% {
+    text-shadow:
+      -2px 0 var(--cy-signal),
+      2px 0 var(--cy-accent);
+    transform: translate3d(1px, 0, 0);
+    animation-timing-function: step-end;
+  }
+  40% {
+    text-shadow:
+      2px 0 var(--cy-signal),
+      -1px 0 var(--cy-accent);
+    transform: translate3d(-1px, 0, 0);
+    animation-timing-function: step-end;
+  }
+  60% {
+    text-shadow: -1px 0 var(--cy-signal);
+    transform: none;
+    animation-timing-function: step-end;
+  }
+}
+
+/* A caret, or a cursor waiting. */
+@keyframes cy-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Something alive: busy, live, listening. */
+@keyframes cy-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* A highlight crossing left to right, for a background sized 300% wide. */
+@keyframes cy-sweep {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+
+@layer cyber.fx {
+  /* Opt in once, on the screen's outer Cyber root. One fixed, static paint
+     gives the whole interface a fine phosphor raster and soft tube corners.
+     No filter, blend pass, animation, or per-frame JavaScript is needed. */
+  [data-skin="cyber"][data-crt] {
+    --cy-crt-screen: var(--cy-fx);
+  }
+
+  [data-skin="cyber"][data-crt]::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    pointer-events: none;
+    user-select: none;
+    background:
+      radial-gradient(ellipse at 50% 48%, transparent 54%, rgb(var(--cy-crt-shadow-rgb, 2 3 8) / 0.035) 78%, rgb(var(--cy-crt-shadow-rgb, 2 3 8) / 0.1) 100%),
+      repeating-linear-gradient(
+        to bottom,
+        rgb(0 0 0 / 0.08) 0 1px,
+        transparent 1px 3px,
+        rgb(var(--cy-crt-highlight-rgb, 216 244 255) / 0.012) 3px 4px
+      );
+    opacity: var(--cy-fx);
+  }
+
+  /* The inherited screen flag replaces local rasters only while CRT is on,
+     including inside separately pinned Cyber roots. Native top-layer surfaces
+     sit above this overlay, so their media keeps its own raster. */
+  [data-skin="cyber"][data-crt] :is(dialog, [popover]) {
+    --cy-crt-screen: 0;
+  }
+
+  [data-skin="cyber"][data-crt] [data-crt]::after,
+  [data-skin="cyber"][data-crt]:is([data-fx="calm"], [data-fx="off"])::after {
+    display: none;
+  }
+
+  /* A press flashes any pressable frame that asks for it. */
+  [data-skin="cyber"] [data-press-flash]:active:not(:disabled, [data-disabled], [aria-disabled="true"]) {
+    animation: var(--cy-fx-flash) 220ms var(--cy-ease-snap);
+  }
+
+  /* What an agent just changed lights in the signal color for a moment, with
+     a lock-on bracket, so a person watching can follow it. Set by
+     lib/agent-signal.ts. */
+  [data-skin="cyber"] [data-agent-touch] {
+    --frame-line: var(--cy-signal);
+    outline: 1px solid var(--cy-signal);
+    outline-offset: 3px;
+    animation: var(--cy-fx-rgb) 420ms var(--cy-ease-snap);
+  }
+  [data-skin="cyber"] [data-agent-touch][data-frame] {
+    outline: none;
+    box-shadow: inset 0 0 0 1px var(--cy-signal), inset 0 0 18px color-mix(in srgb, var(--cy-signal) 35%, transparent);
+  }
+}
+
+@layer cyber.fx {
+  /* Keep real text in layout and in the accessibility tree. SVG icons
+     continue to use currentColor while only the glyph ink is hidden. */
+  [data-skin="cyber"] [data-cipher-anchor] {
+    position: relative;
+  }
+  [data-skin="cyber"] [data-decoding] {
+    -webkit-text-fill-color: transparent;
+  }
+  [data-skin="cyber"] [data-decoding] > [data-cipher-text] {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    -webkit-text-fill-color: currentColor;
+
+    & > [data-cipher-noise] {
+      position: absolute;
+      translate: -50% -50%;
+      width: max-content;
+      white-space: pre;
+    }
+  }
+  [data-skin="cyber"] [data-decoding] :is([data-cipher-ignore], [aria-hidden="true"]) {
+    -webkit-text-fill-color: currentColor;
+  }
+  [data-skin="cyber"] [data-cipher-frame] {
+    display: none;
+    pointer-events: none;
+  }
+
+  /* On the five middle ticks, cut the actual hover frame into bands.
+     Each band inherits this key's tone, cuts, notch and dimensions. The
+     original children and hit target stay in place while the bands shear. */
+  @media (prefers-reduced-motion: no-preference) and (forced-colors: none) {
+    [data-skin="cyber"] [data-frame][data-cipher-tear]:not([data-kit="button"]:is(:active, :focus-visible)) {
+      --cipher-shift: clamp(1px, 2%, 3px);
+      --cipher-lift: 0px;
+
+      /* Expose the overhanging fragments. Keep the native border width
+         and the ongoing hover color transition for the return to rest. */
+      isolation: isolate;
+      &:has(> [data-cipher-frame="full"]) {
+        clip-path: none;
+        background-clip: text;
+        border-image: linear-gradient(transparent, transparent) 1;
+      }
+
+      &[data-cipher-tear="3"] { --cipher-shift: clamp(-6px, -6%, -2px); }
+      &[data-cipher-tear="4"] {
+        --cipher-shift: clamp(3px, 9%, 9px);
+        --cipher-lift: -1px;
+      }
+      &[data-cipher-tear="5"] { --cipher-shift: clamp(-5px, -5%, -2px); }
+
+      & > [data-cipher-frame] {
+        display: block;
+        position: absolute;
+        inset: calc(-1 * var(--cy-line));
+        z-index: -1;
+
+        & > [data-frame] {
+          position: absolute;
+          inset: 0;
+          /* The frame owns clip-path; a mask slices its paint after clipping. */
+          mask-image: linear-gradient(to bottom,
+            transparent var(--band-top), #000 var(--band-top) var(--band-bottom), transparent var(--band-bottom));
+          translate: calc(var(--band-shift) * var(--cipher-shift)) var(--band-lift, 0px);
+        }
+
+        /* Selection echoes just the edge inside the control's original clip.
+           The face, focus ring, artwork and state indicators keep their paint. */
+        &[data-cipher-frame="edge"] > [data-frame] {
+          --frame-fill: transparent;
+          --frame-image: none;
+        }
+
+        & > :nth-child(1) {
+          --band-top: 0%;
+          --band-bottom: 22%;
+          --band-shift: 0.5;
+          --band-lift: var(--cipher-lift);
+        }
+        & > :nth-child(2) {
+          --band-top: 22%;
+          --band-bottom: 57%;
+          --band-shift: -0.6;
+        }
+        & > :nth-child(3) {
+          --band-top: 57%;
+          --band-bottom: 74%;
+          --band-shift: 1;
+        }
+        & > :nth-child(4) {
+          --band-top: 74%;
+          --band-bottom: 100%;
+          --band-shift: -0.8;
+        }
+        /* The original outline stays in place as the strips cross it. */
+        & > [data-cipher-edge] {
+          --frame-fill: transparent;
+          --frame-image: none;
+          mask-image: none;
+          translate: none;
+        }
+      }
+    }
+  }
+}
+
+@layer cyber.a11y {
+  @media (prefers-contrast: more), (forced-colors: active), print {
+    [data-skin="cyber"][data-crt]::after {
+      display: none;
+    }
+  }
+
+  /* Focus. Everything focusable gets the signal-colored ring. A frame's
+     corners are clipped, which would clip an outline too, so a frame draws
+     the ring inside itself: its edge and its cut corners turn the signal
+     color and thicken to two pixels. */
+  [data-skin="cyber"] :focus-visible {
+    outline: 2px solid var(--cy-signal);
+    outline-offset: 2px;
+  }
+
+  /* A popup that takes focus as a whole (a dialog, a menu) shows where focus
+     is through what's inside it. `data-focus-quiet` does the same for any
+     other container whose highlighted child stands in for the ring. */
+  [data-skin="cyber"] :is(dialog, [popover], [data-focus-quiet]):focus-visible {
+    outline: none;
+  }
+
+  [data-skin="cyber"] :is([data-frame]:focus-visible, [data-frame][data-frame-focus="within"]:has(:focus-visible)) {
+    --_line: var(--frame-focus, var(--cy-signal));
+    --_w: 2px;
+    outline: none;
+    box-shadow: inset 0 0 0 1px var(--frame-focus, var(--cy-signal));
+  }
+
+  /* FX off: nothing moves. Durations collapse rather than animations being
+     removed, so anything waiting on an animation's end (an exiting popup)
+     still hears it. `data-motion="essential"` keeps an animation that
+     carries meaning, like a spinner; keep those slow and small. */
+  [data-skin="cyber"][data-fx="off"] :not([data-motion="essential"]),
+  [data-skin="cyber"][data-fx="off"] :not([data-motion="essential"])::before,
+  [data-skin="cyber"][data-fx="off"] :not([data-motion="essential"])::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-skin="cyber"]:not([data-fx]) :not([data-motion="essential"]),
+    [data-skin="cyber"]:not([data-fx]) :not([data-motion="essential"])::before,
+    [data-skin="cyber"]:not([data-fx]) :not([data-motion="essential"])::after {
+      animation-duration: 0.01ms !important;
+      animation-delay: 0s !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      transition-delay: 0s !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* Forced colors (Windows High Contrast): the system draws the edges, so
+     the cuts and the painted corner strokes come off and real outlines come
+     back. */
+  @media (forced-colors: active) {
+    [data-skin="cyber"] [data-frame] {
+      clip-path: none;
+      background-image: none;
+      border-color: CanvasText;
+    }
+    [data-skin="cyber"] :focus-visible,
+    [data-skin="cyber"] [data-frame][data-frame-focus="within"]:has(:focus-visible) {
+      outline: 2px solid Highlight;
+      outline-offset: 2px;
+      box-shadow: none;
+    }
+    [data-skin="cyber"] [data-micro] {
+      display: none;
+    }
+  }
+}

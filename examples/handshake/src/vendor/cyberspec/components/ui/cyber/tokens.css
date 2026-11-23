@@ -1,0 +1,211 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.tokens {
+  /* The theme: one accent, as an OKLCH lightness, chroma and hue
+     (--theme-l, --theme-c, --theme-h), turned into every role the skin needs
+     with relative color syntax. The default is a hot red on a blue-black void.
+
+     Roles, and the contrast each one is held to on --cy-panel (#0e0e17):
+
+     - --cy-accent        the theme itself: hot lines, lit fills, glows.
+     - --cy-ink           text in the accent. Never darker than 0.69, so it
+                          reads at 6:1 or better.
+     - --cy-ink-mute      secondary text, 5:1.
+     - --cy-ink-hi        near-white, tinted with the accent: long-form text,
+                          and text on a lit (40%) fill, where --cy-ink drops
+                          to 3:1.
+     - --cy-line-deco     30% accent: frames, rules, anything decorative.
+     - --cy-line-ctl      70% accent: the idle edge of a control, 3:1.
+     - --cy-line-hot      100% accent: hovered, open, chosen.
+     - --cy-fill-hover    10% accent over the panel.
+     - --cy-fill-active   40% accent: latched, selected, current.
+     - --cy-fill-flash    70% accent: the instant of a press.
+     - --cy-signal        cyan: values, focus, and anything an agent touched.
+     - --cy-flag          yellow: the one thing to look at. New, tracked, chosen
+                          in a dialogue.
+     - --cy-on-solid      ink for text on a solid accent, signal or flag fill.
+                          Dark, since white on the red is only 3.5:1.
+
+     Idle to hover to active to flash is the kit's whole state language: the
+     line goes 70% to 100%, the fill 0 to 10 to 40 to 70. */
+  [data-skin="cyber"] {
+    --cy-monochrome-accent: #c6c6c6;
+    --cy-void: #07070c;
+    --cy-panel: #0e0e17;
+    --cy-panel-2: #151523;
+    --cy-panel-a: rgb(14 14 23 / 0.82);
+
+    --cy-accent: oklch(var(--theme-l, 0.656) var(--theme-c, 0.23) var(--theme-h, 24));
+    --cy-ink: oklch(from var(--cy-accent) max(l, 0.69) min(c, 0.2) h);
+    /* Compensate the two lower-contrast roles when a screen raster is on:
+       against the panel, the shipped accents keep text above 4.5:1 and
+       controls above 3:1 even in its darkest corner.
+       The inherited screen flag also covers nested Cyber roots. */
+    --cy-ink-mute: oklch(from var(--cy-accent) calc(0.62 + 0.06 * var(--cy-crt-screen, 0)) calc(c * 0.5) h);
+    --cy-ink-hi: oklch(from var(--cy-accent) 0.94 0.03 h);
+    --cy-line-deco: color-mix(in srgb, var(--cy-accent) 30%, var(--cy-panel));
+    --cy-line-ctl: color-mix(in srgb, var(--cy-accent) calc(70% + 15% * var(--cy-crt-screen, 0)), var(--cy-panel));
+    --cy-line-hot: var(--cy-accent);
+    --cy-fill-hover: color-mix(in srgb, var(--cy-accent) 10%, var(--cy-panel));
+    --cy-fill-active: color-mix(in srgb, var(--cy-accent) 40%, var(--cy-panel));
+    --cy-fill-flash: color-mix(in srgb, var(--cy-accent) 70%, var(--cy-panel));
+    --cy-glow: color-mix(in srgb, var(--cy-accent) 55%, transparent);
+
+    --cy-signal: #5ef6ff;
+    --cy-signal-dim: color-mix(in srgb, var(--cy-signal) 35%, var(--cy-panel));
+    --cy-signal-fill: color-mix(in srgb, var(--cy-signal) 14%, var(--cy-panel));
+    --cy-flag: #ffd23f;
+    --cy-flag-fill: color-mix(in srgb, var(--cy-flag) 16%, var(--cy-panel));
+    --cy-ok: #2bf59a;
+    --cy-danger: #ff3b45;
+    --cy-rare: #5b9dff;
+    --cy-epic: #b78cff;
+    --cy-on-solid: #0b0b12;
+
+    /* Type. Rajdhani carries everything people read; the mono is for code,
+       numerals that tick, and the decorative micro-print. */
+    --cy-font: "Rajdhani", "Saira Condensed", "Barlow Condensed", system-ui, sans-serif;
+    --cy-mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    --cy-text-micro: 8px;
+    --cy-text-xs: 11px;
+    --cy-text-sm: 13px;
+    --cy-text-md: 15px;
+    --cy-text-lg: 18px;
+    --cy-text-xl: 24px;
+    --cy-text-2xl: 34px;
+    --cy-text-3xl: 56px;
+    --cy-track: 0.06em;
+
+    /* Geometry. Corners are cut, never rounded. */
+    --cy-cut: 10px;
+    --cy-cut-sm: 6px;
+    --cy-cut-lg: 18px;
+    --cy-line: 1px;
+    --cy-h: 36px;
+    --cy-h-sm: 28px;
+    --cy-h-lg: 44px;
+    --cy-gap: 8px;
+    --cy-pad: 12px;
+
+    /* Motion. Things in this world switch rather than travel: short, with a
+       hard stop. --cy-ease-snap gets there fast and stops dead; --cy-ease-step
+       moves in visible steps, like a display refreshing. */
+    --cy-ease-snap: cubic-bezier(0.2, 0, 0, 1);
+    --cy-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --cy-ease-step: steps(4, jump-none);
+    --cy-t-fast: 80ms;
+    --cy-t: 160ms;
+    --cy-t-slow: 320ms;
+
+    /* Effects, as keyframe names. Components write
+       `animation: var(--cy-fx-in) 260ms var(--cy-ease-snap) backwards` and the FX
+       level decides what that is: a glitch at "full", a fade at "calm", nothing
+       at "off". See fx.css. */
+    --cy-fx-in: cy-glitch-in;
+    --cy-fx-out: cy-glitch-out;
+    --cy-fx-flash: cy-flash;
+    --cy-fx-flicker: cy-flicker;
+    --cy-fx-scan: cy-scan;
+    --cy-fx-rgb: cy-rgb;
+    --cy-fx-blink: cy-blink;
+    --cy-fx-pulse: cy-pulse;
+    --cy-fx-sweep: cy-sweep;
+    /* 1 while decorative effects run, 0 otherwise: multiply an opacity or a
+       distance by it to switch a static flourish (scanlines, a glow) off too. */
+    --cy-fx: 1;
+  }
+
+  [data-skin="cyber"]:where([data-theme="monochrome"]),
+  :where([data-skin="cyber"][data-theme="monochrome"]) [data-skin="cyber"] {
+    --cy-void: #090909;
+    --cy-panel: #121212;
+    --cy-panel-2: #1c1c1c;
+    --cy-panel-a: rgb(18 18 18 / 0.82);
+    --cy-accent: var(--cy-monochrome-accent);
+    --cy-ink-hi: #f2f2f2;
+    --cy-signal: #fff;
+    --cy-flag: #e3e3e3;
+    --cy-ok: #b5b5b5;
+    --cy-danger: #ddd;
+    --cy-rare: #a3a3a3;
+    --cy-epic: #d0d0d0;
+    --cy-on-solid: #0b0b0b;
+    --cy-crt-shadow-rgb: 3 3 3;
+    --cy-crt-highlight-rgb: 240 240 240;
+  }
+
+  [data-skin="cyber"][data-fx="calm"] {
+    --cy-fx-in: cy-fade-in;
+    --cy-fx-out: cy-fade-out;
+    --cy-fx-flash: none;
+    --cy-fx-flicker: none;
+    --cy-fx-scan: none;
+    --cy-fx-rgb: none;
+    --cy-fx-sweep: none;
+    --cy-fx: 0;
+  }
+
+  [data-skin="cyber"][data-fx="off"] {
+    --cy-fx-in: none;
+    --cy-fx-out: none;
+    --cy-fx-flash: none;
+    --cy-fx-flicker: none;
+    --cy-fx-scan: none;
+    --cy-fx-rgb: none;
+    --cy-fx-blink: none;
+    --cy-fx-pulse: none;
+    --cy-fx-sweep: none;
+    --cy-fx: 0;
+  }
+
+  /* Before the root's script has run (or without it), the system setting
+     decides: reduced motion is "off". */
+  @media (prefers-reduced-motion: reduce) {
+    [data-skin="cyber"]:not([data-fx]) {
+      --cy-fx-in: none;
+      --cy-fx-out: none;
+      --cy-fx-flash: none;
+      --cy-fx-flicker: none;
+      --cy-fx-scan: none;
+      --cy-fx-rgb: none;
+      --cy-fx-blink: none;
+      --cy-fx-pulse: none;
+      --cy-fx-sweep: none;
+      --cy-fx: 0;
+    }
+  }
+
+  /* More contrast, when asked for: decorative lines come up to the control
+     edge, and muted text to full ink. */
+  @media (prefers-contrast: more) {
+    [data-skin="cyber"] {
+      --cy-line-deco: var(--cy-line-ctl);
+      --cy-line-ctl: var(--cy-accent);
+      --cy-ink-mute: var(--cy-ink);
+      --cy-panel-a: var(--cy-panel);
+    }
+  }
+
+  [data-skin="cyber"] {
+    -webkit-tap-highlight-color: transparent;
+    color-scheme: dark;
+  }
+
+  /* iOS zooms into a focused field set smaller than 16px. */
+  @media (pointer: coarse) {
+    [data-skin="cyber"] :is(input:not([type="range"], [type="checkbox"], [type="radio"], [type="hidden"]), textarea, select, [contenteditable]) {
+      font-size: 16px !important;
+    }
+    [data-skin="cyber"] {
+      --cy-h: 44px;
+      --cy-h-sm: 36px;
+      --cy-h-lg: 52px;
+    }
+  }
+
+  [data-skin="cyber"] img {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+}

@@ -1,0 +1,87 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+/* The trigger is the shared control frame and the list is the shared popup
+   (field.css, popup.css); this is only what a select adds to them. */
+@layer cyber.ui {
+  /* What the trigger reads: the chosen label, then its code as a readout. */
+  [data-skin="cyber"] [data-kit="select-value"] {
+    flex: 1;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    min-width: 0;
+    font-weight: 600;
+    letter-spacing: var(--cy-track);
+    text-transform: uppercase;
+  }
+
+  [data-skin="cyber"] [data-kit="select-value-text"] {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  [data-skin="cyber"] :is([data-kit="select-value-code"], [data-kit="select-item-code"]) {
+    flex: none;
+    font-family: var(--cy-mono);
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0;
+    color: var(--cy-signal);
+  }
+
+  /* The chevron turns over, in steps, as the list opens. */
+  [data-skin="cyber"] [data-kit="select-chevron"] {
+    flex: none;
+    display: grid;
+    place-items: center;
+    color: var(--cy-ink);
+    transition: rotate var(--cy-t) var(--cy-ease-step);
+
+    & svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    [data-open] > & {
+      rotate: 180deg;
+      color: var(--cy-ink-hi);
+    }
+
+    [data-disabled] > & {
+      color: var(--cy-ink-mute);
+    }
+  }
+
+  /* A row: the name takes the room, the code and the mark keep their own
+     columns, so codes line up whether or not a row is the chosen one. */
+  [data-skin="cyber"] [data-kit="select-item-text"] {
+    flex: 1;
+    min-width: 0;
+  }
+
+  [data-skin="cyber"] [data-kit="select-item-code"] {
+    color: var(--cy-ink-mute);
+
+    [data-selected] > & {
+      color: var(--cy-signal);
+    }
+    [data-highlighted] > & {
+      color: var(--cy-ink-hi);
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="select-item-mark"] {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 14px;
+    height: 14px;
+  }
+
+  [data-skin="cyber"] [data-kit="select-group"] {
+    display: grid;
+  }
+}

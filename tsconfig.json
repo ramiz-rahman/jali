@@ -10,6 +10,7 @@
     "skipLibCheck": true,
     "customConditions": ["source"],
     "isolatedModules": true,
+    "allowImportingTsExtensions": true,
     "noUncheckedIndexedAccess": true,
     "types": ["vitest/globals"]
   },

@@ -1,0 +1,192 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  /* One color for the reading, as --tone: the signal while it's nominal,
+     yellow at or under the low threshold, the accent at or over the high
+     one. Each of those also prints its word, so the tone is never the only
+     thing that changed. */
+  [data-skin="cyber"] [data-kit="meter"] {
+    --tone: var(--cy-signal);
+    --zone-low: color-mix(in srgb, var(--cy-flag) 30%, var(--cy-panel));
+    --zone-high: color-mix(in srgb, var(--cy-accent) 50%, var(--cy-panel));
+    --rest: color-mix(in srgb, var(--cy-signal) 20%, var(--cy-panel));
+
+    display: grid;
+    gap: 6px;
+    width: 100%;
+    min-width: 0;
+    text-align: start;
+
+    &[data-status="low"] {
+      --tone: var(--cy-flag);
+    }
+    &[data-status="high"] {
+      --tone: var(--cy-accent);
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="meter-head"] {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    min-width: 0;
+
+    & [data-kit="label"] {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  /* The word a threshold prints: a small solid tag in the tone, with a lamp
+     that isn't quite steady while the reading is critical. */
+  [data-skin="cyber"] [data-kit="meter-status"] {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    align-self: center;
+    height: 16px;
+    padding-inline: 5px 7px;
+    font-size: var(--cy-text-xs);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--cy-on-solid);
+    background: var(--tone);
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%);
+
+    &::before {
+      content: "";
+      width: 5px;
+      height: 5px;
+      background: currentColor;
+    }
+
+    [data-status="high"] &::before {
+      animation: var(--cy-fx-flicker) 2.4s linear infinite;
+    }
+  }
+
+  /* The reading, with the top of its range dimmer after it. */
+  [data-skin="cyber"] [data-kit="meter-value"] {
+    flex: none;
+    font-family: var(--cy-mono);
+    font-size: var(--cy-text-xs);
+    font-variant-numeric: tabular-nums;
+    color: var(--cy-signal);
+
+    [data-status="low"] & {
+      color: var(--cy-flag);
+    }
+    [data-status="high"] & {
+      color: var(--cy-ink-hi);
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="meter-max"] {
+    color: var(--cy-ink-mute);
+  }
+
+  /* The track is one strip, cut into segments by a mask (only the mask's
+     alpha counts, so its "color" is any opaque token). Under the fill, the
+     strip is tinted where the thresholds are: a yellow zone up to `low`, an
+     accent zone from `high`, so the redline shows before the reading gets
+     there. */
+  [data-skin="cyber"] [data-kit="meter-track"] {
+    --seg: calc(100% / var(--segments, 20));
+    --gap: 2px;
+    --on: var(--cy-void);
+    --dir: to right;
+
+    position: relative;
+    height: 12px;
+    background: linear-gradient(
+      var(--dir),
+      var(--zone-low) 0 var(--low, 0%),
+      var(--rest) var(--low, 0%) var(--high, 100%),
+      var(--zone-high) var(--high, 100%) 100%
+    );
+    mask-image: repeating-linear-gradient(var(--dir), var(--on) 0 calc(var(--seg) - var(--gap)), transparent calc(var(--seg) - var(--gap)) var(--seg));
+    /* Two pixels wider than the track, which pushes the gap after the last
+       segment out of sight. */
+    mask-size: calc(100% + var(--gap)) 100%;
+    mask-repeat: no-repeat;
+
+    &:dir(rtl) {
+      --dir: to left;
+      mask-position: right;
+    }
+
+    /* Critical: the whole track comes up, the way a lit fill does. */
+    [data-status="high"] > & {
+      --rest: var(--cy-fill-active);
+      --zone-high: var(--cy-fill-flash);
+    }
+  }
+
+  /* The SDK sets the fill's width to the exact percentage. Pinning its
+     minimum and maximum to that value rounded to a whole segment makes it
+     step: a segment is lit or it isn't. Any reading above zero lights at
+     least one, so a small value never reads as none. */
+  [data-skin="cyber"] [data-kit="meter-indicator"] {
+    --lit: max(round(nearest, var(--meter-value), var(--seg)), min(calc(var(--meter-value) * 1000), var(--seg)));
+
+    height: 100%;
+    min-width: var(--lit);
+    max-width: var(--lit);
+    background: var(--tone);
+    transition: background-color var(--cy-t) linear;
+  }
+
+  /* Under the track: a tick at each threshold. Hollow until the reading
+     crosses it, solid in the tone once it has. */
+  [data-skin="cyber"] [data-kit="meter-scale"] {
+    position: relative;
+    display: block;
+    height: 5px;
+    margin-block-start: -3px;
+  }
+
+  [data-skin="cyber"] [data-kit="meter-tick"] {
+    position: absolute;
+    inset-block-start: 0;
+    width: 7px;
+    height: 5px;
+    translate: -50% 0;
+    background: var(--cy-ink-mute);
+    clip-path: polygon(50% 0, 100% 100%, 0 100%);
+
+    &[data-at="low"] {
+      inset-inline-start: var(--low);
+    }
+    &[data-at="high"] {
+      inset-inline-start: var(--high);
+    }
+    &[data-passed] {
+      background: var(--tone);
+    }
+
+    &:dir(rtl) {
+      translate: 50% 0;
+    }
+  }
+
+  /* Forced colors drop backgrounds, which is all a segment is: the track
+     gets an edge, and the fill becomes a solid system color. */
+  @media (forced-colors: active) {
+    [data-skin="cyber"] [data-kit="meter-track"] {
+      mask-image: none;
+      border: 1px solid CanvasText;
+    }
+    [data-skin="cyber"] [data-kit="meter-indicator"] {
+      background: Highlight;
+    }
+    [data-skin="cyber"] [data-kit="meter-status"] {
+      border: 1px solid CanvasText;
+    }
+  }
+}

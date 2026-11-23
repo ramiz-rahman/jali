@@ -1,0 +1,118 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+/* A text field is the shared field box (field.css) and three things of its
+   own: the row its label sits in, the tick on the box's leading edge, and
+   the clear key. */
+@layer cyber.ui {
+  /* The label, with room at the far end for a tag. */
+  [data-skin="cyber"] [data-kit="text-field-head"] {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
+
+    &:has([data-disabled]) [data-kit="label"] {
+      color: var(--cy-ink-mute);
+    }
+  }
+
+  /* REQ: printed, so "required" doesn't rest on an asterisk's color. */
+  [data-skin="cyber"] [data-kit="text-field-tag"] {
+    flex: none;
+    font-family: var(--cy-mono);
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    line-height: 1;
+    color: var(--cy-ink-mute);
+  }
+
+  [data-skin="cyber"] [data-kit="text-field"] {
+    letter-spacing: 0.01em;
+
+    /* The box shows focus for the input (data-frame-focus="within"), so the
+       input's own ring is cut off rather than drawn twice. */
+    clip-path: inset(0);
+
+    /* The browser's own clear glyph would double the kit's. */
+    &::-webkit-search-cancel-button {
+      display: none;
+    }
+  }
+
+  /* A segment of the leading edge. Dark while the field is empty, the
+     signal color once it holds something, the flag color when what it holds
+     is wrong. It only changes color, so it survives every FX level. */
+  [data-skin="cyber"] [data-kit="text-field-tick"] {
+    position: absolute;
+    inset-block: 9px;
+    inset-inline-start: -1px;
+    width: 3px;
+    background: transparent;
+    pointer-events: none;
+    transition: background-color var(--cy-t) var(--cy-ease-snap);
+
+    [data-filled] > & {
+      background: var(--cy-signal);
+    }
+    [data-kit="control"]:has([aria-invalid="true"]) > & {
+      background: var(--cy-flag);
+    }
+    [data-disabled] > & {
+      background: transparent;
+    }
+  }
+
+  /* The clear key: a small cut key set inside the box, three pixels clear
+     of its edge so its own focus ring never runs into the box's. It has no
+     edge until the pointer finds it. Under a finger the gap closes and the
+     key takes the box's full height. */
+  [data-skin="cyber"] [data-kit="text-field-clear"] {
+    --frame-cut: 4px;
+    --frame-line: transparent;
+    --frame-fill: transparent;
+    --frame-image: none;
+    --inset: 3px;
+
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: calc(var(--cy-h) - 2px - var(--inset) * 2);
+    height: calc(var(--cy-h) - 2px - var(--inset) * 2);
+    margin-inline-end: calc(var(--inset) - 10px);
+    padding: 0;
+    color: var(--cy-ink-mute);
+    cursor: pointer;
+    transition:
+      background-color var(--cy-t-fast) linear,
+      border-color var(--cy-t-fast) linear,
+      color var(--cy-t-fast) linear;
+
+    @media (pointer: coarse) {
+      --inset: 0px;
+    }
+
+    & svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    @media (hover: hover) {
+      &:hover {
+        --frame-line: var(--cy-line-hot);
+        --frame-fill: var(--cy-fill-hover);
+        color: var(--cy-ink);
+      }
+    }
+
+    &:active {
+      --frame-line: var(--cy-line-hot);
+      --frame-fill: var(--cy-fill-active);
+      color: var(--cy-ink-hi);
+    }
+
+    &:focus-visible {
+      color: var(--cy-signal);
+    }
+  }
+}

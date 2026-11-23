@@ -1,0 +1,205 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  /* The panel itself is only a column: the micro-print, a title bar when
+     it's "titled", and the frame. The frame is a child so the print can sit
+     outside its cut corners, and so a glow can go on the unclipped section.
+
+     One color per tone, as --tone; lines, rules and the spine are mixed
+     from it. */
+  [data-skin="cyber"] [data-kit="panel"] {
+    --tone: var(--cy-accent);
+    --tone-ink: var(--cy-ink);
+    --panel-line: color-mix(in srgb, var(--tone) 55%, var(--cy-panel));
+    --panel-rule: color-mix(in srgb, var(--tone) 24%, var(--cy-panel));
+    --panel-spine: 18px;
+    --panel-pad: 14px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+    min-width: 0;
+    text-align: start;
+
+    &[data-tone="signal"] {
+      --tone: var(--cy-signal);
+      --tone-ink: var(--cy-signal);
+    }
+    &[data-tone="flag"] {
+      --tone: var(--cy-flag);
+      --tone-ink: var(--cy-flag);
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="panel-code"] {
+    align-self: flex-start;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: clip;
+    color: color-mix(in srgb, var(--tone) 70%, var(--cy-panel));
+  }
+
+  /* The frame. It stretches when the panel is given a height, and its body
+     takes what the head and the foot leave. */
+  [data-skin="cyber"] [data-kit="panel-surface"] {
+    --frame-cut: var(--cy-cut);
+    --frame-line: var(--panel-line);
+    --frame-fill: color-mix(in srgb, var(--tone) 5%, var(--cy-panel-a));
+    /* Frame variables inherit, and a surface behind may have set one. */
+    --frame-image: none;
+    --frame-spine: var(--panel-spine);
+
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  /* The spine is the frame's own thick leading edge. Laid over it, a pixel
+     in from each side, is a darker band, which leaves the spine hollow: an
+     outer line, the band, an inner line. While focus is anywhere inside the
+     panel the band takes the tone at full strength, so the spine is solid
+     and the panel being worked in is the lit one. The band is in the
+     border, outside the padding box, hence the negative offset. */
+  [data-skin="cyber"] [data-kit="panel"][data-variant="spine"] > [data-kit="panel-surface"] {
+    &::before {
+      content: "";
+      position: absolute;
+      inset-block: 0;
+      inset-inline-start: calc(1px - var(--panel-spine));
+      width: calc(var(--panel-spine) - 2px);
+      background: color-mix(in srgb, var(--tone) 12%, var(--cy-panel));
+      pointer-events: none;
+      transition: background-color var(--cy-t) var(--cy-ease-snap);
+    }
+
+    &:focus-within::before {
+      background: var(--tone);
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="panel-head"] {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 12px;
+    min-height: 40px;
+    padding: 6px var(--panel-pad);
+    border-block-end: 1px solid var(--panel-rule);
+  }
+
+  [data-skin="cyber"] [data-kit="panel-title"] {
+    min-width: 0;
+    font-size: var(--cy-text-lg);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: var(--cy-track);
+    text-transform: uppercase;
+    overflow-wrap: anywhere;
+    text-wrap: balance;
+    color: var(--tone-ink);
+  }
+
+  /* What trails the heading. Bare text there reads as a readout. */
+  [data-skin="cyber"] [data-kit="panel-actions"] {
+    display: flex;
+    align-items: center;
+    gap: var(--cy-gap);
+    margin-inline-start: auto;
+    font-family: var(--cy-mono);
+    font-size: var(--cy-text-xs);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--cy-signal);
+  }
+
+  [data-skin="cyber"] [data-kit="panel-body"] {
+    flex: 1 1 auto;
+    display: grid;
+    align-content: start;
+    gap: 10px;
+    min-width: 0;
+    padding: 12px var(--panel-pad) 14px;
+    font-size: var(--cy-text-md);
+    line-height: 1.4;
+    color: var(--cy-ink-hi);
+
+    & p {
+      max-width: 62ch;
+      text-wrap: pretty;
+    }
+
+    /* A list in a dossier is set with dashes. */
+    & ul {
+      display: grid;
+      gap: 2px;
+      padding: 0;
+      list-style: none;
+    }
+    & ul > li {
+      position: relative;
+      padding-inline-start: 16px;
+
+      &::before {
+        content: "\2013";
+        position: absolute;
+        inset-inline-start: 0;
+        color: var(--tone-ink);
+      }
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="panel-footer"] {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px 12px;
+    min-height: 38px;
+    padding: 5px var(--panel-pad) 7px;
+    border-block-start: 1px solid var(--panel-rule);
+    font-size: var(--cy-text-sm);
+    color: var(--cy-ink-mute);
+  }
+
+  /* The title bar of a "titled" panel: a solid strip in the tone, with its
+     own cut corner, a seam away from the frame. Everything on it is in the
+     dark ink a solid fill needs. */
+  [data-skin="cyber"] [data-kit="panel-bar"] {
+    --frame-cut: var(--cy-cut);
+    --frame-line: var(--tone);
+    --frame-fill: var(--tone);
+    --frame-image: none;
+    --frame-focus: var(--cy-on-solid);
+
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 10px;
+    min-height: 32px;
+    padding: 4px 16px 4px 10px;
+    color: var(--cy-on-solid);
+
+    /* Three ticks before the heading, like the start of a barcode. */
+    &::before {
+      content: "";
+      flex: none;
+      width: 10px;
+      height: 12px;
+      background: repeating-linear-gradient(to right, currentColor 0 2px, transparent 2px 4px);
+    }
+
+    & [data-kit="panel-title"] {
+      font-size: var(--cy-text-md);
+      font-weight: 700;
+      color: inherit;
+    }
+
+    & [data-kit="panel-actions"] {
+      font-weight: 600;
+      color: inherit;
+    }
+  }
+}

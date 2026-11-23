@@ -1,0 +1,117 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  /* The bar: a shallow tray with a decorative edge. The cells in it are
+     keys (button.css) and latches (toggle.css) in their own frames; the bar
+     only groups them into strips. Too narrow for its strips, it wraps, and
+     a strip never breaks in two. */
+  [data-skin="cyber"] [data-kit="toolbar"] {
+    --frame-cut: var(--cy-cut);
+    --frame-line: var(--cy-line-deco);
+    --frame-fill: var(--cy-panel);
+
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px;
+    width: 100%;
+    min-width: 0;
+    padding: 5px;
+
+    &[data-orientation="vertical"] {
+      display: inline-flex;
+      flex-direction: column;
+      flex-wrap: nowrap;
+      align-items: stretch;
+      width: auto;
+    }
+  }
+
+  /* A strip: cells laid edge over edge, so neighbours share one line. */
+  [data-skin="cyber"] [data-kit="toolbar-run"] {
+    flex: none;
+    display: flex;
+    /* The cells restack as they light, and that stays inside the strip. */
+    isolation: isolate;
+
+    & > * + * {
+      margin-inline-start: -1px;
+    }
+
+    /* The shared line belongs to whichever cell is hot: pressed cells come
+       forward, the one under the pointer or the keyboard further still, and
+       a dead one drops back. */
+    & > [data-pressed] {
+      z-index: 1;
+    }
+    & > :is(:hover, :active, :focus-visible) {
+      z-index: 2;
+    }
+    & > [data-disabled] {
+      z-index: -1;
+    }
+
+    [data-orientation="vertical"] > & {
+      flex-direction: column;
+
+      & > * + * {
+        margin-inline-start: 0;
+        margin-block-start: -1px;
+      }
+    }
+  }
+
+  /* A rule between strips, running across the bar: short of the bar's full
+     depth, so it reads as a tick rather than a wall. */
+  [data-skin="cyber"] [data-kit="toolbar-separator"] {
+    flex: none;
+    align-self: stretch;
+    width: 1px;
+    margin: 6px 3px;
+    background: var(--cy-line-ctl);
+
+    &[data-orientation="horizontal"] {
+      width: auto;
+      height: 1px;
+      margin: 3px 6px;
+    }
+  }
+
+  /* The readout at the end of the bar: the bar's own name, muted, until the
+     pointer or the keyboard lands on a cell; then that cell's name, in the
+     signal color. One line, cut short rather than wrapped, so the bar never
+     changes size as it changes. */
+  [data-skin="cyber"] [data-kit="toolbar-readout"] {
+    flex: 1 1 96px;
+    min-width: 0;
+    margin-inline-start: auto;
+    padding-inline: 8px 12px;
+    overflow: hidden;
+    font-family: var(--cy-mono);
+    font-size: var(--cy-text-xs);
+    line-height: 1.6;
+    letter-spacing: 0.04em;
+    text-align: end;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--cy-signal);
+
+    /* A caret before the name: lit with it, hollowed out while idle. */
+    &::before {
+      content: "▸ ";
+    }
+
+    &[data-idle] {
+      color: var(--cy-ink-mute);
+
+      &::before {
+        content: "▹ ";
+      }
+    }
+
+    [data-disabled] > & {
+      color: var(--cy-ink-mute);
+    }
+  }
+}

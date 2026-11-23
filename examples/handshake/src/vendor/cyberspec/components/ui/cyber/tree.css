@@ -1,0 +1,246 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  /* A heading strip over the rows. Beside others in a row it shares the
+     width; alone it takes it all. */
+  [data-skin="cyber"] [data-kit="tree"] {
+    --row: 28px;
+    --indent: 20px;
+    /* Where a branch's rail runs: under the middle of its chevron. */
+    --rail: 12px;
+
+    flex: 1 1 220px;
+    display: grid;
+    gap: 4px;
+    min-width: min(100%, 200px);
+    text-align: start;
+
+    @media (pointer: coarse) {
+      --row: 44px;
+    }
+  }
+
+  /* The strip: the tree's name, how many nodes it holds, and a rule with a
+     hot tick at its leading end. */
+  [data-skin="cyber"] [data-kit="tree-head"] {
+    position: relative;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 2px 5px;
+    border-block-end: 1px solid var(--cy-line-deco);
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset-block-end: -1px;
+      inset-inline-start: 0;
+      width: 28px;
+      height: 3px;
+      background: var(--cy-accent);
+    }
+
+    [data-disabled] > & {
+      &::after {
+        background: var(--cy-line-deco);
+      }
+      & [data-kit="label"],
+      & [data-kit="value"] {
+        color: var(--cy-ink-mute);
+      }
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="tree-rows"] {
+    display: block;
+    outline: none;
+  }
+
+  [data-skin="cyber"] [data-kit="tree-item"] {
+    position: relative;
+    display: block;
+  }
+
+  /* A branch's children, set in from it. The SDK measures the group, so it
+     opens and closes by height. */
+  [data-skin="cyber"] [data-kit="tree-group"] {
+    display: block;
+    height: var(--tree-group-height);
+    padding-inline-start: var(--indent);
+    overflow: clip;
+    transition: height var(--cy-t) var(--cy-ease-snap);
+
+    &:is([data-starting-style], [data-ending-style]) {
+      height: 0;
+    }
+  }
+
+  /* The wiring: a rail down from the branch past each child, stopping at
+     the last one's row, and a stub from the rail to each row. */
+  [data-skin="cyber"] [data-kit="tree-group"] > [data-kit="tree-item"] {
+    &::before,
+    &::after {
+      content: "";
+      position: absolute;
+      inset-inline-start: calc(var(--rail) - var(--indent));
+      background: var(--cy-line-deco);
+      pointer-events: none;
+    }
+
+    &::before {
+      inset-block: 0;
+      width: 1px;
+    }
+
+    &:last-child::before {
+      inset-block-end: auto;
+      height: calc(var(--row) / 2 + 1px);
+    }
+
+    &::after {
+      inset-block-start: calc(var(--row) / 2);
+      width: calc(var(--indent) - var(--rail));
+      height: 1px;
+    }
+  }
+
+  /* A row: the chevron or the tick, the name, and the meta at the end. */
+  [data-skin="cyber"] [data-kit="tree-row"] {
+    --cut: 8px;
+
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: var(--row);
+    padding-inline: 4px 10px;
+    font-size: var(--cy-text-sm);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: var(--cy-track);
+    text-transform: uppercase;
+    color: var(--cy-ink);
+    cursor: default;
+    user-select: none;
+    transition:
+      background-color var(--cy-t-fast) linear,
+      color var(--cy-t-fast) linear;
+
+    @media (hover: hover) {
+      &:hover:not([data-disabled], [data-selected]) {
+        background: var(--cy-fill-hover);
+      }
+    }
+
+    /* The chosen row: lit, brighter ink, and its corner cut, so it isn't
+       told apart by color alone. */
+    &[data-selected] {
+      background: var(--cy-fill-active);
+      color: var(--cy-ink-hi);
+      clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%);
+
+      &:dir(rtl) {
+        clip-path: polygon(0 0, 100% 0, 100% 100%, var(--cut) 100%, 0 calc(100% - var(--cut)));
+      }
+    }
+
+    /* Unavailable: hatched and muted. It still takes focus, so it can be
+       found and heard. */
+    &[data-disabled] {
+      background-image: repeating-linear-gradient(135deg, transparent 0 5px, var(--cy-line-deco) 5px 6px);
+      color: var(--cy-ink-mute);
+      cursor: not-allowed;
+    }
+
+    /* Keyboard focus belongs to the item; its row draws the ring, inside
+       itself, so the cut corner doesn't clip it away. */
+    [data-kit="tree-item"]:focus-visible > & {
+      outline: 2px solid var(--cy-signal);
+      outline-offset: -2px;
+    }
+  }
+
+  /* The chevron turns down, in steps, as its branch opens. */
+  [data-skin="cyber"] [data-kit="tree-indicator"] {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 16px;
+    height: 16px;
+    color: var(--cy-ink);
+    transition: rotate var(--cy-t) var(--cy-ease-step);
+
+    & svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    &:dir(rtl) {
+      scale: -1 1;
+    }
+
+    &[data-expanded] {
+      rotate: 90deg;
+      color: var(--cy-ink-hi);
+
+      &:dir(rtl) {
+        rotate: -90deg;
+      }
+    }
+
+    [data-disabled] > & {
+      color: var(--cy-ink-mute);
+    }
+  }
+
+  /* A leaf's tick: hollow at rest, solid and in the signal color once its
+     row is the chosen one. */
+  [data-skin="cyber"] [data-kit="tree-tick"] {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 16px;
+    height: 16px;
+
+    &::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border: 1px solid var(--cy-line-ctl);
+      transition:
+        background-color var(--cy-t-fast) linear,
+        border-color var(--cy-t-fast) linear;
+    }
+
+    [data-selected] > &::before {
+      border-color: var(--cy-signal);
+      background: var(--cy-signal);
+    }
+
+    [data-disabled] > &::before {
+      border-color: var(--cy-line-deco);
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="tree-name"] {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  [data-skin="cyber"] [data-kit="tree-meta"] {
+    flex: none;
+    font-family: var(--cy-mono);
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    color: var(--cy-ink-mute);
+
+    [data-selected] > & {
+      color: var(--cy-signal);
+    }
+  }
+}

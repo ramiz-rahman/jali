@@ -1,0 +1,79 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  /* The rule is drawn by two halves, one before the label and one after
+     it. Each is a hairline on the decorative line color with a tick, a
+     step brighter, standing at its outer end. With no label the halves
+     meet and read as one rule. The ticks are borders, so they follow the
+     writing direction and survive forced colors. */
+  [data-skin="cyber"] [data-kit="separator"] {
+    --separator-tick: 9px;
+    --separator-rule: var(--cy-line-deco);
+    --separator-mark: var(--cy-line-ctl);
+
+    flex: none;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+
+    &::before,
+    &::after {
+      content: "";
+      flex: 1 1 0;
+      min-width: 0;
+      height: var(--separator-tick);
+      background: linear-gradient(var(--separator-rule), var(--separator-rule)) center / 100% 1px no-repeat;
+    }
+    &::before {
+      border-inline-start: 1px solid var(--separator-mark);
+    }
+    &::after {
+      border-inline-end: 1px solid var(--separator-mark);
+    }
+
+    /* A word set into the rule. At the start, the leading half is a short
+       stub; in the middle, the halves are equal. */
+    &[data-labelled] {
+      gap: 8px;
+    }
+    &[data-labelled][data-align="start"]::before {
+      flex: 0 0 14px;
+    }
+
+    /* Between items in a row: the halves stack, and the ticks cap the top
+       and the bottom. It stretches to the row's height. */
+    &[data-orientation="vertical"] {
+      flex-direction: column;
+      align-self: stretch;
+      width: var(--separator-tick);
+      min-height: 20px;
+
+      &::before,
+      &::after {
+        width: var(--separator-tick);
+        height: auto;
+        border-inline: 0;
+        background: linear-gradient(var(--separator-rule), var(--separator-rule)) center / 1px 100% no-repeat;
+      }
+      &::before {
+        border-block-start: 1px solid var(--separator-mark);
+      }
+      &::after {
+        border-block-end: 1px solid var(--separator-mark);
+      }
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="separator-label"] {
+    flex: 0 1 auto;
+    min-width: 0;
+    font-size: var(--cy-text-sm);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: var(--cy-track);
+    text-transform: uppercase;
+    overflow-wrap: anywhere;
+    color: var(--cy-ink);
+  }
+}

@@ -1,0 +1,238 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  /* The loader is a column, centered in whatever it's given: the mark, the
+     name, the bar, then the status line and the percentage side by side
+     under the bar, and a line of micro-print. */
+  [data-skin="cyber"] [data-kit="loader"] {
+    --loader-mark: 52px;
+    --loader-width: 340px;
+    /* Which way the bar fills. */
+    --_dir: 1;
+
+    display: grid;
+    justify-items: center;
+    width: 100%;
+    min-width: 0;
+
+    &:dir(rtl) {
+      --_dir: -1;
+    }
+
+    /* A whole screen: it covers its positioned parent and sits in the
+       middle, on the void, with a faint light behind the mark. */
+    &[data-fill] {
+      --loader-mark: 72px;
+      --loader-width: 420px;
+
+      position: absolute;
+      inset: 0;
+      align-content: center;
+      padding: 24px;
+      overflow: hidden;
+      background:
+        radial-gradient(ellipse 60% 50% at 50% 45%, color-mix(in srgb, var(--cy-accent) 8%, transparent), transparent),
+        var(--cy-void);
+    }
+  }
+
+  /* Two columns, so the status line and the percentage share a row. The
+     progress bar keeps its own parts (the name, the track, the percentage)
+     and lays them out on this grid's lines; the status line, which lives
+     outside the bar, takes the cell beside the percentage. */
+  [data-skin="cyber"] [data-kit="loader-body"] {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 12px;
+    width: 100%;
+    max-width: var(--loader-width);
+    min-width: 0;
+    text-align: start;
+  }
+
+  [data-skin="cyber"] [data-kit="loader-mark"] {
+    grid-column: 1 / -1;
+    justify-self: center;
+    display: block;
+    width: var(--loader-mark);
+    height: auto;
+    margin-block-end: 8px;
+    overflow: visible;
+
+    & path {
+      stroke-linecap: square;
+      stroke-linejoin: miter;
+    }
+    & [data-part="outer"] {
+      stroke: var(--cy-ink);
+      stroke-width: 2;
+    }
+    & [data-part="inner"] {
+      stroke: var(--cy-line-ctl);
+      stroke-width: 1.5;
+    }
+    & [data-part="tick"] {
+      stroke: var(--cy-line-ctl);
+      stroke-width: 1.5;
+    }
+    & [data-part="core"] {
+      fill: var(--cy-accent);
+      animation: var(--cy-fx-pulse) 1.6s var(--cy-ease-snap) infinite;
+    }
+  }
+
+  /* Done: the core stops breathing and reads as a value. */
+  [data-skin="cyber"] [data-kit="loader"][data-state="complete"] [data-kit="loader-mark"] [data-part="core"] {
+    fill: var(--cy-signal);
+    animation: none;
+  }
+
+  [data-skin="cyber"] [data-kit="loader-bar"] {
+    grid-column: 1 / -1;
+    grid-row: 2 / span 3;
+    display: grid;
+    grid-template-columns: subgrid;
+    grid-template-rows: subgrid;
+    min-width: 0;
+  }
+
+  [data-skin="cyber"] [data-kit="loader-label"] {
+    grid-column: 1 / -1;
+    margin-block-end: 16px;
+    font-size: var(--cy-text-md);
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: var(--cy-track);
+    text-transform: uppercase;
+    text-align: center;
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+    color: var(--cy-ink);
+  }
+
+  /* A hairline. The fill is as wide as the track and scaled along it, and
+     a tick rides its end; both move in steps, like a display refreshing. */
+  [data-skin="cyber"] [data-kit="loader-track"] {
+    grid-column: 1 / -1;
+    position: relative;
+    height: 4px;
+    container-type: inline-size;
+    background: var(--cy-line-deco);
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset-block: -3px;
+      inset-inline-start: 0;
+      width: 2px;
+      background: var(--cy-ink-hi);
+      translate: calc(var(--_dir) * var(--loader-part, 0) * (100cqi - 2px)) 0;
+      transition: translate var(--cy-t) var(--cy-ease-step);
+    }
+
+    &[data-indeterminate]::after {
+      content: none;
+    }
+  }
+
+  /* The SDK gives the fill a width; the minimum pins it to the whole track
+     so that only its scale changes. */
+  [data-skin="cyber"] [data-kit="loader-indicator"] {
+    position: relative;
+    height: 100%;
+    min-width: 100%;
+    background: var(--cy-accent);
+    transform-origin: left center;
+    transform: scaleX(var(--loader-part, 1));
+    transition: transform var(--cy-t) var(--cy-ease-step);
+
+    &:dir(rtl) {
+      transform-origin: right center;
+    }
+
+    /* Unknown: the bar is dashed from end to end, and a highlight crosses
+       it. With effects off the dashes stay, and so does the status line. */
+    &[data-indeterminate] {
+      background: repeating-linear-gradient(to right, var(--cy-accent) 0 6px, transparent 6px 10px);
+
+      &::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        /* Parked out of view until the sweep runs. */
+        background: linear-gradient(90deg, transparent, var(--cy-ink-hi) 50%, transparent) 150% 0 / 300% 100% no-repeat;
+        animation: var(--cy-fx-sweep) 1.6s linear infinite;
+      }
+    }
+  }
+
+  /* The percentage: a value, so the signal color. */
+  [data-skin="cyber"] [data-kit="loader-value"] {
+    grid-column: 2;
+    grid-row: 3;
+    margin-block-start: 8px;
+    font-size: var(--cy-text-xl);
+    font-weight: 500;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: var(--cy-signal);
+
+    &[data-indeterminate] {
+      display: none;
+    }
+  }
+
+  /* The status line, with a caret after it while the work goes on. It
+     keeps the height of the percentage beside it, so the row doesn't move
+     when the percentage comes and goes. */
+  [data-skin="cyber"] [data-kit="loader-status"] {
+    grid-column: 1;
+    grid-row: 4;
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    min-width: 0;
+    min-height: var(--cy-text-xl);
+    margin-block-start: 8px;
+    font-family: var(--cy-mono);
+    font-size: var(--cy-text-xs);
+    line-height: 1.4;
+    letter-spacing: 0.04em;
+    color: var(--cy-ink-mute);
+
+    &::after {
+      content: "";
+      flex: none;
+      width: 6px;
+      height: 2px;
+      background: var(--cy-ink);
+      animation: var(--cy-fx-blink) 1s step-end infinite;
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="loader"][data-state="indeterminate"] [data-kit="loader-status"] {
+    grid-column: 1 / -1;
+  }
+
+  [data-skin="cyber"] [data-kit="loader"][data-state="complete"] [data-kit="loader-status"] {
+    color: var(--cy-ink-hi);
+
+    &::after {
+      content: none;
+    }
+  }
+
+  /* A new phrase arrives with its channels slipping for a moment. */
+  [data-skin="cyber"] [data-kit="loader-phrase"] {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    animation: var(--cy-fx-rgb) 240ms var(--cy-ease-snap) both;
+  }
+
+  [data-skin="cyber"] [data-kit="loader-code"] {
+    grid-column: 1 / -1;
+    grid-row: 5;
+    margin-block-start: 6px;
+    overflow: hidden;
+  }
+}

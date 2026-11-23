@@ -1,0 +1,145 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  /* The track: a cut frame the segments sit in, with a little room around
+     them so the lit block reads as something inside it, like the switch's. */
+  [data-skin="cyber"] [data-kit="segmented-control"] {
+    --frame-cut: var(--cy-cut-sm);
+    --frame-line: var(--cy-line-ctl);
+    --frame-fill: var(--cy-panel);
+    --frame-image: none;
+
+    justify-self: start;
+    display: inline-grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    max-width: 100%;
+    padding: 3px;
+
+    &[data-fill] {
+      justify-self: stretch;
+      display: grid;
+    }
+
+    &[data-orientation="vertical"] {
+      grid-auto-flow: row;
+      grid-auto-rows: minmax(0, 1fr);
+    }
+
+    &[data-disabled] {
+      --frame-line: var(--cy-line-deco);
+      --frame-image: repeating-linear-gradient(135deg, transparent 0 5px, var(--cy-line-deco) 5px 6px);
+    }
+  }
+
+  /* The lit block. The SDK measures the chosen segment and hands over its
+     box; the block is moved there with a translate, so only a transform
+     animates. Segments are equal, so its size never has to. */
+  [data-skin="cyber"] [data-kit="segmented-control-indicator"] {
+    --frame-cut: 5px;
+    --frame-line: var(--cy-line-hot);
+    --frame-fill: var(--cy-fill-active);
+    --frame-image: none;
+
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--segmented-control-indicator-width, 0px);
+    height: var(--segmented-control-indicator-height, 0px);
+    translate: var(--segmented-control-indicator-left, 0px) var(--segmented-control-indicator-top, 0px);
+    pointer-events: none;
+    transition: translate var(--cy-t) var(--cy-ease-snap);
+
+    /* The mark that says "this one", in the signal color like every
+       selection mark: a tick on the block's foot. */
+    &::after {
+      content: "";
+      position: absolute;
+      inset: auto auto 1px 50%;
+      width: 10px;
+      height: 2px;
+      translate: -50% 0;
+      background: var(--cy-signal);
+    }
+
+    [data-disabled] > & {
+      --frame-line: var(--cy-line-deco);
+      --frame-fill: var(--cy-panel-2);
+
+      &::after {
+        background: var(--cy-ink-mute);
+      }
+    }
+
+    /* Nothing chosen: the SDK gives it no box, so there's nothing to draw. */
+    &:not([style*="indicator-width"]) {
+      display: none;
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="segmented-control-item"] {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: 0;
+    height: calc(var(--cy-h) - 8px);
+    padding: 0 14px;
+    border: 0;
+    background: none;
+    font-size: var(--cy-text-sm);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: var(--cy-track);
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--cy-ink);
+    cursor: pointer;
+    user-select: none;
+    transition:
+      background-color var(--cy-t-fast) linear,
+      color var(--cy-t-fast) linear;
+
+    @media (hover: hover) {
+      &:hover:not([data-checked], [data-disabled], [data-readonly]) {
+        background-color: var(--cy-fill-hover);
+        color: var(--cy-ink-hi);
+      }
+    }
+
+    &[data-checked] {
+      color: var(--cy-ink-hi);
+    }
+
+    &[data-readonly] {
+      cursor: default;
+    }
+
+    &[data-disabled] {
+      color: var(--cy-ink-mute);
+      cursor: not-allowed;
+
+      /* One segment off in a live track: hatched as well as dimmed. */
+      [data-kit="segmented-control"]:not([data-disabled]) > & {
+        background-image: repeating-linear-gradient(135deg, transparent 0 5px, var(--cy-line-deco) 5px 6px);
+      }
+    }
+
+    [data-icon-only] > & {
+      min-width: calc(var(--cy-h) + 4px);
+      padding: 0 10px;
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="segmented-control-icon"] {
+    flex: none;
+    display: grid;
+    place-items: center;
+
+    & svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+}

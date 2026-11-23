@@ -1,0 +1,171 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  /* Keys down the leading edge, the record beside them. The record is at
+     least as tall as the stack of keys, so short sections don't make the
+     frame jump. */
+  [data-skin="cyber"] [data-kit="side-tabs"] {
+    container: side-tabs / inline-size;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: stretch;
+    width: 100%;
+    min-width: 0;
+    text-align: start;
+  }
+
+  /* The stack. The gap on its trailing side is the track the marker runs
+     in, between the keys and the record. */
+  [data-skin="cyber"] [data-kit="side-tabs-list"] {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-inline-end: 9px;
+  }
+
+  /* A key, in the kit's state language: idle an outline, hover the line at
+     full and a 10% fill, open the 40% fill. */
+  [data-skin="cyber"] [data-kit="side-tabs-tab"] {
+    --frame-cut: var(--cy-cut-sm);
+    --frame-line: var(--cy-line-ctl);
+    --frame-fill: var(--cy-panel-a);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: var(--cy-h);
+    height: var(--cy-h);
+    padding: 0;
+    font-size: var(--cy-text-sm);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: var(--cy-track);
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--cy-ink);
+    cursor: pointer;
+    user-select: none;
+    transition:
+      background-color var(--cy-t-fast) linear,
+      border-color var(--cy-t-fast) linear,
+      color var(--cy-t-fast) linear;
+
+    @media (hover: hover) {
+      &:hover:not([data-disabled], [data-selected]) {
+        --frame-line: var(--cy-line-hot);
+        --frame-fill: var(--cy-fill-hover);
+      }
+    }
+
+    &[data-selected] {
+      --frame-line: var(--cy-line-hot);
+      --frame-fill: var(--cy-fill-active);
+      color: var(--cy-ink-hi);
+    }
+
+    &[data-disabled] {
+      --frame-line: var(--cy-line-deco);
+      --frame-image: repeating-linear-gradient(135deg, transparent 0 5px, var(--cy-line-deco) 5px 6px);
+      color: var(--cy-ink-mute);
+      cursor: not-allowed;
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="side-tabs-icon"] {
+    display: grid;
+    place-items: center;
+
+    & svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    &[data-mirror]:dir(rtl) {
+      scale: -1 1;
+    }
+  }
+
+  /* The key's name. In a narrow column the key is its icon and the name
+     lives in aria-label and the record's heading. */
+  [data-skin="cyber"] [data-kit="side-tabs-name"] {
+    display: none;
+  }
+
+  /* With room, each key prints its name. */
+  @container side-tabs (min-width: 420px) {
+    [data-skin="cyber"] [data-kit="side-tabs-tab"] {
+      justify-content: flex-start;
+      width: auto;
+      min-width: 132px;
+      padding-inline: 10px 16px;
+    }
+
+    [data-skin="cyber"] [data-kit="side-tabs-name"] {
+      display: inline;
+    }
+  }
+
+  /* The marker beside the open key: a signal bar in the track, which steps
+     to its key the way a display redraws, not a slide. */
+  [data-skin="cyber"] [data-kit="side-tabs-indicator"] {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-end: 3px;
+    width: 0;
+    height: var(--active-tab-height);
+    border-inline-start: 3px solid var(--cy-signal);
+    translate: 0 var(--active-tab-top);
+    filter: drop-shadow(0 0 calc(4px * var(--cy-fx)) var(--cy-signal));
+    pointer-events: none;
+    transition: translate var(--cy-t) var(--cy-ease-step);
+
+    /* Its first placement isn't a move. */
+    &[data-activation-direction="none"] {
+      transition: none;
+    }
+  }
+
+  /* The record's frame holds still; what's in it changes. */
+  [data-skin="cyber"] [data-kit="side-tabs-body"] {
+    --frame-cut: var(--cy-cut);
+    --frame-line: var(--cy-line-deco);
+    --frame-fill: var(--cy-panel-a);
+
+    min-width: 0;
+    padding: 10px 14px 14px;
+  }
+
+  [data-skin="cyber"] [data-kit="side-tabs-panel"] {
+    display: grid;
+    gap: 4px;
+    align-content: start;
+    min-width: 0;
+
+    /* A record that was chosen tears in. The one open on arrival is simply
+       there. */
+    &[data-selected]:not([data-activation-direction="none"]) {
+      animation: var(--cy-fx-in) 240ms var(--cy-ease-snap) backwards;
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="side-tabs-title"] {
+    padding-block-end: 6px;
+    border-block-end: 1px solid var(--cy-line-deco);
+    font-size: var(--cy-text-lg);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: var(--cy-track);
+    text-transform: uppercase;
+    color: var(--cy-ink);
+  }
+
+  [data-skin="cyber"] [data-kit="side-tabs-content"] {
+    display: grid;
+    gap: 8px;
+    padding-block-start: 6px;
+    color: var(--cy-ink-hi);
+    text-wrap: pretty;
+  }
+}

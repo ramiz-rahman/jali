@@ -1,0 +1,131 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+/* The shared look of anything that floats and lists things: a menu, a
+   select's options, a combobox's results, a context menu. Each component
+   puts these hooks on the SDK's parts, so they all read as one family:
+
+     data-kit="popup"            the floating frame (with data-frame="tr bl")
+     data-kit="popup-item"       a row
+     data-kit="popup-indicator"  the mark in a checked or selected row
+     data-kit="popup-label"      a group's heading
+     data-kit="popup-separator"  a rule between groups
+     data-kit="popup-shortcut"   a key hint at the end of a row
+     data-kit="popup-empty"      the line shown when nothing matches
+
+   Popovers, tooltips and hover cards have their own surfaces; this is for
+   lists. */
+@layer cyber.ui {
+  [data-skin="cyber"] [data-kit="popup"] {
+    --frame-cut: var(--cy-cut);
+    --frame-line: var(--cy-line-hot);
+    --frame-fill: color-mix(in srgb, var(--cy-panel) 97%, transparent);
+
+    min-width: max(176px, var(--anchor-width, 0px));
+    max-width: min(360px, calc(100vw - 16px));
+    max-height: min(var(--available-height, 60vh), 400px);
+    margin: 0;
+    padding: 6px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    font-size: var(--cy-text-sm);
+    color: var(--cy-ink);
+    outline: none;
+
+    &[data-open] {
+      animation: var(--cy-fx-in) 200ms var(--cy-ease-snap) backwards;
+    }
+    &[data-ending-style] {
+      animation: var(--cy-fx-out) 120ms var(--cy-ease-snap) both;
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="popup-item"] {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 32px;
+    padding: 4px 10px 4px 12px;
+    font-weight: 600;
+    letter-spacing: var(--cy-track);
+    text-transform: uppercase;
+    color: var(--cy-ink);
+    cursor: default;
+    user-select: none;
+    outline: none;
+
+    @media (pointer: coarse) {
+      min-height: 44px;
+    }
+
+    & svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* Where the keyboard or the pointer is: the lit fill, brighter ink, and
+       a signal bar on the leading edge. */
+    &[data-highlighted] {
+      background: var(--cy-fill-active);
+      color: var(--cy-ink-hi);
+      box-shadow: inset 3px 0 0 var(--cy-signal);
+    }
+
+    /* What's chosen reads in the signal color, with its indicator. */
+    &:is([data-checked], [data-selected]) {
+      color: var(--cy-signal);
+    }
+
+    &[data-disabled] {
+      color: var(--cy-ink-mute);
+      text-decoration: line-through;
+      cursor: not-allowed;
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="popup-indicator"] {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 14px;
+    height: 14px;
+    color: var(--cy-signal);
+  }
+
+  [data-skin="cyber"] [data-kit="popup-label"] {
+    padding: 8px 12px 4px;
+    font-family: var(--cy-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--cy-ink-mute);
+  }
+
+  [data-skin="cyber"] [data-kit="popup-separator"] {
+    height: 1px;
+    margin: 6px 4px;
+    border: 0;
+    background: var(--cy-line-deco);
+  }
+
+  [data-skin="cyber"] [data-kit="popup-shortcut"] {
+    margin-inline-start: auto;
+    padding-inline-start: 16px;
+    font-family: var(--cy-mono);
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0;
+    color: var(--cy-ink-mute);
+
+    [data-highlighted] > & {
+      color: var(--cy-ink-hi);
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="popup-empty"] {
+    padding: 14px 12px;
+    font-family: var(--cy-mono);
+    font-size: var(--cy-text-xs);
+    color: var(--cy-ink-mute);
+  }
+}

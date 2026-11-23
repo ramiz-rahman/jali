@@ -1,0 +1,83 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  /* A caption over a strip of toggles: the label at the leading end, the
+     count of what's on at the other. The toggles are toggle.css's; this only
+     joins them. */
+  [data-skin="cyber"] [data-kit="toggle-group"] {
+    display: inline-grid;
+    grid-template-columns: 1fr auto;
+    align-items: baseline;
+    gap: 5px 12px;
+    max-width: 100%;
+    min-width: 0;
+    text-align: start;
+  }
+
+  [data-skin="cyber"] [data-kit="toggle-group-label"] {
+    grid-column: 1;
+    font-size: var(--cy-text-sm);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: var(--cy-track);
+    text-transform: uppercase;
+    color: var(--cy-ink);
+
+    [data-disabled] > & {
+      color: var(--cy-ink-mute);
+    }
+  }
+
+  /* How many are on, of how many: a readout, so it's in the signal color. */
+  [data-skin="cyber"] [data-kit="toggle-group-count"] {
+    grid-column: 2;
+    font-family: var(--cy-mono);
+    font-size: var(--cy-text-xs);
+    line-height: 1.2;
+    color: var(--cy-signal);
+
+    [data-disabled] > & {
+      color: var(--cy-ink-mute);
+    }
+  }
+
+  /* The strip. Each cell keeps its own frame, laid edge over edge with the
+     next, so neighbours share one line. */
+  [data-skin="cyber"] [data-kit="toggle-group-keys"] {
+    grid-column: 1 / -1;
+    display: flex;
+    min-width: 0;
+    /* The cells restack as they light, and that stays inside the strip. */
+    isolation: isolate;
+
+    & > * {
+      flex: 1 1 auto;
+    }
+
+    & > * + * {
+      margin-inline-start: -1px;
+    }
+
+    /* The shared line belongs to whichever cell is hot: pressed cells come
+       forward, the one under the pointer or the keyboard further still, and
+       a dead one drops back. */
+    & > [data-pressed] {
+      z-index: 1;
+    }
+    & > :is(:hover, :active, :focus-visible) {
+      z-index: 2;
+    }
+    & > [data-disabled] {
+      z-index: -1;
+    }
+
+    [data-orientation="vertical"] > & {
+      flex-direction: column;
+
+      & > * + * {
+        margin-inline-start: 0;
+        margin-block-start: -1px;
+      }
+    }
+  }
+}

@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="A network lab built with Jali and CyberSpec: measure your connection, read packets layer by layer, map your Wi-Fi, and learn how the protocols work, with the lesson beside the tool."
+    />
+    <meta name="color-scheme" content="dark light" />
+    <title>Handshake · a Jali example</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <!-- The layer order, before any stylesheet: resets (base), Jali's styles (jali), CyberSpec's (ui-sdk, cyber.*),
+         then the app's (app) above them all. -->
+    <style>
+      @layer base, jali, ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y, app;
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./src/main.tsx"></script>
+  </body>
+</html>

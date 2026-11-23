@@ -1,0 +1,175 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  [data-skin="cyber"] [data-kit="slider"] {
+    --thumb-w: 12px;
+    --thumb-h: 20px;
+
+    display: grid;
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* The label, and the reading at the far end of the same line. */
+  [data-skin="cyber"] [data-kit="slider-head"] {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  /* What it reads, in the signal color like every value. */
+  [data-skin="cyber"] [data-kit="slider-value"] {
+    flex: none;
+    font-family: var(--cy-mono);
+    font-size: var(--cy-text-sm);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    color: var(--cy-signal);
+
+    &[data-disabled] {
+      color: var(--cy-ink-mute);
+    }
+  }
+
+  /* Where presses land: as tall as any control, with the rail near its foot
+     and the scale ruled above the rail. The thumb's centre runs from one end
+     of the rail to the other, so the rail is inset by half a thumb. */
+  [data-skin="cyber"] [data-kit="slider-control"] {
+    display: grid;
+    align-items: end;
+    height: var(--cy-h);
+    padding-block-end: calc(var(--thumb-h) / 2);
+    padding-inline: calc(var(--thumb-w) / 2);
+    cursor: pointer;
+
+    &[data-dragging] {
+      cursor: grabbing;
+    }
+
+    &[data-disabled] {
+      cursor: not-allowed;
+    }
+  }
+
+  /* The rail: a hairline, which the filled part thickens. It's a size
+     container so the lit scale inside the indicator can be as wide as the
+     whole rail, however little of it shows. */
+  [data-skin="cyber"] [data-kit="slider-track"] {
+    container-type: inline-size;
+    height: 3px;
+    background: linear-gradient(var(--cy-line-ctl), var(--cy-line-ctl)) 0 50% / 100% 1px no-repeat;
+
+    &[data-disabled] {
+      background-image: linear-gradient(var(--cy-line-deco), var(--cy-line-deco));
+    }
+  }
+
+  /* The scale: a mark per division, spaced edge to edge, with every fifth
+     one taller. */
+  [data-skin="cyber"] [data-kit="slider-scale"] {
+    position: absolute;
+    inset: auto 0 calc(100% + 4px);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    height: 8px;
+    pointer-events: none;
+
+    & > span {
+      flex: none;
+      width: 1px;
+      height: 4px;
+      background: var(--cy-line-deco);
+
+      &:nth-child(5n + 1) {
+        height: 8px;
+        background: var(--cy-line-ctl);
+      }
+    }
+
+    /* The lit copy is laid over the first one, mark for mark: as wide as the
+       rail, and shifted back by however far along the indicator starts. */
+    &[data-lit] {
+      inset-inline: 0 auto;
+      width: 100cqw;
+      translate: calc(var(--slider-indicator-start, 0%) * -1) 0;
+
+      & > span,
+      & > span:nth-child(5n + 1) {
+        background: var(--cy-line-hot);
+      }
+
+      :dir(rtl) & {
+        translate: var(--slider-indicator-start, 0%) 0;
+      }
+    }
+
+    [data-disabled] > & > span,
+    [data-disabled] > & > span:nth-child(5n + 1) {
+      background: var(--cy-line-deco);
+    }
+  }
+
+  /* The filled part. It clips the lit scale to its own width, and lets it
+     stand above the rail. */
+  [data-skin="cyber"] [data-kit="slider-indicator"] {
+    background: var(--cy-accent);
+    clip-path: inset(-16px 0);
+
+    &[data-disabled] {
+      background: var(--cy-line-ctl);
+    }
+  }
+
+  /* The thumb. The block is drawn on a pseudo-element, so its cut corner
+     doesn't clip the focus ring, which belongs to the thumb itself: focus is
+     on the range input inside it. */
+  [data-skin="cyber"] [data-kit="slider-thumb"] {
+    width: var(--thumb-w);
+    height: var(--thumb-h);
+    cursor: grab;
+
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: var(--cy-ink-hi);
+      clip-path: polygon(0 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%);
+      transition: background-color var(--cy-t-fast) linear;
+    }
+
+    @media (hover: hover) {
+      /* Not while another thumb of a range is the one being dragged. */
+      [data-kit="slider-control"]:hover:not([data-dragging]) > * > &:not([data-disabled])::before {
+        background: var(--cy-signal);
+      }
+    }
+
+    &[data-dragging] {
+      cursor: grabbing;
+
+      &::before {
+        background: var(--cy-signal);
+      }
+    }
+
+    &:has(:focus-visible) {
+      outline: 2px solid var(--cy-signal);
+      outline-offset: 2px;
+    }
+
+    /* Unavailable: hollow and hatched, not just dimmer. */
+    &[data-disabled] {
+      cursor: not-allowed;
+
+      &::before {
+        background:
+          repeating-linear-gradient(135deg, transparent 0 3px, var(--cy-line-ctl) 3px 4px),
+          var(--cy-panel);
+        box-shadow: inset 0 0 0 1px var(--cy-line-ctl);
+      }
+    }
+  }
+}

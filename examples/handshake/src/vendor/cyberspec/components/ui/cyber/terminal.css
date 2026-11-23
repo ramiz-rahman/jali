@@ -1,0 +1,385 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  /* A column: the log's frame, and under it the prompt's. The console is a
+     size container, so its type and padding can step down in a narrow
+     column without the page's width coming into it. */
+  [data-skin="cyber"] [data-kit="terminal"] {
+    /* A shade under the panels around it: a screen, not a card. */
+    --terminal-fill: color-mix(in srgb, var(--cy-void) 60%, var(--cy-panel));
+    --terminal-text: var(--cy-text-sm);
+    --terminal-pad: 12px;
+
+    container: cy-terminal / inline-size;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+    min-width: 0;
+    height: var(--terminal-h, 280px);
+    font-family: var(--cy-mono);
+    /* A log is read character by character: => stays two characters. */
+    font-variant-ligatures: none;
+    text-align: start;
+  }
+
+  [data-skin="cyber"] [data-kit="terminal-log"] {
+    --frame-cut: var(--cy-cut);
+    --frame-line: var(--cy-line-deco);
+    --frame-fill: var(--terminal-fill);
+    --frame-image: none;
+
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  /* What the log is called, with a lamp before it and a line count after. */
+  [data-skin="cyber"] [data-kit="terminal-head"] {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 28px;
+    /* The trailing end clears the frame's cut corner. */
+    padding-block: 4px;
+    padding-inline: var(--terminal-pad) calc(var(--cy-cut) + 8px);
+    border-block-end: 1px solid var(--cy-line-deco);
+
+    & > [data-micro] {
+      flex: none;
+      margin-inline-start: auto;
+    }
+  }
+
+  /* Hollow while idle, solid in the signal color while something works.
+     The caret and the word "Working" say the same, so it's only a lamp. */
+  [data-skin="cyber"] [data-kit="terminal-lamp"] {
+    flex: none;
+    width: 7px;
+    height: 7px;
+    border: 1px solid var(--cy-line-ctl);
+    transition:
+      background-color var(--cy-t-fast) linear,
+      border-color var(--cy-t-fast) linear;
+
+    [data-busy] & {
+      border-color: var(--cy-signal);
+      background: var(--cy-signal);
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="terminal-label"] {
+    min-width: 0;
+    font-family: var(--cy-font);
+    font-size: var(--cy-text-sm);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: var(--cy-track);
+    text-transform: uppercase;
+    overflow-wrap: anywhere;
+    color: var(--cy-ink);
+  }
+
+  /* The scroll area takes what the head leaves. Its viewport is the real
+     scroller; the SDK keeps the end in view and makes it a tab stop while
+     there's somewhere to scroll to. */
+  [data-skin="cyber"] [data-kit="terminal-scroll"] {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+
+    /* A shade along the top while there's more above: the log is cut off
+       there, not finished. It only switches, so scrolling repaints nothing
+       else. */
+    &::after {
+      content: "";
+      position: absolute;
+      inset-block-start: 0;
+      inset-inline: 0 12px;
+      height: 14px;
+      background: linear-gradient(to bottom, var(--terminal-fill), transparent);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--cy-t) linear;
+    }
+    &[data-overflow-y]:not([data-at-y-start])::after {
+      opacity: 1;
+    }
+  }
+
+  /* The frame shows focus for the viewport (data-frame-focus="within"), so
+     the viewport's own ring is cut off rather than drawn twice. */
+  [data-skin="cyber"] [data-kit="terminal-viewport"] {
+    width: 100%;
+    height: 100%;
+    clip-path: inset(0);
+  }
+
+  [data-skin="cyber"] [data-kit="terminal-lines"] {
+    min-width: 0;
+    /* The trailing end leaves the scrollbar its lane. */
+    padding-block: 8px 10px;
+    padding-inline: var(--terminal-pad) calc(var(--terminal-pad) + 8px);
+    font-size: var(--terminal-text);
+    line-height: 1.5;
+    /* A line tearing in moves sideways for a moment; that mustn't give the
+       log something to scroll to. */
+    overflow-x: clip;
+  }
+
+  /* A line: its time, its kind as a word, and its text. The columns are
+     fixed widths counted in characters, not measured from the content, and
+     each line is laid out on its own, so one arriving costs one line of
+     layout however long the log is. */
+  [data-skin="cyber"] :is([data-kit="terminal-line"], [data-kit="terminal-busy"]) {
+    --kind: var(--cy-ink-mute);
+
+    display: grid;
+    grid-template-columns: [tag] 4ch [text] minmax(0, 1fr);
+    column-gap: 1ch;
+    align-items: baseline;
+    padding-block: 1px;
+    contain: layout style;
+    color: var(--kind);
+
+    [data-times] & {
+      grid-template-columns: [time] calc(var(--terminal-time, 5) * 1ch) [tag] 4ch [text] minmax(0, 1fr);
+    }
+  }
+
+  /* Each kind has its color, and its word says the same. System lines
+     recede, the agent speaks in the signal color, the person in near-white. */
+  [data-skin="cyber"] [data-kit="terminal-line"] {
+    &[data-kind="agent"] {
+      --kind: var(--cy-signal);
+    }
+    &[data-kind="user"] {
+      --kind: var(--cy-ink-hi);
+    }
+    &[data-kind="ok"] {
+      --kind: var(--cy-ok);
+    }
+    &[data-kind="warn"] {
+      --kind: var(--cy-flag);
+    }
+    &[data-kind="err"] {
+      --kind: var(--cy-ink);
+    }
+
+    /* The newest line switches on. One line, once; the rest never move. */
+    &[data-new] {
+      animation: var(--cy-fx-in) 220ms var(--cy-ease-snap) backwards;
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="terminal-time"] {
+    grid-column: time;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    color: var(--cy-ink-mute);
+  }
+
+  [data-skin="cyber"] [data-kit="terminal-tag"] {
+    grid-column: tag;
+    justify-self: start;
+    font-weight: 700;
+    white-space: nowrap;
+    user-select: none;
+
+    /* An error is in the accent, which is also the resting color of the
+       whole kit: its word sits on a lit fill, so it can't be missed or
+       mistaken. The fill is a shadow, so the column keeps its width. */
+    [data-kind="err"] > & {
+      color: var(--cy-ink-hi);
+      background: var(--cy-fill-active);
+      box-shadow: 0 0 0 2px var(--cy-fill-active);
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="terminal-text"] {
+    grid-column: text;
+    min-width: 0;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  /* Still working: a caret where the next line's text will start. It
+     breathes rather than blinks, so it's there at every glance. */
+  [data-skin="cyber"] [data-kit="terminal-caret"] {
+    grid-column: text;
+    align-self: center;
+    width: 1ch;
+    height: 1.15em;
+    margin-block: 0.175em;
+    background: var(--cy-signal);
+    animation: var(--cy-fx-pulse) 1.6s var(--cy-ease-snap) infinite;
+  }
+
+  /* The scrollbar: a thin lane down the trailing edge, there whenever the
+     log is longer than its window. */
+  [data-skin="cyber"] [data-kit="terminal-scrollbar"] {
+    width: 10px;
+    padding: 2px;
+    opacity: 0;
+    transition: opacity var(--cy-t-fast) linear;
+
+    &[data-visible] {
+      opacity: 1;
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="terminal-thumb"] {
+    width: 100%;
+    min-height: 24px;
+    background: var(--cy-line-ctl);
+    transition: background-color var(--cy-t-fast) linear;
+
+    @media (hover: hover) {
+      &:hover {
+        background: var(--cy-line-hot);
+      }
+    }
+    &[data-dragging] {
+      background: var(--cy-line-hot);
+    }
+  }
+
+  /* The key back to the newest line. It stands on a patch of the log's own
+     fill, so the text passing under it doesn't show through. */
+  [data-skin="cyber"] [data-kit="terminal-latest"] {
+    position: absolute;
+    inset-block-end: 8px;
+    inset-inline-end: 18px;
+    display: flex;
+    background: var(--terminal-fill);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--cy-t-fast) linear;
+
+    &:has(> [data-visible]) {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
+
+  /* The prompt: a control of its own under the log, with the kit's state
+     language. Idle its edge is the control line, hovered it's hot, and with
+     the field focused the frame draws the ring and takes the hover fill. */
+  [data-skin="cyber"] [data-kit="terminal-prompt"] {
+    --frame-cut: var(--cy-cut-sm);
+    --frame-line: var(--cy-line-ctl);
+    --frame-fill: var(--terminal-fill);
+    --frame-image: none;
+
+    flex: none;
+    display: flex;
+    min-width: 0;
+    transition:
+      background-color var(--cy-t-fast) linear,
+      border-color var(--cy-t-fast) linear;
+
+    @media (hover: hover) {
+      &:hover {
+        --frame-line: var(--cy-line-hot);
+      }
+    }
+
+    &:focus-within {
+      --frame-fill: var(--cy-fill-hover);
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="terminal-field"] {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 1ch;
+    min-width: 0;
+    min-height: calc(var(--cy-h) - 2px);
+    padding-inline: var(--terminal-pad) calc(var(--cy-cut-sm) + 6px);
+    font-size: var(--terminal-text);
+    cursor: text;
+
+    /* On touch the kit sets every field at 16px, so iOS doesn't zoom into
+       it; the glyph steps up beside it. */
+    @media (pointer: coarse) {
+      font-size: var(--cy-text-md);
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="terminal-glyph"] {
+    flex: none;
+    font-weight: 700;
+    color: var(--cy-ink);
+    user-select: none;
+    transition: color var(--cy-t-fast) linear;
+
+    [data-kit="terminal-prompt"]:focus-within & {
+      color: var(--cy-signal);
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="terminal-input"] {
+    flex: 1;
+    width: 100%;
+    min-width: 0;
+    min-height: calc(var(--cy-h) - 2px);
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--cy-ink-hi);
+    caret-color: var(--cy-signal);
+    /* The prompt's frame shows focus for the field, so the field's own
+       ring is cut off rather than drawn twice. */
+    clip-path: inset(0);
+
+    &::placeholder {
+      color: var(--cy-ink-mute);
+      opacity: 1;
+    }
+  }
+
+  /* A narrow column (256px is the least the kit asks for): the type steps
+     down, the head keeps only its name, and a line stops being three
+     columns. Its time and its word lead the text and the text wraps back
+     under them with a small hanging indent, which gives a 200px log 27
+     characters to a row where the columns would leave it 16. */
+  @container cy-terminal (max-width: 351px) {
+    [data-skin="cyber"] :is([data-kit="terminal-log"], [data-kit="terminal-prompt"]) {
+      --terminal-text: var(--cy-text-xs);
+      --terminal-pad: 9px;
+    }
+
+    [data-skin="cyber"] [data-kit="terminal-head"] > [data-micro] {
+      display: none;
+    }
+
+    [data-skin="cyber"] :is([data-kit="terminal-line"], [data-kit="terminal-busy"]) {
+      display: block;
+      padding-inline-start: 2ch;
+      text-indent: -2ch;
+    }
+
+    [data-skin="cyber"] :is([data-kit="terminal-time"], [data-kit="terminal-tag"], [data-kit="terminal-caret"]) {
+      display: inline-block;
+      margin-inline-end: 1ch;
+      text-indent: 0;
+      vertical-align: baseline;
+    }
+
+    /* A line with no time, in a log that has them: its word still starts
+       where the others do. */
+    [data-skin="cyber"] [data-times] [data-kit="terminal-tag"]:first-child {
+      margin-inline-start: calc((var(--terminal-time, 5) + 1) * 1ch);
+    }
+
+    [data-skin="cyber"] [data-kit="terminal-caret"] {
+      margin-block: 0;
+      vertical-align: text-bottom;
+    }
+  }
+}

@@ -1,0 +1,92 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  /* A label, not a control: it has no hover and no press. Every tone but
+     "flag" is an outline in its color over a faint tint of it; "flag" is the
+     solid yellow, with dark ink, that marks the thing to look at. */
+  [data-skin="cyber"] [data-kit="badge"] {
+    --tone: var(--cy-ink);
+    --frame-cut: 5px;
+    --frame-image: none;
+    --frame-line: color-mix(in srgb, var(--tone) 60%, var(--cy-panel));
+    --frame-fill: color-mix(in srgb, var(--tone) 9%, var(--cy-panel));
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex: none;
+    min-width: 20px;
+    height: 20px;
+    padding-inline: 7px 8px;
+    font-size: var(--cy-text-xs);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    vertical-align: middle;
+    color: var(--tone);
+
+    &[data-tone="accent"] {
+      --frame-line: var(--cy-line-ctl);
+      --frame-fill: transparent;
+    }
+    &[data-tone="signal"] {
+      --tone: var(--cy-signal);
+    }
+    &[data-tone="ok"] {
+      --tone: var(--cy-ok);
+    }
+    &[data-tone="rare"] {
+      --tone: var(--cy-rare);
+    }
+    &[data-tone="epic"] {
+      --tone: var(--cy-epic);
+    }
+    &[data-tone="mute"] {
+      --tone: var(--cy-ink-mute);
+      --frame-line: var(--cy-line-deco);
+      --frame-fill: transparent;
+    }
+    &[data-tone="flag"] {
+      --tone: var(--cy-flag);
+      --frame-line: var(--cy-flag);
+      --frame-fill: var(--cy-flag);
+      color: var(--cy-on-solid);
+    }
+
+    /* A count: numerals in the mono, so 8 and 88 and 99+ keep their step. */
+    &[data-variant="count"] {
+      padding-inline: 5px 6px;
+      font-family: var(--cy-mono);
+      font-size: var(--cy-text-xs);
+      font-weight: 600;
+      letter-spacing: 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* A status reads as a line of text with a lamp, so it loses the tint. */
+    &[data-variant="status"]:not([data-tone="flag"]) {
+      --frame-fill: transparent;
+    }
+  }
+
+  /* The lamp is a square, as everything here is. Lit, it's solid; on a
+     muted badge it's hollow, so "off" is a shape as well as a dimmer color. */
+  [data-skin="cyber"] [data-kit="badge-lamp"] {
+    flex: none;
+    width: 6px;
+    height: 6px;
+    background: currentColor;
+
+    [data-tone="mute"] > & {
+      background: none;
+      border: 1px solid currentColor;
+    }
+
+    &[data-live] {
+      animation: var(--cy-fx-pulse) 1.8s var(--cy-ease-snap) infinite;
+    }
+  }
+}

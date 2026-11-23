@@ -1,0 +1,252 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  /* The nav only measures: what's inside it rearranges by how wide the nav
+     is, not the window, so it works in a sidebar as well as across a page. */
+  [data-skin="cyber"] [data-kit="navbar"] {
+    container: navbar / inline-size;
+    width: 100%;
+    min-width: 0;
+    text-align: start;
+  }
+
+  /* Narrow first: the readouts share a row, the pages take the next, each
+     on its own length of the rule, and the print runs under them. */
+  [data-skin="cyber"] [data-kit="navbar-bar"] {
+    --rule: inset 0 -1px 0 var(--cy-line-deco);
+
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "leading trailing"
+      "links links"
+      "code code";
+    column-gap: 16px;
+    align-items: stretch;
+  }
+
+  [data-skin="cyber"] :is([data-kit="navbar-leading"], [data-kit="navbar-trailing"]) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 18px;
+    min-width: 0;
+    min-height: var(--cy-h);
+    padding-block: 4px;
+  }
+
+  [data-skin="cyber"] [data-kit="navbar-leading"] {
+    grid-area: leading;
+  }
+
+  [data-skin="cyber"] [data-kit="navbar-trailing"] {
+    grid-area: trailing;
+    justify-content: flex-end;
+  }
+
+  [data-skin="cyber"] [data-kit="navbar-links"] {
+    grid-area: links;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    box-shadow: var(--rule);
+  }
+
+  /* Two to a line while the bar is at its narrowest, so four pages make a
+     square rather than three and a straggler. */
+  [data-skin="cyber"] [data-kit="navbar-item"] {
+    flex: 1 1 50%;
+    display: flex;
+    min-width: 0;
+  }
+
+  /* A page. The state language, on a link with no box of its own: its
+     length of the rule is its edge. Hover brings the rule to full and the
+     10% fill; the page being shown reads in the signal color over a
+     two-pixel signal bar. */
+  [data-skin="cyber"] [data-kit="navbar-link"] {
+    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: 0;
+    min-height: var(--cy-h);
+    padding: 2px 12px 0;
+    font-size: var(--cy-text-md);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: var(--cy-track);
+    text-transform: uppercase;
+    text-decoration: none;
+    white-space: nowrap;
+    color: var(--cy-ink);
+    box-shadow: var(--rule);
+    cursor: pointer;
+    transition:
+      background-color var(--cy-t-fast) linear,
+      box-shadow var(--cy-t-fast) linear,
+      color var(--cy-t-fast) linear;
+
+    & svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* The bar under the page being shown. A border rather than a fill, so
+       it's still there in forced colors. */
+    &::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 0;
+      border-block-end: 2px solid var(--cy-signal);
+      filter: drop-shadow(0 0 calc(4px * var(--cy-fx)) var(--cy-signal));
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    @media (hover: hover) {
+      &:hover:not([aria-current="page"]) {
+        background-color: var(--cy-fill-hover);
+        box-shadow: inset 0 -1px 0 var(--cy-line-hot);
+      }
+    }
+
+    &:active {
+      background-color: var(--cy-fill-active);
+      color: var(--cy-ink-hi);
+    }
+
+    /* The ring reaches past the link, so it's lifted over its neighbors'
+       fills. */
+    &:focus-visible {
+      z-index: 1;
+    }
+
+    &[aria-current="page"] {
+      color: var(--cy-signal);
+
+      &::after {
+        opacity: 1;
+      }
+    }
+  }
+
+  /* The print under the rule. */
+  [data-skin="cyber"] [data-kit="navbar-code"] {
+    grid-area: code;
+    padding-block-start: 5px;
+    overflow: hidden;
+  }
+
+  /* ── Readouts ──────────────────────────────────────────────────────── */
+
+  /* A label, then what it reads, larger and in its tone's color. */
+  [data-skin="cyber"] [data-kit="navbar-readout"] {
+    --tone: var(--cy-signal);
+
+    display: inline-grid;
+    grid-template-columns: auto auto;
+    align-items: baseline;
+    column-gap: 6px;
+    row-gap: 3px;
+    white-space: nowrap;
+
+    &[data-tone="flag"] {
+      --tone: var(--cy-flag);
+    }
+    &[data-tone="ok"] {
+      --tone: var(--cy-ok);
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="navbar-readout-label"] {
+    font-size: var(--cy-text-sm);
+    font-weight: 600;
+    letter-spacing: var(--cy-track);
+    text-transform: uppercase;
+    color: var(--cy-ink);
+  }
+
+  [data-skin="cyber"] [data-kit="navbar-readout-value"] {
+    font-size: var(--cy-text-lg);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    color: var(--tone);
+  }
+
+  /* The meter: a short track under the readout, lit as far as the value
+     has got. The end of the lit part is a brighter tick. */
+  [data-skin="cyber"] [data-kit="navbar-readout-meter"] {
+    grid-column: 1 / -1;
+    display: block;
+    height: 2px;
+    background: var(--cy-line-deco);
+
+    &::before {
+      content: "";
+      display: block;
+      width: calc(var(--value, 0) * 100%);
+      height: 100%;
+      border-inline-end: 2px solid var(--cy-ink-hi);
+      background: var(--tone);
+    }
+
+    /* Fills are flattened in forced colors; a border isn't. */
+    @media (forced-colors: active) {
+      height: auto;
+      border: 1px solid CanvasText;
+
+      &::before {
+        height: 0;
+        border-block-start: 2px solid Highlight;
+      }
+    }
+  }
+
+  /* ── With room ─────────────────────────────────────────────────────── */
+
+  /* Enough for the pages to share a line. */
+  @container navbar (min-width: 360px) {
+    [data-skin="cyber"] [data-kit="navbar-item"] {
+      flex: 1 1 auto;
+    }
+  }
+
+  /* Enough for everything: one row on one rule, pages in the middle. */
+  @container navbar (min-width: 560px) {
+    [data-skin="cyber"] [data-kit="navbar-bar"] {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      grid-template-areas:
+        "leading links trailing"
+        "code code code";
+      column-gap: 0;
+    }
+
+    [data-skin="cyber"] :is([data-kit="navbar-leading"], [data-kit="navbar-trailing"]) {
+      box-shadow: var(--rule);
+    }
+
+    [data-skin="cyber"] [data-kit="navbar-leading"] {
+      padding-inline-end: 16px;
+    }
+
+    [data-skin="cyber"] [data-kit="navbar-trailing"] {
+      padding-inline-start: 16px;
+    }
+
+    [data-skin="cyber"] [data-kit="navbar-links"] {
+      align-items: flex-end;
+    }
+
+    [data-skin="cyber"] [data-kit="navbar-item"] {
+      flex: none;
+    }
+  }
+}

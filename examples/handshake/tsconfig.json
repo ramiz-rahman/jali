@@ -1,0 +1,7 @@
+{
+  "//": "Only for the shadcn installer, which reads aliases from here. Type checking runs from the repository's root tsconfig, which resolves #src/* through package.json's imports.",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": { "#src/*": ["./src/*"] }
+  }
+}

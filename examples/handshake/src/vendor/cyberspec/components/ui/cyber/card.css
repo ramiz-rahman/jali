@@ -1,0 +1,230 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  /* A card that only shows something is a quiet frame, on the decorative
+     line. One that can be pressed follows the kit's state language, like a
+     key, and has a key's raised tab:
+       idle     line 70%, panel fill
+       hover    line 100%, fill 10%
+       down     fill 40%, flashing to 70% as it lands (data-press-flash)
+       pressed  (a toggle that's on) line 100%, fill 40%, bright ink, a check
+       disabled hatched */
+  [data-skin="cyber"] [data-kit="card"] {
+    --frame-cut: var(--cy-cut);
+    --frame-line: var(--cy-line-deco);
+    --frame-fill: var(--cy-panel-a);
+    /* Frame variables inherit, and a surface behind may have set one. */
+    --frame-image: none;
+    --frame-notch-x: 40px;
+    --frame-notch: 5px;
+
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-width: 0;
+    text-align: start;
+    transition:
+      background-color var(--cy-t-fast) linear,
+      border-color var(--cy-t-fast) linear;
+
+    &[data-interactive] {
+      --frame-line: var(--cy-line-ctl);
+    }
+
+    @media (hover: hover) {
+      &[data-interactive]:hover:not([data-disabled]) {
+        --frame-line: var(--cy-line-hot);
+        --frame-fill: var(--cy-fill-hover);
+      }
+    }
+
+    &:is([data-pressed], :has(> [data-kit="card-action"]:active)):not([data-disabled]) {
+      --frame-line: var(--cy-line-hot);
+      --frame-fill: var(--cy-fill-active);
+    }
+
+    &[data-disabled] {
+      --frame-line: var(--cy-line-deco);
+      --frame-image: repeating-linear-gradient(135deg, transparent 0 5px, var(--cy-line-deco) 5px 6px);
+    }
+  }
+
+  /* The link or button: an empty layer over the whole card, named by the
+     title. Its own focus ring would fall outside the frame and be clipped,
+     so the frame draws it instead (data-frame-focus="within"). */
+  [data-skin="cyber"] [data-kit="card-action"] {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+
+    &:disabled {
+      cursor: not-allowed;
+    }
+  }
+
+  /* The still. Whatever is put in it fills the frame. */
+  [data-skin="cyber"] [data-kit="card-media"] {
+    --frame-cut: var(--cy-cut);
+    --frame-line: var(--cy-line-deco);
+    --frame-fill: var(--cy-void);
+    --frame-image: none;
+
+    flex: none;
+    margin: 6px 6px 0;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    color: var(--cy-accent);
+
+    & > :is(svg, img, video, canvas) {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* The scan: a bright edge with a trail above it, parked out of sight.
+       It crosses once as the pointer or the keyboard arrives. Below FX
+       "full" it stays hidden. */
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background: linear-gradient(
+        to bottom,
+        transparent 40%,
+        color-mix(in srgb, var(--cy-signal) 12%, transparent) 94%,
+        color-mix(in srgb, var(--cy-signal) 75%, transparent) 98%,
+        transparent
+      );
+      opacity: 0;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      [data-kit="card"][data-interactive]:has(:focus-visible) > &::before {
+        opacity: var(--cy-fx);
+        animation: var(--cy-fx-scan) 560ms linear both;
+      }
+      @media (hover: hover) {
+        [data-kit="card"][data-interactive]:hover:not([data-disabled]) > &::before {
+          opacity: var(--cy-fx);
+          animation: var(--cy-fx-scan) 560ms linear both;
+        }
+      }
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="card-body"] {
+    flex: 1 1 auto;
+    display: grid;
+    align-content: start;
+    gap: 4px;
+    min-width: 0;
+    padding: 10px 12px 12px;
+  }
+
+  [data-skin="cyber"] [data-kit="card-head"] {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  [data-skin="cyber"] [data-kit="card-title"] {
+    min-width: 0;
+    font-size: var(--cy-text-md);
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: var(--cy-track);
+    text-transform: uppercase;
+    overflow-wrap: anywhere;
+    text-wrap: balance;
+    color: var(--cy-ink);
+
+    [data-kit="card"][data-pressed] & {
+      color: var(--cy-ink-hi);
+    }
+    [data-kit="card"][data-disabled] & {
+      color: var(--cy-ink-mute);
+    }
+  }
+
+  /* What a press does, as a glyph: an arrow out for a link, a chevron for
+     an action, and a check, in the signal color, while a toggle is on. */
+  [data-skin="cyber"] [data-kit="card-mark"] {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    color: var(--cy-ink);
+
+    & svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    [data-kit="card"][data-pressed] & {
+      color: var(--cy-signal);
+    }
+    [data-kit="card"][data-disabled] & {
+      color: var(--cy-ink-mute);
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="card-meta"] {
+    font-family: var(--cy-mono);
+    font-size: var(--cy-text-xs);
+    line-height: 1.4;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--cy-ink-mute);
+
+    /* On the lit fill of a card that's pressed in, muted ink is too faint. */
+    [data-kit="card"][data-pressed]:not([data-disabled]) & {
+      color: var(--cy-ink-hi);
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="card-text"] {
+    margin-block-start: 4px;
+    font-size: var(--cy-text-sm);
+    line-height: 1.4;
+    color: var(--cy-ink-hi);
+    text-wrap: pretty;
+  }
+
+  [data-skin="cyber"] [data-kit="card-footer"] {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px 10px;
+    min-height: 32px;
+    padding: 6px 12px 8px;
+    border-block-start: 1px solid var(--cy-line-deco);
+    font-family: var(--cy-mono);
+    font-size: var(--cy-text-xs);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--cy-ink-mute);
+
+    [data-kit="card"][data-pressed]:not([data-disabled]) & {
+      border-block-start-color: var(--cy-line-ctl);
+      color: var(--cy-ink-hi);
+    }
+
+    /* Keys in the foot of a pressable card sit above its layer. */
+    & :is(a, button, input, select, [tabindex]) {
+      z-index: 2;
+    }
+    & :is(a, button, input, select, [tabindex]):not([data-frame]) {
+      position: relative;
+    }
+  }
+}

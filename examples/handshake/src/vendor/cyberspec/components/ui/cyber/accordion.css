@@ -1,0 +1,197 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  [data-skin="cyber"] [data-kit="accordion"] {
+    display: grid;
+    gap: 4px;
+    width: 100%;
+    min-width: 0;
+    text-align: start;
+  }
+
+  [data-skin="cyber"] [data-kit="accordion-item"] {
+    min-width: 0;
+  }
+
+  /* The heading only carries the level; the row inside it is the control. */
+  [data-skin="cyber"] [data-kit="accordion-header"] {
+    font: inherit;
+    letter-spacing: inherit;
+  }
+
+  /* A row, in the kit's state language:
+       idle     line 70%, panel fill
+       hover    line 100%, fill 10%
+       open     line 100%, fill 40%, bright ink, its number in the signal
+                color and its plus turned to a minus
+       down     flashes to 70% (data-press-flash)
+       disabled hatched, muted */
+  [data-skin="cyber"] [data-kit="accordion-trigger"] {
+    --frame-cut: var(--cy-cut-sm);
+    --frame-line: var(--cy-line-ctl);
+    --frame-fill: var(--cy-panel-a);
+    /* Frame variables inherit, and a surface behind may have set one. */
+    --frame-image: none;
+    --index-w: 36px;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-width: 0;
+    min-height: var(--cy-h);
+    padding: 0;
+    padding-inline-end: 12px;
+    font-size: var(--cy-text-md);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: var(--cy-track);
+    text-transform: uppercase;
+    text-align: start;
+    color: var(--cy-ink);
+    cursor: pointer;
+    user-select: none;
+    transition:
+      background-color var(--cy-t-fast) linear,
+      border-color var(--cy-t-fast) linear,
+      color var(--cy-t-fast) linear;
+
+    @media (hover: hover) {
+      &:hover:not([data-disabled]) {
+        --frame-line: var(--cy-line-hot);
+        --frame-fill: var(--cy-fill-hover);
+      }
+    }
+
+    &:is([data-open], :active):not([data-disabled]) {
+      --frame-line: var(--cy-line-hot);
+      --frame-fill: var(--cy-fill-active);
+      color: var(--cy-ink-hi);
+    }
+
+    &[data-disabled] {
+      --frame-line: var(--cy-line-deco);
+      --frame-image: repeating-linear-gradient(135deg, transparent 0 5px, var(--cy-line-deco) 5px 6px);
+      color: var(--cy-ink-mute);
+      cursor: not-allowed;
+    }
+  }
+
+  /* The row's number, in a cell of its own at the leading end. */
+  [data-skin="cyber"] [data-kit="accordion-index"] {
+    flex: none;
+    align-self: stretch;
+    display: grid;
+    place-items: center;
+    width: var(--index-w);
+    border-inline-end: 1px solid var(--cy-line-deco);
+    font-family: var(--cy-mono);
+    font-size: var(--cy-text-xs);
+    font-weight: 500;
+    letter-spacing: 0;
+    color: var(--cy-ink-mute);
+    transition:
+      border-color var(--cy-t-fast) linear,
+      color var(--cy-t-fast) linear;
+
+    [data-open]:not([data-disabled]) > & {
+      border-inline-end-color: var(--cy-line-hot);
+      color: var(--cy-signal);
+    }
+  }
+
+  /* The name and its readout share a line while there's room, and the
+     readout drops under the name when there isn't. */
+  [data-skin="cyber"] [data-kit="accordion-text"] {
+    flex: 1 1 auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 2px 10px;
+    min-width: 0;
+    padding-block: 8px;
+  }
+
+  [data-skin="cyber"] [data-kit="accordion-label"] {
+    min-width: 0;
+    overflow-wrap: break-word;
+  }
+
+  [data-skin="cyber"] [data-kit="accordion-meta"] {
+    flex: none;
+    font-family: var(--cy-mono);
+    font-size: var(--cy-text-xs);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--cy-signal);
+
+    [data-disabled] & {
+      color: var(--cy-ink-mute);
+    }
+  }
+
+  /* Plus and minus are the same two bars: the upright one lies down as the
+     section opens, in steps, like a display redrawing it. */
+  [data-skin="cyber"] [data-kit="accordion-glyph"] {
+    position: relative;
+    flex: none;
+    width: 12px;
+    height: 12px;
+
+    &::before,
+    &::after {
+      content: "";
+      position: absolute;
+      inset-block-start: 5px;
+      inset-inline-start: 0;
+      width: 12px;
+      height: 2px;
+      background: currentColor;
+    }
+
+    &::after {
+      rotate: 90deg;
+      transition: rotate var(--cy-t) var(--cy-ease-step);
+    }
+
+    [data-open] > &::after {
+      rotate: 0deg;
+    }
+  }
+
+  /* The section. Its height runs between zero and the content's measured
+     height, which the SDK writes to --accordion-panel-height; it's `auto`
+     once open, so the content can still reflow. */
+  [data-skin="cyber"] [data-kit="accordion-panel"] {
+    height: var(--accordion-panel-height);
+    overflow: hidden;
+    transition: height var(--cy-t-slow) var(--cy-ease-snap);
+
+    &:is([data-starting-style], [data-ending-style]) {
+      height: 0;
+    }
+    &[data-ending-style] {
+      transition-duration: var(--cy-t);
+    }
+  }
+
+  /* The content hangs off a rule that drops from the middle of the row's
+     number cell. */
+  [data-skin="cyber"] [data-kit="accordion-content"] {
+    display: grid;
+    gap: 8px;
+    margin-inline-start: 18px;
+    padding: 10px 12px 12px 17px;
+    border-inline-start: 1px solid var(--cy-line-ctl);
+    font-size: var(--cy-text-sm);
+    line-height: 1.45;
+    color: var(--cy-ink-hi);
+    text-wrap: pretty;
+    transition: opacity var(--cy-t) linear;
+
+    :is([data-starting-style], [data-ending-style]) > & {
+      opacity: 0;
+    }
+  }
+}

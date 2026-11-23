@@ -1,0 +1,417 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  [data-skin="cyber"] [data-kit="map"] {
+    --frame-fill: var(--cy-panel);
+    --frame-line: var(--cy-line-ctl);
+    --map-ocean: color-mix(in srgb, var(--cy-rare) 7%, var(--cy-void));
+    --map-coast: color-mix(in srgb, var(--cy-signal) 32%, var(--cy-panel-2));
+    --map-ground: color-mix(in srgb, var(--cy-signal) 10%, var(--cy-panel-2));
+    --map-gutter: clamp(10px, 2.5cqi, 16px);
+    container: cyber-map / inline-size;
+    inline-size: 100%;
+    min-inline-size: 0;
+
+    @media (pointer: coarse) {
+      --cy-h-sm: var(--cy-h);
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="map-head"],
+  [data-skin="cyber"] [data-kit="map-detail"] {
+    display: flex;
+    align-items: center;
+    gap: var(--cy-gap);
+    padding: 9px var(--map-gutter);
+  }
+
+  [data-skin="cyber"] [data-kit="map-head"] {
+    justify-content: space-between;
+    border-block-end: 1px solid var(--cy-line-deco);
+  }
+
+  [data-skin="cyber"] [data-kit="map-title"] {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-inline-size: 0;
+    font: 700 var(--cy-text-lg)/1.05 var(--cy-font);
+    letter-spacing: var(--cy-track);
+    text-transform: uppercase;
+    overflow-wrap: anywhere;
+    color: var(--cy-ink-hi);
+
+    & > svg {
+      inline-size: 16px;
+      block-size: 16px;
+      color: var(--cy-ink);
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="map-field"] {
+    position: relative;
+    isolation: isolate;
+    block-size: var(--map-height, clamp(235px, calc(178px + 24cqi), 335px));
+    background-color: var(--map-ocean);
+  }
+
+  [data-skin="cyber"] [data-kit="map-viewport"] {
+    position: absolute;
+    inset: 0;
+    isolation: isolate;
+    overflow: clip;
+    touch-action: none;
+    user-select: none;
+    cursor: grab;
+
+    &:focus-visible::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border: 2px solid var(--cy-signal);
+      pointer-events: none;
+    }
+
+    &[data-dragging] { cursor: grabbing; }
+  }
+
+  [data-skin="cyber"] [data-kit="map-chart"],
+  [data-skin="cyber"] [data-kit="map-markers"] {
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    pointer-events: none;
+  }
+
+  [data-skin="cyber"] [data-kit="map-land"] {
+    fill: var(--map-ground);
+    stroke: var(--map-coast);
+    stroke-width: .9px;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+  }
+
+  [data-skin="cyber"] [data-kit="map"][data-projection="globe"] [data-kit="map-viewport"] {
+    background-color: var(--cy-void);
+    background-image: radial-gradient(color-mix(in srgb, var(--cy-signal) 15%, transparent) .65px, transparent .85px);
+    background-size: 19px 19px;
+  }
+
+  [data-skin="cyber"] [data-kit="map-globe-ocean"] {
+    fill: color-mix(in srgb, var(--cy-signal) 7%, var(--map-ocean));
+  }
+
+  [data-skin="cyber"] [data-kit="map-globe-land"] {
+    fill: color-mix(in srgb, var(--cy-signal) 10%, var(--map-ground));
+  }
+
+  [data-skin="cyber"] [data-kit="map-globe-coast"] {
+    fill: none;
+    stroke: var(--map-coast);
+    stroke-width: .85px;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+  }
+
+  [data-skin="cyber"] [data-kit="map-globe-rim"] {
+    stroke: var(--cy-signal-dim);
+    stroke-width: 1px;
+  }
+
+  [data-skin="cyber"] [data-kit="map-land-pattern"] {
+    fill: none;
+    stroke: color-mix(in srgb, var(--cy-signal) 8%, transparent);
+    stroke-width: 1px;
+  }
+
+  [data-skin="cyber"] [data-kit="map-border"],
+  [data-skin="cyber"] [data-kit="map-grid"] {
+    fill: none;
+    stroke: color-mix(in srgb, var(--cy-signal) 22%, var(--map-ground));
+    stroke-width: .65px;
+    vector-effect: non-scaling-stroke;
+  }
+
+  [data-skin="cyber"] [data-kit="map-grid"] {
+    stroke: color-mix(in srgb, var(--cy-signal) 18%, transparent);
+    stroke-dasharray: 1 4;
+  }
+
+  [data-skin="cyber"] [data-kit="map-route"] {
+    fill: none;
+    stroke: color-mix(in srgb, var(--cy-signal) 54%, var(--map-ocean));
+    stroke-width: 1.2px;
+    stroke-dasharray: 3 4;
+    vector-effect: non-scaling-stroke;
+
+    &[data-active] {
+      stroke: var(--cy-signal);
+      stroke-width: 1.7px;
+      stroke-dasharray: none;
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="map-annotation"] {
+    fill: color-mix(in srgb, var(--cy-ink-hi) 50%, var(--map-ocean));
+    stroke: var(--map-ocean);
+    stroke-width: 2px;
+    paint-order: stroke;
+    font: 500 var(--cy-text-xs)/1 var(--cy-mono);
+    letter-spacing: .13em;
+    text-anchor: middle;
+    text-transform: uppercase;
+  }
+
+  [data-skin="cyber"] [data-kit="map-pin"] {
+    position: absolute;
+    /* These are projected screen coordinates, measured from the physical left. */
+    left: var(--map-x);
+    top: var(--map-y);
+    translate: -50% -50%;
+    display: grid;
+    place-items: center;
+    inline-size: var(--cy-h-sm);
+    block-size: var(--cy-h-sm);
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--cy-signal);
+    appearance: none;
+    cursor: pointer;
+    pointer-events: auto;
+
+    /* Keep the far hemisphere's radios in the roving focus order. Focusing
+       one rotates it into view before the next paint. */
+    &[data-occluded] {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    &[data-compact]:not([data-checked], :hover, :focus-visible) [data-kit="map-code"] {
+      display: none;
+    }
+
+    &:is([data-disabled], :disabled) {
+      color: var(--cy-ink-mute);
+      cursor: not-allowed;
+    }
+
+    &[data-checked] {
+      color: var(--cy-flag);
+      z-index: 1;
+    }
+
+    &:focus-visible {
+      z-index: 2;
+      outline: 2px solid var(--cy-signal);
+      outline-offset: -1px;
+    }
+
+    @media (hover: hover) {
+      &:hover:not([data-disabled], :disabled) [data-kit="map-glyph"] {
+        outline: 1px solid currentColor;
+        outline-offset: 2px;
+      }
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="map-glyph"] {
+    position: relative;
+    display: grid;
+    place-items: center;
+    inline-size: 9px;
+    block-size: 9px;
+    rotate: 45deg;
+    border: 1px solid currentColor;
+    background-color: var(--map-ocean);
+    box-shadow: 0 0 0 2px var(--map-ocean);
+    pointer-events: none;
+
+    &::before {
+      content: "";
+      inline-size: 3px;
+      block-size: 3px;
+      background-color: currentColor;
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="map-pin"][data-checked] [data-kit="map-glyph"] {
+    inline-size: 11px;
+    block-size: 11px;
+    outline: 1px solid currentColor;
+    outline-offset: 3px;
+
+    &::before { inline-size: 5px; block-size: 5px; }
+  }
+
+  [data-skin="cyber"] [data-kit="map-code"] {
+    position: absolute;
+    top: calc(50% + 10px);
+    inline-size: max-content;
+    max-inline-size: 8em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 1px 3px;
+    background-color: var(--map-ocean);
+    font: 500 var(--cy-text-xs)/1.1 var(--cy-mono);
+    letter-spacing: .04em;
+    pointer-events: none;
+  }
+
+  [data-skin="cyber"] [data-kit="map-pin"][data-checked] [data-kit="map-code"] {
+    top: calc(50% + 14px);
+    background-color: var(--cy-flag);
+    color: var(--cy-on-solid);
+  }
+
+  [data-skin="cyber"] [data-kit="map-tools"] {
+    position: absolute;
+    inset-block-start: 9px;
+    inset-inline-end: var(--map-gutter);
+    display: grid;
+    gap: 3px;
+    background-color: var(--map-ocean);
+  }
+
+  [data-skin="cyber"] [data-kit="map-scale"],
+  [data-skin="cyber"] [data-kit="map-north"] {
+    position: absolute;
+    inset-block-end: 9px;
+    display: grid;
+    gap: 3px;
+    justify-items: start;
+    padding: 3px 4px;
+    background-color: var(--map-ocean);
+    color: var(--cy-ink-hi);
+    font: 500 var(--cy-text-xs)/1 var(--cy-mono);
+    pointer-events: none;
+  }
+
+  [data-skin="cyber"] [data-kit="map-scale"] {
+    inset-inline-start: var(--map-gutter);
+
+    &::after {
+      content: "";
+      inline-size: var(--map-distance);
+      block-size: 4px;
+      border: 1px solid currentColor;
+      border-block-start: 0;
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="map-north"] {
+    inset-inline-end: var(--map-gutter);
+    justify-items: center;
+    & > svg { inline-size: 13px; block-size: 13px; }
+  }
+
+  [data-skin="cyber"] [data-kit="map-detail"] {
+    border-block-start: 1px solid var(--cy-line-deco);
+    padding-block: 11px;
+
+    & > svg { inline-size: 16px; block-size: 16px; color: var(--cy-flag); }
+  }
+
+  [data-skin="cyber"] [data-kit="map-record"],
+  [data-skin="cyber"] [data-kit="map-position"] {
+    display: grid;
+    min-inline-size: 0;
+    gap: 2px;
+    overflow-wrap: anywhere;
+  }
+
+  [data-skin="cyber"] [data-kit="map-position"] {
+    margin-inline-start: auto;
+    text-align: end;
+  }
+
+  [data-skin="cyber"] [data-kit="map-caption"] {
+    color: var(--cy-ink-mute);
+    font: 600 var(--cy-text-xs)/1.1 var(--cy-font);
+    letter-spacing: var(--cy-track);
+    text-transform: uppercase;
+  }
+
+  [data-skin="cyber"] [data-kit="map-name"] {
+    color: var(--cy-ink-hi);
+    font: 700 var(--cy-text-lg)/1.15 var(--cy-font);
+  }
+
+  [data-skin="cyber"] [data-kit="map-coordinates"] {
+    color: var(--cy-signal);
+    font: 500 var(--cy-text-xs)/1.45 var(--cy-mono);
+  }
+
+  [data-skin="cyber"] [data-kit="map-attribution"] {
+    padding: 5px var(--map-gutter);
+    border-block-start: 1px solid var(--cy-line-deco);
+    color: var(--cy-ink-mute);
+    font: 500 var(--cy-text-sm)/1.35 var(--cy-font);
+    overflow-wrap: anywhere;
+
+    & a {
+      color: var(--cy-signal);
+      text-underline-offset: .15em;
+    }
+  }
+
+  /* Move the tools clear of the geography when a column gets too narrow
+     for both an eastern marker and the zoom keys at its trailing edge. */
+  @container cyber-map (max-width: 420px) {
+    [data-skin="cyber"] [data-kit="map-field"] {
+      --map-tool-row: calc(var(--cy-h-sm) + 16px);
+      block-size: calc(var(--map-height, 240px) + var(--map-tool-row));
+      background: var(--cy-panel);
+    }
+    [data-skin="cyber"] [data-kit="map-viewport"] {
+      inset-block-end: var(--map-tool-row);
+      border-block-end: 1px solid var(--cy-line-deco);
+      background: var(--map-ocean);
+    }
+    [data-skin="cyber"] [data-kit="map-tools"] {
+      inset-block: auto 8px;
+      grid-auto-flow: column;
+      background: none;
+    }
+    [data-skin="cyber"] [data-kit="map-scale"] {
+      inset-block-end: calc(var(--map-tool-row) / 2);
+      translate: 0 50%;
+      background: none;
+    }
+    [data-skin="cyber"] [data-kit="map-north"] { display: none; }
+  }
+  @container cyber-map (max-width: 330px) {
+    [data-skin="cyber"] [data-kit="map-title"] { font-size: var(--cy-text-md); }
+    [data-skin="cyber"] [data-kit="map-position"] { max-inline-size: 46%; }
+    [data-skin="cyber"] [data-kit="map-detail"] > svg { display: none; }
+    [data-skin="cyber"] [data-kit="map-annotation"] { display: none; }
+  }
+  @container cyber-map (max-width: 250px) {
+    [data-skin="cyber"] [data-kit="map-title"] > svg { display: none; }
+    [data-skin="cyber"] [data-kit="map-pin"]:not([data-checked], :hover, :focus-visible) [data-kit="map-code"] { display: none; }
+    [data-skin="cyber"] [data-kit="map-scale"] {
+      inset-block: auto calc(var(--map-tool-row) + 8px);
+      translate: none;
+      background: var(--map-ocean);
+    }
+  }
+
+  @media (forced-colors: active) {
+    [data-skin="cyber"] [data-kit="map"] {
+      --map-ocean: Canvas;
+      --map-ground: Canvas;
+      --map-coast: CanvasText;
+    }
+    [data-skin="cyber"] [data-kit="map-land-pattern"] { stroke: GrayText; }
+    [data-skin="cyber"] [data-kit="map-grid"],
+    [data-skin="cyber"] [data-kit="map-border"] { stroke: GrayText; }
+    [data-skin="cyber"] [data-kit="map-route"] { stroke: LinkText; }
+    [data-skin="cyber"] [data-kit="map-route"][data-active] { stroke: Highlight; }
+    [data-skin="cyber"] [data-kit="map-annotation"] { fill: CanvasText; }
+    [data-skin="cyber"] [data-kit="map-globe-ocean"] { fill: Canvas; }
+    [data-skin="cyber"] [data-kit="map-globe-land"] { fill: Canvas; }
+    [data-skin="cyber"] [data-kit="map-globe-rim"] { stroke: CanvasText; }
+  }
+}

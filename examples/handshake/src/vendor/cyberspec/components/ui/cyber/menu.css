@@ -1,0 +1,121 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+/* A menu is the shared popup look (popup.css) plus the few things only a
+   menu has: the caret on its key, the leading column of icons and checks,
+   the mark in a checkable row, the arrow on a row that opens another level,
+   and a row that can't be taken back. */
+@layer cyber.ui {
+  /* The caret on the key turns over while its menu is open. */
+  [data-skin="cyber"] [data-kit="menu-caret"] {
+    margin-inline-end: -4px;
+    transition: rotate var(--cy-t) var(--cy-ease-snap);
+
+    [data-open] > & {
+      rotate: 180deg;
+    }
+  }
+
+  /* The leading column: an icon, or the space one would take, so every
+     label in the level starts on the same line. */
+  [data-skin="cyber"] [data-kit="menu-icon"] {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 14px;
+    height: 14px;
+  }
+
+  /* The mark: hollow while off, a lit block while on. Shape says which kind
+     of choice it is, so neither state rests on color: a box toggles on its
+     own, a diamond is one of several. */
+  [data-skin="cyber"] [data-kit="menu-mark"] {
+    width: 10px;
+    height: 10px;
+    border: 1px solid var(--cy-line-ctl);
+    transition:
+      background-color var(--cy-t-fast) linear,
+      border-color var(--cy-t-fast) linear;
+
+    &[data-shape="box"] {
+      clip-path: polygon(0 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%);
+    }
+
+    &[data-shape="diamond"] {
+      width: 8px;
+      height: 8px;
+      rotate: 45deg;
+    }
+
+    [data-checked] > & {
+      border-color: var(--cy-signal);
+      background: var(--cy-signal);
+      box-shadow: 0 0 calc(6px * var(--cy-fx)) var(--cy-signal);
+    }
+
+    [data-highlighted] > [data-unchecked] > & {
+      border-color: var(--cy-ink-hi);
+    }
+
+    [data-disabled] > & {
+      border-color: var(--cy-line-deco);
+      box-shadow: none;
+    }
+
+    /* Fills don't survive forced colors; a thick border does. */
+    @media (forced-colors: active) {
+      [data-checked] > & {
+        border-width: 5px;
+      }
+    }
+  }
+
+  /* The arrow on a row that opens another level. It leans toward the
+     submenu while the row is lit. */
+  [data-skin="cyber"] [data-kit="menu-more"] {
+    margin-inline-start: auto;
+    transition: translate var(--cy-t-fast) var(--cy-ease-snap);
+
+    :is([data-highlighted], [data-open]) > & {
+      translate: 2px 0;
+    }
+
+    :dir(rtl) & {
+      scale: -1 1;
+    }
+    :dir(rtl) :is([data-highlighted], [data-open]) > & {
+      translate: -2px 0;
+    }
+  }
+
+  /* A row whose submenu is open stays lit while focus is inside the
+     submenu, so the path back is visible. */
+  [data-skin="cyber"] [data-menu-row="sub"][data-open]:not([data-highlighted]) {
+    background: var(--cy-fill-hover);
+    color: var(--cy-ink-hi);
+    box-shadow: inset 3px 0 0 var(--cy-line-hot);
+  }
+
+  /* Something that can't be taken back. Red is the resting color here, so
+     it's flagged in yellow, with a mark that doesn't depend on the color. */
+  [data-skin="cyber"] [data-menu-row="destructive"]:not([data-disabled]) {
+    color: var(--cy-flag);
+
+    &::after {
+      content: "▲";
+      margin-inline-start: auto;
+      padding-inline-start: 12px;
+      font-size: 8px;
+      line-height: 1;
+    }
+
+    /* The shortcut already sits at the end; the mark follows it. */
+    &:has([data-kit="popup-shortcut"])::after {
+      margin-inline-start: 0;
+      padding-inline-start: 4px;
+    }
+
+    &[data-highlighted] {
+      box-shadow: inset 3px 0 0 var(--cy-flag);
+    }
+  }
+}

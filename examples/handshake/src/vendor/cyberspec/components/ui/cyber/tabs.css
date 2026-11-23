@@ -1,0 +1,279 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+/* How far a scrolling row of tabs has run, as the width of the fade at each
+   end: none at the end it's scrolled to, a fade wherever tabs are out of
+   sight. It's tied to the row's own scroll position, not to time. */
+@keyframes cy-tabs-edges {
+  0% {
+    --cy-tabs-fade-start: 0px;
+    --cy-tabs-fade-end: var(--fade);
+  }
+  2%,
+  98% {
+    --cy-tabs-fade-start: var(--fade);
+    --cy-tabs-fade-end: var(--fade);
+  }
+  100% {
+    --cy-tabs-fade-start: var(--fade);
+    --cy-tabs-fade-end: 0px;
+  }
+}
+
+@layer cyber.ui {
+  [data-skin="cyber"] [data-kit="tabs"] {
+    display: grid;
+    width: 100%;
+    min-width: 0;
+    text-align: start;
+  }
+
+  /* The row: the tabs, then whatever is left of the rule, carrying the
+     counter. Two counters run along it: one stops at the open tab, one goes
+     to the end. */
+  [data-skin="cyber"] [data-kit="tabs-bar"] {
+    display: flex;
+    align-items: stretch;
+    gap: 4px;
+    min-width: 0;
+    counter-reset: cy-tab cy-tabs;
+  }
+
+  [data-skin="cyber"] [data-kit="tabs-list"] {
+    position: relative;
+    display: flex;
+    gap: 4px;
+    min-width: 0;
+    /* Too narrow for its tabs, the row scrolls; the SDK keeps the open tab
+       in view and the counter says how many there are. A scrolling box
+       clips at its padding edge, so it's padded by the width of a focus
+       ring and pulled back out by the same amount. */
+    --ring: 4px;
+    padding: var(--ring);
+    margin: calc(var(--ring) * -1);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  /* What a tab is in either variant. The edge and the fill are left to the
+     variant: a key is a frame, which owns both. */
+  [data-skin="cyber"] [data-kit="tabs-tab"] {
+    position: relative;
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: var(--cy-h);
+    padding: 0 12px;
+    font-size: var(--cy-text-md);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: var(--cy-track);
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--cy-ink);
+    cursor: pointer;
+    user-select: none;
+    counter-increment: cy-tabs;
+    transition:
+      background-color var(--cy-t-fast) linear,
+      border-color var(--cy-t-fast) linear,
+      color var(--cy-t-fast) linear;
+
+    /* Every tab up to and including the open one. */
+    &:not([data-selected] ~ [data-kit="tabs-tab"]) {
+      counter-increment: cy-tab cy-tabs;
+    }
+
+    &[data-disabled] {
+      color: var(--cy-ink-mute);
+      cursor: not-allowed;
+    }
+  }
+
+  /* ── Bar ───────────────────────────────────────────────────────────── */
+
+  /* Each tab is a length of the rule. Hovered, its length lights; open, it
+     reads in the signal color and the bar sits under it. */
+  [data-skin="cyber"] [data-kit="tabs"][data-variant="bar"] [data-kit="tabs-tab"] {
+    border: 0;
+    border-block-end: 1px solid var(--cy-line-deco);
+    background: none;
+
+    @media (hover: hover) {
+      &:hover:not([data-disabled], [data-selected]) {
+        border-block-end-color: var(--cy-line-hot);
+        background-color: var(--cy-fill-hover);
+      }
+    }
+
+    &[data-selected] {
+      color: var(--cy-signal);
+    }
+
+    &[data-disabled] {
+      background-image: repeating-linear-gradient(135deg, transparent 0 5px, var(--cy-line-deco) 5px 6px);
+    }
+  }
+
+  /* A row too narrow for its tabs fades out at whichever end has more, so
+     a tab that's out of sight is hinted at, and scrolling to a tab stops
+     short of the fade. Where the browser can't tie this to the scroll
+     position, the counter at the end of the rule is the hint. The mask only
+     uses the color's opacity. */
+  @supports (animation-timeline: scroll()) {
+    [data-skin="cyber"] [data-kit="tabs"][data-variant="bar"] [data-kit="tabs-list"] {
+      --fade: 20px;
+      --toward: to right;
+
+      scroll-padding-inline: var(--fade);
+      mask-image: linear-gradient(
+        var(--toward),
+        transparent,
+        var(--cy-void) var(--cy-tabs-fade-start, 0px),
+        var(--cy-void) calc(100% - var(--cy-tabs-fade-end, 0px)),
+        transparent
+      );
+      animation: cy-tabs-edges linear both;
+      animation-timeline: scroll(self inline);
+
+      &:dir(rtl) {
+        --toward: to left;
+      }
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="tabs-icon"] {
+    display: grid;
+    place-items: center;
+
+    & svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    &[data-mirror]:dir(rtl) {
+      scale: -1 1;
+    }
+  }
+
+  /* The flag: an outlined yellow tag, the one thing in the row to look at. */
+  [data-skin="cyber"] [data-kit="tabs-flag"] {
+    padding: 2px 4px 1px;
+    border: 1px solid var(--cy-flag);
+    font-size: var(--cy-text-xs);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.08em;
+    color: var(--cy-flag);
+  }
+
+  /* The bar that marks the open tab. It rides the rule: its width is the
+     tab's, and it slides there with a hard stop. The SDK measures the tab
+     from the row's left edge, so the bar is placed from the left in either
+     reading direction. */
+  [data-skin="cyber"] [data-kit="tabs-indicator"] {
+    position: absolute;
+    left: 0;
+    bottom: var(--ring);
+    width: var(--active-tab-width);
+    height: 0;
+    border-block-start: 2px solid var(--cy-signal);
+    translate: var(--active-tab-left) 0;
+    filter: drop-shadow(0 0 calc(4px * var(--cy-fx)) var(--cy-signal));
+    pointer-events: none;
+    transition: translate var(--cy-t) var(--cy-ease-snap);
+
+    /* Its first placement isn't a move. */
+    &[data-activation-direction="none"] {
+      transition: none;
+    }
+  }
+
+  /* The rest of the rule, with the counter sitting on it: "02 / 03". */
+  [data-skin="cyber"] [data-kit="tabs-count"] {
+    flex: 1 0 auto;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+    min-width: 44px;
+    padding-block-end: 5px;
+    border-block-end: 1px solid var(--cy-line-deco);
+
+    &::before {
+      content: counter(cy-tab, decimal-leading-zero) " / " counter(cy-tabs, decimal-leading-zero);
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="tabs-panel"] {
+    min-width: 0;
+    padding-block-start: 12px;
+    color: var(--cy-ink-hi);
+    text-wrap: pretty;
+
+    /* A panel that was chosen tears in. The one open on arrival is simply
+       there. */
+    &[data-selected]:not([data-activation-direction="none"]) {
+      animation: var(--cy-fx-in) 240ms var(--cy-ease-snap) backwards;
+    }
+  }
+
+  /* ── Keys ──────────────────────────────────────────────────────────── */
+
+  /* Each tab a cut key, in the kit's state language: idle an outline, hover
+     the line at full and a 10% fill, open the 40% fill. A key that's open
+     also lights the tick in its raised corner, so it isn't told by the fill
+     alone. */
+  [data-skin="cyber"] [data-kit="tabs"][data-variant="key"] {
+    & [data-kit="tabs-list"] {
+      flex-wrap: wrap;
+      padding: 0;
+      margin: 0;
+      overflow: visible;
+    }
+
+    & [data-kit="tabs-tab"] {
+      --frame-cut: var(--cy-cut-sm);
+      --frame-line: var(--cy-line-ctl);
+      --frame-fill: var(--cy-panel-a);
+      --frame-notch-x: 22px;
+      --frame-notch: 4px;
+
+      padding-inline: 14px;
+
+      /* The tick: a bar across the raised corner. */
+      &::before {
+        content: "";
+        position: absolute;
+        inset-block-start: -1px;
+        left: -1px;
+        width: var(--frame-notch-x);
+        border-block-start: 4px solid var(--cy-signal);
+        opacity: 0;
+        transition: opacity var(--cy-t-fast) linear;
+      }
+
+      @media (hover: hover) {
+        &:hover:not([data-disabled], [data-selected]) {
+          --frame-line: var(--cy-line-hot);
+          --frame-fill: var(--cy-fill-hover);
+        }
+      }
+
+      &[data-selected] {
+        --frame-line: var(--cy-line-hot);
+        --frame-fill: var(--cy-fill-active);
+        color: var(--cy-ink-hi);
+
+        &::before {
+          opacity: 1;
+        }
+      }
+
+      &[data-disabled] {
+        --frame-line: var(--cy-line-deco);
+        --frame-image: repeating-linear-gradient(135deg, transparent 0 5px, var(--cy-line-deco) 5px 6px);
+      }
+    }
+  }
+}

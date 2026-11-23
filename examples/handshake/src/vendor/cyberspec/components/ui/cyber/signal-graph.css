@@ -1,0 +1,150 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  [data-skin="cyber"] [data-kit="signal-graph"] {
+    --graph-color: var(--cy-signal);
+    --graph-height: 56px;
+
+    display: grid;
+    gap: 6px;
+    width: 100%;
+    min-width: 0;
+    text-align: start;
+
+    &[data-tone="accent"] {
+      --graph-color: var(--cy-accent);
+    }
+    &[data-tone="flag"] {
+      --graph-color: var(--cy-flag);
+    }
+    &[data-tone="ok"] {
+      --graph-color: var(--cy-ok);
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="signal-graph-head"] {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
+
+    & [data-kit="label"] {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  /* The readout is a value, so it's the signal color whatever the trace
+     is drawn in. */
+  [data-skin="cyber"] [data-kit="signal-graph-value"] {
+    flex: none;
+    font-family: var(--cy-mono);
+    font-size: var(--cy-text-md);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    color: var(--cy-signal);
+  }
+
+  [data-skin="cyber"] [data-kit="signal-graph-unit"] {
+    margin-inline-start: 0.4em;
+    font-family: var(--cy-font);
+    font-size: var(--cy-text-xs);
+    letter-spacing: var(--cy-track);
+    text-transform: uppercase;
+  }
+
+  /* The grid: a solid baseline, three dashed rules above it, and a tick
+     rule down the leading edge. */
+  [data-skin="cyber"] [data-kit="signal-graph-plot"] {
+    position: relative;
+    height: var(--graph-height);
+    background:
+      linear-gradient(var(--cy-line-ctl), var(--cy-line-ctl)) left bottom / 100% 1px no-repeat,
+      repeating-linear-gradient(to bottom, var(--cy-line-ctl) 0 1px, transparent 1px 25%) left top / 4px 100% no-repeat,
+      repeating-linear-gradient(to right, var(--cy-line-deco) 0 2px, transparent 2px 6px) left 0 top 25% / 100% 1px no-repeat,
+      repeating-linear-gradient(to right, var(--cy-line-deco) 0 2px, transparent 2px 6px) left 0 top 50% / 100% 1px no-repeat,
+      repeating-linear-gradient(to right, var(--cy-line-deco) 0 2px, transparent 2px 6px) left 0 top 75% / 100% 1px no-repeat;
+
+    & > svg {
+      position: absolute;
+      inset: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    &:dir(rtl) > svg {
+      scale: -1 1;
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="signal-graph-trace"] {
+    fill: none;
+    stroke: var(--graph-color);
+    stroke-width: 1.5px;
+    stroke-linejoin: miter;
+    stroke-linecap: square;
+    vector-effect: non-scaling-stroke;
+  }
+
+  [data-skin="cyber"] [data-kit="signal-graph-area"] {
+    fill: color-mix(in srgb, var(--graph-color) 13%, transparent);
+    stroke: none;
+  }
+
+  /* A spectrum is lit segments: one mask over the whole drawing cuts every
+     bar into rows. Only the mask's alpha is used, so its color is any
+     opaque token. Older bars sit back; the latest is at full strength. */
+  [data-skin="cyber"] [data-kit="signal-graph"][data-variant="bars"] [data-kit="signal-graph-plot"] > svg {
+    mask-image: repeating-linear-gradient(to top, var(--cy-void) 0 3px, transparent 3px 4px);
+  }
+
+  [data-skin="cyber"] [data-kit="signal-graph-bar"] {
+    fill: color-mix(in srgb, var(--graph-color) 62%, var(--cy-panel));
+
+    &[data-latest] {
+      fill: var(--graph-color);
+    }
+  }
+
+  /* The newest sample: a small square on the end of the trace. */
+  [data-skin="cyber"] [data-kit="signal-graph-head-mark"] {
+    position: absolute;
+    inset-inline-end: -2px;
+    inset-block-end: calc((0.05 + var(--graph-head) * 0.9) * 100% - 2.5px);
+    width: 5px;
+    height: 5px;
+    background: var(--cy-ink-hi);
+    box-shadow: 0 0 calc(6px * var(--cy-fx)) var(--graph-color);
+
+    [data-live] & {
+      animation: var(--cy-fx-pulse) 1.6s ease-in-out infinite;
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="signal-graph-scale"] {
+    position: absolute;
+    inset-inline-start: 7px;
+
+    &[data-end="max"] {
+      inset-block-start: 2px;
+    }
+    &[data-end="min"] {
+      inset-block-end: 3px;
+    }
+  }
+
+  @media (forced-colors: active) {
+    [data-skin="cyber"] [data-kit="signal-graph-trace"] {
+      stroke: CanvasText;
+    }
+    [data-skin="cyber"] [data-kit="signal-graph-bar"] {
+      fill: CanvasText;
+    }
+  }
+}

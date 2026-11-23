@@ -1,0 +1,70 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  /* A strip of keys. Each cell is a key in its own frame (the look is
+     button.css's), so each draws its own states and its own focus; the strip
+     only lays them edge over edge, so neighbours share one line. */
+  [data-skin="cyber"] [data-kit="button-group"] {
+    display: inline-flex;
+    max-width: 100%;
+    /* The cells restack as they light, and that stays inside the strip. */
+    isolation: isolate;
+
+    & > * {
+      flex: 0 1 auto;
+    }
+
+    & > * + * {
+      margin-inline-start: -1px;
+    }
+
+    /* The shared line belongs to whichever cell is hot: a hovered, held or
+       focused cell comes forward, and a dead one drops back so its dim edge
+       never covers a live neighbour's. */
+    & > :is(:hover, :active, :focus-visible, [data-repeating]) {
+      z-index: 1;
+    }
+    & > :is(:disabled, [data-disabled]) {
+      z-index: -1;
+    }
+
+    /* A column is as wide as its widest cell, and never narrower than a
+       square one, so a short readout between two icons stays square. */
+    &[data-orientation="vertical"] {
+      flex-direction: column;
+
+      & > * {
+        min-width: var(--cy-h);
+        padding-inline: 8px;
+      }
+
+      & > * + * {
+        margin-inline-start: 0;
+        margin-block-start: -1px;
+      }
+    }
+  }
+
+  /* Three marks in the corner of a key that repeats while held. They're
+     drawn as one gradient so they stay crisp, and they light in the signal
+     color for as long as the key is running. */
+  [data-skin="cyber"] [data-kit="button-group-repeat"] {
+    position: absolute;
+    inset-block-start: 3px;
+    inset-inline-end: 3px;
+    width: 8px;
+    height: 3px;
+    color: var(--cy-line-ctl);
+    background: repeating-linear-gradient(to right, currentColor 0 2px, transparent 2px 3px);
+    pointer-events: none;
+    transition: color var(--cy-t-fast) linear;
+
+    [data-repeating] > & {
+      color: var(--cy-signal);
+    }
+
+    [data-disabled] > & {
+      color: var(--cy-line-deco);
+    }
+  }
+}

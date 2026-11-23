@@ -1,0 +1,77 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+/* Where toasts go and how they move. What one toast looks like is in
+   toast.css. */
+@layer cyber.ui {
+  /* The region: a column in the top trailing corner. ui-sdk puts it in the
+     top layer against that corner and measures the toasts; the skin gives it
+     a width, and a height that's the toasts added up plus the gaps between
+     them, so the pointer resting anywhere in the column holds their timers. */
+  [data-skin="cyber"] [data-kit="toaster"] {
+    --toast-gap: 8px;
+
+    width: min(344px, calc(100vw - 24px));
+    height: calc(var(--toast-stack-height, 0px) + max(var(--toast-count, 1) - 1, 0) * var(--toast-gap));
+    margin: 12px;
+  }
+
+  /* Each toast is laid over the region's top edge and moved to its place:
+     past the ones in front of it, plus wherever a swipe has dragged it.
+     When one arrives or leaves the rest step to their new places, and since
+     that's a transition, a toast arriving mid-step just redirects it. */
+  [data-skin="cyber"] [data-kit="toast"] {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline: 0;
+    translate: var(--toast-swipe-x, 0px) calc(var(--toast-offset, 0px) + var(--toast-index, 0) * var(--toast-gap) + var(--toast-swipe-y, 0px));
+    transition:
+      translate var(--cy-t-slow) var(--cy-ease-snap),
+      opacity var(--cy-t) linear;
+    /* It tears in where it stands. The tear is a transform, the place is a
+       translate, so neither disturbs the other. */
+    animation: var(--cy-fx-in) 260ms var(--cy-ease-snap);
+    /* A drag anywhere on it is a swipe, not a selection. */
+    user-select: none;
+
+    /* Its first frame: already in its place, not sliding there. */
+    &[data-starting-style] {
+      transition: none;
+    }
+
+    /* Under a finger it follows exactly. */
+    &[data-swiping] {
+      transition: none;
+      cursor: grabbing;
+    }
+
+    /* Dismissed, it tears out; thrown away, it keeps going the way it was
+       thrown. */
+    &[data-ending-style] {
+      animation: var(--cy-fx-out) 150ms var(--cy-ease-snap) both;
+    }
+    &[data-ending-style][data-swipe-direction] {
+      --toast-throw-x: 0px;
+      --toast-throw-y: 0px;
+
+      animation: none;
+      opacity: 0;
+      translate: calc(var(--toast-swipe-x, 0px) + var(--toast-throw-x))
+        calc(var(--toast-offset, 0px) + var(--toast-index, 0) * var(--toast-gap) + var(--toast-swipe-y, 0px) + var(--toast-throw-y));
+      transition:
+        translate var(--cy-t) var(--cy-ease-snap),
+        opacity var(--cy-t) linear;
+    }
+    &[data-swipe-direction="up"] {
+      --toast-throw-y: -100%;
+    }
+    &[data-swipe-direction="down"] {
+      --toast-throw-y: 100%;
+    }
+    &[data-swipe-direction="left"] {
+      --toast-throw-x: -100%;
+    }
+    &[data-swipe-direction="right"] {
+      --toast-throw-x: 100%;
+    }
+  }
+}

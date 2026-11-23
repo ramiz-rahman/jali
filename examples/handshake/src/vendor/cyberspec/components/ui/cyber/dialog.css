@@ -1,0 +1,91 @@
+@layer ui-sdk, cyber.tokens, cyber.base, cyber.ui, cyber.blocks, cyber.fx, cyber.a11y;
+
+@layer cyber.ui {
+  /* The page behind a modal: dimmed, tinted with the accent from above. */
+  [data-skin="cyber"] [data-kit="backdrop"] {
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(120% 70% at 50% 0%, color-mix(in srgb, var(--cy-accent) 26%, transparent), transparent 70%),
+      color-mix(in srgb, var(--cy-void) 78%, transparent);
+    backdrop-filter: blur(3px);
+    transition: opacity var(--cy-t) linear;
+
+    &:is([data-starting-style], [data-ending-style]) {
+      opacity: 0;
+    }
+  }
+
+  /* The dialog itself is only a column: the micro-print, the frame, and the
+     keys under it. It tears in as it opens and out as it closes; at FX
+     "calm" those are fades, and at "off" it's simply there. */
+  [data-skin="cyber"] [data-kit="dialog"] {
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: min(520px, calc(100vw - 32px));
+    height: fit-content;
+    max-height: calc(100dvh - 32px);
+
+    &[data-open] {
+      animation: var(--cy-fx-in) 280ms var(--cy-ease-snap) backwards;
+    }
+    &[data-ending-style] {
+      animation: var(--cy-fx-out) 150ms var(--cy-ease-snap) both;
+    }
+
+    & > [data-kit="actions"] {
+      margin-block-start: 6px;
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="dialog-surface"] {
+    --frame-cut: var(--cy-cut-lg);
+    --frame-line: var(--cy-line-hot);
+    --frame-fill: color-mix(in srgb, var(--cy-accent) 12%, var(--cy-panel));
+    --frame-spine: 26px;
+
+    display: grid;
+    gap: 10px;
+    min-height: 132px;
+    align-content: start;
+    padding: 18px 22px 24px;
+    overflow: auto;
+
+    /* A tick on the spine, and a line of print along the foot. */
+    &::before {
+      content: "";
+      position: absolute;
+      inset-block-start: 50%;
+      inset-inline-start: -18px;
+      width: 10px;
+      height: 2px;
+      background: var(--cy-panel);
+    }
+  }
+
+  [data-skin="cyber"] [data-kit="dialog-title"] {
+    font-size: var(--cy-text-lg);
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: var(--cy-track);
+    text-transform: uppercase;
+    color: var(--cy-ink);
+    text-wrap: balance;
+  }
+
+  [data-skin="cyber"] [data-kit="dialog-description"] {
+    color: var(--cy-ink-hi);
+    max-width: 52ch;
+    text-wrap: pretty;
+  }
+
+  [data-skin="cyber"] [data-kit="dialog-body"] {
+    display: grid;
+    gap: var(--cy-gap);
+    margin-block-start: 4px;
+  }
+}
