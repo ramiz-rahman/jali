@@ -41,16 +41,16 @@ The titles below are for an instance with no curated page. With a curated page, 
 | `pane.putBack` | Put back tucked pane | ⌘K ⌘] | Ctrl+K Ctrl+] | "Nothing is tucked" when no pane is tucked. |
 | `shelf.reveal` | Show a pane from the shelf | none | none | Silent when no pane is behind a tab (tucked, folded or an ordinary tab). |
 | `pane.resize_mode` | Resize mode (arrows, then Esc) | ⌘K ⌘R | Ctrl+K Ctrl+R | Silent when no pane is focused. When the pane has no divider, the action says "Nothing to resize: this pane has no divider". |
-| `pane.close` | Close pane | ⌘K ⌘⌫ | Ctrl+K Ctrl+Backspace | Silent when no pane is focused or only one pane is open (so always in a curated page's Single view). In Split view a view is never closed: it goes back to the page tabs, refused with "… is the only view on screen" for the last one. |
-| `pane.close_others` | Close other panes | none | none | Silent when no pane is focused or only one pane is open. In a curated page it means Back to the page, refused with "Nothing opened beyond the page" when nothing was opened. |
+| `pane.close` | Close pane | ⌘K ⌘⌫ | Ctrl+K Ctrl+Backspace | Silent when no pane is focused. With only one pane open: "The last pane stays open"; in a curated page's Single view: "Single shows one view: choose it from the tabs…". In Split view a view is never closed: it goes back to the page tabs, refused with "… is the only view on screen" for the last one. |
+| `pane.close_others` | Close other panes | none | none | Silent when no pane is focused. With no other pane it may close: "There are no other panes to close". In a curated page it means Back to the page, refused with "Nothing opened beyond the page" when nothing was opened. |
 | `pane.undo_close` | Undo last close or tuck | ⌘K ⌘Z | Ctrl+K Ctrl+Z | "Nothing to restore" when the undo stack is empty. Undoes the last close, close others or tuck. |
 | `pane.split.right` | Split right (new pane) | ⌘\ | Ctrl+\ | Silent when no pane is focused, or there is no launcher. Where the pane doesn't allow `open`: "Panes can't be opened from … here". |
 | `pane.split.down` | Split down (new pane) | ⌘K ⌘\ | Ctrl+K Ctrl+\ | Silent when no pane is focused, or there is no launcher. Where the pane doesn't allow `open`: "Panes can't be opened from … here". |
 | `pane.split.auto` | Split auto (new pane, by shape) | none | none | Silent when no pane is focused, or there is no launcher. Where the pane doesn't allow `open`: "Panes can't be opened from … here". |
-| `pane.move.left` | Move pane left | ⌘K ⇧⌘← | Ctrl+K Ctrl+Shift+Left | Silent when no pane is focused or only one pane is open. With no pane to that side: "… can't move left". |
-| `pane.move.right` | Move pane right | ⌘K ⇧⌘→ | Ctrl+K Ctrl+Shift+Right | Silent when no pane is focused or only one pane is open. With no pane to that side: "… can't move right". |
-| `pane.move.up` | Move pane up | ⌘K ⇧⌘↑ | Ctrl+K Ctrl+Shift+Up | Silent when no pane is focused or only one pane is open. With no pane to that side: "… can't move up". |
-| `pane.move.down` | Move pane down | ⌘K ⇧⌘↓ | Ctrl+K Ctrl+Shift+Down | Silent when no pane is focused or only one pane is open. With no pane to that side: "… can't move down". |
+| `pane.move.left` | Move pane left | ⌘K ⇧⌘← | Ctrl+K Ctrl+Shift+Left | Silent when no pane is focused. With only one pane, or no pane to that side: "… can't move left". |
+| `pane.move.right` | Move pane right | ⌘K ⇧⌘→ | Ctrl+K Ctrl+Shift+Right | Silent when no pane is focused. With only one pane, or no pane to that side: "… can't move right". |
+| `pane.move.up` | Move pane up | ⌘K ⇧⌘↑ | Ctrl+K Ctrl+Shift+Up | Silent when no pane is focused. With only one pane, or no pane to that side: "… can't move up". |
+| `pane.move.down` | Move pane down | ⌘K ⇧⌘↓ | Ctrl+K Ctrl+Shift+Down | Silent when no pane is focused. With only one pane, or no pane to that side: "… can't move down". |
 | `pane.move.out` | Move pane out of the row | none | none | Silent unless the focused pane is in a row that scrolls sideways (`row({ scroll: "x" }, …)`). Takes it out beside the row, on the side it is nearer on screen: "… moved out of the row". |
 | `pane.swap` | Swap with next pane | none | none | Silent when no pane is focused or only one pane is open. |
 | `pane.merge` | Add to tabs of… | ⌘K ⌘G | Ctrl+K Ctrl+G | Only with the chooser() feature (jali/chooser). Silent when no pane is focused, or there is no other pane or stack on screen to join. Opens the "Add to tabs of…" chooser. |
@@ -63,14 +63,14 @@ The titles below are for an instance with no curated page. With a curated page, 
 | `layout.reset` | Reset layout | none | none | Silent without presets. Rebuilds the preset last chosen. |
 | `layout.auto` | Arrange panes automatically | none | none | On a curated page, on a phone (one pane at a time), or with one pane. Arranges every pane from the room and the kinds' sizes; Back undoes it. |
 | `layout.copy_link` | Copy link to this layout | none | none | Never. Copies store.href() and says "Link copied", or "Couldn't copy the link" when the clipboard refuses; says nothing where there is no clipboard API. |
-| `page.back` | Back to page (close opened panes) | none | none | Silent unless a curated page is open and has panes opened from links. |
+| `page.back` | Back to page (close opened panes) | none | none | Silent unless a curated page is open. With no panes opened from links: "Nothing opened beyond the page". |
 | `page.reset` | Reset layout to its design | none | none | Silent unless a curated page is open in Split view. |
 | `page.single` | Single view: one view at a time | none | none | Silent unless a curated page is open in Split view. |
 | `page.split` | Split view: views side by side | none | none | Silent unless a curated page is open in Single view. |
 | `page.open` | Open page | none | none | Silent while the page is open, or when there is no curated page. |
 | `page.leave` | Open Notes | none | none | Silent unless a curated page is open, and in a page-only app (no presets). |
 | `peek.close` | Close peek | none | none | Silent when no peek is open. |
-| `peek.open_beside` | Open peek beside | none | none | Silent when no peek is open. Where the pane the peek came from doesn't allow `open`: "Panes can't be opened from … here". |
+| `peek.open_beside` | Open peek beside | none | none | Silent when no peek is open. Where the pane the peek came from doesn't allow `open`: "Panes can't be opened from … here". In a curated page's Single view: "Single shows one view: choose it from the tabs…". |
 | `settings.open` | Open settings | none | none | Only with the settings() feature (jali/settings). Never refused there. |
 | `settings.centre_drop.toggle` | Switch centre drop (swap ↔ tab) | none | none | Never. |
 

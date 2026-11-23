@@ -1,7 +1,7 @@
 /**
  * The command table's data. Ids, titles, groups and keys come from jali itself (commandDefsOf, DEFAULT_KEYMAP),
- * so the table is always the package's; when each command is refused is written here, from each command's `check`
- * in packages/core/src/commands/registry.ts and the action it runs. The coverage test checks that every command id
+ * so the table is always the package's; when each command is refused is written here, from the step each command
+ * runs (packages/core/src/commands/registry.ts): its check and its `allow` controls, which ⌘K asks too. The coverage test checks that every command id
  * has a note here, and no note names a command that is gone.
  */
 import {
@@ -86,9 +86,9 @@ export const REFUSED: Record<string, string> = {
   "pane.resize_mode":
     'Silent when no pane is focused. When the pane has no divider, the action says "Nothing to resize: this pane has no divider".',
   "pane.close":
-    'Silent when no pane is focused or only one pane is open (so always in a curated page\'s Single view). In Split view a view is never closed: it goes back to the page tabs, refused with "… is the only view on screen" for the last one.',
+    'Silent when no pane is focused. With only one pane open: "The last pane stays open"; in a curated page\'s Single view: "Single shows one view: choose it from the tabs…". In Split view a view is never closed: it goes back to the page tabs, refused with "… is the only view on screen" for the last one.',
   "pane.close_others":
-    'Silent when no pane is focused or only one pane is open. In a curated page it means Back to the page, refused with "Nothing opened beyond the page" when nothing was opened.',
+    'Silent when no pane is focused. With no other pane it may close: "There are no other panes to close". In a curated page it means Back to the page, refused with "Nothing opened beyond the page" when nothing was opened.',
   "pane.undo_close":
     '"Nothing to restore" when the undo stack is empty. Undoes the last close, close others or tuck.',
   "pane.split.right":
@@ -98,13 +98,13 @@ export const REFUSED: Record<string, string> = {
   "pane.split.auto":
     "Silent when no pane is focused, or there is no launcher. Where the pane doesn't allow `open`: \"Panes can't be opened from … here\".",
   "pane.move.left":
-    'Silent when no pane is focused or only one pane is open. With no pane to that side: "… can\'t move left".',
+    'Silent when no pane is focused. With only one pane, or no pane to that side: "… can\'t move left".',
   "pane.move.right":
-    'Silent when no pane is focused or only one pane is open. With no pane to that side: "… can\'t move right".',
+    'Silent when no pane is focused. With only one pane, or no pane to that side: "… can\'t move right".',
   "pane.move.up":
-    'Silent when no pane is focused or only one pane is open. With no pane to that side: "… can\'t move up".',
+    'Silent when no pane is focused. With only one pane, or no pane to that side: "… can\'t move up".',
   "pane.move.down":
-    'Silent when no pane is focused or only one pane is open. With no pane to that side: "… can\'t move down".',
+    'Silent when no pane is focused. With only one pane, or no pane to that side: "… can\'t move down".',
   "pane.swap": "Silent when no pane is focused or only one pane is open.",
   "pane.move.out":
     'Silent unless the focused pane is in a row that scrolls sideways (`row({ scroll: "x" }, …)`). Takes it out beside the row, on the side it is nearer on screen: "… moved out of the row".',
@@ -130,7 +130,8 @@ export const REFUSED: Record<string, string> = {
     "On a curated page, on a phone (one pane at a time), or with one pane. Arranges every pane from the room and the kinds' sizes; Back undoes it.",
   "layout.copy_link":
     'Never. Copies store.href() and says "Link copied", or "Couldn\'t copy the link" when the clipboard refuses; says nothing where there is no clipboard API.',
-  "page.back": "Silent unless a curated page is open and has panes opened from links.",
+  "page.back":
+    'Silent unless a curated page is open. With no panes opened from links: "Nothing opened beyond the page".',
   "page.reset": "Silent unless a curated page is open in Split view.",
   "page.single": "Silent unless a curated page is open in Split view.",
   "page.split": "Silent unless a curated page is open in Single view.",
@@ -138,7 +139,7 @@ export const REFUSED: Record<string, string> = {
   "page.leave": "Silent unless a curated page is open, and in a page-only app (no presets).",
   "peek.close": "Silent when no peek is open.",
   "peek.open_beside":
-    "Silent when no peek is open. Where the pane the peek came from doesn't allow `open`: \"Panes can't be opened from … here\".",
+    'Silent when no peek is open. Where the pane the peek came from doesn\'t allow `open`: "Panes can\'t be opened from … here". In a curated page\'s Single view: "Single shows one view: choose it from the tabs…".',
   "settings.open": "Only with the settings() feature (jali/settings). Never refused there.",
   "settings.centre_drop.toggle": "Never.",
 };
