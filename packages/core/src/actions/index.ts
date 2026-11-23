@@ -33,7 +33,7 @@ import {
   toggleZoom,
 } from "./focus";
 import { addTab, dismiss, newTab, noteOpen, openBeside, openHere, split, splitAuto } from "./open";
-import { close, closeOthers, closeTabs, remove, undo } from "./close";
+import { close, closeOthers, closeTabs, remove, removeClosed, undo } from "./close";
 import { putBack, reveal, tuck } from "./tuck";
 import { drop, moveDirection, moveOutOfRow, swapWithNext } from "./move";
 import { setScroll } from "./scroll";
@@ -184,7 +184,10 @@ export const STEPS = /* @__PURE__ */ (() =>
     closeOthers: onFocused(NONE, closeOthers),
     closeTabs: onPane([TAB_SET], closeTabs),
     undo: checked(NONE, undo),
-    remove: onPane(NONE, remove),
+    // An object only an undo could bring back is removed from the undo stack (removeClosed).
+    remove: checked([arg.target], (x: Snapshot, pane: PaneTarget) =>
+      paneFor(x, pane) ? onTarget(x, pane, (id) => remove(x, id)) : removeClosed(x, pane),
+    ),
     tuck: onFocused(NONE, tuck),
     // `preferred`, for adapters: the tab to put back when no pane is named (the one the shelf shows).
     putBack: onFocused([arg.optional(arg.text)], putBack),

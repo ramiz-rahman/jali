@@ -244,7 +244,7 @@ describe("an undone close puts the pane back in its slot, and keeps what happene
   });
 });
 
-describe("entries for what is gone are dropped", () => {
+describe("entries for what is gone or open again are dropped", () => {
   it("close B, remove C, undo: only B comes back", () => {
     const m = make(
       row(
@@ -258,6 +258,55 @@ describe("entries for what is gone are dropped", () => {
     m.a.remove("c");
     m.a.undo();
     expect(ids(m)).toEqual(["a", "b"]);
+  });
+
+  it("removing a closed pane's object drops its entry; within a batch, only its own", () => {
+    const m = make(
+      row(
+        { id: "r" },
+        pane(rec(1), { id: "a" }),
+        pane(rec(2), { id: "b" }),
+        pane(rec(3), { id: "c" }),
+      ),
+    );
+    m.a.closeOthers("a");
+    expect(m.a.remove(rec(2)).ok).toBe(true);
+    m.a.undo();
+    expect(ids(m)).toEqual(["a", "c"]);
+    // By id too, and an object never open is still not found.
+    m.a.close("c");
+    expect(m.a.remove("c").ok).toBe(true);
+    expect(m.store.get().undoStack).toEqual([]);
+    expect(m.a.remove("zzz")).toMatchObject({ ok: false, reason: "not-found" });
+  });
+
+  it("a closed pane whose object is open again is not duplicated", () => {
+    const m = make(
+      row(
+        { id: "r" },
+        pane(rec(1), { id: "a" }),
+        pane(rec(2), { id: "b" }),
+        pane(rec(3), { id: "c" }),
+      ),
+    );
+    m.a.close("b");
+    m.a.openBeside("a", rec(2));
+    expect(m.a.undo()).toMatchObject({ ok: false, reason: "nothing-to-do" });
+    expect(refs(m).filter((r) => r.params.id === 2)).toHaveLength(1);
+    // Within a batch, only that pane's part goes.
+    m.a.closeOthers("a");
+    m.a.openBeside("a", rec(3));
+    m.a.undo();
+    expect(refs(m).filter((r) => r.params.id === 3)).toHaveLength(1);
+    expect(refs(m).filter((r) => r.params.id === 2)).toHaveLength(1);
+  });
+
+  it("a scratch pane is its own: one like it open again doesn't drop it", () => {
+    const m = make(row({ id: "r" }, pane(rec(1), { id: "a" }), pane(note(1), { id: "n" })));
+    m.a.close("n");
+    m.a.openBeside("a", note(1));
+    m.a.undo();
+    expect(refs(m).filter((r) => r.kind === "note")).toHaveLength(2);
   });
 });
 

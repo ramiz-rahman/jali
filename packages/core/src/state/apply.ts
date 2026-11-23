@@ -818,7 +818,7 @@ function step(c: Run, o: Outcome): Res {
     if (layoutChanged || viewChanged || o.patch || o.undo) {
       // A reshape is counted, so the instance can let panes slide to their new place.
       const motion = layoutChanged && geometry === "reshape" ? { reshapes: s.reshapes + 1 } : {};
-      const undoStack = pruneUndo(o.undo ?? s.undoStack, next.layout);
+      const undoStack = pruneUndo(o.undo ?? s.undoStack, next.layout, snap(c).env.kinds);
       // The work the person discarded goes in this commit, never before it: an answer that changes nothing keeps it.
       const kept = discarding.length
         ? {
@@ -833,9 +833,11 @@ function step(c: Run, o: Outcome): Res {
         const text = say(snap(c)).discarded(discarding.length);
         fx(c, () => io.announce(text));
       }
-      const pruned = layoutChanged
-        ? prunePanes({ ...s, ...kept, ...o.patch }, next.layout, undoStack, snap(c).env.kinds, s)
-        : {};
+      // A pane's state goes with the last way back to it: the layout changing, or an undo entry dropped.
+      const pruned =
+        layoutChanged || undoStack !== s.undoStack
+          ? prunePanes({ ...s, ...kept, ...o.patch }, next.layout, undoStack, snap(c).env.kinds, s)
+          : {};
       set(c, {
         layout: next.layout,
         view: layoutChanged || viewChanged ? next.view : s.view,

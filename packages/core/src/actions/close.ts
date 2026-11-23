@@ -1,12 +1,13 @@
 import { allows, notAllowed } from "./allow";
 import * as core from "../layout/engine";
-import type { NodeId } from "../layout/types";
+import type { NodeId, ObjectRef, PaneNode } from "../layout/types";
 import { closeMany } from "../layout/ops/close";
 import { restoreClosed } from "../layout/ops/restore";
 import { refuse, type Outcome, type RefusalStep, type Snapshot } from "../state/apply";
 import { messagesOf, say } from "../state/messages";
-import { pushUndo } from "../state/undo";
+import { closedPanes, forgetObject, pushUndo } from "../state/undo";
 import { objectKey } from "../state/pane-state";
+import { sameRef } from "../layout/ops/ref";
 import { own } from "../own";
 import { putBack } from "./tuck";
 
@@ -39,6 +40,7 @@ export function close(x: Snapshot, id = x.s.view.focused): Outcome {
  * announcement, and without asking (the host decided; neither `beforeClose` nor "Discard unsaved changes?" runs).
  * The address is replaced, so Back never returns to it. The last pane becomes the launcher, the instance's "choose
  * what to show"; without a launcher it stays (`"last-pane"`). A curated page's views are the page's, not the host's.
+ * (A closed pane of its object is no longer in the undo stack: an object open again leaves it, state/undo.ts.)
  */
 export function remove(x: Snapshot, id: NodeId): Outcome {
   const { s, m, ctx, env } = x;
@@ -60,6 +62,22 @@ export function remove(x: Snapshot, id: NodeId): Outcome {
   }
   const r = core.close(s.layout, unzoomed(s.view), id, ctx);
   return { op: "remove", layout: r.layout, view: r.view, allowed: true, patch };
+}
+
+/**
+ * `remove` of an object no pane shows: a closed pane of it that an undo could bring back (by its pane id, or the
+ * object) leaves the undo stack, alone of its batch. `"not-found"` when there is none.
+ */
+export function removeClosed({ s, env: { kinds } }: Snapshot, target: NodeId | ObjectRef): Outcome {
+  const match = (p: PaneNode) =>
+    typeof target === "string"
+      ? p.id === target
+      : kinds.identityOf(target) === undefined
+        ? sameRef(p.ref, target)
+        : kinds.sameObject(p.ref, target);
+  return closedPanes(s.undoStack).some(match)
+    ? { op: "remove", undo: forgetObject(s.undoStack, match) }
+    : refuse("not-found");
 }
 
 /**
