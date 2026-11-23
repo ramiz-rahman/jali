@@ -52,11 +52,13 @@ The repo is a pnpm workspace:
 | `size`           | What each scenario ships of Jali, against its budget, and that no feature's code leaks into a scenario without it                                                                           |
 | `pack`           | `jali` packed, every type its signatures name exported (`tooling/public-types.mjs`), `examples/minimal` built from the tarball, and a server render hydrated from it                        |
 | `docs-build`     | The docs site prerenders every page                                                                                                                                                         |
-| `e2e-*`          | The browser suites: Jali's (`e2e/`), each example's, and the docs site's                                                                                                                    |
+| `e2e-*`          | The browser suites: Jali's (`e2e/`), each example's, and the docs site's. `e2e-site` builds the public site and opens every hosted app from its folder (`e2e/site`)                         |
 
 - `pnpm verify --quick` skips the browser suites and the React 18 check. Enough while you work; run the full one before a change to `packages/`, or to anything a browser suite covers, is committed.
 - `pnpm verify lint fmt` runs only the gates named.
 - The browser suites start their own servers on free ports, so `pnpm verify` runs beside your dev servers. A suite run on its own uses the port its URL variable names (`DATA_STUDIO_URL`, `DOCS_URL`, …), stops if something else holds it, and reuses your server only with `REUSE_SERVER=1`.
+
+The public site, jali.ramizrahman.com, is the docs with every example app under `/apps/<name>/`, built into `site/` by `pnpm build:site` from one commit. `pnpm preview:site` serves it as Netlify does (port 5480). Netlify builds it from `netlify.toml` on every push, and every pull request gets a Deploy Preview.
 
 CI (`.github/workflows/ci.yml`) runs the gates that need no browser on Linux, where case matters, on every push and pull request. It starts once the repository is on GitHub.
 

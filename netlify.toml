@@ -1,0 +1,28 @@
+# jali.ramizrahman.com: the docs at the root and every example app under /apps/<name>/, built from one commit by
+# tooling/build-site.mjs. Netlify builds each push and each pull request (a Deploy Preview) from this file.
+
+[build]
+command = "pnpm build:site"
+publish = "site"
+
+[build.environment]
+NODE_VERSION = "26"
+# Netlify installs with the pnpm in package.json's packageManager. The browsers are only for tests.
+PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1"
+
+# Hashed build files never change: cache them for a year. Everything else is checked on each visit.
+[[headers]]
+for = "/_astro/*"
+[headers.values]
+Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+for = "/apps/*/assets/*"
+[headers.values]
+Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+for = "/*"
+[headers.values]
+X-Content-Type-Options = "nosniff"
+Referrer-Policy = "strict-origin-when-cross-origin"

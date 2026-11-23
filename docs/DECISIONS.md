@@ -2398,3 +2398,18 @@ who has read one example finds their way in another, and can tell what a part ma
 - **Not added:** a pane command's keys stay a hint (`keys` on a pane's own commands is printed, not bound): a pane's
   command runs only while its pane is focused, and its keys belong to its content.
 - **Tests:** `packages/core/tests/command-keys.test.ts`, `examples/loan-review/e2e/chrome.spec.ts`.
+
+## 23 Nov 2026 · The public site: the docs and the example apps, one build, on Netlify
+
+- **Where:** jali.ramizrahman.com, on Netlify with the rest of ramizrahman.com. The docs sit at the root and each
+  example app under `/apps/<name>/` (Data Studio, Loan review, Markets, Studio, Trips, Handshake).
+- **One build** (`tooling/build-site.mjs`, `pnpm build:site`): the docs and the apps from the same commit, so a docs
+  link into an app opens the build it describes, and a Deploy Preview shows both changed together. The apps already
+  build with relative asset paths and keep their state in the query string, so each works from its folder with no
+  server rules.
+- **`/apps`, not `/examples`:** the docs' pages have no trailing slash (`/examples` is examples.html), and a folder
+  of the same name beside a page would make `/examples` ambiguous to the host.
+- **Netlify builds it** (`netlify.toml`): Deploy Previews per pull request with no token to keep, hashed files cached
+  for a year. `packageManager` and `engines` in the root package.json pin pnpm and Node for its build.
+- **Checked here:** `tooling/serve-site.mjs` serves `site/` with Netlify's address rules, and `e2e-site` opens every
+  app from its folder in Chrome and WebKit, failing on a page error or any of the site's own requests that fail.
