@@ -2337,3 +2337,22 @@ fixes.
   worker is imported was a guess made while WebKit couldn't run, and is reverted (02fab7af).
 - **WebKit results** at d3c9ec7d: root 144 (5 skipped), Data Studio 20, Loan review 28, Markets 32, Studio 49, Trips
   50, docs site 41. The Safari focus fixes (step 6) and the long-drag history writes are confirmed there.
+
+## 23 Nov 2026 · Tests: four at a time
+
+- **Every Playwright suite runs four tests at once** (`WORKERS` in e2e/fixtures/browsers.ts; it was `workers: 1`
+  everywhere, with no recorded reason). Spec files run side by side; a file's own tests still run in order
+  (`fullyParallel` stays off). Checked before the change: the root suite three times in Chrome and twice in WebKit
+  (735 runs, no failure, no flake), and each example suite twice in both browsers (804 runs). One pass of the root
+  suite in both browsers went from about 16 minutes (estimated from the one-at-a-time per-test time) to 6.5. Two
+  failures in those runs, neither from running in parallel as far as a rerun can tell: Trips' map fonts from
+  tiles.openfreemap.org failed to load once in WebKit (the network), and Data Studio's "an edited draft of the
+  preset's query waits for Run" threw "The provided value is non-finite" once in WebKit after its reload, which 31
+  reruns of that test (15 one at a time, 16 four at a time) didn't repeat. That one is an open intermittent bug.
+- **`pnpm verify` runs the gates without a browser side by side**, four at once (`--jobs=N`). `size` waits for `unit`
+  (unit's bundle test builds from packages/jali/dist when it is there, and size rebuilds it) and `pack` for `size`
+  (`pnpm pack` rebuilds jali's dist too). The browser suites still run one suite at a time, after the rest, so the
+  tests that read rendered positions get the machine to themselves.
+- The docs site's suite stays at one worker: its tour tests sleep 2.5–4 s to see that nothing moves, which a busier
+  machine could make flaky, and it wasn't part of the check. Those sleeps are the next thing to take out (Playwright's
+  `page.clock`).

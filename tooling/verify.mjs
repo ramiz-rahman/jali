@@ -1,15 +1,19 @@
 #!/usr/bin/env node
 /**
- * Every gate, in one command. Runs each in turn (all of them, even after a failure), writes each one's output to
+ * Every gate, in one command. Runs all of them (even after a failure), writes each one's output to
  * node_modules/.verify/<gate>.log, prints the tail of any that fail, and ends with one line per gate. Exits 1 if any
  * gate failed.
  *
  *   pnpm verify               every gate
  *   pnpm verify --quick       without the browser suites and the React 18 check
  *   pnpm verify lint fmt      only the gates named (see GATES below)
+ *   pnpm verify --jobs=1      one gate at a time (default 4)
  *
- * The browser suites start their own servers on free ports it picks, so they run beside anyone else's dev servers
- * and never test another checkout (e2e/fixtures/server.ts).
+ * The gates without a browser run side by side, up to --jobs at once; a gate waits for the ones in its `after`. The
+ * browser suites run after them, one suite at a time: each runs its own tests in parallel (e2e/fixtures/browsers.ts),
+ * and they read rendered positions, so they get the machine to themselves. They start their own servers on free
+ * ports it picks, so they run beside anyone else's dev servers and never test another checkout
+ * (e2e/fixtures/server.ts).
  */
 import { spawn } from "node:child_process";
 import { createWriteStream, mkdirSync, readFileSync } from "node:fs";
@@ -24,6 +28,8 @@ mkdirSync(logs, { recursive: true });
 const args = process.argv.slice(2);
 const quick = args.includes("--quick");
 const only = args.filter((a) => !a.startsWith("--"));
+const jobsArg = args.find((a) => a.startsWith("--jobs="));
+const jobs = jobsArg ? Math.max(1, Number(jobsArg.slice("--jobs=".length)) || 1) : 4;
 
 /** A port nobody is listening on now, distinct from the ones already picked. */
 const picked = new Set();
@@ -138,6 +144,8 @@ const GATES = [
   },
   {
     name: "size",
+    // Rebuilds packages/*/dist, which unit's bundle test builds from when it is there: never both at once.
+    after: ["unit"],
     cmd: ["pnpm", "size"],
     // "size: minimal ships more core than its budget" → "over budget: minimal core, react; full core".
     detail: (log) => {
@@ -150,6 +158,8 @@ const GATES = [
   },
   {
     name: "pack",
+    // `pnpm pack` rebuilds packages/jali/dist, which size builds and reads: never both at once.
+    after: ["size"],
     cmd: ["node", "tooling/pack-check.mjs"],
     detail: (log) => lastMatch(log, /^pack-check: \d+ problems?/),
   },
@@ -212,7 +222,7 @@ function run(gate, extra) {
   });
 }
 
-console.log(`verify: ${gates.map((g) => g.name).join(", ")}`);
+console.log(`verify: ${gates.map((g) => g.name).join(", ")} (${jobs} at once)`);
 if (gates.some((g) => g.browser))
   console.log(
     `verify: browser suites on ${Object.entries(ports)
@@ -221,9 +231,9 @@ if (gates.some((g) => g.browser))
   );
 
 const results = {};
-for (const gate of gates) {
-  process.stdout.write(`\n▶ ${gate.name}: ${gate.cmd.join(" ")}\n`);
-  const r = await run(gate, gate.env?.(results));
+const selected = new Set(gates.map((g) => g.name));
+
+function finish(gate, r) {
   // eslint-disable-next-line no-control-regex
   const log = readFileSync(r.file, "utf8").replace(/\x1b\[[0-9;]*m/g, "");
   r.detail = gate.detail?.(log);
@@ -231,13 +241,46 @@ for (const gate of gates) {
   if (!r.ok) {
     const tail = log.trimEnd().split("\n").slice(-40).join("\n");
     process.stdout.write(
-      `${tail}\n✘ ${gate.name} failed (exit ${r.code}); full log: ${relative(root, r.file)}\n`,
+      `\n${tail}\n✘ ${gate.name} failed (exit ${r.code}); full log: ${relative(root, r.file)}\n`,
     );
   } else process.stdout.write(`✓ ${gate.name} (${(r.ms / 1000).toFixed(1)}s)\n`);
 }
 
+/** Runs `list` up to `limit` at once, in order, each once the gates in its `after` (those selected) have finished. */
+async function pool(list, limit) {
+  const waiting = [...list];
+  const running = new Set();
+  const ready = (g) => (g.after ?? []).every((n) => !selected.has(n) || results[n]);
+  while (waiting.length || running.size) {
+    for (const gate of waiting.filter(ready)) {
+      if (running.size >= limit) break;
+      waiting.splice(waiting.indexOf(gate), 1);
+      process.stdout.write(`▶ ${gate.name}: ${gate.cmd.join(" ")}\n`);
+      const job = run(gate, gate.env?.(results)).then((r) => {
+        finish(gate, r);
+        running.delete(job);
+      });
+      running.add(job);
+    }
+    if (!running.size) throw new Error(`verify: ${waiting.map((g) => g.name)} wait on each other`);
+    await Promise.race(running);
+  }
+}
+
+const started = Date.now();
+await pool(
+  gates.filter((g) => !g.browser),
+  jobs,
+);
+await pool(
+  gates.filter((g) => g.browser),
+  1,
+);
+
 const width = Math.max(...gates.map((g) => g.name.length));
-console.log(`\nverify${quick ? " --quick" : ""}: summary`);
+console.log(
+  `\nverify${quick ? " --quick" : ""}: summary (${((Date.now() - started) / 1000).toFixed(1)}s in all)`,
+);
 for (const gate of gates) {
   const r = results[gate.name];
   const time = `${(r.ms / 1000).toFixed(1)}s`.padStart(7);

@@ -36,7 +36,7 @@ The repo is a pnpm workspace:
 
 ## Before you commit: `pnpm verify`
 
-`pnpm verify` runs every gate, carries on past a failure, and ends with one line per gate. Any failure exits 1, and each gate's full output is in `node_modules/.verify/<gate>.log`. Every gate must pass before a change merges.
+`pnpm verify` runs every gate, carries on past a failure, and ends with one line per gate. Any failure exits 1, and each gate's full output is in `node_modules/.verify/<gate>.log`. Every gate must pass before a change merges. The gates without a browser run four at a time (`--jobs=N` to change it), except where one rebuilds what another reads: `size` waits for `unit`, and `pack` for `size`. The browser suites follow, one suite at a time, each running four tests at once (`WORKERS` in `e2e/fixtures/browsers.ts`; `--workers=1` runs a suite one test at a time).
 
 | Gate             | What it checks                                                                                                                                                                              |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
