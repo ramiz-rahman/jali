@@ -57,11 +57,13 @@ export function usePane(kind?: Pane): PaneProps<Params> {
 
 /** Render order across every pane: a parent renders (and so mounts) before its children. */
 let order = 0;
+/** This call's place in render order, from its mount: later for a child than its parent, and for a later mount. */
+const useOrder = () => useState(() => ++order)[0];
 
 /** This hook call's report to `host`, kept apart from every other call's in the pane. Stable while `host` is. */
 export function useReporter(host: PaneHost): (patch: PaneReportPatch | null) => void {
   const caller = useId();
-  const [seq] = useState(() => ++order);
+  const seq = useOrder();
   return useCallback(
     (patch: PaneReportPatch | null) => host.report(caller, seq, patch),
     [host, caller, seq],
@@ -165,9 +167,10 @@ export function usePaneAttributes(
 
 /**
  * Put the pane's own controls in its header: after the title (and Following / Kept), before Jali's buttons. Pass them on
- * every render, like any JSX; `null` takes them away, as does the component unmounting. One set shows per pane: the
- * latest mounted call's that has controls; when it unmounts, the one before it shows again. They render inside the pane's context, so the pane's hooks work in them, as do providers above
- * `<JaliRoot>`; a provider inside your component doesn't reach them.
+ * every render, like any JSX; `null` takes them away, as does the component unmounting. One set shows per pane, chosen
+ * as a title is: of calls mounted together, the innermost call's; after that, the latest mounted call's that has
+ * controls. When it unmounts, the one before it shows again. They render inside the pane's context, so the pane's hooks
+ * work in them, as do providers above `<JaliRoot>`; a provider inside your component doesn't reach them.
  *
  * A narrow header gives way before its title gets shorter than a few characters: first Jali's tuck, maximise, full
  * screen and pop out move into the pane's menu (⋯), then your controls are hidden too and the menu lists the pane's
@@ -176,12 +179,12 @@ export function usePaneAttributes(
  */
 export function useHeaderActions(controls: ReactNode): void {
   const { header } = usePaneContext("useHeaderActions");
-  const owner = useId();
+  const seq = useOrder();
   // Before paint, so the header never shows a frame without them.
   useLayoutEffect(() => {
-    header?.set(owner, controls);
+    header?.set(seq, controls);
   });
-  useLayoutEffect(() => () => header?.release(owner), [header, owner]);
+  useLayoutEffect(() => () => header?.release(seq), [header, seq]);
 }
 
 /** What a launcher chooses from: the objects opened recently, whether one is open now, and its title. */

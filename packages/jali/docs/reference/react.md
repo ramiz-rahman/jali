@@ -507,7 +507,7 @@ Only `data-*` names are kept, and not the ones Jali's own parts use (`data-pane`
 useHeaderActions(controls: ReactNode): void
 ```
 
-Put the pane's own controls in its header. Jali places them in `.jali-pane-tools`, in this order: the grip, the title (or tabs), Following / Kept, your controls, then Jali's buttons. Pass them on every render, like any JSX. `null` takes them away, as does the component unmounting. One set shows per pane: the latest mounted call's that has controls. Each call is its own, so a component that unmounts takes only its controls away, and the previous call's show again.
+Put the pane's own controls in its header. Jali places them in `.jali-pane-tools`, in this order: the grip, the title (or tabs), Following / Kept, your controls, then Jali's buttons. Pass them on every render, like any JSX. `null` takes them away, as does the component unmounting. One set shows per pane, chosen as a title is: of calls mounted together, the innermost call's; after that, the latest mounted call's that has controls. Each call is its own, so a component that unmounts takes only its controls away, and the previous call's show again.
 
 They render inside the pane's context, so the pane's hooks work in them, as do providers above `<JaliRoot>`. A provider inside your own component doesn't reach them.
 

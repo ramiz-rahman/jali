@@ -7,14 +7,16 @@ import { createPortal } from "react-dom";
 
 /**
  * One pane's header slot: the controls its content gave, and the element Jali places them in. Each caller of
- * useHeaderActions is an owner: the slot shows the controls of the latest owner to register that has some, and an
- * owner that unmounts releases only its own, so the one before shows again.
+ * useHeaderActions is an owner, named by its render order (`seq`, as the other report hooks are): the slot shows the
+ * controls of the latest to render that has some. Mounted together, a child renders after its parent, so the innermost
+ * call's show, as a title's do; one mounted later is later still. An owner that unmounts releases only its own, and the
+ * one before shows again.
  */
 export interface HeaderSlot {
-  /** Give `owner`'s controls (`null`: none). The first call from an owner makes it the latest. */
-  set(owner: object | string, controls: ReactNode): void;
-  /** `owner` has gone: its controls with it. */
-  release(owner: object | string): void;
+  /** Give `seq`'s controls (`null`: none). */
+  set(seq: number, controls: ReactNode): void;
+  /** `seq` has gone: its controls with it. */
+  release(seq: number): void;
   /** The element in the header, as a callback ref. */
   target(el: HTMLElement | null): void;
   subscribe(fn: () => void): () => void;
@@ -23,8 +25,8 @@ export interface HeaderSlot {
 
 export function createHeaderSlot(): HeaderSlot {
   let now: { controls: ReactNode; el: HTMLElement | null } = { controls: null, el: null };
-  /** Owners in the order they registered: the last with controls is shown. */
-  const owners = new Map<object | string, ReactNode>();
+  /** Each owner's controls, by its render order. */
+  const owners = new Map<number, ReactNode>();
   const subs = new Set<() => void>();
   const put = (next: Partial<typeof now>) => {
     const was = now;
@@ -32,17 +34,16 @@ export function createHeaderSlot(): HeaderSlot {
     if (was.controls !== now.controls || was.el !== now.el) for (const fn of subs) fn();
   };
   const shown = (): ReactNode => {
-    let controls: ReactNode = null;
-    for (const c of owners.values()) controls = c || controls;
-    return controls;
+    const latest = Math.max(...[...owners].filter(([, c]) => c).map(([seq]) => seq));
+    return owners.get(latest) ?? null;
   };
   return {
-    set(owner, controls) {
-      owners.set(owner, controls);
+    set(seq, controls) {
+      owners.set(seq, controls);
       put({ controls: shown() });
     },
-    release(owner) {
-      owners.delete(owner);
+    release(seq) {
+      owners.delete(seq);
       put({ controls: shown() });
     },
     target: (el) => put({ el }),

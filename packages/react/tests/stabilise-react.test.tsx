@@ -152,6 +152,27 @@ describe("header controls belong to whoever registered them", () => {
     act(() => toggleA(false));
     expect(header().textContent).toContain("B controls");
   });
+
+  it("a parent and its child mounted together: the child's show, as a title's innermost call does", () => {
+    const nested = definePane("nested", {
+      title: () => "Nested",
+      Component: () => {
+        useHeaderActions(<button type="button">Parent controls</button>);
+        return <Contributor label="Child controls" />;
+      },
+    });
+    const jali = createJali({
+      panes: [nested],
+      layout: pane(nested({}), { id: "a" }),
+      features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
+      storage: memoryStorage(),
+      size: { width: 1200, height: 600 },
+      moveFocus: false,
+    });
+    render(<JaliRoot jali={jali} />);
+    expect(header().textContent).toContain("Child controls");
+    expect(header().textContent).not.toContain("Parent controls");
+  });
 });
 
 describe("boundaries reset with the instance", () => {
