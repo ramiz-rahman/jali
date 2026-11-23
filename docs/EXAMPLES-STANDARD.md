@@ -18,7 +18,8 @@ Every example meets all of this. Where a check can prove a point, the check is n
 ## How it is written
 
 - **Jali's public API only.** Imports come from `@jali/core` and `@jali/react`, never from a package's `src`. Styles reach Jali through its documented parts and `--jali-*` tokens. Where a private class name is the only way, the line says so and the gap is recorded in the example's `FINDINGS.md`.
-- **The same shape in every example**: `main.tsx` (start), `workspace.ts` (pane kinds, layouts, commands), `panes/` (one file a pane), `shell/` (the app's chrome round `<JaliRoot>`), `styles/`, and the domain's own folder. Someone who has read one example can find their way in another.
+- **The same shape in every example**: `main.tsx` (start), `workspace.ts` or `workspace/` (pane kinds, layouts, commands), `panes/` (one file a pane, or a folder when it has parts), `shell/` (the app's chrome round `<JaliRoot>`), `ui/` (the shared UI), `styles/`, and the domain's own folder. Someone who has read one example can find their way in another.
+- **The shared UI is atomic**, after Brad Frost's atomic design: `ui/atoms`, `ui/molecules` and `ui/organisms`, beside plain helpers and hooks. Imports go one way, down: an atom uses nothing of the app, a molecule only atoms, an organism only what is below it, and nothing in `ui/` reads the domain but its types. A part only one pane uses lives with that pane. _Check: `examples/shared/src/atomic.test.ts`._
 - **One type scale.** Sizes, weights, tracking and leading are tokens named for what the text is for, defined in one place; no rule sets a size of its own, and nothing is smaller than 11px.
 - **Nothing temporary.** No comparison switches, no feature flags, no commented-out code, no code nothing calls.
 - **Comments say why**, not what. Each file opens with what it is for.
