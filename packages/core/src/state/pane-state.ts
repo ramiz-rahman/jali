@@ -44,6 +44,15 @@ export function objectKey(kinds: Pick<PaneKinds, "identityOf">, ref: ObjectRef):
   return JSON.stringify([ref.kind, identity ?? params]);
 }
 
+/**
+ * A clock for records' `at`: it never stands still or goes back, so of records written in one millisecond the later is
+ * still the newer when the newest PANE_STATE_MAX are kept. `at` decides only that; it is not a revision.
+ */
+const clock = () => {
+  let last = 0;
+  return () => (last = Math.max(Date.now(), last + 1));
+};
+
 /** One pane's stored state: the object it belongs to, its values, and when it was written. */
 interface PaneRecord {
   of: string;
@@ -106,9 +115,10 @@ export function loadPaneState(storage: StoragePort): PaneStates {
  */
 export const savePaneState = (storage: StoragePort, state: PaneStates, owners: PaneOwners = {}) => {
   const records = readRecords(storage);
+  const now = clock();
   for (const [id, values] of Object.entries(state)) {
     const of = own(owners, id);
-    if (of !== undefined && plain(values)) records[id] = { of, values, at: Date.now() };
+    if (of !== undefined && plain(values)) records[id] = { of, values, at: now() };
   }
   writeRecords(storage, records);
 };
@@ -139,6 +149,7 @@ export function paneStateSync(storage: StoragePort): PaneStateSync {
   /** The records this instance and storage agree on, as last read or written. */
   const synced = new Map<NodeId, PaneRecord>();
   let initial: PaneRecords = {};
+  const now = clock();
   const inStep = (s: HeldPaneState, id: NodeId, r?: PaneRecord) =>
     !!r && own(s.paneState, id) === r.values && own(s.paneStateOf, id) === r.of;
   return {
@@ -159,7 +170,7 @@ export function paneStateSync(storage: StoragePort): PaneStateSync {
       for (const [id, values] of Object.entries(s.paneState)) {
         const of = own(s.paneStateOf, id);
         if (of === undefined || inStep(s, id, synced.get(id))) continue;
-        const r = { of, values, at: Date.now() };
+        const r = { of, values, at: now() };
         load()[id] = r;
         synced.set(id, r);
       }

@@ -21,6 +21,7 @@ import {
   loadPaneStateOwners,
   objectKey,
   paneStateFor,
+  paneStateSync,
   savePaneState,
   storeOf,
   PANE_STATE_MAX,
@@ -235,6 +236,27 @@ describe("what is stored", () => {
       savePaneState(storage, { [`p${i}`]: { i } }, { [`p${i}`]: objectKey(kinds, ref(i)) });
     const kept = Object.keys(loadPaneState(storage));
     expect(kept.length).toBe(PANE_STATE_MAX);
+  });
+
+  it(`keeps a record written in the same millisecond as ${PANE_STATE_MAX} before it`, () => {
+    vi.useFakeTimers({ now: 1_000_000, toFake: ["Date"] });
+    const { port } = shared();
+    const sync = paneStateSync(port);
+    const kinds = tab(two, memoryStorage()).env.kinds;
+    const paneState: Record<string, Record<string, unknown>> = {};
+    const paneStateOf: Record<string, string> = {};
+    for (let i = 0; i < PANE_STATE_MAX; i++) {
+      paneState[`p${i}`] = { i };
+      paneStateOf[`p${i}`] = objectKey(kinds, ref(i));
+    }
+    sync.flush({ paneState, paneStateOf });
+    sync.flush({
+      paneState: { ...paneState, fresh: { draft: "kept" } },
+      paneStateOf: { ...paneStateOf, fresh: objectKey(kinds, ref(999)) },
+    });
+    const kept = loadPaneState(port);
+    expect(Object.keys(kept).length).toBe(PANE_STATE_MAX);
+    expect(kept.fresh).toEqual({ draft: "kept" });
   });
 });
 
