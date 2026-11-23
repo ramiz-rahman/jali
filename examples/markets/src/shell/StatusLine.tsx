@@ -4,8 +4,8 @@
  */
 import { Shelf, useJali, useJaliModel, useJaliState } from "jali/react";
 import { BuiltWithJali, Maker } from "@jali-examples/shared/maker/maker";
-import type { FeedState } from "../market/kraken";
-import { useFeed } from "../services";
+import { useFeed } from "../market/react";
+import type { FeedState } from "../market/types";
 
 export function StatusLine() {
   const { keymap } = useJali();

@@ -1,16 +1,15 @@
 /**
  * The app: Jali's root with the app's chrome around the panes; outside the workspace (overlays), the toasts and the
  * app's question before an unsent order is lost. The instrument search is Jali's own chooser, opened by the app's
- * commands (workspace.ts).
+ * commands (workspace/commands.ts).
  */
 import { useEffect } from "react";
-import { Toaster, toast } from "sonner";
 import { runCommand, type Jali } from "jali";
-import { JaliRoot, JaliView, useJali, useJaliTheme, useJaliEvent } from "jali/react";
-import { ServicesProvider, useServices, type Services } from "../services";
-import * as f from "../ui/format";
+import { JaliRoot, JaliView, useJali } from "jali/react";
+import { ServicesProvider, type Services } from "../services";
 import { QuestionDialog } from "./Question";
 import { StatusLine } from "./StatusLine";
+import { Toasts } from "./Toasts";
 import { TopBar } from "./TopBar";
 
 export function App({ jali, services }: { jali: Jali; services: Services }) {
@@ -32,42 +31,6 @@ export function App({ jali, services }: { jali: Jali; services: Services }) {
         <StatusLine />
       </JaliRoot>
     </ServicesProvider>
-  );
-}
-
-/**
- * Jali's toasts (a closed pane offers Undo), and the app's own (fills, watchlist changes), with Sonner.
- */
-function Toasts() {
-  const jali = useJali();
-  const theme = useJaliTheme();
-  const { trading, market } = useServices();
-  useJaliEvent("toast", (t) =>
-    t.error
-      ? toast.error(t.title, { description: t.description })
-      : toast(t.title, {
-          description: t.description,
-          action: t.undo ? { label: "Undo", onClick: () => jali.actions.undo() } : undefined,
-        }),
-  );
-  useEffect(
-    () =>
-      trading.onFill((fill) => {
-        const inst = market.instrument(fill.symbol);
-        if (!inst) return;
-        toast(
-          `${fill.side === "buy" ? "Bought" : "Sold"} ${f.size(fill.qty)} ${fill.symbol} at ${f.price(inst, fill.price)}`,
-        );
-      }),
-    [trading, market],
-  );
-  return (
-    <Toaster
-      theme={theme}
-      position="bottom-right"
-      offset={{ bottom: 36, right: 12 }}
-      toastOptions={{ className: "toast" }}
-    />
   );
 }
 

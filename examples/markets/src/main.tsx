@@ -5,7 +5,7 @@
 import { createRoot } from "react-dom/client";
 import { toast } from "sonner";
 import { createKrakenMarket } from "./market/kraken";
-import { createSimulator } from "./market/simulator";
+import { createSimulator } from "./market/sim";
 import { createServices } from "./services";
 import { App } from "./shell/App";
 import { ask } from "./shell/Question";
@@ -32,10 +32,12 @@ async function start() {
   // The first quote of every pair, so nothing opens at zero; past a few seconds, open anyway and fill in.
   if (!(await market.ready()))
     setTimeout(() => toast("Kraken is slow to answer: crypto prices fill in as they arrive."), 500);
-  const services = createServices(market, { feed: market.feed });
+  const services = createServices(market);
   const jali = createMarketsJali(services, { notify: (text) => toast(text), ask });
   services.trading.connect();
-  createRoot(document.getElementById("root")!).render(<App jali={jali} services={services} />);
+  const root = document.getElementById("root");
+  if (!root) throw new Error("Markets needs an element with the id “root” (index.html).");
+  createRoot(root).render(<App jali={jali} services={services} />);
 }
 
 void start();

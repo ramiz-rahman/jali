@@ -11,24 +11,22 @@ import {
 } from "@phosphor-icons/react";
 import { keyHint, runCommand } from "jali";
 import { IconButton, useJali, useJaliState, useJaliShortcut, useJaliTheme } from "jali/react";
-import { useQuotes, useTopic } from "../market/react";
+import { useTopic } from "../market/react";
 import { useServices } from "../services";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/atoms/select";
 import * as f from "../ui/format";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { Delta } from "../ui/parts";
-
-// In order of priority: narrower windows show the first few. The crypto levels are live, and marked so.
-const STRIP = ["MX40", "BTCUSD", "GOV10Y", "EURUSD", "ETHUSD", "MXTEC"];
+import { deskTab } from "../workspace/presets";
+import { Strip } from "./Strip";
 
 export function TopBar() {
   const jali = useJali();
   const current = useJaliState((s) => s.presetId);
   const theme = useJaliTheme();
   const palette = useJaliShortcut("palette.toggle");
-  const { desks } = useServices();
+  const { savedLayouts } = useServices();
   const search = () => runCommand(jali, "markets.chart");
-  // Every desk back to the demo's layout, once Jali has asked about a typed order (desks.ts).
-  const reset = () => desks.resetAll(jali);
+  // Every desk back to the demo's layout, once the app has asked about a typed order (workspace/savedLayouts.ts).
+  const reset = () => savedLayouts.resetAll(jali);
 
   return (
     <header className="topbar" data-jali-chrome="">
@@ -44,7 +42,7 @@ export function TopBar() {
             aria-pressed={p.id === current}
             onClick={() => jali.actions.preset(p.id)}
           >
-            {p.label.replace(" desk", "")}
+            {deskTab(p.id)}
           </button>
         ))}
       </nav>
@@ -99,36 +97,6 @@ export function TopBar() {
         </button>
       </div>
     </header>
-  );
-}
-
-/** A few levels across the top, at widths with room for them. */
-function Strip() {
-  const { market } = useServices();
-  const quotes = useQuotes(STRIP);
-  return (
-    <ul className="strip" aria-label="Market levels">
-      {STRIP.map((s) => {
-        const q = quotes.get(s);
-        const inst = market.instrument(s);
-        if (!q || !inst) return null;
-        const bond = q.yield !== undefined;
-        return (
-          <li key={s}>
-            <span className="strip-sym">
-              {inst.source ? (
-                <span className="live-dot" title={`Live from ${inst.source}`} aria-hidden />
-              ) : null}
-              {s}
-            </span>
-            <span className="strip-last">{bond ? f.percent(q.yield!) : f.price(inst, q.last)}</span>
-            <Delta value={bond ? q.yieldChangeBp! : q.change}>
-              {bond ? f.bp(q.yieldChangeBp!) : f.pct(q.changePct)}
-            </Delta>
-          </li>
-        );
-      })}
-    </ul>
   );
 }
 

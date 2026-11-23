@@ -7,21 +7,27 @@
  * switch, so a half-written ticket comes along from one desk with a blotter to another.
  */
 import { column, pane, row, type PresetOptions } from "jali";
-import { blotter } from "./panes/blotter";
-import { book } from "./panes/book";
-import { chart } from "./panes/chart";
-import { curve } from "./panes/curve";
-import { news } from "./panes/news";
-import { quote } from "./panes/quote";
-import { tape } from "./panes/tape";
-import { watchlist } from "./panes/watchlist";
+import { blotter } from "../panes/blotter";
+import { book } from "../panes/book";
+import { chart } from "../panes/chart";
+import { curve } from "../panes/curve";
+import { news } from "../panes/news";
+import { quote } from "../panes/quote";
+import { tape } from "../panes/tape";
+import { watchlist } from "../panes/watchlist";
 
 const follows = { linkedTo: "watch", follows: true } as const;
 
+/** A desk: a preset, and its name in the top bar's tabs, where "desk" goes without saying. */
+export interface Desk extends PresetOptions {
+  tab: string;
+}
+
 /** The one desk on real prices, from Kraken; its book and trades are the exchange's own. */
-const crypto: PresetOptions = {
+const crypto: Desk = {
   id: "crypto",
   label: "Crypto desk",
+  tab: "Crypto",
   layout: row(
     pane(watchlist({ list: "crypto" }), { id: "watch", weight: 0.9 }),
     column(
@@ -39,10 +45,11 @@ const crypto: PresetOptions = {
   ),
 };
 
-export const presets: PresetOptions[] = [
+export const desks: Desk[] = [
   {
     id: "equities",
     label: "Equities desk",
+    tab: "Equities",
     layout: row(
       pane(watchlist({ list: "equities" }), { id: "watch", weight: 0.9 }),
       column(
@@ -64,6 +71,7 @@ export const presets: PresetOptions[] = [
   {
     id: "rates",
     label: "Rates desk",
+    tab: "Rates",
     layout: row(
       pane(watchlist({ list: "rates" }), { id: "watch", weight: 0.9 }),
       column(
@@ -80,6 +88,7 @@ export const presets: PresetOptions[] = [
   {
     id: "fx",
     label: "FX desk",
+    tab: "FX",
     layout: row(
       pane(watchlist({ list: "fx" }), { id: "watch", weight: 0.9 }),
       column(
@@ -100,6 +109,7 @@ export const presets: PresetOptions[] = [
     // Two instruments side by side: the top row is kept to one; the bottom row follows the watchlist.
     id: "compare",
     label: "Compare",
+    tab: "Compare",
     layout: row(
       pane(watchlist({ list: "core" }), { id: "watch", weight: 0.8 }),
       column(
@@ -121,3 +131,6 @@ export const presets: PresetOptions[] = [
     ),
   },
 ];
+
+/** A desk's tab in the top bar, by its id. */
+export const deskTab = (id: string) => desks.find((d) => d.id === id)?.tab ?? id;

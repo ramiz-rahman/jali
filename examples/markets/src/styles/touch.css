@@ -1,0 +1,21 @@
+/* Touch: rows and buttons a finger can hit (36px and up), at the cost of some density. */
+@layer app {
+  @media (pointer: coarse) {
+    :root {
+      --mk-row-h: 38px;
+    }
+    .segmented button {
+      height: 32px;
+      min-width: 40px;
+    }
+    .news-list li,
+    .grid-table td,
+    .curve-table td {
+      min-height: 38px;
+      height: 38px;
+    }
+    .btn {
+      height: 38px;
+    }
+  }
+}

@@ -2,12 +2,12 @@ import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { listCommands, type DeepReadonly, type Jali, type LayoutNode } from "jali";
 import { chooserRequest, reportUnsaved, testJaliOptions } from "jali/testing";
 import { openFollowing, show } from "./actions";
-import { createSimulator } from "./market/simulator";
-import { chart } from "./panes/chart";
-import { quote } from "./panes/quote";
-import { createServices } from "./services";
-import type { Question } from "./shell/Question";
-import { createMarketsJali, kinds } from "./workspace";
+import { createSimulator } from "../market/sim";
+import { chart } from "../panes/chart";
+import { quote } from "../panes/quote";
+import { createServices } from "../services";
+import type { Question } from "./unsent";
+import { createMarketsJali, kinds } from ".";
 
 /** The app's workspace with nothing shared: a memory address and storage, a fixed size, no DOM focus. `ask` answers
  *  the app's question before unsent work is lost (main.tsx: its dialog). */

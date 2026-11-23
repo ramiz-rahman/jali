@@ -2,8 +2,23 @@
  * The app's styles. The cascade layer order (base, jali, app) is declared in index.html, before any stylesheet
  * loads: page resets (base) lose to Jali's styles (jali), and the app's own rules (app) win over Jali's without
  * !important. Jali's styles come first, imported from CSS; main.tsx imports the faces, then this file.
+ *
+ * Then the app's, as its code is laid out: the theme, the shell, the shared atoms and molecules (ui/), each pane
+ * (panes/), and last the touch sizes, which win over all of them.
  */
 @import "jali/styles.css";
 @import "./tokens.css";
 @import "./shell.css";
-@import "./panes.css";
+@import "./atoms.css";
+@import "./molecules.css";
+@import "./panes/pane.css";
+@import "./panes/watchlist.css";
+@import "./panes/chart.css";
+@import "./panes/quote.css";
+@import "./panes/book.css";
+@import "./panes/tape.css";
+@import "./panes/news.css";
+@import "./panes/curve.css";
+@import "./panes/blotter.css";
+@import "./panes/launcher.css";
+@import "./touch.css";

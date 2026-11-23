@@ -1,54 +1,35 @@
 /**
- * The app's own question before work is lost: an unsent order that a desk change, Reset, a close or Back would take
- * away. Markets asks it, not Jali (`confirmDiscard: false` and `beforeClose` in workspace.ts), so it speaks of orders,
- * not "unsaved changes". One question at a time; Esc keeps the order, as the focused button does.
+ * The dialog that asks the app's question before work is lost (workspace/unsent.ts): an unsent order that a desk
+ * change, Reset, a close or Back would take away. One question at a time; Esc keeps the order, as the focused button
+ * does.
  */
-import { useEffect, useId, useRef, useSyncExternalStore } from "react";
+import { useEffect, useId, useRef } from "react";
 import { useJaliState } from "jali/react";
-
-export interface Question {
-  title: string;
-  body: string;
-  /** The button that keeps the work: focused first, and what Esc does. */
-  keep: string;
-  /** The button that lets it go. */
-  discard: string;
-}
+import { createStore, useStore } from "@jali-examples/shared/store";
+import type { Question } from "../workspace/unsent";
 
 type Asked = Question & { answer: (discard: boolean) => void };
-let asked: Asked | null = null;
-const listeners = new Set<() => void>();
-const subscribe = (fn: () => void) => {
-  listeners.add(fn);
-  return () => void listeners.delete(fn);
-};
-const show = (next: Asked | null) => {
-  asked = next;
-  for (const fn of listeners) fn();
-};
+/** The question on screen, if any. */
+const asked = createStore<Asked | null>(null);
 
 /** Ask `question`: true when the person lets the work go, false when they keep it. A new question keeps the old one's. */
 export function ask(question: Question): Promise<boolean> {
-  asked?.answer(false);
+  asked.get()?.answer(false);
   return new Promise((done) => {
     const self: Asked = {
       ...question,
       answer: (discard) => {
-        if (asked === self) show(null);
+        if (asked.get() === self) asked.set(null);
         done(discard);
       },
     };
-    show(self);
+    asked.set(self);
   });
 }
 
 /** The question, as a modal dialog over the app (in `<JaliRoot overlays>`), and the page's unload held meanwhile. */
 export function QuestionDialog() {
-  const q = useSyncExternalStore(
-    subscribe,
-    () => asked,
-    () => null,
-  );
+  const q = useStore(asked, (a) => a);
   const last = useRef<Asked | null>(null);
   if (q) last.current = q;
   const shown = q ?? last.current;

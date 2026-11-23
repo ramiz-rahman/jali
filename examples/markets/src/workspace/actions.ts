@@ -1,8 +1,9 @@
 /** The app's own moves on the workspace, shared by panes and ⌘K commands. */
 import type { Jali, NodeId, ObjectRef } from "jali";
-import type { Services } from "./services";
-import type { Side } from "./trading/trading";
-import { blotter } from "./panes/blotter";
+import type { TicketInbox, TicketRequest } from "../model/ticket";
+import { blotter } from "../panes/blotter";
+import { news } from "../panes/news";
+import { watchlist } from "../panes/watchlist";
 
 /**
  * Show `ref` and bring it into view, without reshaping the desk:
@@ -35,7 +36,7 @@ export function show(
  * if it was folded. Keep it first to keep it, then open another to compare.
  *
  * The watchlist selects a quote; a chart for the same instrument counts as opening the selection because the chart's
- * kind says what it shows for a quote (`follow`, panes/follow.ts), so the new chart follows the list.
+ * kind says what it shows for a quote (`follow`, panes/instrument.tsx), so the new chart follows the list.
  */
 export function openFollowing(jali: Jali, list: NodeId, ref: ObjectRef): NodeId | undefined {
   const follower = jali
@@ -49,20 +50,26 @@ export function openFollowing(jali: Jali, list: NodeId, ref: ObjectRef): NodeId 
   return jali.actions.openBeside(list, ref).pane;
 }
 
+/** The blotter: on a desk without one, it opens as a tab of the news, so the desk keeps its shape. */
+export function showBlotter(jali: Jali, from?: NodeId) {
+  const beside = jali.model().panes.find((p) => p.ref.kind === news.kind);
+  return show(jali, blotter(), { from, tabWith: beside?.id });
+}
+
 /** Fill the order ticket with a side and an instrument, and bring the blotter that holds it. */
 export function prepareTicket(
   jali: Jali,
-  services: Services,
-  symbol: string,
-  side: Side,
+  ticket: TicketInbox,
+  request: TicketRequest,
   from?: NodeId,
 ) {
-  services.ticket.set({ symbol, side, at: Date.now() });
+  ticket.send(request);
   showBlotter(jali, from);
 }
 
-/** The blotter: on a desk without one, it opens as a tab of the news, so the desk keeps its shape. */
-export function showBlotter(jali: Jali, from?: NodeId) {
-  const news = jali.model().panes.find((p) => p.ref.kind === "news");
-  return show(jali, blotter(), { from, tabWith: news?.id });
+/** The list "Add to watchlist" adds to: the focused watchlist's, else the first on the desk's, else Core. */
+export function watchlistFor(jali: Jali): string {
+  const lists = jali.model().panes.filter((p) => p.ref.kind === watchlist.kind);
+  const pane = lists.find((p) => p.focused) ?? lists[0];
+  return pane ? String(pane.ref.params.list) : "core";
 }
