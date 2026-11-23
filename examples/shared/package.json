@@ -26,6 +26,7 @@
     "./panes/shared/states": "./src/panes/shared/states.tsx",
     "./panes/shared/useFocusWhen": "./src/panes/shared/useFocusWhen.ts",
     "./panes/shared/useListKeys": "./src/panes/shared/useListKeys.ts",
+    "./shell/report": "./src/shell/report.ts",
     "./start": "./src/start.tsx",
     "./store": "./src/store.ts",
     "./theme": "./src/theme.ts"
