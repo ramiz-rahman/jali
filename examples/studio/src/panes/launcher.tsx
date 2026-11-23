@@ -12,6 +12,7 @@ import type { ObjectRef } from "jali";
 import { definePane, useLauncher, type PaneProps } from "jali/react";
 import { useTransport } from "../audio/react";
 import { catalogueOf } from "../sessions/catalog";
+import { FaceKey } from "../ui/molecules/FaceKey";
 import { library } from "./library";
 import { markers } from "./markers";
 import { mixer } from "./mixer";
@@ -49,23 +50,23 @@ function Launcher({ openHere, dismiss }: PaneProps) {
         <h3 className="pane-label">{catalogueOf(session).title}</h3>
         <div className="keyset launcher-keys">
           {VIEWS.map((v, i) => (
-            <button
+            <FaceKey
               key={v.label}
-              type="button"
-              className="key key-m face"
+              className="key-m"
               autoFocus={i === 0}
+              glyph={<v.Icon size={22} aria-hidden className="face-glyph" />}
+              legend={v.label}
               onClick={() => go(v.make({ session }))}
-            >
-              <v.Icon size={22} aria-hidden className="face-glyph" />
-              <span className="face-legend">{v.label}</span>
-            </button>
+            />
           ))}
         </div>
         <div className="keyset launcher-keys">
-          <button type="button" className="key key-m face" onClick={() => go(library())}>
-            <BooksIcon size={22} aria-hidden className="face-glyph" />
-            <span className="face-legend">library</span>
-          </button>
+          <FaceKey
+            className="key-m"
+            glyph={<BooksIcon size={22} aria-hidden className="face-glyph" />}
+            legend="library"
+            onClick={() => go(library())}
+          />
         </div>
       </section>
       {recent.length ? (
@@ -90,6 +91,7 @@ function Launcher({ openHere, dismiss }: PaneProps) {
     </nav>
   );
 }
+
 export const launcher = definePane("launcher", {
   title: "New pane",
   icon: PlusIcon,

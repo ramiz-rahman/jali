@@ -1,112 +1,107 @@
 /**
  * Timed markers: a list that seeks. The marker the playhead has passed last is lit. M adds one at the playhead,
- * Enter goes to the selected one, F2-like renaming is R (F2 is Jali's, for tabs), Delete removes.
+ * Enter goes to the selected one, R renames it (F2 is Jali's, for tabs), Delete removes it.
  */
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useState } from "react";
 import { BookmarkSimpleIcon, PencilSimpleIcon, PlusIcon, XIcon } from "@phosphor-icons/react";
-import { keyHint } from "jali";
-import { definePane, useCommands, usePaneState, type PaneProps } from "jali/react";
-import { toast } from "sonner";
-import { cue } from "../actions";
-import { usePosition, useTransport } from "../audio/react";
-import { useSessionView } from "../edits";
-import { catalogueOf } from "../sessions/catalog";
+import { usePaneState } from "jali/react";
+import { usePosition } from "../audio/react";
+import { markerIndexAt } from "../model/markers";
 import { useServices } from "../services";
-import { stringOrNull } from "../stored";
-import { clock, markerIndexAt } from "../sessions/sessions";
-import { Empty, Missing, SessionMissing } from "../ui/parts";
-import { followSession } from "./follow";
-import { listMove, scrollRowIntoView } from "./keys";
+import { clock } from "../sessions/format";
+import { stringOrNull } from "../storage";
+import { useListbox } from "../ui/lib/listbox";
+import { InlineField } from "../ui/molecules/InlineField";
+import { StatusDisplay } from "../ui/molecules/StatusDisplay";
+import { ActionKey, usePaneActions, type PaneAction } from "./actions";
+import { defineSessionPane, type SessionPaneProps } from "./sessionPane";
 
-const markersParams = { session: String };
-
-function Markers({ params, paused, node, focused, openHere }: PaneProps<typeof markersParams>) {
-  const { engine, edits } = useServices();
-  const view = useSessionView(edits, params.session);
+function Markers({ paused, node, focused, view, transport }: SessionPaneProps) {
+  const { engine, notify } = useServices();
+  const { session, markers } = view;
+  const { inTransport, playing } = transport;
   const [cursor, setCursor] = usePaneState<string | null>("cursor", null, { parse: stringOrNull });
   const [renaming, setRenaming] = useState<string | null>(null);
-  const inTransport = useTransport((s) => s.session === params.session);
-  const playing = useTransport((s) => s.playing);
   const pos = usePosition(paused || !inTransport, 0.1);
-  const listRef = useRef<HTMLDivElement>(null);
-  const markers = view?.markers ?? [];
   const at = markers.findIndex((m) => m.id === cursor);
   const current = markers[at];
   const passed = inTransport ? markerIndexAt(markers, pos) : -1;
-
-  useEffect(() => scrollRowIntoView(listRef.current, at), [at]);
+  const playhead = inTransport ? pos : 0;
 
   const go = (i: number) => {
     const m = markers[i];
     if (!m) return;
     setCursor(m.id);
-    cue(engine, params.session, m.time, inTransport && playing);
+    engine.cue(session.id, m.time, playing);
   };
   const add = () => {
     const t = inTransport ? engine.position() : 0;
-    const m = edits.addMarker(params.session, t, `Marker at ${clock(t)}`);
+    const m = view.edit.addMarker(t, `Marker at ${clock(t)}`);
     setCursor(m.id);
     setRenaming(m.id);
   };
   const remove = (id: string) => {
     const gone = markers.find((m) => m.id === id);
     const next = markers[at + 1] ?? markers[at - 1];
-    edits.removeMarker(params.session, id);
+    view.edit.removeMarker(id);
     if (id === cursor) setCursor(next?.id ?? null);
     // A delete is one key: it can be taken back.
-    if (gone)
-      toast(`Deleted “${gone.label}”`, {
-        action: { label: "Undo", onClick: () => edits.restoreMarker(params.session, gone) },
-      });
+    if (gone) notify(`Deleted “${gone.label}”`, { undo: () => view.edit.restoreMarker(gone) });
   };
-  const changed = view?.edits.markers != null;
+  const nothing = current ? false : "Nothing selected";
 
-  const onKeyDown = (e: KeyboardEvent) => {
-    if ((e.target as HTMLElement).closest("input")) return;
-    const to = listMove(e, at, markers.length);
-    if (to !== null) setCursor(markers[to]!.id);
-    else if (e.key === "Enter" && !e.metaKey && !e.ctrlKey && current) go(at);
-    else if ((e.key === "m" || e.key === "M") && !e.metaKey && !e.ctrlKey) add();
-    else if ((e.key === "r" || e.key === "R") && !e.metaKey && !e.ctrlKey && current)
-      setRenaming(current.id);
-    else if ((e.key === "Delete" || e.key === "Backspace") && !e.metaKey && !e.ctrlKey && current)
-      remove(current.id);
-    else return;
-    e.preventDefault();
-  };
-
-  useCommands([
-    { id: "add", title: "Add a marker at the playhead", keys: "M", run: add },
-    {
+  const actions = {
+    add: {
+      id: "add",
+      title: "Add a marker at the playhead",
+      keys: [{ key: "m" }],
+      run: add,
+      face: (
+        <>
+          <PlusIcon size={13} aria-hidden /> at {clock(playhead)}
+        </>
+      ),
+    },
+    go: {
       id: "go",
       title: current ? `Go to “${current.label}”` : "Go to marker",
-      keys: keyHint("Enter"),
-      disabled: current ? false : "Nothing selected",
+      keys: [{ key: "Enter" }],
+      disabled: nothing,
       run: () => go(at),
     },
-    {
+    rename: {
       id: "rename",
-      title: "Rename the marker",
-      keys: "R",
-      disabled: current ? false : "Nothing selected",
+      title: "Rename the selected marker",
+      keys: [{ key: "r" }],
+      disabled: nothing,
       run: () => current && setRenaming(current.id),
+      face: <PencilSimpleIcon size={13} aria-hidden />,
     },
-    {
+    remove: {
       id: "remove",
-      title: "Delete the marker",
-      keys: keyHint("Delete"),
-      disabled: current ? false : "Nothing selected",
+      title: "Delete the selected marker",
+      keys: [{ key: "Delete" }, { key: "Backspace" }],
+      disabled: nothing,
       run: () => current && remove(current.id),
+      face: <XIcon size={13} aria-hidden />,
     },
-    {
+    restore: {
       id: "restore",
       title: "Restore the session's own markers",
-      disabled: changed ? false : "They are as the session came",
-      run: () => edits.resetMarkers(params.session),
+      disabled: view.edits.markers ? false : "They are as the session came",
+      run: () => view.edit.resetMarkers(),
     },
-  ]);
+  } satisfies Record<string, PaneAction>;
+  const onActionKey = usePaneActions(Object.values(actions));
+  const list = useListbox({
+    id: node.id,
+    count: markers.length,
+    at,
+    focused,
+    onMove: (i) => setCursor(markers[i]!.id),
+    onKey: onActionKey,
+  });
 
-  if (!view) return <Missing what="session" openHere={openHere} />;
   return (
     <div className="pane-body markers">
       <div className="toolbar">
@@ -114,57 +109,25 @@ function Markers({ params, paused, node, focused, openHere }: PaneProps<typeof m
           Markers <span className="pane-label-count">{markers.length}</span>
         </span>
         <span className="toolbar-end keyset">
-          <button
-            type="button"
-            className="key key-s"
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={add}
-            title="Add a marker at the playhead (M)"
-          >
-            <PlusIcon size={13} aria-hidden /> at {clock(inTransport ? pos : 0)}
-          </button>
-          <button
-            type="button"
-            className="key key-s key-square"
-            disabled={!current}
-            aria-label="Rename the selected marker"
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={() => current && setRenaming(current.id)}
-            title="Rename the selected marker (R)"
-          >
-            <PencilSimpleIcon size={13} aria-hidden />
-          </button>
-          <button
-            type="button"
-            className="key key-s key-square"
-            disabled={!current}
+          <ActionKey action={actions.add} className="key-s" />
+          <ActionKey
+            action={actions.rename}
+            className="key-s key-square"
+            aria-label={actions.rename.title}
+          />
+          <ActionKey
+            action={actions.remove}
+            className="key-s key-square"
             aria-label={current ? `Delete “${current.label}”` : "Delete marker"}
-            title="Delete the selected marker (Delete)"
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={() => current && remove(current.id)}
-          >
-            <XIcon size={13} aria-hidden />
-          </button>
+          />
         </span>
       </div>
       {markers.length ? (
-        <div
-          ref={listRef}
-          className="mk-rows lcd"
-          role="listbox"
-          aria-label="Markers"
-          tabIndex={0}
-          aria-activedescendant={current ? `${node.id}-${current.id}` : undefined}
-          onKeyDown={onKeyDown}
-        >
+        <div {...list.props} className="mk-rows lcd" aria-label="Markers">
           {markers.map((m, i) => (
             <div
               key={m.id}
-              id={`${node.id}-${m.id}`}
-              data-row=""
-              role="option"
-              aria-selected={i === at}
-              data-active={focused && i === at ? "" : undefined}
+              {...list.row(i)}
               data-passed={i === passed ? "" : undefined}
               className="mk-row"
               onClick={() => go(i)}
@@ -172,12 +135,14 @@ function Markers({ params, paused, node, focused, openHere }: PaneProps<typeof m
             >
               <span className="mk-time mono">{clock(m.time)}</span>
               {renaming === m.id ? (
-                <MarkerField
-                  label={m.label}
+                <InlineField
+                  className="mk-field"
+                  label="Marker's name"
+                  value={m.label}
                   onDone={(label) => {
-                    if (label?.trim()) edits.renameMarker(params.session, m.id, label.trim());
+                    if (label?.trim()) view.edit.renameMarker(m.id, label.trim());
                     setRenaming(null);
-                    listRef.current?.focus();
+                    list.ref.current?.focus();
                   }}
                 />
               ) : (
@@ -187,56 +152,22 @@ function Markers({ params, paused, node, focused, openHere }: PaneProps<typeof m
           ))}
         </div>
       ) : (
-        <Empty
+        <StatusDisplay
           title="No markers yet"
-          action={{ label: `add one at ${clock(inTransport ? pos : 0)}`, run: add }}
+          action={{ label: `add one at ${clock(playhead)}`, run: add }}
         >
           Press M anywhere in this pane to mark the playhead.
-        </Empty>
+        </StatusDisplay>
       )}
     </div>
   );
 }
 
-function MarkerField({ label, onDone }: { label: string; onDone(label: string | null): void }) {
-  const [value, setValue] = useState(label);
-  const done = useRef(false);
-  const finish = (v: string | null) => {
-    if (done.current) return;
-    done.current = true;
-    onDone(v);
-  };
-  return (
-    <input
-      className="mk-field"
-      aria-label="Marker's name"
-      value={value}
-      autoFocus
-      onFocus={(e) => e.currentTarget.select()}
-      onChange={(e) => setValue(e.target.value)}
-      onClick={(e) => e.stopPropagation()}
-      onBlur={() => finish(value)}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          finish(value);
-        } else if (e.key === "Escape") {
-          e.preventDefault();
-          finish(null);
-        }
-      }}
-    />
-  );
-}
-
-export const markers = definePane("markers", {
-  params: markersParams,
-  title: ({ session }) => `Markers · ${catalogueOf(session).title || session}`,
+export const markers = defineSessionPane("markers", {
+  name: "Markers",
   icon: BookmarkSimpleIcon,
   width: { min: 240, comfortable: 290, max: 400 },
   height: { min: 170 },
-  follow: followSession,
   allow: { fullScreen: false },
-  Component: Markers,
-  Missing: SessionMissing,
+  Body: Markers,
 });

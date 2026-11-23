@@ -9,7 +9,9 @@
 import { ScrollIcon } from "@phosphor-icons/react";
 import { definePane } from "jali/react";
 import { catalogueOf } from "../sessions/catalog";
-import { clock, SESSION_IDS, useSessions } from "../sessions/sessions";
+import { clock } from "../sessions/format";
+import { SESSION_IDS } from "../sessions/ids";
+import { useSessions } from "../sessions/load";
 
 function Credits() {
   // Every session's credits: the pane waits (Jali's loading state) until all three have loaded.
