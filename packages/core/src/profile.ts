@@ -123,6 +123,12 @@ export interface PageEngine {
   reset(x: Snapshot): Outcome;
   /** How a link from `source` opens while the page is open: `openBeside` asks, and does what it says. */
   opening(x: Snapshot, source: NodeId, ref: ObjectRef, edge?: Edge): PageOpening;
+  /** Panes an undo put back (`keep`): views they would fold go back to the page tabs instead (`settleRoles`). */
+  restored(
+    x: Snapshot,
+    placed: { layout: Layout; view: ViewState },
+    keep: NodeId[],
+  ): { layout: Layout; view: ViewState };
   /** What leaving the page for a layout keeps (a preset, `setLayout`, a link to a free layout). */
   leaving(x: Snapshot): Partial<UiState>;
   /** What the page saves for the person when the state went from `prev` to `s`; undefined when nothing it saves

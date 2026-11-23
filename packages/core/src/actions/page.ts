@@ -785,6 +785,7 @@ export const pageEngine: PageEngine = {
   placeTab,
   showItem: activate,
   back: backToPage,
+  restored: (x, placed, keep) => settleRoles(x.s.layout, placed, keep, x.ctx),
   hideRole,
   reset: resetPage,
   opening,

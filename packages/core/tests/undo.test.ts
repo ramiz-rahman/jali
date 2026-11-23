@@ -473,4 +473,19 @@ describe("Back to the page closes the investigation; undo reopens only it", () =
     expect(L.tree.find(store.get().layout.root, "borrower")).toMatchObject({ pinned: true });
     expect(store.get().undoStack).toEqual([]);
   });
+
+  it("undo keeps the page's placement rule: views go back to the tabs rather than fold", () => {
+    store = createTestStore({ initial: { area: { width: 1300, height: 1000 } } });
+    store.run("page.open", { item: 4, tab: "application" });
+    store.run("page.setMode", "split");
+    store.actions.openBeside("application", loan(77));
+    store.run("page.back");
+    store.actions.placeTab("officer", "application", "right");
+    store.actions.undo();
+    expect(opened()).toHaveLength(1);
+    const folded = store
+      .model()
+      .resolved.panes.filter((b) => b.hidden === "tab" && roles().some((r) => r.id === b.id));
+    expect(folded.map((b) => b.id)).toEqual([]);
+  });
 });
