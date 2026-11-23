@@ -183,7 +183,7 @@ Several components in a pane may each report: the pane has unsaved work while an
 
 <Entry name="useTitle" kind="hook" from="jali/react" signature={`useTitle(title: string | null | undefined): void`} compact>
 
-Name the pane from its data: `useTitle(customer.data?.name)` shows "Acme Ltd" rather than the kind's "Customer 12". While set, it replaces the kind's `title` in the header, the tab, the shelf, the palette, the switcher, announcements and `jali.model().title(id)`, and the peek sheet while it shows the same object. In a curated page, the view's label still names the pane, and this title is shown beside it. `null` or `undefined` goes back to the kind's title.
+Name the pane from its data: `useTitle(customer.data?.name)` shows "Acme Ltd" rather than the kind's "Customer 12". While set, it replaces the kind's `title` in the header, the tab, the shelf, the palette, the switcher, announcements and `jali.model().pane(id)?.title`, and the peek sheet while it shows the same object. In a curated page, the view's label still names the pane, and this title is shown beside it. `null` or `undefined` goes back to the kind's title.
 
 When several components in a pane set a title, the innermost one wins (after the first mount, the one mounted last); one unmounting goes back to the next.
 

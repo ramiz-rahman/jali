@@ -9,8 +9,10 @@ import { useJali } from "jali/react";
  */
 export function HostCommandMenu({ onClose }: { onClose: () => void }) {
   const jali = useJali();
-  // The focused pane's own first, then Jali's: the same array until something it lists changes.
-  const commands = useSyncExternalStore(jali.subscribe, () => listCommands(jali));
+  // The focused pane's own first, then Jali's: the same array until something it lists changes. The same read is
+  // the server's snapshot, so this renders on the server too.
+  const read = () => listCommands(jali);
+  const commands = useSyncExternalStore(jali.subscribe, read, read);
   const [query, setQuery] = useState("");
   const shown = commands.filter((c) =>
     `${c.title} ${c.group}`.toLowerCase().includes(query.toLowerCase()),

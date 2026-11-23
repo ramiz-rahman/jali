@@ -116,6 +116,23 @@ describe("the reference covers the public API", () => {
     expect(missing(Object.keys(store.actions).map((k) => `actions.${k}`))).toEqual([]);
   });
 
+  it("every read of jali.model() or jali.get() a page names is one the instance has", () => {
+    const jali = core.createJali({
+      panes: [{ kind: "note", title: "Note" }],
+      layout: { kind: "note", params: {} },
+      storage: core.memoryStorage(),
+      moveFocus: false,
+    });
+    const has = { model: Object.keys(jali.model()), get: Object.keys(jali.get()) };
+    const docs = join(here, "../docs");
+    const unknown = mdxFiles(docs).flatMap((file) =>
+      [...readFileSync(file, "utf8").matchAll(/\.(model|get)\(\)\.(\w+)/g)]
+        .filter((m) => !has[m[1] as "model" | "get"].includes(m[2]!))
+        .map((m) => `${file.slice(docs.length + 1)}: ${m[0]}`),
+    );
+    expect(unknown).toEqual([]);
+  });
+
   it("no entry is written twice", () => {
     expect([...documented].filter(([, n]) => n > 1).map(([name]) => name)).toEqual([]);
   });

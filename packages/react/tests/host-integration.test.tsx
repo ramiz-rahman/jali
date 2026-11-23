@@ -140,7 +140,11 @@ describe("listCommands", () => {
     let seen: string[] = [];
     function HostMenu() {
       const jali = useJali();
-      seen = useSyncExternalStore(jali.subscribe, () => listCommands(jali))
+      seen = useSyncExternalStore(
+        jali.subscribe,
+        () => listCommands(jali),
+        () => listCommands(jali),
+      )
         .filter((c) => c.key.startsWith("pane:"))
         .map((c) => c.title);
       return null;

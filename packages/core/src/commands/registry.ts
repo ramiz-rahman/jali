@@ -316,7 +316,7 @@ const listed = /* @__PURE__ */ new WeakMap<
 
 /**
  * Every command a person can run now, in palette order. Worked out on every read, and the same array (and the same
- * entries) until something it lists changes, so `useSyncExternalStore(jali.subscribe, () => listCommands(jali))`
+ * entries) until something it lists changes, so `useSyncExternalStore(jali.subscribe, read, read)` with `read = () => listCommands(jali)` (the same read is the server's snapshot)
  * re-renders only then.
  */
 export function listCommands(jali: AnyJali): readonly ListedCommand[] {

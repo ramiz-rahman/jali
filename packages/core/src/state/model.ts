@@ -19,11 +19,11 @@ import type {
 } from "../layout/types";
 import { PHONE_BELOW, titleOf, type Env } from "../env";
 import { foldPair, stackPair, type Hinge, type StackPair } from "../workspace/stack";
-import { frames } from "../workspace/frames";
+import { placement } from "../workspace/placement";
 import { sameRef } from "../layout/ops/ref";
 import { own } from "../own";
 import { messagesOf } from "./messages";
-import type { Selection } from "./store";
+import type { UiState } from "./store";
 
 /** A tab group as the frame shows it: a deliberate stack, or a fold or tuck group made by resolve. */
 export interface Group {
@@ -51,7 +51,8 @@ export interface PaneOf<R extends ObjectRef = ObjectRef> {
   readonly where: "shown" | "tab" | "folded" | "tucked" | "hidden";
   /** It has focus. */
   readonly focused: boolean;
-  /** Where it is while shown, in CSS pixels from the top left of the panes' area; null while it isn't shown. */
+  /** Where it is drawn while shown, in CSS pixels from the top left of Jali's root (a pane on the whole screen: the
+   *  root's whole box); null while it isn't shown. */
   readonly box: Readonly<Rect> | null;
   /** A list pane's selected item (`select`), when it has one. */
   readonly selected?: R;
@@ -316,24 +317,35 @@ const samePane = (a: PaneOf, b: PaneOf) =>
   a.kept === b.kept &&
   a.pinned === b.pinned;
 
-/** What the public model is made from: the engine's model, focus, the selection and the room. */
-export interface PublicInput {
-  view: ViewState;
-  selection: Readonly<Record<NodeId, Selection>>;
-  area: { width: number; height: number };
-}
+/** What the public model is made from besides the engine's model: the store's state it reads. */
+export type PublicInput = Pick<
+  UiState,
+  "view" | "selection" | "area" | "page" | "fullScreen" | "keyboardUp" | "stackShare"
+>;
 
 /**
  * The public model (`jali.model()`), worked out again on every read and kept while nothing in it changed: each pane
  * keeps its object while its fields are the same, and the model its object while every pane does. Titles are read
- * each time, since a kind's title can read the app's own data.
+ * each time, since a kind's title can read the app's own data. Where each pane is comes from `placement`, the
+ * calculation the adapter draws with, so the model says what is on screen.
  */
 export function publicModel(env: Env) {
   let last: JaliModel | undefined;
   let from: unknown[] = [];
-  return (m: Model, { view, selection, area }: PublicInput): JaliModel => {
+  return (m: Model, s: PublicInput): JaliModel => {
+    const { view, selection, area, fullScreen } = s;
     // Nothing it is made from changed: only a title can have (a kind's title reading the app's data).
-    const key = [m, view.focused, view.zoomed, selection, area];
+    const key = [
+      m,
+      view.focused,
+      view.zoomed,
+      selection,
+      area,
+      !!s.page,
+      fullScreen,
+      s.keyboardUp,
+      s.stackShare,
+    ];
     if (
       last &&
       key.every((k, i) => k === from[i]) &&
@@ -344,26 +356,38 @@ export function publicModel(env: Env) {
     const was = new Map(last?.panes.map((p) => [p.id, p]));
     const boxes = new Map(m.resolved.panes.map((b) => [b.id, b]));
     const flat = new Map(m.flat.panes.map((b) => [b.id, b]));
-    // One pane at a time: the frames the adapter draws say which show (stacked view and a fold too).
-    const single = m.onePane
-      ? new Map(frames(m, view, "single", area).map((f) => [f.node.id, f]))
-      : undefined;
+    const placed = placement(m, view, {
+      area,
+      page: !!s.page,
+      keyboardUp: !!s.keyboardUp,
+      ...(s.stackShare === undefined ? {} : { share: s.stackShare }),
+    });
+    const frames = new Map(placed.frames.map((f) => [f.node.id, f]));
+    const { bleed, inner } = placed;
+    const at = (r: Rect, o: { left: number; top: number }) => ({
+      ...r,
+      x: r.x + o.left,
+      y: r.y + o.top,
+    });
+    // A pane on the whole screen covers Jali's root, and every other pane.
+    const full = fullScreen && frames.get(fullScreen)?.hidden === false ? fullScreen : undefined;
+    const { inset } = env.spacing;
     const panes = m.panes.map((node): PaneOf => {
       const { id } = node;
-      const b = boxes.get(id);
-      const f = single?.get(id);
+      const f = frames.get(id);
       const off = flat.get(id)?.hidden === "off";
-      const box: Rect | null = off
-        ? null
-        : single
-          ? f && !f.hidden
-            ? f.rect
-            : null
-          : b && !b.hidden && !m.outOfView.has(id)
-            ? view.zoomed === id
-              ? { x: 0, y: 0, ...area }
-              : b.rect
-            : null;
+      // Where it is drawn, in the root's coordinates: a maximised pane before its row's scroll, a pane in a row
+      // that scrolls where the row has scrolled it, while it is in the row's window.
+      const box: Rect | null =
+        off || !f || f.hidden || f.covered || (full && full !== id)
+          ? null
+          : full
+            ? { x: 0, y: 0, width: area.width + inset * 2, height: area.height + inset * 2 }
+            : f.zoomed || !f.strip
+              ? at(f.rect, bleed)
+              : f.outOfView
+                ? null
+                : at(boxes.get(id)!.rect, inner);
       const where: PaneOf["where"] = off
         ? "hidden"
         : box
@@ -372,7 +396,7 @@ export function publicModel(env: Env) {
             ? "tucked"
             : m.folded.includes(id)
               ? "folded"
-              : single || flat.get(id)?.hidden === "tab"
+              : (!full && placed.presentation === "single") || flat.get(id)?.hidden === "tab"
                 ? "tab"
                 : "hidden";
       const selected = own(selection, id)?.ref;

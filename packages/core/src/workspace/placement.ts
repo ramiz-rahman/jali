@@ -1,19 +1,14 @@
 /**
  * Where everything in the layout goes, from one calculation over core's `frames`: which presentation shows, the box
- * the frames sit in, each frame's final rect (a pane alone full-bleed included), and stacked view's divider. `<Panes>`
- * measures the area and knows whether the keyboard is up and where the person left the divider; it draws what this
- * returns. Pure: no React, so it is tested on its own.
+ * the frames sit in, each frame's final rect (a pane alone full-bleed included), and stacked view's divider. The adapter
+ * measures the area, and tells the store whether the keyboard is up and where the person left the divider; it draws
+ * what this returns, and the public model (`jali.model()`) reads the same, so it says what is drawn. Pure.
  */
-import type { ViewState } from "@jali/core";
-import {
-  SWITCHER_H,
-  defaultStackShare,
-  frames,
-  stackSplit,
-  type Frame,
-  type ModelGeometry,
-  type Presentation,
-} from "@jali/core/adapter";
+import type { ViewState } from "../layout/types";
+import type { ModelGeometry } from "../state/model";
+import type { Presentation } from "../pane/chrome";
+import { SWITCHER_H } from "../tokens";
+import { defaultStackShare, frames, stackSplit, type Frame } from "./frames";
 
 /** A box in the layout's coordinates. */
 export interface LayoutBox {

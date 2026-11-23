@@ -1712,7 +1712,7 @@ A pane as the model gives it, read-only, with its `ref` typed by the instance's 
 
 - **`focused`** (`boolean`, required): It has focus.
 
-- **`box`** (`Rect | null`, required): Where it is while shown, in CSS pixels from the top left of the panes' area; `null` while it isn't shown.
+- **`box`** (`Rect | null`, required): Where it is drawn while shown, in CSS pixels from the top left of Jali's root: in stacked view, after the divider the person moved; a maximised pane fills the room; a pane on the whole screen has the root's whole box. `null` while it isn't shown.
 
 - **`selected`** (`R`): A list pane's selected item, when it has one (`select`).
 

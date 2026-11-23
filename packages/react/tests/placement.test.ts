@@ -9,11 +9,11 @@ import {
   SWITCHER_H,
   defaultStackShare,
   frames,
+  placement,
   stackShare,
   storeOf,
 } from "@jali/core/adapter";
 import { definePane } from "@jali/react";
-import { placement } from "../src/workspace/placement";
 import { defaultFeatures, urlSync } from "./features";
 
 const note = definePane("note", {

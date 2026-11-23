@@ -13,18 +13,19 @@ const SNAPS = [1 / 3, 1 / 2, 2 / 3];
 const nearest = (r: number) =>
   SNAPS.reduce((a, b) => (Math.abs(b - r) < Math.abs(a - r) ? b : a), SNAPS[1]!);
 
-/** True while the on-screen keyboard (or anything else) takes a quarter or more of the window's height. */
-export function useKeyboardUp(): boolean {
-  const [up, setUp] = useState(false);
+/** Tells the store whether the on-screen keyboard (or anything else) takes a quarter or more of the window's height. */
+export function useKeyboardUp(store: JaliStore): void {
   useEffect(() => {
     const vv = typeof window === "undefined" ? undefined : window.visualViewport;
     if (!vv) return;
-    const check = () => setUp(vv.height < window.innerHeight * 0.75);
+    const check = () => {
+      const keyboardUp = vv.height < window.innerHeight * 0.75;
+      if (!!store.get().keyboardUp !== keyboardUp) store.set({ keyboardUp });
+    };
     check();
     vv.addEventListener("resize", check);
     return () => vv.removeEventListener("resize", check);
-  }, []);
-  return up;
+  }, [store]);
 }
 
 /** Says once when two panes stack, naming them. */

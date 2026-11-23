@@ -1033,7 +1033,7 @@ A pane as the model gives it, read-only, with its `ref` typed by the instance's 
 <Param name="title" type="string" required>Its name: its role on a curated page, else the title its content set (`useTitle`), else its kind's title.</Param>
 <Param name="where" type={`"shown" | "tab" | "folded" | "tucked" | "hidden"`} required>Where it is. `"shown"`: on screen, its content visible. `"tab"`: behind another tab of its group, or, while one pane shows at a time, another pane's turn. `"folded"`: folded for room, behind its place's "N folded" chip. `"tucked"`: the person tucked it onto the shelf. `"hidden"`: nowhere to be seen: hidden by a curated page, behind a maximised pane, or scrolled out of its row's window. Focusing a tab, a folded or a tucked pane shows it.</Param>
 <Param name="focused" type="boolean" required>It has focus.</Param>
-<Param name="box" type="Rect | null" required>Where it is while shown, in CSS pixels from the top left of the panes' area; `null` while it isn't shown.</Param>
+<Param name="box" type="Rect | null" required>Where it is drawn while shown, in CSS pixels from the top left of Jali's root: in stacked view, after the divider the person moved; a maximised pane fills the room; a pane on the whole screen has the root's whole box. `null` while it isn't shown.</Param>
 <Param name="selected" type="R">A list pane's selected item, when it has one (`select`).</Param>
 <Param name="linkedTo" type="NodeId">The pane it was opened from.</Param>
 <Param name="follows" type="boolean" required>It shows what its `linkedTo` list selects.</Param>

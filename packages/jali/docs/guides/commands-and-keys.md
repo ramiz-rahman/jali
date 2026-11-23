@@ -431,7 +431,7 @@ export const jali = createJali({
 
 ### One command menu: yours
 
-Leaving `palette()` out of `features` tells Jali your app has the command menu. Jali renders no palette and leaves ⌘K alone. `listCommands(jali)` gives your menu everything Jali's palette would have listed: the focused pane's own commands first, then Jali's and your own `commands`, each with its `title`, `group`, `keys` label, whether it is `disabled` now and the `reason`, and `run`. It is the same array until something it lists changes, so it is a store snapshot as it is: `useSyncExternalStore(jali.subscribe, () => listCommands(jali))`, as the sample does, re-renders your menu only then.
+Leaving `palette()` out of `features` tells Jali your app has the command menu. Jali renders no palette and leaves ⌘K alone. `listCommands(jali)` gives your menu everything Jali's palette would have listed: the focused pane's own commands first, then Jali's and your own `commands`, each with its `title`, `group`, `keys` label, whether it is `disabled` now and the `reason`, and `run`. It is the same array until something it lists changes, so it is a store snapshot as it is: `useSyncExternalStore(jali.subscribe, read, read)`, with `read = () => listCommands(jali)`, as the sample does, re-renders your menu only then. Pass the same read as the third argument, the server's snapshot, or a server render fails.
 
 `src/HostCommandMenu.tsx`
 
@@ -447,8 +447,10 @@ import { useJali } from "jali/react";
  */
 export function HostCommandMenu({ onClose }: { onClose: () => void }) {
   const jali = useJali();
-  // The focused pane's own first, then Jali's: the same array until something it lists changes.
-  const commands = useSyncExternalStore(jali.subscribe, () => listCommands(jali));
+  // The focused pane's own first, then Jali's: the same array until something it lists changes. The same read is
+  // the server's snapshot, so this renders on the server too.
+  const read = () => listCommands(jali);
+  const commands = useSyncExternalStore(jali.subscribe, read, read);
   const [query, setQuery] = useState("");
   const shown = commands.filter((c) =>
     `${c.title} ${c.group}`.toLowerCase().includes(query.toLowerCase()),

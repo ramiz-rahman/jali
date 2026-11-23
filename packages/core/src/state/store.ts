@@ -153,6 +153,10 @@ export interface UiState {
   /** Objects opened this session, most recent first (the launcher's "Recent"). */
   recent: ObjectRef[];
   area: { width: number; height: number };
+  /** The on-screen keyboard is up (the adapter measures it): stacked view shows the focused pane alone. */
+  keyboardUp?: boolean;
+  /** Stacked view: the top pane's share, once the person moved the divider (the adapter sets it). */
+  stackShare?: number;
   /** The pane on the whole screen (`actions.toggleFullScreen`): maximised, with the page in the browser's full
    *  screen. Not in the layout or the address. */
   fullScreen?: NodeId;
