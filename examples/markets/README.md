@@ -22,26 +22,26 @@ Build it as a static site with `pnpm exec vp build` in this folder, and serve `d
 - Switch desks in the top bar, then copy the address: the link opens the same desk. Reload, or press Back.
 - Rearrange a desk, switch to another and come back: it is as you left it, even after a reload. The Reset button (↺) beside the desks puts every desk back to the demo's layout.
 - Press / to find an instrument, or ⌘K for every command ("Open chart for…", "Add to watchlist…", "Buy…").
-- Press Buy on a quote, type a quantity and leave it unsent. Switching to a desk without the blotter asks first.
+- Press Buy on a quote, type a quantity and leave it unsent. Switching to a desk without the blotter asks first: Markets asks itself, naming the order, and Esc keeps it.
 - Narrow the window. Panes fold into tabs rather than squeeze, and come back as it widens.
 
 ## How it is built
 
-| File                      | What it shows                                                                                                                                          |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `src/market/types.ts`     | The `MarketData` interface: `snapshot(topic)` and `subscribe(topic, onData)`. A real feed fits here.                                                   |
-| `src/market/simulator.ts` | A seeded random walk behind it: quotes, an order book, trades, bars and news.                                                                          |
-| `src/market/kraken.ts`    | The live feed: Kraken's websocket and REST API behind the same `MarketData`, in front of the simulator.                                                |
-| `src/market/react.tsx`    | `useTopic(topic, paused)`: a pane stops listening while Jali says it is paused.                                                                        |
-| `src/panes/*.tsx`         | The eight pane kinds, each one `definePane` with params, a title, an icon and widths.                                                                  |
-| `src/panes/follow.ts`     | How one watchlist drives followers of several kinds: each kind's `follow`.                                                                             |
-| `src/panes/blotter.tsx`   | The order ticket: `usePaneState` for the draft, `useUnsaved` for an unsent order, `useCommands`.                                                       |
-| `src/presets.ts`          | The five desks, written with `row`, `column` and `pane`; followers are `linkedTo: "watch"`.                                                            |
-| `src/desks.ts`            | Each desk as it was left, in `localStorage`: a preset's `saved`, kept from `jali.on("layout")`.                                                        |
-| `src/workspace.ts`        | `createJali`: the kinds, presets, launcher, and the app's own ⌘K commands and keys; the "…" commands ask for an instrument with `jali.actions.choose`. |
-| `src/shell/`              | The app's chrome inside `<JaliRoot>`: a top bar, and a status line with Jali's `<Shelf />`.                                                            |
-| `src/ui/select.tsx`       | The list and desk menus: shadcn/ui's Select on Radix, styled on Jali's tokens in plain CSS (the example has no Tailwind).                              |
-| `src/styles/tokens.css`   | The terminal's theme, set on Jali's `--jali-*` tokens, and the app's up and down colours.                                                              |
+| File                      | What it shows                                                                                                                                                                                                                                    |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `src/market/types.ts`     | The `MarketData` interface: `snapshot(topic)` and `subscribe(topic, onData)`. A real feed fits here.                                                                                                                                             |
+| `src/market/simulator.ts` | A seeded random walk behind it: quotes, an order book, trades, bars and news.                                                                                                                                                                    |
+| `src/market/kraken.ts`    | The live feed: Kraken's websocket and REST API behind the same `MarketData`, in front of the simulator.                                                                                                                                          |
+| `src/market/react.tsx`    | `useTopic(topic, paused)`: a pane stops listening while Jali says it is paused.                                                                                                                                                                  |
+| `src/panes/*.tsx`         | The eight pane kinds, each one `definePane` with params, a title, an icon and widths.                                                                                                                                                            |
+| `src/panes/follow.ts`     | How one watchlist drives followers of several kinds: each kind's `follow`.                                                                                                                                                                       |
+| `src/panes/blotter.tsx`   | The order ticket: `usePaneState` for the draft, `useUnsaved` for an unsent order, `useCommands`.                                                                                                                                                 |
+| `src/presets.ts`          | The five desks, written with `row`, `column` and `pane`; followers are `linkedTo: "watch"`.                                                                                                                                                      |
+| `src/desks.ts`            | Each desk as it was left, in `localStorage`: a preset's `saved`, kept from `jali.on("layout")`.                                                                                                                                                  |
+| `src/workspace.ts`        | `createJali`: the kinds, presets, launcher, and the app's own ⌘K commands and keys; the "…" commands ask for an instrument with `jali.actions.choose`; `beforeClose` with `confirmDiscard: false` asks about an unsent order in the app's words. |
+| `src/shell/`              | The app's chrome inside `<JaliRoot>`: a top bar, a status line with Jali's `<Shelf />`, and the app's own question before an unsent order is lost.                                                                                               |
+| `src/ui/select.tsx`       | The list and desk menus: shadcn/ui's Select on Radix, styled on Jali's tokens in plain CSS (the example has no Tailwind).                                                                                                                        |
+| `src/styles/tokens.css`   | The terminal's theme, set on Jali's `--jali-*` tokens, and the app's up and down colours.                                                                                                                                                        |
 
 Up and down are always shown three ways at once: the sign, an arrow and a colour, so neither a colour-blind reader nor a screen reader misses them. Prices flash when they tick, except under reduced motion.
 

@@ -86,7 +86,9 @@ test("a failed price history isn't asked for again on every tick", async ({ page
   expect(calls.length).toBe(new Set(calls).size);
 });
 
-test("Reset with a typed order: Keep editing keeps every desk as it was left", async ({ page }) => {
+test("Reset with a typed order: Keep the order keeps every desk as it was left", async ({
+  page,
+}) => {
   await fakeKraken(page);
   await page.goto("/");
   const news = page.locator('.jali-pane[data-pane="news"]');
@@ -94,13 +96,13 @@ test("Reset with a typed order: Keep editing keeps every desk as it was left", a
   await news.getByRole("button", { name: /close/i }).first().click();
   await expect(news).toHaveCount(0);
 
-  // Equities has no blotter of its own: Buy opens one, so Reset would close a typed order, and Jali asks.
+  // Equities has no blotter of its own: Buy opens one, so Reset would close a typed order, and the app asks.
   await desk(page, "Equities").click();
   await page.locator('.jali-pane[data-pane="quote"]').getByRole("button", { name: "Buy" }).click();
   const ticket = page.getByRole("form", { name: "Order ticket" });
   await ticket.getByLabel(/Quantity/).fill("200");
   await page.getByRole("button", { name: "Reset every desk to the demo layout" }).click();
-  await page.getByRole("button", { name: "Keep editing" }).click();
+  await page.getByRole("button", { name: "Keep the order" }).click();
   await expect(ticket.getByLabel(/Quantity/)).toHaveValue("200");
   // The order is cleared, so the next switch has nothing to ask about.
   await ticket.getByRole("button", { name: "Clear" }).click();

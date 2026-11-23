@@ -1,25 +1,26 @@
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { listCommands, type DeepReadonly, type Jali, type LayoutNode } from "jali";
-import {
-  answerDiscard,
-  chooserRequest,
-  discardQuestion,
-  reportUnsaved,
-  testJaliOptions,
-} from "jali/testing";
+import { chooserRequest, reportUnsaved, testJaliOptions } from "jali/testing";
 import { openFollowing, show } from "./actions";
 import { createSimulator } from "./market/simulator";
 import { chart } from "./panes/chart";
 import { quote } from "./panes/quote";
 import { createServices } from "./services";
+import type { Question } from "./shell/Question";
 import { createMarketsJali, kinds } from "./workspace";
 
-/** The app's workspace with nothing shared: a memory address and storage, a fixed size, no DOM focus. */
-function testJali({ search = "", width = 1440, height = 900 } = {}) {
+/** The app's workspace with nothing shared: a memory address and storage, a fixed size, no DOM focus. `ask` answers
+ *  the app's question before unsent work is lost (main.tsx: its dialog). */
+function testJali({
+  search = "",
+  width = 1440,
+  height = 900,
+  ask,
+}: { search?: string; width?: number; height?: number; ask?: (q: Question) => boolean } = {}) {
   const market = createSimulator({ seed: 3, start: new Date(2026, 10, 19, 11, 45).getTime() });
   const services = createServices(market, { persist: false });
   const { options, location } = testJaliOptions({ search, size: { width, height } });
-  const jali = createMarketsJali(services, options);
+  const jali = createMarketsJali(services, { ...options, ask });
   return { jali, location, services };
 }
 
@@ -119,16 +120,29 @@ describe("the markets workspace", () => {
     expect(shown(jali, "quote-a")).toBe("LMNA");
   });
 
-  it("asks before a desk change loses an unsent order", () => {
-    const { jali } = testJali();
+  it("asks before a desk change loses an unsent order, naming it, and keeps it on No", () => {
+    const asked: Question[] = [];
+    let discard = false;
+    const { jali } = testJali({ ask: (q) => (asked.push(q), discard) });
     jali.actions.preset("fx");
-    // What the blotter's `useUnsaved` reports, and the Discard button: the engine's steps, as React calls them.
+    // What the blotter's `useUnsaved` reports: the engine's step, as React calls it.
     reportUnsaved(jali, "blotter", "an unsent order to buy 100 LMNA");
-    expect(jali.actions.preset("rates")).toMatchObject({ ok: false, reason: "unsaved" });
-    expect(discardQuestion(jali)?.panes).toEqual(["blotter"]);
+    expect(jali.actions.preset("rates")).toMatchObject({ ok: false });
+    expect(asked).toEqual([
+      {
+        title: "Discard the unsent order?",
+        body: "This change takes the blotter away, and with it an unsent order to buy 100 LMNA.",
+        keep: "Keep the order",
+        discard: "Discard",
+      },
+    ]);
     expect(jali.get().presetId).toBe("fx");
-    answerDiscard(jali, "discard");
+    discard = true;
+    expect(jali.actions.preset("rates")).toMatchObject({ ok: true });
     expect(jali.get().presetId).toBe("rates");
+    // Nothing unsent: a desk change doesn't ask.
+    jali.actions.preset("fx");
+    expect(asked).toHaveLength(2);
   });
 
   it("has room to compare at 1440: keep the chart, open another, and nothing folds", () => {

@@ -1,6 +1,7 @@
 /**
- * The app: Jali's root with the app's chrome around the panes, and the toasts outside the workspace (overlays). The
- * instrument search is Jali's own chooser, opened by the app's commands (workspace.ts).
+ * The app: Jali's root with the app's chrome around the panes; outside the workspace (overlays), the toasts and the
+ * app's question before an unsent order is lost. The instrument search is Jali's own chooser, opened by the app's
+ * commands (workspace.ts).
  */
 import { useEffect } from "react";
 import { Toaster, toast } from "sonner";
@@ -8,13 +9,23 @@ import { runCommand, type Jali } from "jali";
 import { JaliRoot, JaliView, useJali, useJaliTheme, useJaliEvent } from "jali/react";
 import { ServicesProvider, useServices, type Services } from "../services";
 import * as f from "../ui/format";
+import { QuestionDialog } from "./Question";
 import { StatusLine } from "./StatusLine";
 import { TopBar } from "./TopBar";
 
 export function App({ jali, services }: { jali: Jali; services: Services }) {
   return (
     <ServicesProvider services={services}>
-      <JaliRoot jali={jali} className="app" overlays={<Toasts />}>
+      <JaliRoot
+        jali={jali}
+        className="app"
+        overlays={
+          <>
+            <Toasts />
+            <QuestionDialog />
+          </>
+        }
+      >
         <TopBar />
         <SearchKey />
         <JaliView />

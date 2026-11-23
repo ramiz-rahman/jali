@@ -3,7 +3,7 @@
  * `createMarketsJali` takes the app's services and Jali's usual options, so a test can give it a memory address,
  * memory storage and a fixed size (workspace.test.ts).
  */
-import { createJali, type Command, type Jali, type JaliOptions } from "jali";
+import { createJali, type CloseRequest, type Command, type Jali, type JaliOptions } from "jali";
 import { makerCommand } from "@jali-examples/shared/maker/maker";
 import { themeCommand } from "@jali-examples/shared/theme";
 import { prepareTicket, show, showBlotter } from "./actions";
@@ -20,6 +20,7 @@ import { tape } from "./panes/tape";
 import { watchlist } from "./panes/watchlist";
 import { presets } from "./presets";
 import type { Services } from "./services";
+import type { Question } from "./shell/Question";
 import { defaultFeatures } from "jali/features";
 
 export const kinds = [watchlist, chart, quote, book, tape, news, curve, blotter];
@@ -30,7 +31,16 @@ type Options = Pick<
 > & {
   /** A short message for the person ("LMNA added to Core"). */
   notify?: (text: string) => void;
+  /** Ask the person whether to let unsent work go: true lets it go (main.tsx: the app's dialog, shell/Question.tsx).
+   *  Default: it goes, as in a test that doesn't ask. */
+  ask?: (question: Question) => boolean | Promise<boolean>;
 };
+
+/** What the question says before what would be lost: a close names itself; a desk change, Reset or Back don't. */
+const LOSES = (reason: CloseRequest["reason"]) =>
+  reason === "close"
+    ? "Closing the blotter loses"
+    : "This change takes the blotter away, and with it";
 
 const TRADABLE: AssetClass[] = ["equity", "govt", "corp", "fx", "crypto"];
 /** How the chooser names an instrument's class, beside its name. */
@@ -45,7 +55,7 @@ const ASSET_CLASS: Record<AssetClass, string> = {
 const BOOKED: AssetClass[] = TRADABLE;
 
 export function createMarketsJali(services: Services, options: Options = {}): Jali {
-  const { notify = () => {}, ...jaliOptions } = options;
+  const { notify = () => {}, ask = () => true, ...jaliOptions } = options;
   const { market, lists, desks } = services;
   /** Ask for an instrument in Jali's chooser (type a symbol or a name), then `onPick` its symbol. */
   const pick = (jali: Jali, title: string, onPick: (symbol: string) => void, only?: AssetClass[]) =>
@@ -158,6 +168,9 @@ export function createMarketsJali(services: Services, options: Options = {}): Ja
     commands: [...commands, makerCommand],
     name: "Markets",
     storage: "markets",
+    // Markets asks about an unsent order itself, naming it (shell/Question.tsx); Jali only marks the pane.
+    confirmDiscard: false,
+    beforeClose: (request) => askBeforeLosing(request),
     // Dark first: until the person picks a theme, a terminal is dark. (Jali's own default follows the system.)
     settings: { theme: "dark" },
     // On a portrait phone: the watchlist above the chart it opened, rather than one at a time.
@@ -172,5 +185,18 @@ export function createMarketsJali(services: Services, options: Options = {}): Ja
     features: [...defaultFeatures(), ...(jaliOptions.features ?? [])],
   });
   desks.track(jali);
+
+  /** A change that takes away a pane with unsent work (the blotter's ticket) asks first; anything else just happens. */
+  function askBeforeLosing({ panes, reason }: CloseRequest): boolean | Promise<boolean> {
+    const unsaved = jali.get().unsaved;
+    const lost = panes.flatMap(({ pane }) => unsaved[pane] ?? []);
+    if (!lost.length) return true;
+    return ask({
+      title: lost.length === 1 ? "Discard the unsent order?" : "Discard the unsent orders?",
+      body: `${LOSES(reason)} ${lost.join(" and ")}.`,
+      keep: lost.length === 1 ? "Keep the order" : "Keep the orders",
+      discard: "Discard",
+    });
+  }
   return jali;
 }

@@ -31,9 +31,9 @@ export interface Desks {
   /** Keep each desk's layout as it changes. Returns the stop. */
   track(jali: Jali): () => void;
   /**
-   * Every desk back to the demo's layout. The desk on screen goes back through Jali, which first asks about work that
-   * would be lost (a typed order); the others are forgotten only once that has happened, so "Keep editing" keeps
-   * them all.
+   * Every desk back to the demo's layout. The desk on screen goes back through Jali, which first asks the app about
+   * work that would be lost (a typed order: workspace.ts); the others are forgotten only once that has happened, so
+   * "Keep the order" keeps them all.
    */
   resetAll(jali: Jali): void;
 }

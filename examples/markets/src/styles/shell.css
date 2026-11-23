@@ -297,6 +297,54 @@
     }
   }
 
+  /* ---------- the app's question before unsent work is lost (shell/Question.tsx) ---------- */
+  .question {
+    width: min(26rem, calc(100vw - 2rem));
+    padding: 16px;
+    border: 1px solid var(--jali-border-strong);
+    border-radius: var(--jali-radius-menu);
+    background: var(--jali-surface-raised);
+    color: var(--jali-text);
+    box-shadow: var(--jali-shadow-menu);
+  }
+  .question::backdrop {
+    background: rgb(0 0 0 / 0.4);
+  }
+  .question h2 {
+    margin: 0 0 8px;
+    font-size: var(--mk-type-name);
+    font-weight: 600;
+  }
+  .question p {
+    margin: 0 0 16px;
+    color: var(--jali-text-muted);
+  }
+  .question-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  .question-actions button {
+    height: 32px;
+    padding: 0 12px;
+    border: 1px solid var(--jali-border-strong);
+    border-radius: var(--jali-radius-control);
+    background: var(--jali-canvas);
+    cursor: pointer;
+  }
+  .question-actions button:hover {
+    border-color: var(--jali-control);
+  }
+  .question-actions button:focus-visible {
+    outline: 2px solid var(--jali-focus-ring);
+    outline-offset: 2px;
+  }
+  .question-actions .question-keep {
+    border-color: var(--jali-accent);
+    background: var(--jali-accent-weak);
+  }
+
   /* ---------- toasts (Sonner) ---------- */
   .toast {
     font-family: var(--jali-font) !important;

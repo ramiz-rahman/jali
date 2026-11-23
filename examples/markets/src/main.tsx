@@ -8,6 +8,7 @@ import { createKrakenMarket } from "./market/kraken";
 import { createSimulator } from "./market/simulator";
 import { createServices } from "./services";
 import { App } from "./shell/App";
+import { ask } from "./shell/Question";
 import { createMarketsJali } from "./workspace";
 // Styles: the layer order is declared in index.html. Then Jali's faces (Atkinson Hyperlegible Next and Mono), and
 // the app's own, which import Jali's styles first.
@@ -32,7 +33,7 @@ async function start() {
   if (!(await market.ready()))
     setTimeout(() => toast("Kraken is slow to answer: crypto prices fill in as they arrive."), 500);
   const services = createServices(market, { feed: market.feed });
-  const jali = createMarketsJali(services, { notify: (text) => toast(text) });
+  const jali = createMarketsJali(services, { notify: (text) => toast(text), ask });
   services.trading.connect();
   createRoot(document.getElementById("root")!).render(<App jali={jali} services={services} />);
 }

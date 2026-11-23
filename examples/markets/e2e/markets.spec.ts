@@ -41,12 +41,21 @@ test("a typed order is unsaved work: a desk without the blotter asks first", asy
   await ticket.getByLabel(/Quantity/).fill("200");
   // The Rates desk has no blotter, so the ticket would go.
   await desk(page, "Rates").click();
-  await expect(page.getByRole("alertdialog")).toContainText("unsent order to buy 200 HRBK");
-  await page.getByRole("button", { name: "Keep editing" }).click();
+  // Markets asks itself, naming the order, and keeping it is the first choice.
+  const question = page.getByRole("alertdialog", { name: "Discard the unsent order?" });
+  await expect(question).toContainText(
+    "This change takes the blotter away, and with it an unsent order to buy 200 HRBK.",
+  );
+  await expect(question.getByRole("button", { name: "Keep the order" })).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(question).toBeHidden();
   await expect(desk(page, "FX")).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("form", { name: "Order ticket" }).getByLabel(/Quantity/)).toHaveValue(
     "200",
   );
+  await desk(page, "Rates").click();
+  await question.getByRole("button", { name: "Discard" }).click();
+  await expect(desk(page, "Rates")).toHaveAttribute("aria-pressed", "true");
 });
 
 test("/ asks for an instrument in Jali's chooser and opens its chart", async ({ page }) => {

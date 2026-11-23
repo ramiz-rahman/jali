@@ -118,7 +118,7 @@ function Ticket() {
   const qty = Number(draft.qty.replace(/[,\s_]/g, ""));
   const limit = Number(draft.limit);
   const typed = draft.qty !== "" || draft.limit !== "";
-  // The words Jali shows in "Discard unsaved changes?".
+  // The words the app's question shows before a change loses it (workspace.ts, shell/Question.tsx).
   useUnsaved(
     typed &&
       `an unsent order to ${draft.side} ${draft.qty || "some"} ${draft.symbol || "of an instrument"}`,
