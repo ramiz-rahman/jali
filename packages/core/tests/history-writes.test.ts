@@ -181,6 +181,24 @@ describe("a gesture writes the address once, when it ends (SAFARI-3)", () => {
     expect(writes).toEqual(["push"]);
     expect(port.search()).toContain("scroll=week");
   });
+  it("a replace still waiting when a drag starts is held with it, and written once it ends", () => {
+    vi.useFakeTimers();
+    const { port, writes } = history();
+    const jali = strip(port);
+    vi.advanceTimersByTime(1000);
+    writes.length = 0;
+    const store = storeOf(jali);
+    store.actions.setScroll("week", 300);
+    store.actions.setScroll("week", 600);
+    expect(writes).toEqual(["replace"]);
+    const release = store.gesture(() => {});
+    vi.advanceTimersByTime(1000);
+    expect(writes).toEqual(["replace"]);
+    release();
+    vi.advanceTimersByTime(1000);
+    expect(writes).toEqual(["replace", "replace"]);
+    expect(new URLSearchParams(port.search()).get("scroll")).toBe("week:600");
+  });
 });
 
 describe("the writer", () => {

@@ -27,8 +27,8 @@ export interface Lifetime {
   end(): void;
 }
 
-/** `idle`: called when the last gesture in progress ends, however it ends. */
-export function createLifetime(idle?: () => void): Lifetime {
+/** `busy`: called when a gesture starts with none in progress; `idle`: when the last one ends, however it ends. */
+export function createLifetime(busy?: () => void, idle?: () => void): Lifetime {
   const life = new AbortController();
   const timers = new Map<string, ReturnType<typeof setTimeout>>();
   const gestures = new Set<() => void>();
@@ -65,6 +65,7 @@ export function createLifetime(idle?: () => void): Lifetime {
         if (!gestures.size) idle?.();
       };
       const stop = () => end(true);
+      if (!gestures.size) busy?.();
       gestures.add(stop);
       return () => end(false);
     },

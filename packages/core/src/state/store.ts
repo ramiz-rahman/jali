@@ -58,6 +58,7 @@ import { createDom, type JaliDom } from "../dom/scope";
 export type { JaliDom } from "../dom/scope";
 import { paneStateSync, type HeldStates, type PaneStateSync } from "./pane-state";
 import { createLifetime } from "./lifetime";
+import type { UrlSync } from "../url";
 import { createEvents } from "./events";
 import { developmentChecks, firstLayout, freezeTree, initialState } from "./initial";
 
@@ -448,12 +449,17 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
   );
   // The instance's lifetime (state/lifetime.ts): `destroy()` ends it, and whatever still waits on it (a host's
   // answer, a deferred step, a drag in progress) ends with it.
-  // The address is written once the last gesture ends, with the strongest mode asked for while it lasted.
-  const life = createLifetime(() => {
-    const mode = gestureMode;
-    gestureMode = "none";
-    submitUrl(mode);
-  });
+  // The address is written once the last gesture ends, with the strongest mode asked for while it lasted. A write
+  // the writer had waiting when the first began is held with them, and becomes a replace of the final state.
+  const held = () => (url && "hold" in url ? (url as UrlSync) : undefined);
+  const life = createLifetime(
+    () => held()?.hold(true),
+    () => {
+      const mode = held()?.hold(false) ? stronger(gestureMode, "replace") : gestureMode;
+      gestureMode = "none";
+      submitUrl(mode);
+    },
+  );
   /** What the batch running, and the gestures in progress, asked of the address: the strongest wins. */
   let batchMode: HistoryMode = "none",
     gestureMode: HistoryMode = "none";

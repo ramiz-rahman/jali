@@ -339,6 +339,9 @@ export interface UrlSync extends UrlWriter {
   keepBroken(code: string): void;
   onPop(fn: () => void): () => void;
   href(): string;
+  /** A gesture holds the instance (`true`): a write waiting stays unwritten. Released (`false`): the write waiting is
+   *  dropped, and the answer says whether there was one, so the instance writes its final state instead. */
+  hold(on: boolean): boolean;
 }
 
 export interface UrlSyncOptions {
@@ -459,6 +462,14 @@ export function createUrlSync({
         waiting = null;
         fn();
       }),
+    hold(on) {
+      clearTimeout(timer);
+      timer = undefined;
+      if (on) return !!waiting;
+      const was = !!waiting;
+      waiting = null;
+      return was;
+    },
     // "Copy link" copies what is on screen: a replace still waiting is written first.
     href: () => (flush(), location.href()),
   };
