@@ -46,4 +46,4 @@ Give the root element a height, and name the CSS layers once (`@layer base, jali
 - **The package:** [`packages/jali`](packages/jali) is the one published package, `jali`.
 - **Working on Jali:** [CONTRIBUTING.md](CONTRIBUTING.md) (setup, checks, practice) and [ARCHITECTURE.md](ARCHITECTURE.md) (how it is built). The product brief is [docs/BRIEF.md](docs/BRIEF.md), and every decision is in [docs/DECISIONS.md](docs/DECISIONS.md).
 
-Jali and its example apps are designed and built by [Ramiz Rahman](https://ramizrahman.com/). Licence: Apache-2.0, as `packages/jali/package.json` says.
+Jali and its example apps are designed and built by [Ramiz Rahman](https://ramizrahman.com/). Licence: [Apache-2.0](LICENSE).
