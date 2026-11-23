@@ -1,5 +1,5 @@
 /** A curated page's bar: the view mode (Single or Split view), the investigation with its way back, and Reset. */
-import { investigation } from "@jali/core/adapter";
+import { can, investigation } from "@jali/core/adapter";
 import { useJaliIcons } from "../icons/context";
 import {
   bold,
@@ -34,6 +34,7 @@ function PageBarOf() {
   if (!profile || !page) return null;
   const opened = investigation(m.panes).length;
   const multi = page.mode === "split";
+  const back = can(store, "page.back");
   return (
     <div className="jali-page-bar">
       {/* APG radio group: one tab stop (the checked mode), and the arrow keys move to the other and check it. */}
@@ -81,7 +82,14 @@ function PageBarOf() {
           <span className="jali-inv-text">
             <Parts of={t.openedCount(opened, bold)} />
           </span>
-          <button type="button" className="jali-inv-back" onClick={() => store.run("page.back")}>
+          {/* The step's own answer, as ⌘K's: greyed out, saying why, where an opened pane may not close. */}
+          <button
+            type="button"
+            className="jali-inv-back"
+            aria-disabled={back.ok ? undefined : true}
+            title={back.message}
+            onClick={() => back.ok && store.run("page.back")}
+          >
             <icon.back size={13} aria-hidden /> {t.backTo(profile.name)}
           </button>
         </div>

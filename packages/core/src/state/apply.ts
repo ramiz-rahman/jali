@@ -736,7 +736,18 @@ function step(c: Run, o: Outcome): Res {
   const next = { layout: o.layout ?? s.layout, view: o.view ?? s.view };
   const url = (mode: HistoryMode) => mode !== "none" && fx(c, () => io.url(mode));
   let discarding: NodeId[] = [];
+  // The state the change proposes, as far as a link holds it: its page and preset may come with it.
+  const has = <K extends keyof UiState>(k: K) => !!o.patch && k in o.patch;
+  const proposed: LinkState = {
+    layout: next.layout,
+    view: next.view,
+    page: has("page") ? (o.patch!.page ?? null) : s.page,
+    presetId: has("presetId") ? o.patch!.presetId : s.presetId,
+  };
   if (p.writes === "view") {
+    // A view the address holds (zoom, scroll) is part of the link too: one past what a reader reads isn't made.
+    if (next.view !== s.view && (o.history ?? p.history) !== "none" && pastLinks(io, s, proposed))
+      return ok(refused("blocked"));
     if (next.view !== s.view || o.patch) {
       const selection = o.patch?.selection;
       const owned =
@@ -752,15 +763,7 @@ function step(c: Run, o: Outcome): Res {
   } else {
     const layoutChanged = next.layout !== s.layout,
       viewChanged = !sameView(next.view, s.view);
-    // The state the change proposes, as far as a link holds it: its page and preset may come with it.
-    const has = <K extends keyof UiState>(k: K) => !!o.patch && k in o.patch;
-    const proposed: LinkState = {
-      layout: next.layout,
-      view: next.view,
-      page: has("page") ? (o.patch!.page ?? null) : s.page,
-      presetId: has("presetId") ? o.patch!.presetId : s.presetId,
-    };
-    if (layoutChanged && pastLinks(io, s, proposed)) return ok(refused("blocked"));
+    if ((layoutChanged || viewChanged) && pastLinks(io, s, proposed)) return ok(refused("blocked"));
     // Unsaved work is never lost without asking. A following detail keeps its object instead (it moves on its own
     // while the person browses the list: a question each time would be worse).
     // The host is asked first (beforeClose); its yes still meets Jali's own question about unsaved work.

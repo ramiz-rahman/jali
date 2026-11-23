@@ -579,6 +579,21 @@ describe("renaming in place", () => {
     expect(field().value).toBe("Doc 4");
   });
 
+  it("openHere then startRename in one batch is a new session: Enter saves for the new object", async () => {
+    const run = vi.fn();
+    const jali = docs({ run });
+    render(<JaliRoot jali={jali} />);
+    act(() => void jali.actions.startRename("c"));
+    act(() => {
+      jali.actions.openHere("c", doc({ id: 4 }));
+      jali.actions.startRename("c");
+    });
+    expect(field().value).toBe("Doc 4");
+    fireEvent.change(field(), { target: { value: "Four" } });
+    await act(async () => void fireEvent.keyDown(field(), { key: "Enter" }));
+    expect(run).toHaveBeenCalledWith({ id: "c", ref: doc({ id: 4 }) }, "Four");
+  });
+
   it("a save pending while the object changes completes for the object it started on", async () => {
     let settle!: (v: void | false) => void;
     const run = vi.fn(() => new Promise<void | false>((r) => (settle = r)));

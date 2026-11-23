@@ -6,6 +6,8 @@
  * Opt-in: only `definePage` reaches this module. It puts the page's engine (`pageEngine`) on the page, and the
  * instance runs the page through `env.page`, so an app without a page ships none of it.
  */
+import { copyIn } from "../state/ingress";
+import { UNSAFE_IDS } from "../layout/codec/validate";
 import * as core from "../layout/engine";
 import { endSide, treeSide } from "../layout/geometry/direction";
 import { toLayout } from "../layout/build";
@@ -63,9 +65,12 @@ interface Placed {
   view: ViewState;
 }
 
+/** What the page binds `item` to, copied: the app may cache its refs, and what Jali keeps is its own. */
+const bound = (p: ProfileBase, item: ItemId) => copyIn(p.bind(item));
+
 /** Every role shows `item`; opened panes keep what they show. */
 function rebind(layout: Layout, p: ProfileBase, item: ItemId): Layout {
-  const refs = p.bind(item);
+  const refs = bound(p, item);
   const root = core.tree.map(layout.root, (n) =>
     n.type === "pane" && n.role && refs[n.role] ? { ...n, ref: refs[n.role]! } : n,
   );
@@ -96,7 +101,7 @@ function single(p: ProfileBase, item: ItemId, tab: string, ctx: LayoutContext): 
     id: r.id,
     type: "pane",
     size: { weight: 1 },
-    ref: p.bind(item)[r.id]!,
+    ref: bound(p, item)[r.id]!,
     role: r.id,
     priority: r.priority,
   };
@@ -487,11 +492,15 @@ function placing(
 const viewCheck = (x: Snapshot, role: string) =>
   needPage(x) ?? (roleOf(x.env.profile!, role) ? undefined : refuse("not-found"));
 
+/** A view of this page placed by `target`: never by itself, which places nothing (and switches no mode). */
+const placeCheck = (x: Snapshot, role: string, target: NodeId | undefined) =>
+  viewCheck(x, role) ?? (role === target ? refuse("nothing-to-do") : undefined);
+
 /** Drop a view from the tabs onto a pane's edge, a side of the screen (or centre: as a tab of its group). From Single,
  *  this switches to Split view first: dragging a tab out is asking for two views at once. Room is made by sending the
  *  least recently used views back to the tabs (settleRoles), never by folding views into tab groups. */
 const placeTab: Step<[string, NodeId, Edge | "centre"]> = {
-  check: viewCheck,
+  check: (x, role, target) => placeCheck(x, role, target),
   control: (x, role, target) => placing(x, role, target),
   run: (x, role, target, zone) => place(x, role, target, zone),
 };
@@ -530,7 +539,7 @@ const besideFrom = (x: Snapshot): NodeId | undefined =>
 
 /** ⌥-click a tab: that view beside the one you're in (the same placement besidePreview shows). */
 const showViewBeside: Step<[string]> = {
-  check: viewCheck,
+  check: (x, role) => placeCheck(x, role, besideFrom(x)),
   control: (x, role) => placing(x, role, besideFrom(x)),
   run(x, role) {
     const r = x.s.page!;
@@ -659,26 +668,42 @@ const back: Step<[]> = {
 
 /** Close a view in Split view: it leaves the screen and waits in the tabs. Never the last one on screen. */
 const hideRole: Step<[NodeId]> = {
-  // In Single view there is no layout to take a view out of.
-  check: (x) =>
-    x.s.page?.mode === "single" ? refuse("single-view", say(x).singleNoLayout) : undefined,
+  // In Single view there is no layout to take a view out of; in Split view the last view on screen stays. Both are the
+  // check's, so a menu or header offers no Close it would refuse.
+  check(x, id) {
+    if (x.s.page?.mode === "single") return refuse("single-view", say(x).singleNoLayout);
+    const r = hiding(x, id);
+    return r && !r.ok ? r.no : undefined;
+  },
   run: (x, id) => hide(x, id),
 };
 
-function hide(x: Snapshot, id: NodeId): Outcome {
+/** Taking view `id` off screen in Split view, or undefined where there is none to take (not a view, no page). */
+function hiding(x: Snapshot, id: NodeId) {
   const p = x.env.profile,
     node = x.m.pane(id);
-  if (!p || x.s.page?.mode !== "split" || !node?.role) return null;
+  if (!p || x.s.page?.mode !== "split" || !node?.role) return undefined;
   const r = core.hide(x.s.layout, unzoomed(x.s.view), id, x.ctx);
-  if (!r.ok)
-    return r.reason === "last"
-      ? refuse("last-pane", say(x).lastView(label(p, node.role)))
-      : refuse("blocked");
+  return r.ok
+    ? { ...r, name: label(p, node.role) }
+    : {
+        ok: false as const,
+        no:
+          r.reason === "last"
+            ? refuse("last-pane", say(x).lastView(label(p, node.role)))
+            : refuse("blocked"),
+      };
+}
+
+function hide(x: Snapshot, id: NodeId): Outcome {
+  const r = hiding(x, id);
+  if (!r) return null;
+  if (!r.ok) return r.no;
   return {
     op: "hide",
     layout: r.layout,
     view: r.view,
-    msg: say(x).roleHidden(label(p, node.role)),
+    msg: say(x).roleHidden(r.name),
     focusDom: r.view.focused,
   };
 }
@@ -837,5 +862,9 @@ export const pageEngine: PageEngine = {
  * alone renders no rail, header or tabs. Returns a copy of `page`; the fields are `page`'s own.
  */
 export function definePageEngine<P extends ProfileBase<any, any>>(page: P): P {
+  // A role's id is its pane's id, so it can't be one that names something on every object.
+  for (const r of page.roles)
+    if (UNSAFE_IDS.has(r.id))
+      throw new Error(`Jali: "${r.id}" can't be a page role (it can't be a pane id).`);
   return { ...page, [PAGE]: pageEngine };
 }

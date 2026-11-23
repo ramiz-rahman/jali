@@ -1,6 +1,6 @@
 import type { NodeId } from "@jali/core";
 import { useLayoutEffect, useRef } from "react";
-import { useStore } from "../state/react";
+import { useStore, useUi } from "../state/react";
 import { useRenameSession } from "./rename-session";
 
 /**
@@ -9,7 +9,14 @@ import { useRenameSession } from "./rename-session";
  * While the app saves it is busy; if the app says no, it stays open with the text and says so. Focus goes back to the
  * tab, or the pane, when it closes from the keyboard. The session is rename-session.ts's; this draws it.
  */
-export function RenameField({ pane, title }: { pane: NodeId; title: string }) {
+export function RenameField(props: { pane: NodeId; title: string }) {
+  // A session belongs to its object: a rename started on another one (even in the same batch that ended the last) is
+  // a new field, never the old session still holding the old object's ref.
+  const object = useUi((s) => s.renaming?.object);
+  return <RenameInput key={object} {...props} />;
+}
+
+function RenameInput({ pane, title }: { pane: NodeId; title: string }) {
   const t = useStore().messages.pane;
   const session = useRenameSession(pane, title);
   const input = useRef<HTMLInputElement>(null);

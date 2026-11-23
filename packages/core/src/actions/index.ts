@@ -159,8 +159,9 @@ function onTarget<A extends unknown[]>(
       missing(x, pane) ? refuse("not-found") : step.check?.(x, idOf(x, pane)!, ...a),
     ...(step.control
       ? {
+          // A pane named but not there asks nothing: the check says not-found, never the focused pane's controls.
           control: (x: Snapshot, pane: PaneTarget | undefined, ...a: A) =>
-            step.control!(x, idOf(x, pane)!, ...a),
+            missing(x, pane) ? [] : step.control!(x, idOf(x, pane)!, ...a),
         }
       : {}),
     run: (x, pane, ...a) => {

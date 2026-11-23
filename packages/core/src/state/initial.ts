@@ -113,8 +113,9 @@ export function initialState(o: {
  */
 export function freezeTree(value: unknown): void {
   if (!value || typeof value !== "object" || Object.isFrozen(value)) return;
-  for (const v of Object.values(value)) freezeTree(v);
+  // Frozen before its parts are walked, so a part that refers back stops at it.
   Object.freeze(value);
+  for (const v of Object.values(value)) freezeTree(v);
 }
 
 /**
