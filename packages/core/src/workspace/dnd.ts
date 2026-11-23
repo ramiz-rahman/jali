@@ -227,9 +227,14 @@ function startDrag(
   const up = () => {
     settle();
     const d = store.get().dnd;
-    cleanup();
-    if (started && d?.tabAt) store.actions.moveTab(paneId, d.tabAt.index);
-    else if (started && d?.target && d.zone) onDrop(d.target, d.zone);
+    // The drop is part of the gesture: the address is written once, after it.
+    end();
+    try {
+      if (started && d?.tabAt) store.actions.moveTab(paneId, d.tabAt.index);
+      else if (started && d?.target && d.zone) onDrop(d.target, d.zone);
+    } finally {
+      disown();
+    }
   };
   const key = (ev: KeyboardEvent) => {
     if (ev.key !== "Escape" || !started) return;
@@ -242,9 +247,13 @@ function startDrag(
   let done = false;
   let disown = () => {};
   function cleanup() {
+    end();
+    disown();
+  }
+  /** The drag's listeners and preview go; the instance still holds the gesture until `disown`. */
+  function end() {
     if (done) return;
     done = true;
-    disown();
     if (frame) cancelAnimationFrame(frame);
     frame = 0;
     edge.stop();

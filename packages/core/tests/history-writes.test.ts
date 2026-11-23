@@ -11,13 +11,14 @@
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import {
   createJali,
+  memoryLocation,
   memoryStorage,
   pane,
   row,
   type JaliOptions,
   type LocationPort,
 } from "@jali/core";
-import { storeOf } from "@jali/core/adapter";
+import { edgeScroll, storeOf } from "@jali/core/adapter";
 import { urlSync } from "../src/features/url-sync";
 
 afterEach(() => vi.useRealTimers());
@@ -121,5 +122,63 @@ describe("one history decision per action", () => {
     expect(writes).toEqual(["replace"]);
     expect(port.search()).not.toContain("not-a-layout");
     expect(toasts).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("a gesture writes the address once, when it ends (SAFARI-3)", () => {
+  const day = {
+    kind: "day",
+    title: "Day",
+    params: { n: Number },
+    width: { min: 300, comfortable: 360 },
+  };
+  const week = row(
+    { id: "outer" },
+    row(
+      { id: "week", scroll: "x" },
+      ...[1, 2, 3, 4, 5, 6, 7].map((n) => pane({ kind: "day", params: { n } }, { id: `d${n}` })),
+    ),
+  );
+  const strip = (location: LocationPort) =>
+    make(location, { panes: [day], layout: week, size: { width: 1200, height: 800 } });
+
+  it("ten seconds of edge scrolling make no history write, and one at the end, which reopens there", () => {
+    vi.useFakeTimers();
+    const { port, writes } = history();
+    const jali = strip(port);
+    vi.advanceTimersByTime(1000);
+    writes.length = 0;
+    const store = storeOf(jali);
+    const edge = edgeScroll(jali);
+    edge.move(10, 10);
+    // About ten scroll reports a second, as a held edge makes them.
+    for (let i = 1; i <= 100; i++) {
+      store.actions.setScroll("week", i * 4);
+      vi.advanceTimersByTime(100);
+    }
+    expect(writes).toEqual([]);
+    edge.stop();
+    vi.advanceTimersByTime(1000);
+    expect(writes).toEqual(["replace"]);
+    expect(new URLSearchParams(port.search()).get("scroll")).toBe("week:400");
+    expect(strip(memoryLocation(port.search())).get().view.scroll).toEqual({ week: 400 });
+  });
+
+  it("a drop inside a drag is held with it, and written once it ends", () => {
+    vi.useFakeTimers();
+    const { port, writes } = history();
+    const jali = strip(port);
+    vi.advanceTimersByTime(1000);
+    writes.length = 0;
+    const store = storeOf(jali);
+    const release = store.gesture(() => {});
+    const outer = store.gesture(() => {});
+    store.actions.setScroll("week", 300);
+    jali.actions.close("d7");
+    outer();
+    expect(writes).toEqual([]);
+    release();
+    expect(writes).toEqual(["push"]);
+    expect(port.search()).toContain("scroll=week");
   });
 });

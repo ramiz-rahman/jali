@@ -5,10 +5,14 @@
  *
  *   const edge = edgeScroll(jali, () => updateDropTarget());
  *   // on every pointermove: edge.move(e.clientX, e.clientY);  on drop or cancel: edge.stop();
+ *
+ * From its first move to its stop it is a gesture of the instance: the address isn't written meanwhile (it would be a
+ * write per few frames), and is written once it stops, with where the strip came to rest.
  */
 import type { AnyJali } from "../state/instance";
 import { maxOffset } from "../layout/geometry/scroll";
 import { storeOf } from "../state/instance";
+import type { ScrollerBox } from "../layout/types";
 
 /** How near a strip's edge, in px, the pointer starts it scrolling. */
 export const EDGE = 56;
@@ -18,7 +22,7 @@ const SPEED = 22;
 export interface EdgeScroll {
   /** The pointer is here now (client coordinates). */
   move(clientX: number, clientY: number): void;
-  /** The drag ended: stop scrolling. */
+  /** The drag ended: stop scrolling, and say where the strip came to rest. */
   stop(): void;
 }
 
@@ -27,6 +31,17 @@ export function edgeScroll(jali: AnyJali, onScroll?: () => void): EdgeScroll {
   let at: { x: number; y: number } | null = null;
   let frame = 0;
   let steps = 0;
+  /** The gesture's release, from the first move to the stop. */
+  let release: (() => void) | null = null;
+  /** The strip scrolled since its place was last told. */
+  let moved: { strip: ScrollerBox; el: HTMLElement } | null = null;
+  const tell = () => {
+    if (!moved) return;
+    const { strip, el } = moved;
+    moved = null;
+    const left = el.scrollLeft;
+    store.actions.setScroll(strip.id, store.get().dir === "rtl" ? maxOffset(strip) - left : left);
+  };
 
   /**
    * Where the panes' box sits on the page: a shown pane's place there, less its place in the layout. Not a pane in a
@@ -81,25 +96,31 @@ export function edgeScroll(jali: AnyJali, onScroll?: () => void): EdgeScroll {
       if (Math.abs(el.scrollLeft - before) < 0.5) return;
       // Keep the model roughly in step while the hold goes on (its drop highlight reads it), every few frames
       // rather than every one: the strip tells it exactly once it rests.
-      if (++steps % 6 === 0) {
-        const left = el.scrollLeft;
-        store.actions.setScroll(s.id, store.get().dir === "rtl" ? maxOffset(s) - left : left);
-      }
+      moved = { strip: s, el };
+      if (++steps % 6 === 0) tell();
       onScroll?.();
       frame = requestAnimationFrame(step);
       return;
     }
   };
 
+  function stop() {
+    at = null;
+    if (frame) cancelAnimationFrame(frame);
+    frame = 0;
+    // Where it came to rest, then the gesture ends: the address is written once, with it.
+    tell();
+    const done = release;
+    release = null;
+    done?.();
+  }
+
   return {
     move(clientX, clientY) {
       at = { x: clientX, y: clientY };
+      release ??= store.gesture(stop);
       if (!frame) frame = requestAnimationFrame(step);
     },
-    stop() {
-      at = null;
-      if (frame) cancelAnimationFrame(frame);
-      frame = 0;
-    },
+    stop,
   };
 }

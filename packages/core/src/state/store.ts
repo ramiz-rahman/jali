@@ -450,11 +450,22 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
   );
   // The instance's lifetime (state/lifetime.ts): `destroy()` ends it, and whatever still waits on it (a host's
   // answer, a deferred step, a drag in progress) ends with it.
-  const life = createLifetime();
-  /** What the batch running asked of the address: the strongest wins. */
-  let batchMode: HistoryMode = "none";
+  // The address is written once the last gesture ends, with the strongest mode asked for while it lasted.
+  const life = createLifetime(() => {
+    const mode = gestureMode;
+    gestureMode = "none";
+    submitUrl(mode);
+  });
+  /** What the batch running, and the gestures in progress, asked of the address: the strongest wins. */
+  let batchMode: HistoryMode = "none",
+    gestureMode: HistoryMode = "none";
+  /** Set as `destroy()` starts: what it ends (a gesture, a strip's last scroll) writes no address. */
+  let ending = false;
   const submitUrl = (mode: HistoryMode) => {
-    if (mode !== "none" && url && !life.ended()) url.write(urlState, mode);
+    if (mode === "none" || !url || ending || life.ended()) return;
+    // Nothing while a gesture (a drag, edge scrolling) holds the instance: it would be a write per frame.
+    if (life.gesturing()) gestureMode = stronger(gestureMode, mode);
+    else url.write(urlState, mode);
   };
   /** The share of the state an address holds, as a link carries it: without params only the app sets (`appOnly`),
    *  and without the peek. Read when the writer writes. */
@@ -684,6 +695,8 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
     ended: () => life.ended(),
     destroy() {
       if (life.ended()) return;
+      // Nothing is written to the address from here: the next route owns it.
+      ending = true;
       // Stopping saves pane state still waiting to be saved; without a start, nothing saves it at all.
       stop?.();
       // A gesture in progress puts back what it previewed while the instance can still be written to.

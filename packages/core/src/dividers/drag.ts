@@ -191,7 +191,6 @@ export function startDividerDrag(
   const finish = (commitIt: boolean) => {
     if (done) return;
     done = true;
-    disown();
     if (raf) cancelAnimationFrame(raf);
     raf = 0;
     if (commitIt) render(); // flush the last pointer position, so the commit equals what was last shown
@@ -213,13 +212,18 @@ export function startDividerDrag(
     store.dom.setDragging(null, sepEl);
     line?.hide();
     for (const release of held) release();
-    // One commit, one URL write (120ms after the drag settles). React re-renders only the frames whose rect changed,
-    // with the values already on screen.
-    const landed =
-      commitIt &&
-      preview !== layout0 &&
-      store.get().layout === layout0 &&
-      store.actions.commitDividerDrag(preview, parentId, index).ok;
+    // One commit, one URL write (120ms after the drag settles, once the gesture ends). React re-renders only the
+    // frames whose rect changed, with the values already on screen.
+    let landed = false;
+    try {
+      landed =
+        commitIt &&
+        preview !== layout0 &&
+        store.get().layout === layout0 &&
+        store.actions.commitDividerDrag(preview, parentId, index).ok;
+    } finally {
+      disown();
+    }
     // The drag owns what it previewed until its commit lands. Refused (the app's allow changed its mind), cancelled,
     // or overtaken by another layout, those elements go back to the geometry committed now: nothing re-renders them,
     // since the committed rects didn't change.

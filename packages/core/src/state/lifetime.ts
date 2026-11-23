@@ -20,12 +20,15 @@ export interface Lifetime {
   gesture(cancel: () => void): () => void;
   /** Cancel every gesture in progress. */
   cancelGestures(): void;
+  /** Whether a gesture is in progress. Gestures nest (a pane drag that edge-scrolls is two). */
+  gesturing(): boolean;
   /** End the lifetime: abort the signal first, so whatever ends with it finds it ended, then cancel the gestures and
    *  drop the deferred steps. Again does nothing. */
   end(): void;
 }
 
-export function createLifetime(): Lifetime {
+/** `idle`: called when the last gesture in progress ends, however it ends. */
+export function createLifetime(idle?: () => void): Lifetime {
   const life = new AbortController();
   const timers = new Map<string, ReturnType<typeof setTimeout>>();
   const gestures = new Set<() => void>();
@@ -49,24 +52,24 @@ export function createLifetime(): Lifetime {
       );
     },
     gesture(cancel) {
+      if (life.signal.aborted) {
+        cancel();
+        return () => {};
+      }
       let live = true;
-      const stop = () => {
+      const end = (cancelIt: boolean) => {
         if (!live) return;
         live = false;
         gestures.delete(stop);
-        cancel();
+        if (cancelIt) cancel();
+        if (!gestures.size) idle?.();
       };
-      if (life.signal.aborted) {
-        stop();
-        return () => {};
-      }
+      const stop = () => end(true);
       gestures.add(stop);
-      return () => {
-        live = false;
-        gestures.delete(stop);
-      };
+      return () => end(false);
     },
     cancelGestures,
+    gesturing: () => gestures.size > 0,
     end() {
       if (life.signal.aborted) return;
       life.abort();
