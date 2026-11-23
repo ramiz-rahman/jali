@@ -10,9 +10,9 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vite-plus/test";
 import * as core from "jali";
 import { DEFAULT_KEYMAP } from "jali/adapter";
+import { defaultIcons } from "../../../../packages/react/src/icons/default";
 import * as react from "jali/react";
 import * as page from "jali/page";
-import * as icons from "jali/icons";
 import * as testing from "jali/testing";
 import * as features from "jali/features";
 import * as url from "jali/url";
@@ -90,10 +90,8 @@ describe("the reference covers the public API", () => {
     expect(missing(names)).toEqual([]);
   });
 
-  it("every value jali/react, jali/page, jali/icons, jali/testing export has an entry", () => {
-    expect(missing([react, page, icons, testing].flatMap((entry) => Object.keys(entry)))).toEqual(
-      [],
-    );
+  it("every value jali/react, jali/page and jali/testing export has an entry", () => {
+    expect(missing([react, page, testing].flatMap((entry) => Object.keys(entry)))).toEqual([]);
   });
 
   it("every feature has an entry", () => {
@@ -102,13 +100,13 @@ describe("the reference covers the public API", () => {
   });
 
   it("every icon name has an entry", () => {
-    expect(missing(Object.keys(icons.defaultIcons).map((k) => `icons.${k}`))).toEqual([]);
+    expect(missing(Object.keys(defaultIcons).map((k) => `icons.${k}`))).toEqual([]);
   });
 
   it("every type an app's entries export has an entry", () => {
     const types = [
       ...typeExports(join(packages, "core/src/index.ts")),
-      ...["react", "page", "icons", "testing", "url"].flatMap((e) =>
+      ...["react", "page", "testing", "url"].flatMap((e) =>
         typeExports(join(packages, `jali/src/${e}.ts`)),
       ),
     ];

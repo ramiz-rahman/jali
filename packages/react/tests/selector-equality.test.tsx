@@ -7,7 +7,8 @@ import { StrictMode } from "react";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, pane, row } from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
-import { definePane, shallow, useJaliModel, useJaliState } from "@jali/react";
+import { definePane, useJaliModel, useJaliState } from "@jali/react";
+import { shallow } from "../src/state/react";
 // Internal: hooks read outside a root, as a docs side panel does.
 import { JaliProvider } from "../src/JaliRoot";
 import { defaultFeatures, urlSync } from "./features";

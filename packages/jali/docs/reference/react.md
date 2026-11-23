@@ -704,16 +704,6 @@ useJaliEvent(event: JaliEvent, handler: (e: JaliEvents[event]) => void): void
 
 Hear one of the instance's events while the component is mounted: `useJaliEvent("open", ({ ref }) => …)`, `useJaliEvent("toast", show)`. It always calls the latest `handler`, so an inline function is fine, and stops listening on unmount. Typed by the app's instance once it is registered (`Register`). See [`JaliEvents`](core/types.md#jalievents).
 
-### shallow
-
-*function*, from `jali/react`
-
-```ts
-shallow<T>(a: T, b: T): boolean
-```
-
-The same keys (or items) with the same values by `Object.is`, one level deep: the equality for a selector that picks several values, `useJaliState((s) => ({ focused: s.view.focused, cap: s.settings.paneCap }), shallow)`.
-
 ### useJaliTheme
 
 *hook*, from `jali/react`
@@ -723,18 +713,6 @@ useJaliTheme(): "light" | "dark"
 ```
 
 The theme in use: the person's setting, or the system's when they chose "System". For a toaster or anything else of yours that needs to match.
-
-### useJaliCommands
-
-*hook*, from `jali/react`
-
-```ts
-useJaliCommands(): ListedCommand[]
-```
-
-Jali's commands for your app's own command menu, when the instance has no `palette()` feature: [`listCommands`](core.md#listcommands), re-rendering whenever the list can change (focus, the layout, what panes report). See [Commands and keys](../guides/commands-and-keys.md#inside-an-app-with-its-own-k-and-keys).
-
-**Returns** `ListedCommand[]`:
 
 ### useJaliShortcut
 
@@ -755,16 +733,6 @@ A command's keys in this instance's keymap, for a tooltip ("⌘K ⌘[" or "Ctrl+
 ## Parts
 
 Chrome of your own goes inside `<JaliRoot>`, around `<JaliView />`: the root renders the dialogs, the live region and the full-screen layer for every way of using Jali. These parts are for that chrome; each must be inside `<JaliRoot>`, and none takes props unless shown.
-
-### CuratedPage
-
-*component*, from `jali/react`
-
-```ts
-<CuratedPage />
-```
-
-A curated page: the page's `Rail` at the left, when it has one; its `Header`, the page tabs and the panes beside it, or across the whole width without a rail. Renders only while a page is open (it reads it without checking).
 
 ### PageBar
 
@@ -854,7 +822,6 @@ A button that is only an icon, drawn as Jali's header buttons are (the `iconButt
 
 ```tsx
 import { IconButton, JaliRoot } from "jali/react";
-import { defaultIcons } from "jali/icons";
 import { GearSixIcon } from "@phosphor-icons/react";
 
 <IconButton label="Settings" onClick={() => jali.dialogs.openSettings()}>
@@ -1015,23 +982,3 @@ interface JaliIconProps {
 ```
 
 What Jali passes an icon: its default size in pixels, the class that sizes it from its place's token (`--jali-icon-header`, `-tab`, `-menu` or `-shelf`; put it on the icon's element), and `aria-hidden` (a label always sits beside it, or on its button).
-
-### defaultIcons
-
-*constant*, from `jali/icons`
-
-```ts
-const defaultIcons: JaliIcons
-```
-
-Jali's icon for every name: Phosphor's regular weight, copied into the package. Spread it under a few of your own (`{ ...defaultIcons, close: MyClose }`), or draw your own chrome with it.
-
-### useJaliIcons
-
-*hook*, from `jali/react`
-
-```ts
-useJaliIcons(): JaliIcons
-```
-
-The icons this instance draws with, for chrome of your own that should match Jali's: `const { close } = useJaliIcons()`. Inside `<JaliRoot>`.

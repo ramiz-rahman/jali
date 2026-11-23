@@ -499,7 +499,7 @@ copyLink(store); // the address on the clipboard, and "Link copied" read out
 export { disabled, tooltip, onClick };
 ```
 
-Every command a person can run from a menu now, in the palette's order: the focused pane's own commands first (keys `pane:<id>`), then the instance's and your own `commands`. Each has its `title`, `group`, `keys` label for this platform, `disabled` and the `reason`, and `run`. For an app with its own command menu (no `palette()` feature); in React, [`useJaliCommands`](react.md#usejalicommands). Read it again after `jali.subscribe` calls back.
+Every command a person can run from a menu now, in the palette's order: the focused pane's own commands first (keys `pane:<id>`), then the instance's and your own `commands`. Each has its `title`, `group`, `keys` label for this platform, `disabled` and the `reason`, and `run`. For an app with its own command menu (no `palette()` feature); in React, read it again in an effect on `jali.subscribe`.
 
 **Returns** `ListedCommand[]`:
 

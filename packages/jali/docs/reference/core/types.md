@@ -1571,7 +1571,7 @@ Part of `createJali`'s `keyboard` (`KeyboardOptions`): `platform` to match and p
 *type*, from `jali`
 
 ```ts
-type DefaultKeymapId = keyof typeof DEFAULT_KEYMAP
+type DefaultKeymapId = "palette.toggle" | "pane.focus.next" | …
 ```
 
 The ids bound by default.

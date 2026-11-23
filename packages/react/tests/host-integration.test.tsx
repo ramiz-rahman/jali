@@ -10,7 +10,8 @@ import {
   type JaliOptions,
 } from "@jali/core";
 import { createKeymap, storeOf } from "@jali/core/adapter";
-import { JaliRoot, JaliView, definePane, useCommands, useJaliCommands } from "@jali/react";
+import { JaliRoot, JaliView, definePane, useCommands } from "@jali/react";
+import { useJaliCommands } from "../src/commands/react";
 import { defaultFeatures, noUrl, urlSync } from "./features";
 
 const note = definePane("note", {

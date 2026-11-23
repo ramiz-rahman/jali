@@ -35,21 +35,13 @@ export { optional, oneOf, appOnly } from "@jali/core/adapter";
 export { usePaneState, type PaneStateOptions } from "./pane/usePaneState";
 
 // ---------- the instance in React ----------
-export {
-  useJali,
-  useJaliState,
-  useJaliModel,
-  useJaliEvent,
-  useJaliTheme,
-  shallow,
-} from "./state/react";
-export { useJaliShortcut, useJaliCommands } from "./commands/react";
+export { useJali, useJaliState, useJaliModel, useJaliEvent, useJaliTheme } from "./state/react";
+export { useJaliShortcut } from "./commands/react";
 // Framework-free, from @jali/core, here too for an app's own keys.
 export { keyBelongsToContent } from "@jali/core/adapter";
 
 // ---------- chrome of your own, inside <JaliRoot> around <JaliView /> ----------
 // The dialogs, the live region and the panes themselves are the root's: every way of using Jali gets them.
-export { CuratedPage } from "./page/CuratedPage";
 export { PageBar } from "./page/PageBar";
 export { Shelf } from "./chrome/Shelf";
 export { KindIcon } from "./pane/icons";
@@ -57,5 +49,4 @@ export { Activity } from "./pane/Activity";
 export { IconButton, type IconButtonProps } from "./chrome/IconButton";
 
 // ---------- icons ----------
-export { useJaliIcons } from "./icons/context";
 export type { JaliIcon, JaliIconName, JaliIconProps, JaliIcons } from "./icons/types";

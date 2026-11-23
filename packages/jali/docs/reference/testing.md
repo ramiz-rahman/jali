@@ -94,16 +94,6 @@ lastAnnouncement(jali: AnyJali): string
 
 The last thing the instance said to assistive technology.
 
-### pressKeys
-
-*function*, from `jali/testing`
-
-```ts
-pressKeys(keys: string, options?: { target?: EventTarget; platform?: "mac" | "other" }): boolean
-```
-
-Presses keys as a person would: `"Mod+K Mod+X"` is ⌘K then ⌘X on a Mac (the default) and Ctrl elsewhere, dispatched at `target` (default: the focused element). A started instance hears them. Returns whether the last was taken.
-
 ### TestJaliOptions
 
 *type*, from `jali/testing`

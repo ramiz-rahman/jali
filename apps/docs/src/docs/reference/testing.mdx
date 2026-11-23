@@ -61,12 +61,6 @@ The last thing the instance said to assistive technology.
 
 </Entry>
 
-<Entry name="pressKeys" kind="function" from="jali/testing" signature={`pressKeys(keys: string, options?: { target?: EventTarget; platform?: "mac" | "other" }): boolean`} compact>
-
-Presses keys as a person would: `"Mod+K Mod+X"` is ⌘K then ⌘X on a Mac (the default) and Ctrl elsewhere, dispatched at `target` (default: the focused element). A started instance hears them. Returns whether the last was taken.
-
-</Entry>
-
 <Entry name="TestJaliOptions" kind="type" from="jali/testing" signature={`interface TestJaliOptions extends JaliOptions { search?: string }`} compact>
 
 `createTestJali`'s options: an instance's, and the link it opens on.

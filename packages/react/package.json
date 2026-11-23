@@ -22,12 +22,6 @@
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     },
-    "./icons": {
-      "source": "./src/icons.ts",
-      "types": "./dist/icons.d.ts",
-      "import": "./dist/icons.js",
-      "default": "./dist/icons.js"
-    },
     "./styles.css": {
       "source": "./src/styles/index.css",
       "style": "./src/styles/index.css",
@@ -57,11 +51,6 @@
         "types": "./dist/index.d.ts",
         "import": "./dist/index.js",
         "default": "./dist/index.js"
-      },
-      "./icons": {
-        "types": "./dist/icons.d.ts",
-        "import": "./dist/icons.js",
-        "default": "./dist/icons.js"
       },
       "./styles.css": {
         "default": "./dist/styles.css"

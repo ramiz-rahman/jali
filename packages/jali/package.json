@@ -54,12 +54,6 @@
       "import": "./dist/adapter.js",
       "default": "./dist/adapter.js"
     },
-    "./icons": {
-      "source": "./src/icons.ts",
-      "types": "./dist/icons.d.ts",
-      "import": "./dist/icons.js",
-      "default": "./dist/icons.js"
-    },
     "./url": {
       "source": "./src/url.ts",
       "types": "./dist/url.d.ts",
@@ -151,11 +145,6 @@
         "types": "./dist/adapter.d.ts",
         "import": "./dist/adapter.js",
         "default": "./dist/adapter.js"
-      },
-      "./icons": {
-        "types": "./dist/icons.d.ts",
-        "import": "./dist/icons.js",
-        "default": "./dist/icons.js"
       },
       "./url": {
         "types": "./dist/url.d.ts",

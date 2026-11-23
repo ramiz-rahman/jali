@@ -61,7 +61,41 @@ export const DEFAULT_KEYMAP = {
   "tab.move.right": ["Mod+K Shift+PageDown"],
 } as const satisfies Record<string, readonly KeyString[]>;
 
-export type DefaultKeymapId = keyof typeof DEFAULT_KEYMAP;
+/** The ids bound by default. Written out so a public type names no value; the check below keeps it equal to the table. */
+export type DefaultKeymapId =
+  | "palette.toggle"
+  | "pane.focus.next"
+  | "pane.focus.previous"
+  | "pane.focus.left"
+  | "pane.focus.right"
+  | "pane.focus.up"
+  | "pane.focus.down"
+  | "pane.move.left"
+  | "pane.move.right"
+  | "pane.move.up"
+  | "pane.move.down"
+  | "pane.zoom"
+  | "pane.tuck"
+  | "pane.putBack"
+  | "pane.resize_mode"
+  | "pane.close"
+  | "pane.undo_close"
+  | "pane.split.right"
+  | "pane.split.down"
+  | "pane.merge"
+  | "pane.unmerge"
+  | "pane.rename"
+  | "tab.move.left"
+  | "tab.move.right";
+type SameIds = [DefaultKeymapId] extends [keyof typeof DEFAULT_KEYMAP]
+  ? [keyof typeof DEFAULT_KEYMAP] extends [DefaultKeymapId]
+    ? true
+    : false
+  : false;
+export type DefaultIdsMatch = SameIds extends true
+  ? true
+  : { error: "DefaultKeymapId drifted from DEFAULT_KEYMAP" };
+export const defaultIdsMatch: DefaultIdsMatch = true;
 
 /**
  * A host's changes: a command id → its bindings (a string or several), or `null` to unbind it. Ids not listed keep

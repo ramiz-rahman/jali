@@ -54,7 +54,7 @@ The floor itself is 51.9 KB of core, 23.5 KB of React parts and 8.3 KB of styles
 Leaving a feature out removes what it draws and what it adds to ⌘K, and refuses what asks for it, with the reason `"unavailable"`:
 
 - **No `urlSync()`:** Jali leaves the address alone. Back and Forward belong to your app, and a reload opens the starting layout. Your own writer still works through `createJali({ url })`.
-- **No `palette()`:** no palette, and ⌘K is your app's, unless `keyboard.keymap` binds `"palette.toggle"`. `jali.dialogs.openPalette()` is refused. Your own menu can list Jali's commands with `useJaliCommands()`.
+- **No `palette()`:** no palette, and ⌘K is your app's, unless `keyboard.keymap` binds `"palette.toggle"`. `jali.dialogs.openPalette()` is refused. Your own menu can list Jali's commands with `listCommands(jali)`.
 - **No `settings()`:** no settings panel, and "Open settings" is not in ⌘K. `jali.dialogs.openSettings()` is refused. Pass `createJali({ settings })` for the first settings a person gets.
 - **No `chooser()`:** "Add to tabs of…" is not offered, and `jali.dialogs.choose()` is refused.
 - **No `rename()`:** nothing offers renaming, and `jali.actions.startRename()` is refused.

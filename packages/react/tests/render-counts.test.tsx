@@ -10,7 +10,8 @@ import { useState, type ComponentType } from "react";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vite-plus/test";
 import { column, createJali, memoryLocation, memoryStorage, row, tabs } from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
-import { JaliRoot, JaliView, Shelf, definePane, useJaliCommands } from "@jali/react";
+import { JaliRoot, JaliView, Shelf, definePane } from "@jali/react";
+import { useJaliCommands } from "../src/commands/react";
 import { defaultFeatures, urlSync } from "./features";
 
 const counts = vi.hoisted(() => ({

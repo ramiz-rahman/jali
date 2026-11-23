@@ -20,7 +20,6 @@ const ENTRIES = [
   "page",
   "testing",
   "adapter",
-  "icons",
   "url",
   "palette",
   "settings",

@@ -271,7 +271,7 @@ export const myIcons: JaliIcons = {
 };
 ```
 
-A kind's own icon is set on the kind (`definePane("order", { icon })`), and the default for a kind without one is `defaultKind`. For chrome of your own that should match, `useJaliIcons()` returns the set in use.
+A kind's own icon is set on the kind (`definePane("order", { icon })`), and the default for a kind without one is `defaultKind`.
 
 ## Your chrome inside `<JaliRoot>`
 

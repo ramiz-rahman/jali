@@ -2,7 +2,7 @@
  *  commands, hooks and the parts. */
 import { createRoot } from "react-dom/client";
 import { FileTextIcon, UserIcon } from "@phosphor-icons/react";
-import { createJali, pane, row, column, tabs, keyHint } from "jali";
+import { createJali, pane, row, column, tabs, keyHint, listCommands } from "jali";
 import {
   JaliRoot,
   definePane,
@@ -11,7 +11,7 @@ import {
   useLauncher,
   usePaneState,
   useUnsaved,
-  useJaliCommands,
+  useJali,
   useJaliShortcut,
   useJaliTheme,
 } from "jali/react";
@@ -116,7 +116,8 @@ const jali = createJali({
 });
 
 function Status() {
-  const commands = useJaliCommands();
+  const jali = useJali();
+  const commands = listCommands(jali);
   const [theme] = [useJaliTheme()];
   return (
     <footer>

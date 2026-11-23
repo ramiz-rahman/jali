@@ -51,7 +51,7 @@ The layout lives in the address: a link reopens it, Back and Forward step throug
 palette(): Feature
 ```
 
-Jali's command palette, on ⌘K (`keyboard.prefix`). Leave it out when your app's own command menu lists Jali's commands ([`useJaliCommands`](react.md#usejalicommands)): the key is then yours, unless `keyboard.keymap` binds `"palette.toggle"`, and `jali.dialogs.openPalette()` is refused as `"unavailable"`.
+Jali's command palette, on ⌘K (`keyboard.prefix`). Leave it out when your app's own command menu lists Jali's commands ([`listCommands`](core.md#listcommands)): the key is then yours, unless `keyboard.keymap` binds `"palette.toggle"`, and `jali.dialogs.openPalette()` is refused as `"unavailable"`.
 
 ### settings
 

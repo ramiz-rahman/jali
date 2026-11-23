@@ -1,12 +1,12 @@
 import { defineConfig } from "vite-plus";
 
 // `vp pack` builds the package for publishing. Core and React stay imports; the CSS is built after.
-// Entries: index; icons; and internal, what packages/jali re-exports (the features, `definePage`). Before: index, and icons (Jali's default icons, to spread under a host's own). Every chunk starts with
+// Entries: index and internal, what packages/jali re-exports (the features, `definePage`). Every chunk starts with
 // "use client": the components use state and context, so a React Server Components host (Next.js's App Router) must
 // load them on the client, and can import them straight from a server component.
 export default defineConfig({
   pack: {
-    entry: { index: "src/index.ts", icons: "src/icons.ts", internal: "src/internal.ts" },
+    entry: { index: "src/index.ts", internal: "src/internal.ts" },
     format: "esm",
     dts: true,
     platform: "neutral",

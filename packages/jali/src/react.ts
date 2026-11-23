@@ -1,7 +1,7 @@
 /**
  * jali/react: `<JaliRoot>`, `definePane`, the hooks and the chrome parts an app places itself. Styles:
  * "jali/styles.css" (Jali's default theme and the panes, in the `jali` cascade layer), "jali/tailwind.css" to take
- * the app's Tailwind theme. A curated page is `jali/page`; icons are `jali/icons`.
+ * the app's Tailwind theme. A curated page is `jali/page`.
  */
 export { JaliRoot, JaliView, type JaliRootProps } from "@jali/react/internal";
 export {
@@ -34,17 +34,15 @@ export {
   useJaliModel,
   useJaliEvent,
   useJaliTheme,
-  shallow,
 } from "@jali/react/internal";
-export { useJaliShortcut, useJaliCommands } from "@jali/react/internal";
+export { useJaliShortcut } from "@jali/react/internal";
 
 // ---------- chrome of your own, inside <JaliRoot> around <JaliView /> ----------
-export { CuratedPage, PageBar } from "@jali/react/internal";
+export { PageBar } from "@jali/react/internal";
 export { Shelf } from "@jali/react/internal";
 export { KindIcon } from "@jali/react/internal";
 export { Activity } from "@jali/react/internal";
 export { IconButton, type IconButtonProps } from "@jali/react/internal";
 
 // ---------- icons ----------
-export { useJaliIcons } from "@jali/react/internal";
 export type { JaliIcon, JaliIconName, JaliIconProps, JaliIcons } from "@jali/react/internal";

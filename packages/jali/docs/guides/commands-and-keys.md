@@ -431,13 +431,14 @@ export const jali = createJali({
 
 ### One command menu: yours
 
-Leaving `palette()` out of `features` tells Jali your app has the command menu. Jali renders no palette and leaves ⌘K alone. `useJaliCommands()` gives your menu everything Jali's palette would have listed: the focused pane's own commands first, then Jali's and your own `commands`, each with its `title`, `group`, `keys` label, whether it is `disabled` now and the `reason`, and `run`.
+Leaving `palette()` out of `features` tells Jali your app has the command menu. Jali renders no palette and leaves ⌘K alone. `listCommands(jali)` gives your menu everything Jali's palette would have listed: the focused pane's own commands first, then Jali's and your own `commands`, each with its `title`, `group`, `keys` label, whether it is `disabled` now and the `reason`, and `run`. It builds a new list each time, so read it again when `jali.subscribe` calls back, as the sample does.
 
 `src/HostCommandMenu.tsx`
 
 ```tsx
-import { useState } from "react";
-import { useJaliCommands } from "jali/react";
+import { useEffect, useState } from "react";
+import { listCommands } from "jali";
+import { useJali } from "jali/react";
 
 /**
  * Jali's commands inside your app's own command menu: a field and a list of buttons, which Tab and Enter reach with
@@ -445,7 +446,10 @@ import { useJaliCommands } from "jali/react";
  * combobox's keys and roles. Render it inside <JaliRoot>, next to your app's own commands.
  */
 export function HostCommandMenu({ onClose }: { onClose: () => void }) {
-  const commands = useJaliCommands(); // the focused pane's own first, then Jali's
+  const jali = useJali();
+  // The focused pane's own first, then Jali's: read again after every change.
+  const [commands, setCommands] = useState(() => listCommands(jali));
+  useEffect(() => jali.subscribe(() => setCommands(listCommands(jali))), [jali]);
   const [query, setQuery] = useState("");
   const shown = commands.filter((c) =>
     `${c.title} ${c.group}`.toLowerCase().includes(query.toLowerCase()),

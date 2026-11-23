@@ -3,7 +3,7 @@ import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, row } from "@jali/core";
 import { JaliRoot, definePane, type JaliIconProps } from "@jali/react";
-import { defaultIcons } from "@jali/react/icons";
+import { defaultIcons } from "../src/icons/default";
 import { defaultFeatures, urlSync } from "./features";
 
 const note = definePane("note", {

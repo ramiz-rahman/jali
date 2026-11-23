@@ -21,7 +21,6 @@ import { storeOf, type AnyJali, type Jali, type PageOf } from "./state/instance"
 import type { NodeId } from "./layout/types";
 import type { ChooseOptions } from "./actions/choose";
 import type { ActionResult } from "./state/apply";
-import { parseKeys, type Platform } from "./commands/format";
 import { paneStateFor } from "./state/pane-state";
 
 export interface TestJaliOptions<
@@ -40,7 +39,7 @@ export type TestLocation = ReturnType<typeof memoryLocation>;
 /**
  * The options that keep an instance apart in a test, for an app that makes its instance in a function of its own
  * (`createMyJali(services, options)`): its address in memory (`location`), storage in memory, a size of 1440×900
- * unless `size` says otherwise, keys as on a Mac (`keyboard.platform`, so `pressKeys` means the same keys on every
+ * unless `size` says otherwise, keys as on a Mac (`keyboard.platform`, so a binding means the same keys on every
  * machine) and no DOM focus. `options.features` holds only `urlSync` with the memory address: the app's function
  * puts its own features before it, and this one takes the place of the app's `urlSync()`.
  */
@@ -120,40 +119,3 @@ export const chooserRequest = (jali: AnyJali): ChooseOptions<unknown> | null => 
 
 /** The last thing the instance said to assistive technology (its live region's text). */
 export const lastAnnouncement = (jali: AnyJali): string => storeOf(jali).get().announcement.text;
-
-/**
- * Press keys, as a person would: `"Mod+K Mod+W"` is ⌘K then ⌘W on a Mac (`platform: "mac"`, the default) and
- * Ctrl+K then Ctrl+W elsewhere. Each step is a `keydown` dispatched at `target` (default: the focused element, else
- * the body), which a started instance hears. Returns whether the last one was taken (`defaultPrevented`).
- */
-export function pressKeys(
-  keys: string,
-  { target, platform = "mac" }: { target?: EventTarget; platform?: Platform } = {},
-): boolean {
-  let last: KeyboardEvent | undefined;
-  for (const c of parseKeys(keys)) {
-    const code = /^(Key|Digit)|^Backslash$|^Bracket/.test(c.key) ? c.key : undefined;
-    const key = code
-      ? code === "Backslash"
-        ? "\\"
-        : code === "BracketLeft"
-          ? "["
-          : code === "BracketRight"
-            ? "]"
-            : code.replace(/^(Key|Digit)/, "").toLowerCase()
-      : c.key;
-    const mac = platform === "mac";
-    last = new KeyboardEvent("keydown", {
-      bubbles: true,
-      cancelable: true,
-      key,
-      ...(code ? { code } : {}),
-      shiftKey: !!c.shift,
-      altKey: !!c.alt,
-      metaKey: mac && !!c.mod,
-      ctrlKey: mac ? !!c.ctrl : !!(c.mod || c.ctrl),
-    });
-    (target ?? document.activeElement ?? document.body).dispatchEvent(last);
-  }
-  return !!last?.defaultPrevented;
-}

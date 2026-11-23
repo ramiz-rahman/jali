@@ -295,23 +295,9 @@ Hear one of the instance's events while the component is mounted: `useJaliEvent(
 
 </Entry>
 
-<Entry name="shallow" kind="function" from="jali/react" signature={`shallow<T>(a: T, b: T): boolean`} compact>
-
-The same keys (or items) with the same values by `Object.is`, one level deep: the equality for a selector that picks several values, `useJaliState((s) => ({ focused: s.view.focused, cap: s.settings.paneCap }), shallow)`.
-
-</Entry>
-
 <Entry name="useJaliTheme" kind="hook" from="jali/react" signature={`useJaliTheme(): "light" | "dark"`} compact>
 
 The theme in use: the person's setting, or the system's when they chose "System". For a toaster or anything else of yours that needs to match.
-
-</Entry>
-
-<Entry name="useJaliCommands" kind="hook" from="jali/react" signature={`useJaliCommands(): ListedCommand[]`} compact>
-
-Jali's commands for your app's own command menu, when the instance has no `palette()` feature: <Ref to="listCommands" page="/reference/core" />, re-rendering whenever the list can change (focus, the layout, what panes report). See [Commands and keys](/guides/commands-and-keys#inside-an-app-with-its-own-k-and-keys).
-
-<Returns type="ListedCommand[]" />
 
 </Entry>
 
@@ -330,12 +316,6 @@ A command's keys in this instance's keymap, for a tooltip ("⌘K ⌘[" or "Ctrl+
 ## Parts
 
 Chrome of your own goes inside `<JaliRoot>`, around `<JaliView />`: the root renders the dialogs, the live region and the full-screen layer for every way of using Jali. These parts are for that chrome; each must be inside `<JaliRoot>`, and none takes props unless shown.
-
-<Entry name="CuratedPage" kind="component" from="jali/react" signature={`<CuratedPage />`} compact>
-
-A curated page: the page's `Rail` at the left, when it has one; its `Header`, the page tabs and the panes beside it, or across the whole width without a rail. Renders only while a page is open (it reads it without checking).
-
-</Entry>
 
 <Entry name="PageBar" kind="component" from="jali/react" signature={`<PageBar />`} compact>
 
@@ -378,7 +358,6 @@ A button that is only an icon, drawn as Jali's header buttons are (the `iconButt
 
 ```tsx
 import { IconButton, JaliRoot } from "jali/react";
-import { defaultIcons } from "jali/icons";
 import { GearSixIcon } from "@phosphor-icons/react";
 
 <IconButton label="Settings" onClick={() => jali.dialogs.openSettings()}>
@@ -476,14 +455,3 @@ What Jali passes an icon: its default size in pixels, the class that sizes it fr
 
 </Entry>
 
-<Entry name="defaultIcons" kind="constant" from="jali/icons" signature={`const defaultIcons: JaliIcons`} compact>
-
-Jali's icon for every name: Phosphor's regular weight, copied into the package. Spread it under a few of your own (`{ ...defaultIcons, close: MyClose }`), or draw your own chrome with it.
-
-</Entry>
-
-<Entry name="useJaliIcons" kind="hook" from="jali/react" signature={`useJaliIcons(): JaliIcons`} compact>
-
-The icons this instance draws with, for chrome of your own that should match Jali's: `const { close } = useJaliIcons()`. Inside `<JaliRoot>`.
-
-</Entry>

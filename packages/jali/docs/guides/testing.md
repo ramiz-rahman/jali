@@ -85,7 +85,7 @@ describe("the orders app", () => {
 - **Storage in memory**: saved settings, pane state and dragged sizes never reach `localStorage`.
 - **A size**, 1440 by 900 unless `size` says otherwise. Folding depends on it, and with nothing rendered nothing measures the window. To test another size, make another instance.
 - **No DOM focus moved** into panes after changes. There are no panes in the DOM in these tests.
-- **Keys as on a Mac**, so `pressKeys("Mod+K Mod+W")` means the same keys on every machine.
+- **Keys as on a Mac**, so `Mod` means ⌘ on every machine.
 
 If your app makes its instance in a function of its own, pass it `testJaliOptions().options`, and read `location` from the same call. If that function adds features, merge them before the test's: `features: [...defaultFeatures(), ...(options.features ?? [])]`.
 
@@ -113,7 +113,6 @@ Some things come from a rendered pane, not from an action: unsaved work (`useUns
 | `answerDiscard(jali, "discard" \| "keep")` | The person's answer |
 | `chooserRequest(jali)` | The chooser's open request (`jali.dialogs.choose`), with the `chooser()` feature |
 | `lastAnnouncement(jali)` | What screen readers last heard |
-| `pressKeys(keys, { target })` | The person pressing keys, after `jali.start()` |
 
 See [`jali/testing`](../reference/testing.md) for each one's details.
 
@@ -153,7 +152,7 @@ expect(jali.model().pane("order")?.ref.params.id).toBe(5);
 
 ## Keys
 
-`jali.start()` listens on the window, so a test can press keys (`pressKeys`) and check what happened. Call the function `start` returns to remove the listeners after the test, or `jali.destroy()` to also drop timers still waiting (a follow, a debounced address write).
+`jali.start()` listens on the window, so a test can dispatch `keydown` events (`fireEvent.keyDown(document.body, { key: "k", metaKey: true })`, with `userEvent.keyboard` or by hand) and check what happened. Call the function `start` returns to remove the listeners after the test, or `jali.destroy()` to also drop timers still waiting (a follow, a debounced address write).
 
 ## Render it
 

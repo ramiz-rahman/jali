@@ -1,5 +1,5 @@
 /**
- * The packages' public entry points. A change to what "@jali/core", "@jali/react" or "@jali/react/icons" exports fails here, so it is made
+ * The packages' public entry points. A change to what "@jali/core" or "@jali/react" exports fails here, so it is made
  * on purpose: update the list, and the docs and changelog with it. "@jali/core/adapter" is for adapters: only its
  * shape is checked here (an explicit list of names).
  */
@@ -8,7 +8,6 @@ import { join } from "node:path";
 import { describe, expect, expectTypeOf, it } from "vite-plus/test";
 import * as core from "@jali/core";
 import * as react from "@jali/react";
-import * as icons from "@jali/react/icons";
 
 describe("public API", () => {
   it("@jali/core exports exactly these values", () => {
@@ -39,7 +38,6 @@ describe("public API", () => {
   it("@jali/react exports exactly these values", () => {
     expect(Object.keys(react).sort()).toEqual([
       "Activity",
-      "CuratedPage",
       "IconButton",
       "JaliRoot",
       "JaliView",
@@ -52,14 +50,11 @@ describe("public API", () => {
       "keyBelongsToContent",
       "oneOf",
       "optional",
-      "shallow",
       "useActivity",
       "useCommands",
       "useHeaderActions",
       "useJali",
-      "useJaliCommands",
       "useJaliEvent",
-      "useJaliIcons",
       "useJaliModel",
       "useJaliShortcut",
       "useJaliState",
@@ -96,11 +91,6 @@ describe("public API", () => {
       "start",
       "subscribe",
     ]);
-  });
-
-  it("@jali/react/icons exports Jali's default set, with an icon for every name", () => {
-    expect(Object.keys(icons)).toEqual(["defaultIcons"]);
-    expect(Object.keys(icons.defaultIcons).length).toBe(31);
   });
 
   it("the layout namespace is the pure tree API", () => {

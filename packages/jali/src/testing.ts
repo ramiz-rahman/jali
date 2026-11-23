@@ -9,7 +9,6 @@ export {
   answerDiscard,
   chooserRequest,
   lastAnnouncement,
-  pressKeys,
   type TestJaliOptions,
   type TestLocation,
 } from "@jali/core/testing";

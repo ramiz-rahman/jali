@@ -136,7 +136,7 @@ Most apps already have a command menu on ⌘K and shortcuts of their own. Three 
 
 ### One command menu: yours
 
-Leaving `palette()` out of `features` tells Jali your app has the command menu. Jali renders no palette and leaves ⌘K alone. `useJaliCommands()` gives your menu everything Jali's palette would have listed: the focused pane's own commands first, then Jali's and your own `commands`, each with its `title`, `group`, `keys` label, whether it is `disabled` now and the `reason`, and `run`.
+Leaving `palette()` out of `features` tells Jali your app has the command menu. Jali renders no palette and leaves ⌘K alone. `listCommands(jali)` gives your menu everything Jali's palette would have listed: the focused pane's own commands first, then Jali's and your own `commands`, each with its `title`, `group`, `keys` label, whether it is `disabled` now and the `reason`, and `run`. It builds a new list each time, so read it again when `jali.subscribe` calls back, as the sample does.
 
 <Code code={hostMenu} filename="src/HostCommandMenu.tsx" />
 

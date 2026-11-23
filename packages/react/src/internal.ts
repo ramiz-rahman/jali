@@ -5,7 +5,6 @@
 export * from "./index";
 export { definePage } from "./page/define";
 export { type Page, type PageView } from "./define";
-export { defaultIcons } from "./icons/default";
 export { chooser, palette, settings } from "./features/dialogs";
 export { rename } from "./features/rename";
 export { popOut } from "./features/pop-out";
