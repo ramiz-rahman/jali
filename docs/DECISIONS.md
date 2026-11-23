@@ -2296,6 +2296,15 @@ follows the action to its next consequence (packages/core/tests/final-review.tes
     `toggleZoom` on B while A was maximised restored everything (focus carried the zoom to B, then the toggle took it
     off); it now maximises B.
   - Every question asked again during an answer takes the answer's input (`askedBy`), through any number of them.
-- **Size** (gzipped KB, before → after the round's fixes and the confirming pass): minimal core 60.7 → 61.2, full
-  67.1 → 67.7 and React 30.3 → 30.4, `+page` 62.6 → 63.2, headless 53.0 → 53.4. Every scenario stays inside the
+  - Second pass (Codex, at 6bdacf84; D1–D4), each rule held in one place:
+    - A view in front is the close planner's rule for every close, checked on what it leaves with its final tabs and
+      focus; a view behind a tab is brought forward, else the close is refused. Tested over 150 random page sequences.
+    - The browser's full screen follows a switch from B to A (React: asked whenever the pane differs from Jali's own
+      full-screen element).
+    - Page link zoom: a view id starting with `~` is escaped (`~~1`), and an opened pane's place travels to the page in
+      its own field (`zoomOpened`), so every value reads back to its pane.
+    - A resuming close is judged by its postcondition wherever it resumes (`resumed`), replacing the evidence carried
+      through answers.
+- **Size** (gzipped KB, before → after the round's fixes and both confirming passes): minimal core 60.7 → 61.3, full
+  67.1 → 67.8 and React 30.3 → 30.4, `+page` 62.6 → 63.3, headless 53.0 → 53.5. Every scenario stays inside the
   budgets set at the end of the round.
