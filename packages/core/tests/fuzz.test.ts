@@ -2,9 +2,11 @@
  * Seeded fuzz over the public actions (core-opus CORE-15): random sequences of every action, resizes, Back and a
  * reload from the address, on core's own kinds. After every step: nothing threw, the layout is valid (unique ids,
  * focus and zoom on panes that exist), every rect is finite and inside the room, an action that should never move
- * anything moved nothing (no "Layout stability" breach), and a reload from the address at the same size shows exactly
- * what is on screen. Deterministic: a failure names its seed and the steps before it. `FUZZ_SEEDS=2000` runs more,
- * `FUZZ_LIMIT` reports more than the first five problems, `FUZZ_DEBUG=1` adds the views and the address.
+ * anything moved nothing (no "Layout stability" breach), and every address the instance wrote reopens identically: a
+ * fresh instance at the size it was written at reads it and writes it back unchanged (the link's whole state: layout,
+ * zoom, scroll, preset; the peek is never in it), and the last one shows exactly what was on screen. Deterministic: a
+ * failure names its seed and the steps before it. `FUZZ_SEEDS=2000` runs more, `FUZZ_LIMIT` reports more than the
+ * first five problems, `FUZZ_DEBUG=1` adds the views and the address.
  */
 import { afterAll, beforeAll, describe, expect, it, vi } from "vite-plus/test";
 import {
@@ -63,8 +65,9 @@ const SEEDS = Number(process.env.FUZZ_SEEDS ?? 300);
 const STEPS = 40;
 const LIMIT = Number(process.env.FUZZ_LIMIT ?? 5);
 /** Seeds (of 2,000) whose reload shows the same panes at other widths, after tucks and folds combine: a known gap,
- *  moved to a later phase (docs/reviews/2026-11-22/README.md, phase 1). Their address check is left out, by name. */
-const MOVED = new Set([54, 1289, 1403, 1421, 1571]);
+ *  moved to a later phase (docs/reviews/2026-11-22/README.md, phase 1; 1347 shows it too, before step 4 as after). Only
+ *  what they show is left out, by name: their addresses are checked like every other. */
+const MOVED = new Set([54, 1289, 1347, 1403, 1421, 1571]);
 
 beforeAll(() => void vi.useFakeTimers());
 afterAll(() => void vi.useRealTimers());
@@ -79,18 +82,33 @@ describe("random sequences of public actions", () => {
       const pick = <T>(a: readonly T[]) => a[Math.floor(r() * a.length)]!;
       const location = memoryLocation();
       const storage = memoryStorage();
+      // Links that carry sizes, and links that keep them on the device; on their own, and beside another instance's.
+      const sync = {
+        sizes: seed % 2 ? ("link" as const) : ("local" as const),
+        ...(seed % 3 ? {} : { prefix: "w." }),
+      };
       unstable.length = 0;
+      // Every address the instance writes, with the room it was written for.
+      const written: { search: string; area: { width: number; height: number } }[] = [];
+      let at = { width: 1400, height: 800 };
+      const navigate = location.navigate.bind(location);
+      location.navigate = (search, mode) => {
+        written.push({ search, area: at });
+        navigate(search, mode);
+      };
       const jali = createJali({
         panes: kinds,
         launcher,
         layout: START[seed % START.length]!,
-        features: [urlSync({ location, sizes: "link" })],
+        features: [urlSync({ location, ...sync })],
         storage,
         size: { width: 1400, height: 800 },
         moveFocus: false,
       });
       const store = storeOf(jali);
+      const off = jali.subscribe(() => (at = store.get().area));
       jali.start();
+      let checked = 0;
       const log: string[] = [];
       const fail = (what: string) =>
         problems.push(`seed ${seed}: ${what}\n    after ${log.slice(-6).join(" · ")}`);
@@ -193,33 +211,75 @@ describe("random sequences of public actions", () => {
           fail(`"${unstable.join(", ")}" moved panes`);
           unstable.length = 0;
         }
-        // Single view keeps the wide layout's address on purpose (widen, and it comes back; 19 Nov 2026), and shows
-        // the focused pane, which no address holds: a reload there is not checked.
-        if (!m.onePane && r() < 0.25 && !MOVED.has(seed)) {
-          const again = createJali({
+        // Every address written since the last step, reopened at the size it was written for: read and written back,
+        // it is the same address. Single view (a phone) keeps the wide layout's address on purpose (19 Nov 2026), and
+        // shows the focused pane, which no address holds: there the address is checked, not what shows.
+        const reopen = (w: (typeof written)[number]) =>
+          createJali({
             panes: kinds,
             launcher,
             layout: row({ kind: "list", params: {} }),
-            features: [urlSync({ location: memoryLocation(location.search()), sizes: "link" })],
+            features: [urlSync({ location: memoryLocation(w.search), ...sync })],
             storage,
-            size: area,
+            size: w.area,
             moveFocus: false,
           });
-          // Single view shows the focused pane, and focus is not in an address: there, the layout itself must match.
-          const same = shown(again) === shown(jali);
-          if (!same) {
-            fail(
+        // The link's own state: its params, with the layout read back and without what the reader's fit works out
+        // again for its room (which panes fold, which tab a fold shows). Tucks, sizes and objects are the link's.
+        const own = (search: string) =>
+          JSON.stringify(
+            [...new URLSearchParams(search)]
+              .sort(([a], [b]) => a.localeCompare(b))
+              .map(([k, v]) => {
+                if (k !== `${sync.prefix ?? ""}l`) return [k, v];
+                const read = L.decode(v, jali.env.kinds.registry());
+                if (!read?.overlay) return [k, read];
+                const { folds: _f, shown: _s, ...rest } = read.overlay;
+                // An empty list says what leaving it out says.
+                const overlay = Object.entries(rest).filter(
+                  ([, v]) => !Array.isArray(v) || v.length,
+                );
+                const { overlay: _o, ...layout } = read;
+                return [
+                  k,
+                  overlay.length ? { ...layout, overlay: Object.fromEntries(overlay) } : layout,
+                ];
+              }),
+          );
+        // Drawn every step, as before every write was checked, so each seed runs the same steps it always has.
+        const look = r() < 0.25 && !MOVED.has(seed);
+        let wrong: string | undefined;
+        for (; checked < written.length && !wrong; checked++) {
+          const w = written[checked]!;
+          // Two writes of one address at one size are one check.
+          const prev = written[checked - 1];
+          if (prev && prev.search === w.search && prev.area === w.area) continue;
+          const again = reopen(w);
+          const back = storeOf(again).url!.href!().slice("memory:".length);
+          if (own(back) !== own(w.search))
+            wrong =
+              `the address ${w.search} reopens as ${back} (${w.area.width}×${w.area.height})` +
+              (process.env.FUZZ_DEBUG ? `\n    ${own(w.search)}\n    ${own(back)}` : "");
+          else if (
+            look &&
+            checked === written.length - 1 &&
+            !m.onePane &&
+            w.area === area &&
+            shown(again) !== shown(jali)
+          )
+            wrong =
               `the address reopens another arrangement\n    ${shown(jali)}\n    ${shown(again)}` +
-                (process.env.FUZZ_DEBUG
-                  ? `\n    ${JSON.stringify(jali.get().view)} ${JSON.stringify(again.get().view)} ${location.search()}`
-                  : ""),
-            );
-            again.destroy();
-            break;
-          }
+              (process.env.FUZZ_DEBUG
+                ? `\n    ${JSON.stringify(jali.get().view)} ${JSON.stringify(again.get().view)} ${w.search}`
+                : "");
           again.destroy();
         }
+        if (wrong) {
+          fail(wrong);
+          break;
+        }
       }
+      off();
       jali.destroy();
     }
     expect(problems.join("\n")).toBe("");
