@@ -12,6 +12,11 @@ export default defineConfig({
   test: {
     name: "core",
     globals: true,
+    // Vitest's 5 s default fails a test that is only slow because the machine is busy, and an async test that
+    // times out leaves its work running into the tests after it. These tests check counts and orders, not time, so
+    // the limit only ends a hang.
+    testTimeout: 60_000,
+    hookTimeout: 60_000,
     environment: "jsdom",
     include: ["tests/**/*.test.ts", "src/**/*.test.ts"],
   },
