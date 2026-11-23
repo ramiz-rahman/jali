@@ -753,7 +753,7 @@ How the instance behaves on a phone (`createJali({ phone })`).
 interface PresetOptions { id: string; label: string; layout: LayoutInput | (() => LayoutInput); saved?: () => LayoutInput | undefined }
 ```
 
-A preset, as `createJali({ presets })` takes it. `saved`, if given, is asked each time the preset is chosen: a layout it returns is shown instead of `layout`, so the preset comes back as the person left it. "Reset layout" always builds `layout`. See [Start from presets](../../guides/presets.md#keep-each-preset-as-it-was-left).
+A preset, as `createJali({ presets })` takes it. `saved`, if given, is asked each time the preset is chosen: a layout it returns is shown instead of `layout`, so the preset comes back as the person left it. "Reset layout" always builds `layout`. See [Start from presets](../../guides/layouts.md#keep-each-preset-as-it-was-left).
 
 ## The instance
 
@@ -1034,7 +1034,7 @@ type RefusalReason = "not-found" | "invalid" | "unavailable" | "single-view" | "
 
 - **`single-view`**: A curated page in Single view has no layout to change.
 
-- **`not-allowed`**: The app's `allow` turns that control off for the pane: the kind's, the instance's, or its `when` (for a divider, a pane beside it). See [Choose what people can do with panes](../../guides/pane-controls.md).
+- **`not-allowed`**: The app's `allow` turns that control off for the pane: the kind's, the instance's, or its `when` (for a divider, a pane beside it). See [Choose what people can do with panes](../../guides/pane-kinds.md#choose-what-people-can-do-with-panes).
 
 - **`last-pane`**: The last pane, or a page's last view on screen, stays.
 
@@ -1400,7 +1400,7 @@ The words printed keys use: modifier names elsewhere than a Mac, and Esc, Space 
 type Messages = { announcements: …; toasts: …; commands: …; … }
 ```
 
-Every word Jali uses, by area, with the same keys and shapes as [`en`](../core.md#en). A full translation is a `Messages`: a missing area or key, or a message of the wrong shape, is a type error. See [Translate Jali](../../guides/translating.md).
+Every word Jali uses, by area, with the same keys and shapes as [`en`](../core.md#en). A full translation is a `Messages`: a missing area or key, or a message of the wrong shape, is a type error. See [Translate Jali](../../guides/theming.md#translate-jali).
 
 ### MessageOverrides
 

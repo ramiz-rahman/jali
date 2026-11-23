@@ -236,7 +236,7 @@ export const jali = createJali({
 });
 ```
 
-`urlSync({ location: memoryLocation() })` and `storage: memoryStorage()` keep both in memory, for tests and for panes that must not touch the page's address. The location port is only read with the `urlSync()` [feature](../guides/features.md).
+`urlSync({ location: memoryLocation() })` and `storage: memoryStorage()` keep both in memory, for tests and for panes that must not touch the page's address. The location port is only read with the `urlSync()` [feature](../guides/your-app.md#choose-features).
 
 <h3 id="sizes-in-links">Sizes in links</h3>
 

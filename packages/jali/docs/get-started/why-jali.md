@@ -59,4 +59,4 @@ Jali does more than a splitter, and it weighs more. Measured with `pnpm size` in
 | Without React (`headless`) | 46.4 KB | | |
 | Only the layout tree (`row`, `column`, the `layout` namespace) | 10.3 KB | | |
 
-Each feature's own cost is on [Features](../guides/features.md).
+Each feature's own cost is on [Features](../guides/your-app.md#choose-features).

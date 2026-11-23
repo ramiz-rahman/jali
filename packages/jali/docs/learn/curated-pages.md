@@ -190,4 +190,4 @@ Choosing another item swaps every view in place and closes the opened panes, bec
 
 ## People who only look
 
-Some people should read a page without opening panes from it, such as a support agent beside an account manager. Turn `open` off for them with `allow` (see [Choose what people can do with panes](../guides/pane-controls.md)): `createJali({ allow: { open: false } })`. Their links open as a peek, in Single view and Split view alike, and they can still switch views and use Split view. Your app decides from the person's role; Jali never offers a way to change it.
+Some people should read a page without opening panes from it, such as a support agent beside an account manager. Turn `open` off for them with `allow` (see [Choose what people can do with panes](../guides/pane-kinds.md#choose-what-people-can-do-with-panes)): `createJali({ allow: { open: false } })`. Their links open as a peek, in Single view and Split view alike, and they can still switch views and use Split view. Your app decides from the person's role; Jali never offers a way to change it.

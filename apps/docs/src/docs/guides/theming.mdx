@@ -1,6 +1,6 @@
 ---
-title: Theming
-summary: Make Jali match your app by setting a few tokens, mapping them from your Tailwind theme, or styling its parts.
+title: Theme and words
+summary: "Make Jali look like your app with its tokens and parts, speak your language, and share one theme with Chakni."
 ---
 
 import teal from "../../samples/guides/theming/teal.css?raw";
@@ -10,6 +10,9 @@ import tailwind from "../../samples/guides/theming/tailwind.css?raw";
 import dark from "../../samples/guides/theming/dark-mode.ts?raw";
 import ownIcons from "../../samples/guides/theming/own-icons.tsx?raw";
 import myIcons from "../../samples/guides/theming/my-icons.tsx?raw";
+import overrides from "../../samples/guides/translating/overrides.ts?raw";
+import french from "../../samples/guides/translating/french.ts?raw";
+import translatedApp from "../../samples/guides/translating/app.tsx?raw";
 
 Everything Jali draws reads `--jali-*` CSS variables, called tokens. Change a token and every part that uses it follows, in light and in dark. Jali's own rules sit in a cascade layer called `jali`, so your rules can win without `!important`.
 
@@ -169,7 +172,88 @@ function resolve(el: HTMLElement, token: string): string {
 
 Resolve again, and redraw, whenever `useJaliTheme()` changes, because the result depends on the theme in force.
 
+## Translate Jali
+
+Show and announce Jali's words in your app's language, or in your own wording, with English as the default.
+
+Every word Jali shows or says can be replaced. That covers what it announces to screen readers, its toasts, the titles and groups of its commands, and the text of its dialogs, tabs, shelf and buttons, including labels, tooltips and placeholders. English is the default.
+
+### Change a few words
+
+Pass `messages` to `createJali`. Give only the words you want to change. Everything else stays English.
+
+<Code code={overrides} filename="src/jali.ts" />
+
+The words are grouped by area. The type lists every key, so your editor completes them, and a misspelt key is a type error.
+
+| Area | What it holds |
+|---|---|
+| `announcements` | What the live region says after a change, and why something did not happen |
+| `toasts` | The title and description of each toast (the `toast` event) |
+| `commands`, `commandGroups` | Command titles and the groups they are listed under, in ⌘K and `listCommands` |
+| `palette`, `chooser`, `confirmDiscard`, `settings` | The command palette, the chooser ("Add to tabs of…", and the words around your items in `jali.dialogs.choose`), "Discard unsaved changes?" and the settings panel |
+| `pane`, `tabs`, `shelf`, `peek` | A pane's header, its tabs and their menu, the shelf, the peek sheet |
+| `panes`, `page`, `drop` | The panes' region, the pane switcher and the dividers, a curated page's bar and tabs, the label shown while dragging |
+| `keys` | Words in printed keys ("Ctrl", "Esc", "Alt-click"), and how a tooltip shows its shortcut |
+
+### Write a full translation
+
+Start from `en`, Jali's English messages, and give the type `Messages`. A `Messages` must have every area and every key. Spread `en` where you have not translated yet. An area you write out without spreading `en` (`palette` below) must list every key: one you missed is a type error, and so is one a later version of Jali adds.
+
+<Code code={french} filename="src/jali-fr.ts" />
+
+### Values, plurals and word order
+
+A message that needs values is a function: a pane's title, a count, a direction, a key. You write the whole sentence, so you choose the word order and the plural form. Jali never joins translated pieces itself.
+
+- Counts come in as numbers, as in `discarded(count)` and `backToPage(page, count)`.
+- Directions come in as values (`"top"`, `"left"`), as in `moved(pane, edge)`.
+- Keys come in already printed for the platform, as in `keys.withKeys(label, keys)`, which turns "Put back" and "⌘K ⌘]" into "Put back · ⌘K ⌘]".
+- A message with a bold part takes `bold` and returns its parts in order, as in `confirmDiscard.item(pane, what, bold)` and `chooser.heading(pane, bold)`.
+
+### Pick the language
+
+The words belong to the instance: choose them when you call `createJali`. To change language, make the instance again with the new words.
+
+<Code code={translatedApp} filename="src/App.tsx" />
+
+Read them back from `jali.messages`, for example to word your own toasts or menus the same way.
+
+### What stays yours
+
+Some words come from your app, so Jali shows them as you give them:
+
+- Pane titles (`definePane`'s `title`) and preset labels.
+- A curated page's name, view labels, and `itemNoun` (`definePage`).
+- The free layout's name (`createJali({ name })`), when you give one.
+- Your own commands and the commands a pane adds with `useCommands`.
+
+Two things are not translated. The Mac's key symbols (⌘, ⌥, ⇧, ↵, the arrows) are symbols, not words. Errors and console warnings meant for developers stay in English.
+
+`keyHint` prints English key words unless you pass words as their third argument (`keyHint("Alt+Enter", platform, fr.keys)`). `jali.keymap.label(id)` and `jali.keymap.format(seq)` use the instance's own words.
+
+## Use Jali with Chakni
+
+Share one theme between Jali and Chakni, its sister library for collections.
+
+Chakni is Jali's sister library for collections, such as lists and tables. Jali lays out the panes around them. The two meet in the **theme**. Neither package imports the other.
+
+A list inside a pane tells Jali its current item with `select(ref)`, and `peek(ref)` shows an item in the peek sheet: see [Define a pane kind](/guides/pane-kinds).
+
+### One theme for both
+
+Jali's Tailwind bridge reads the token names Chakni reads: `--color-primary`, `--color-card`, `--color-border`, `--radius-card` and the rest. Import it, and an app themed for Chakni gets Jali in the same theme:
+
+```css
+@layer theme, base, jali, components, utilities;
+@import "tailwindcss";
+@import "jali/styles.css";
+@import "jali/tailwind.css";
+```
+
+Jali's dark mode also follows Chakni's `.dark` and `.light` classes. See [Theming](/guides/theming).
+
 ## Next
 
-- [Tokens reference](/reference/tokens)
-- [Use Jali with Chakni](/guides/chakni)
+- [Fit Jali into your app](/guides/your-app): your own chrome around the panes.
+- [Tokens](/reference/tokens) and [Parts](/reference/parts): every token and every styling hook.

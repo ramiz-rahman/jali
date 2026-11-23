@@ -1,11 +1,11 @@
 /**
  * Serves the built site (tooling/build-site.mjs) as Netlify does, for `pnpm preview:site` and the site's browser
- * check: a file as it is, `/page` from page.html, `/folder/` from folder/index.html, `/folder` redirected to
- * `/folder/` when only the folder is there, and 404.html for anything else.
+ * check: netlify.toml's redirects first, then a file as it is, `/page` from page.html, `/folder/` from
+ * folder/index.html, `/folder` redirected to `/folder/` when only the folder is there, and 404.html for anything else.
  *
  *   node tooling/serve-site.mjs [--port=5480] [--dir=site]
  */
-import { createReadStream, existsSync, statSync } from "node:fs";
+import { createReadStream, existsSync, readFileSync, statSync } from "node:fs";
 import { createServer } from "node:http";
 import { extname, join, normalize, resolve } from "node:path";
 
@@ -45,6 +45,15 @@ const TYPES = {
   ".webmanifest": "application/manifest+json",
 };
 
+/** netlify.toml's redirects, from → [to, status]. */
+const redirects = new Map(
+  [
+    ...readFileSync(resolve(import.meta.dirname, "../netlify.toml"), "utf8").matchAll(
+      /\[\[redirects\]\][^[]*?from\s*=\s*"([^"]+)"[^[]*?to\s*=\s*"([^"]+)"(?:[^[]*?status\s*=\s*(\d+))?/g,
+    ),
+  ].map((m) => [m[1], [m[2], Number(m[3] ?? 301)]]),
+);
+
 const isFile = (p) => existsSync(p) && statSync(p).isFile();
 const isDir = (p) => existsSync(p) && statSync(p).isDirectory();
 
@@ -55,6 +64,11 @@ const send = (res, status, file) => {
 
 createServer((req, res) => {
   const url = new URL(req.url ?? "/", "http://site");
+  const redirect = redirects.get(url.pathname);
+  if (redirect) {
+    res.writeHead(redirect[1], { location: redirect[0] });
+    return res.end();
+  }
   const path = normalize(decodeURIComponent(url.pathname));
   const file = join(root, path);
   if (!file.startsWith(root)) return send(res, 404, join(root, "404.html"));

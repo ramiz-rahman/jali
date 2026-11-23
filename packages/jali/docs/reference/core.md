@@ -119,7 +119,7 @@ Jali's keys, in one place. See [`KeyboardOptions`](core/types.md#keyboardoptions
 
 - **`landmark`** (`"region" | "main"`): What the panes are to screen readers. `"region"`: a `<section>` labelled "Panes", which sits inside your page's own `<main>` and adds no second one. `"main"`: the panes render as the page's `<main>`. Use it when Jali is the whole app and the page has no `<main>` of its own.
 
-- **`label`** (`string`): The instance's name for assistive technology, for a page with more than one instance. Its landmark is named this instead of "Panes", and each of Jali's landmarks inside it adds it (a pane "Order 7, Orders", the shelf "Shelf, Orders", the switcher, the peek, a page's views), so no two instances repeat a landmark. Without it, the names are Jali's own. See [Two instances on one page](../guides/two-instances.md).
+- **`label`** (`string`): The instance's name for assistive technology, for a page with more than one instance. Its landmark is named this instead of "Panes", and each of Jali's landmarks inside it adds it (a pane "Order 7, Orders", the shelf "Shelf, Orders", the switcher, the peek, a page's views), so no two instances repeat a landmark. Without it, the names are Jali's own. See [Two instances on one page](../guides/your-app.md#two-instances-on-one-page).
 
 - **`dir`** (`Direction`): The reading direction. By default the instance reads its page's: the computed `direction` where it renders, so `<html dir="rtl">` is enough, and it follows a later change of `dir`. Give one to fix it; `<JaliRoot>` then sets `dir` on its elements, so the styles agree. Right to left, a row starts at the right, and every left and right a key, command, drop zone or message names is still the screen's. The layout and its links are the same in both. See [`Direction`](core/types.md#direction).
 
@@ -135,7 +135,7 @@ Jali's keys, in one place. See [`KeyboardOptions`](core/types.md#keyboardoptions
 
 - **`tabMenu`** (`TabMenu`): Your items for a tab's menu (right-click, Shift+F10 or the menu key on a tab), after Jali's: Close, Close other tabs, Close tabs to the right, Move tab left and right, Move out of tabs, Split right and down, Maximise. Called as the menu opens, with the tab's pane; `undefined` or `[]` for none. See [`TabMenuItem`](core/types.md#tabmenuitem).
 
-- **`allow`** (`Allow`): What may happen to panes: turn controls off for the whole instance (`{ fullScreen: false }`), turn Pop out off (`{ popOut: false }`, with the `popOut()` feature), and `when({ action, pane, presetId, page })` to decide by context; `false` refuses. Each kind's own `allow` is asked first, and only takes away. See [Choose what people can do with panes](../guides/pane-controls.md) and [`Allow`](core/types.md#allow).
+- **`allow`** (`Allow`): What may happen to panes: turn controls off for the whole instance (`{ fullScreen: false }`), turn Pop out off (`{ popOut: false }`, with the `popOut()` feature), and `when({ action, pane, presetId, page })` to decide by context; `false` refuses. Each kind's own `allow` is asked first, and only takes away. See [Choose what people can do with panes](../guides/pane-kinds.md#choose-what-people-can-do-with-panes) and [`Allow`](core/types.md#allow).
 
 - **`buttons`** (`PaneButtons`): The buttons in a pane's header, as shortcuts: everything allowed is in the pane's menu (right-click, ⋯ or Shift+F10) and ⌘K either way. Leave it out for Jali's: Tuck, Maximise, Pop out (where `allow.popOut` turns it on) and Close, with Full screen in Maximise's place on a lone pane. A list replaces them; a function adjusts them (`(defaults) => defaults.filter((b) => b !== "tuck")`). A kind's own `buttons` win. See [`PaneButtons`](core/types.md#panebuttons).
 
@@ -143,7 +143,7 @@ Jali's keys, in one place. See [`KeyboardOptions`](core/types.md#keyboardoptions
 
 - **`onPaneError`** (`(error: unknown, info: PaneErrorInfo) => void`): Called when a pane's component throws. That pane shows a failed state with Retry and Close, and the other panes carry on. `info` says which pane ([`PaneErrorInfo`](core/types.md#paneerrorinfo)). Send it to your error reporting.
 
-- **`messages`** (`MessageOverrides`): Words to use instead of Jali's English ones, by area: `{ commands: { close: "Fermer le volet" } }`. Keys you leave out stay English. See `en` and [Translate Jali](../guides/translating.md).
+- **`messages`** (`MessageOverrides`): Words to use instead of Jali's English ones, by area: `{ commands: { close: "Fermer le volet" } }`. Keys you leave out stay English. See `en` and [Translate Jali](../guides/theming.md#translate-jali).
 
 **Returns** `Jali`: The instance. Its members are listed under [`Jali`](core/types.md#jali): `actions`, `page` (with a page), `dialogs`, `get()`, `subscribe()`, `on()`, `model()`, `getLayout()`, `setLayout()`, `keymap`, `env`, `messages`, `href()`, `start()` and `destroy()`.
 

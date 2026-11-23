@@ -453,7 +453,7 @@ How the instance behaves on a phone (`createJali({ phone })`).
 
 <Entry name="PresetOptions" kind="type" from="jali" signature={`interface PresetOptions { id: string; label: string; layout: LayoutInput | (() => LayoutInput); saved?: () => LayoutInput | undefined }`} compact>
 
-A preset, as `createJali({ presets })` takes it. `saved`, if given, is asked each time the preset is chosen: a layout it returns is shown instead of `layout`, so the preset comes back as the person left it. "Reset layout" always builds `layout`. See [Start from presets](/guides/presets#keep-each-preset-as-it-was-left).
+A preset, as `createJali({ presets })` takes it. `saved`, if given, is asked each time the preset is chosen: a layout it returns is shown instead of `layout`, so the preset comes back as the person left it. "Reset layout" always builds `layout`. See [Start from presets](/guides/layouts#keep-each-preset-as-it-was-left).
 
 </Entry>
 
@@ -639,7 +639,7 @@ else void result.settled?.then((end) => end.ok && forgetSavedLayouts());
 <Param name="invalid" type="">What the action was given won't do. Every argument of every action is checked before anything happens, so JavaScript and an agent get the same answer TypeScript would give: a mode, edge, index or flag its type doesn't allow; a pane named by something that is neither an id nor a ref; a ref of a kind the instance doesn't have, or with params that aren't text, numbers or flags (these say why in `message`); or a layout that can't be shown. Nothing is stored as given, and it never throws.</Param>
 <Param name="unavailable" type="">The instance can't do this: no launcher (split, new tab), no curated page, no free layout to go back to, or it was destroyed.</Param>
 <Param name="single-view" type="">A curated page in Single view has no layout to change.</Param>
-<Param name="not-allowed" type="">The app's `allow` turns that control off for the pane: the kind's, the instance's, or its `when` (for a divider, a pane beside it). See [Choose what people can do with panes](/guides/pane-controls).</Param>
+<Param name="not-allowed" type="">The app's `allow` turns that control off for the pane: the kind's, the instance's, or its `when` (for a divider, a pane beside it). See [Choose what people can do with panes](/guides/pane-kinds#choose-what-people-can-do-with-panes).</Param>
 <Param name="last-pane" type="">The last pane, or a page's last view on screen, stays.</Param>
 <Param name="blocked" type="">The pane can't go there: past the edge, tucking the only pane or a tab. Also a change whose link no instance could reopen: more than a link holds (256 nodes, 128 levels, a curated page's 32 opened panes), or, where the instance writes an address, more text than a reader reads (one very long param). A layout already larger (an app's own, at start-up) still opens and may shrink, but its address is left unwritten until it fits.</Param>
 <Param name="nothing-to-do" type="">Nothing to undo, put back, close, resize or unmerge.</Param>
@@ -826,7 +826,7 @@ One key press. `key` is `KeyboardEvent.code` (`"KeyM"`, `"Backslash"`) or, for n
 
 <Entry name="Messages" kind="type" from="jali" signature={`type Messages = { announcements: …; toasts: …; commands: …; … }`} compact>
 
-Every word Jali uses, by area, with the same keys and shapes as <Ref to="en" page="/reference/core" />. A full translation is a `Messages`: a missing area or key, or a message of the wrong shape, is a type error. See [Translate Jali](/guides/translating).
+Every word Jali uses, by area, with the same keys and shapes as <Ref to="en" page="/reference/core" />. A full translation is a `Messages`: a missing area or key, or a message of the wrong shape, is a type error. See [Translate Jali](/guides/theming#translate-jali).
 
 </Entry>
 

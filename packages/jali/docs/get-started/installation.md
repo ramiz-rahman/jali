@@ -170,6 +170,6 @@ If your app gets Jali through `link:`, `file:` or `workspace:`, or from a symlin
 
 - [Quickstart](quickstart.md): Build the smallest app, step by step.
 
-- [Features](../guides/features.md): Choose what Jali does beyond laying out panes.
+- [Features](../guides/your-app.md#choose-features): Choose what Jali does beyond laying out panes.
 
 - [Troubleshooting](../guides/troubleshooting.md): Fixes for the problems people meet first.

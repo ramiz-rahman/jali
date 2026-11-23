@@ -26,3 +26,115 @@ for = "/*"
 [headers.values]
 X-Content-Type-Options = "nosniff"
 Referrer-Policy = "strict-origin-when-cross-origin"
+
+# The guides merged into fewer pages (23 Nov 2026): each old address goes to its section, and its Markdown copy to
+# the new page's. e2e/site/links.spec.ts checks that every target is there.
+[[redirects]]
+from = "/guides/pane-controls"
+to = "/guides/pane-kinds#choose-what-people-can-do-with-panes"
+status = 301
+
+[[redirects]]
+from = "/guides/pane-controls.md"
+to = "/guides/pane-kinds.md"
+status = 301
+
+[[redirects]]
+from = "/guides/presets"
+to = "/guides/layouts#start-from-presets"
+status = 301
+
+[[redirects]]
+from = "/guides/presets.md"
+to = "/guides/layouts.md"
+status = 301
+
+[[redirects]]
+from = "/guides/tabs"
+to = "/guides/layouts#tabs"
+status = 301
+
+[[redirects]]
+from = "/guides/tabs.md"
+to = "/guides/layouts.md"
+status = 301
+
+[[redirects]]
+from = "/guides/scrolling-rows"
+to = "/guides/layouts#rows-that-scroll-sideways"
+status = 301
+
+[[redirects]]
+from = "/guides/scrolling-rows.md"
+to = "/guides/layouts.md"
+status = 301
+
+[[redirects]]
+from = "/guides/auto-layout"
+to = "/guides/layouts#auto-layout"
+status = 301
+
+[[redirects]]
+from = "/guides/auto-layout.md"
+to = "/guides/layouts.md"
+status = 301
+
+[[redirects]]
+from = "/guides/translating"
+to = "/guides/theming#translate-jali"
+status = 301
+
+[[redirects]]
+from = "/guides/translating.md"
+to = "/guides/theming.md"
+status = 301
+
+[[redirects]]
+from = "/guides/chakni"
+to = "/guides/theming#use-jali-with-chakni"
+status = 301
+
+[[redirects]]
+from = "/guides/chakni.md"
+to = "/guides/theming.md"
+status = 301
+
+[[redirects]]
+from = "/guides/features"
+to = "/guides/your-app#choose-features"
+status = 301
+
+[[redirects]]
+from = "/guides/features.md"
+to = "/guides/your-app.md"
+status = 301
+
+[[redirects]]
+from = "/guides/custom-chrome"
+to = "/guides/your-app#build-your-own-chrome"
+status = 301
+
+[[redirects]]
+from = "/guides/custom-chrome.md"
+to = "/guides/your-app.md"
+status = 301
+
+[[redirects]]
+from = "/guides/two-instances"
+to = "/guides/your-app#two-instances-on-one-page"
+status = 301
+
+[[redirects]]
+from = "/guides/two-instances.md"
+to = "/guides/your-app.md"
+status = 301
+
+[[redirects]]
+from = "/guides/agents"
+to = "/guides/your-app#let-an-agent-arrange-panes"
+status = 301
+
+[[redirects]]
+from = "/guides/agents.md"
+to = "/guides/your-app.md"
+status = 301

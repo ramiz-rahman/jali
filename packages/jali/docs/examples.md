@@ -26,7 +26,7 @@ An underwriter works through a queue of mortgage applications, one curated page 
 
 - **[A curated page](https://jali.ramizrahman.com/apps/loan-review/?page=loan-review&item=4&tab=overview)**: The queue, the application's header and its views as tabs. Switch to Split view to see the views side by side, then rearrange them. ([how it works](https://jali.ramizrahman.com/learn/curated-pages))
 - **[A link carries the content only](https://jali.ramizrahman.com/apps/loan-review/?page=loan-review&item=7&tab=borrower)**: This link names the application and the view. Single or Split view, and how the panes are arranged, stay the reader's own. ([how it works](https://jali.ramizrahman.com/learn/opening-and-linking))
-- **[What a persona may do](https://jali.ramizrahman.com/apps/loan-review/?page=loan-review&item=4&tab=borrower&role=processor)**: The processor's links open as a peek, never beside: `allow: { open: false }`. Switch persona in the header. ([how it works](https://jali.ramizrahman.com/guides/pane-controls))
+- **[What a persona may do](https://jali.ramizrahman.com/apps/loan-review/?page=loan-review&item=4&tab=borrower&role=processor)**: The processor's links open as a peek, never beside: `allow: { open: false }`. Switch persona in the header. ([how it works](https://jali.ramizrahman.com/guides/pane-kinds#choose-what-people-can-do-with-panes))
 
 The same in-browser database: a fictional US home lender's borrowers, properties, mortgages and applications.
 
@@ -67,7 +67,7 @@ A map-first planner for a week in Thailand: the days, each day's stops and trave
 [Open Trips](https://jali.ramizrahman.com/apps/trips/?preset=plan) · [Source](https://github.com/ramiz-rahman/jali/tree/master/examples/trips)
 
 - **[The map is the hub](https://jali.ramizrahman.com/apps/trips/?preset=plan)**: Pick a pin: the place pane and the day both show it. Move through the days with J and K, and the map frames each one. ([how it works](https://jali.ramizrahman.com/learn/following))
-- **[A row that scrolls sideways](https://jali.ramizrahman.com/apps/trips/?preset=days)**: The whole week, every day at a comfortable width, in a row that scrolls instead of folding. Drag a stop from one day to another. ([how it works](https://jali.ramizrahman.com/guides/scrolling-rows))
+- **[A row that scrolls sideways](https://jali.ramizrahman.com/apps/trips/?preset=days)**: The whole week, every day at a comfortable width, in a row that scrolls instead of folding. Drag a stop from one day to another. ([how it works](https://jali.ramizrahman.com/guides/layouts#rows-that-scroll-sideways))
 - **[Compare against a kept pane](https://jali.ramizrahman.com/apps/trips/?preset=stay)**: Two hotels side by side. The left one is kept; pick another and the right one shows it, read against the kept one. ([how it works](https://jali.ramizrahman.com/learn/following))
 
 Real sights, beaches and airports at their real places. Every hotel, restaurant and price is made up, and says so.

@@ -10,7 +10,7 @@ Each problem below starts with what you see, then says why and how to fix it. Ja
 
 **Why:** Jali fills the box you give it, and the box has no height.
 
-**Fix:** give `<JaliRoot>` (or the element around `<JaliView />`) a height: `height: 100%` with `html`, `body` and `#root` at full height, `100dvh`, or a grid or flex cell that has one. See the CSS in the [Quickstart](../get-started/quickstart.md) and [Build your own chrome](custom-chrome.md).
+**Fix:** give `<JaliRoot>` (or the element around `<JaliView />`) a height: `height: 100%` with `html`, `body` and `#root` at full height, `100dvh`, or a grid or flex cell that has one. See the CSS in the [Quickstart](../get-started/quickstart.md) and [Build your own chrome](your-app.md#build-your-own-chrome).
 
 ## "Invalid hook call"
 
@@ -50,7 +50,7 @@ Each problem below starts with what you see, then says why and how to fix it. Ja
 
 ## With two instances, keys act on the wrong one
 
-**Fix:** give each `keyboard: { scope: "local" }`, its own `id` and `label`, and a `prefix` for one of their `urlSync()`. See [Two instances on one page](two-instances.md).
+**Fix:** give each `keyboard: { scope: "local" }`, its own `id` and `label`, and a `prefix` for one of their `urlSync()`. See [Two instances on one page](your-app.md#two-instances-on-one-page).
 
 ## Every pane is folded into tabs in my tests
 
@@ -118,11 +118,11 @@ In development, Jali warns once for each mistake it can catch early. A productio
 
 ### How big is it?
 
-With React and the default features, about 90 KB gzipped: 55.4 KB of core, 26.2 KB of React parts and 8.3 KB of styles. The floor, with no features, is about 84 KB. Each feature's cost is on [Features](features.md).
+With React and the default features, about 90 KB gzipped: 55.4 KB of core, 26.2 KB of React parts and 8.3 KB of styles. The floor, with no features, is about 84 KB. Each feature's cost is on [Features](your-app.md#choose-features).
 
 ### Does it work with server rendering and Next.js?
 
-Yes. `jali/react` is marked `"use client"`, and Jali renders on the server and hydrates without a mismatch when both sides get the same inputs. See [Installation](../get-started/installation.md#nextjs-app-router).
+Yes. `jali/react` is marked `"use client"`, and Jali renders on the server and hydrates without a mismatch when both sides get the same inputs. See [Installation](../get-started/installation.md#next-js-app-router).
 
 ### Can panes float and overlap?
 
@@ -138,7 +138,7 @@ No. Jali renders to the DOM.
 
 ### How do I save a person's layout on my server?
 
-Listen for the `layout` event with `source: "action"`, save in order, and give it back as `layout`, or per preset with `saved`. See [Start from presets](presets.md#save-a-persons-layout).
+Listen for the `layout` event with `source: "action"`, save in order, and give it back as `layout`, or per preset with `saved`. See [Start from presets](layouts.md#save-a-persons-layout).
 
 ### What licence is it under?
 

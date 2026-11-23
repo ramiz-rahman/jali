@@ -86,7 +86,7 @@ export const EXAMPLES: ExampleApp[] = [
         title: "What a persona may do",
         text: "The processor's links open as a peek, never beside: `allow: { open: false }`. Switch persona in the header.",
         link: "?page=loan-review&item=4&tab=borrower&role=processor",
-        learn: "/guides/pane-controls",
+        learn: "/guides/pane-kinds#choose-what-people-can-do-with-panes",
       },
     ],
   },
@@ -165,7 +165,7 @@ export const EXAMPLES: ExampleApp[] = [
         title: "A row that scrolls sideways",
         text: "The whole week, every day at a comfortable width, in a row that scrolls instead of folding. Drag a stop from one day to another.",
         link: "?preset=days",
-        learn: "/guides/scrolling-rows",
+        learn: "/guides/layouts#rows-that-scroll-sideways",
       },
       {
         title: "Compare against a kept pane",

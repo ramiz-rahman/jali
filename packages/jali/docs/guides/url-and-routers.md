@@ -49,7 +49,7 @@ Jali writes only its own search params. Your own params, the path and the hash a
 | `l` | The layout. |
 | `preset` | The preset the layout came from. A link opens with that preset marked, and Reset layout rebuilds it. |
 | `zoom` | The maximised pane, if any. |
-| `scroll` | Where each [row that scrolls sideways](scrolling-rows.md) came to rest, when it isn't at its start. |
+| `scroll` | Where each [row that scrolls sideways](layouts.md#rows-that-scroll-sideways) came to rest, when it isn't at its start. |
 | `page`, `item`, `tab`, `open` | A curated page: which one, its item, the view in use, and the panes opened from it. |
 
 The peek is never in the address: a reload, or a link someone opens, shows no peek. A `peek` param from an older link is ignored, and gone from the address at the next change.
@@ -92,7 +92,7 @@ With `"local"`, sizes are kept in `storage`, for the last 12 layouts. Only sizes
 
 ## Two instances in one address
 
-`prefix` names one instance's params apart from another's. `urlSync({ prefix: "n." })` writes `n.l`, `n.zoom` and so on. See [Two instances on one page](two-instances.md).
+`prefix` names one instance's params apart from another's. `urlSync({ prefix: "n." })` writes `n.l`, `n.zoom` and so on. See [Two instances on one page](your-app.md#two-instances-on-one-page).
 
 ## With a router
 
@@ -216,4 +216,4 @@ If the instance belongs to one route, and your app drops it for good when the pe
 ## Next
 
 - [Unsaved work and pane state](unsaved-work-and-pane-state.md): Back and Forward ask before losing work too.
-- [Two instances on one page](two-instances.md)
+- [Two instances on one page](your-app.md#two-instances-on-one-page)

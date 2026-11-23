@@ -1,6 +1,6 @@
 # Jali docs: the plan
 
-19 Nov 2026, brought up to date 22 Nov 2026 (phase 5). What the site holds, how a page is built, and how it is made. The reasoning is in `docs/research/docs-sites.md`. Each item says whether it is done.
+19 Nov 2026, brought up to date 23 Nov 2026. What the site holds, how a page is built, and how it is made. The reasoning is in `docs/research/docs-sites.md`. Each item says whether it is done.
 
 ## The site
 
@@ -17,15 +17,16 @@ Get started
 Learn             one idea per page, each with a live part where it helps
   The layout tree · How a layout fits · Opening and linking · Following a list · Curated pages          done
   Accessibility   what Jali guarantees, the keyboard map, screen readers, forced colours                done
-Guides            tasks
-  Define a pane kind · Features · Start from presets · Auto layout · Keep the layout in the URL         done
-  Unsaved work and pane state · Tabs · Rows that scroll · Pane controls · Commands and keys             done
-  Build your own chrome · Theming · Translate · Chakni · Test your layouts · Two instances · Agents     done
-  Troubleshooting and FAQ (with the development warnings)                                                done
+Guides            one page per question a reader asks (18 pages merged into 9, 23 Nov 2026; old addresses redirect)
+  Define a pane kind (and what people may do with panes) · Lay out panes (presets, tabs, rows that      done
+  scroll, auto layout) · Keep the layout in the URL · Unsaved work and pane state · Commands and keys
+  Theme and words (theming, translating, Chakni) · Fit Jali into your app (features, your own chrome,   done
+  two instances, agents) · Test your layouts · Troubleshooting and FAQ
 Reference
   jali · jali types · the layout namespace · jali/react · Features · jali/testing · jali/agent          done
   Tokens · Parts · Commands                                                                              done
-Examples          the five apps, how to run each, what each shows                                        done
+Examples          the six apps, each hosted at /apps/<name>/, with a screenshot and three links into     done
+                  the running app in the state that shows a feature (src/examples/data.ts)
 ```
 
 ## A page
@@ -53,7 +54,7 @@ Tree view, Frame, Spotlight and the build-along Quickstart. Done.
 
 ## Not yet
 
-- Hosted examples and "Open in StackBlitz": they need the public repository.
+- "Open in StackBlitz": it needs the public repository. (The examples are hosted with the site: `pnpm build:site`.)
 - Identifiers linked to their reference entry inside code blocks.
 - Full-text search.
 - A changelog and release notes, from the first release.

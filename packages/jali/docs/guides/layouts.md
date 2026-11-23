@@ -1,0 +1,608 @@
+# Lay out panes
+
+Write the layouts Jali opens on, put panes in tabs and in rows that scroll sideways, and let Jali tidy them when they pile up.
+
+A layout is where the panes sit: rows, columns and tabs, and the panes in them. This page is everything about shaping it. [Presets](#start-from-presets) are the layouts your app opens on and switches between, [tabs](#tabs) put several panes in one place, [rows that scroll sideways](#rows-that-scroll-sideways) hold more panes than fit, and [auto layout](#auto-layout) tidies the panes when they have piled up.
+
+## Start from presets
+
+Give Jali named layouts to open on and switch between.
+
+A preset is a named layout: "Orders", "Orders and detail", "Customer desk". Jali opens on one, ⌘K lists them all, and the person can switch at any time. Your app can switch too.
+
+### Write a layout
+
+A [layout](../get-started/key-concepts.md#layout-tree) is a tree of rows, columns, tabs and panes. Write it the way it looks:
+
+- `row(a, b)` puts its children side by side; `column(a, b)` stacks them top to bottom.
+- `tabs(a, b)` puts panes as tabs in one place, the first shown.
+- A child is a ref (`orderKind({ id: 12 })`), or `pane(ref, options)` when the pane needs options, or another row, column or tabs.
+- Options go first: `column({ weight: 2 }, a, b)`. `weight` shares the room with siblings (default 1); `px: 480` asks for a fixed length.
+
+Every node gets an id, named after what it holds (`"orders"`, `"row"`, `"order-2"`). Give one yourself with `id` when something refers to it: a pane that another one links to, or one your code focuses.
+
+A pane opened from a list can follow it. Give it `linkedTo` (the list's pane id) and `follows: true`, and it shows whatever the list's cursor is on.
+
+### Write the presets
+
+`src/layouts.ts`
+
+```tsx
+import { column, pane, row, tabs, type PresetOptions } from "jali";
+import { customerKind, orderKind, orderList } from "../pane-kinds/orders";
+
+export const presets: PresetOptions[] = [
+  {
+    id: "orders",
+    label: "Orders",
+    layout: orderList(),
+  },
+  {
+    id: "triage",
+    label: "Orders and detail",
+    layout: row(
+      pane(orderList(), { id: "orders", weight: 1.4 }),
+      // Shows whichever order is selected in "orders", and follows the cursor.
+      pane(orderKind({ id: 1 }), { id: "order", linkedTo: "orders", follows: true }),
+    ),
+  },
+  {
+    id: "customer-desk",
+    label: "Customer desk",
+    layout: row(
+      pane(orderList(), { id: "orders", px: 480 }),
+      column(customerKind({ id: 7 }), tabs(orderKind({ id: 12 }), orderKind({ id: 15 }))),
+    ),
+  },
+];
+```
+
+A preset's `layout` can also be a function, to build a fresh layout each time it is chosen.
+
+Sizes are a starting point. With weights, each pane first gets its kind's `width.min`, then spare room brings it up to `width.comfortable`, then it is shared by weight. Panes that don't fit fold into tabs. See [Define a pane kind](pane-kinds.md) for the widths. A tab group (`tabs(...)`) is as narrow as its widest tab allows: every tab must fit in it, whichever one is shown, so a group holding a chart that needs 360px never goes below 360px.
+
+#### A pane in more than one preset
+
+Give a pane the same `id` in two presets, showing the same object, and it is the same pane in both. Switching between them keeps it mounted: its [pane state](unsaved-work-and-pane-state.md#keep-the-panes-own-state) and its unsaved work come along, and the switch doesn't ask, because nothing is lost. A half-written order ticket stays half-written when the person moves to another layout that has the ticket.
+
+If the other preset has that id showing another object, or doesn't have it, the switch asks first when the pane has unsaved work, and the pane starts afresh there.
+
+A list that is in both presets keeps its selection. When the new preset puts a follower beside it, the list and the follower agree, and the preset's word wins: a follower of the selected item's kind resets the list's selection to what the preset gives it. The person sees the item the preset names. If the preset gives the list no follower of that kind, its followers show the list's selection. See [A new layout beside a list](../learn/following.md#a-new-layout-beside-a-list).
+
+### Give them to `createJali`
+
+`src/jali.ts`
+
+```tsx
+import { createJali } from "jali";
+import { orderKinds } from "../pane-kinds/orders";
+import { presets } from "./layouts";
+
+export const jali = createJali({
+  panes: orderKinds,
+  presets, // in menu order: ⌘K lists each one as "Layout: <label>"
+  preset: "triage", // the one to open on when the address has no layout. Default: the first
+});
+
+// Switch from your own buttons or menus. With unsaved work in a pane that would go, the person is asked first.
+export const showCustomerDesk = () => jali.actions.preset("customer-desk");
+// Rebuild the preset in use, as ⌘K "Reset layout" does.
+export const resetLayout = () => jali.actions.resetLayout();
+```
+
+- `presets` is the list, in menu order. ⌘K shows each as "Layout: *label*".
+- `preset` is the one to open on. Without it, the first. A link with a layout in it wins over both: see [Keep the layout in the URL](url-and-routers.md).
+- `jali.actions.preset(id)` switches. If a pane that would go has unsaved work, the person is asked first.
+- `jali.actions.resetLayout()` rebuilds the preset in use, as written. ⌘K "Reset layout" does the same.
+- `jali.get().presetId` is the preset in use, the last one chosen. A layout link names it (`preset=` beside `l=`), so a colleague who opens the link has the same preset marked in your menu, and Reset rebuilds it.
+
+Switching to a preset is a new step in the browser's history, so Back returns to the layout before it.
+
+### Your own preset menu
+
+Jali lists presets in ⌘K. If you want them in your top bar too, read them from the instance: `jali.presets` holds each one's `id` and `label`, in menu order. Render this inside `<JaliRoot>`:
+
+`src/PresetMenu.tsx`
+
+```tsx
+import { useJali, useJaliState } from "jali/react";
+
+/** The presets as buttons in your own top bar. Render it inside <JaliRoot>. */
+export function PresetMenu() {
+  const { presets, actions } = useJali();
+  const current = useJaliState((s) => s.presetId);
+  return (
+    <nav aria-label="Layouts">
+      {presets.map((p) => (
+        <button key={p.id} aria-pressed={p.id === current} onClick={() => actions.preset(p.id)}>
+          {p.label}
+        </button>
+      ))}
+    </nav>
+  );
+}
+```
+
+### Save a person's layout
+
+To keep each person's layout on your server, save it when it changes and give it back when you make the instance:
+
+```ts
+import { createJali } from "jali";
+import { api, presets, user } from "./app";
+
+const saved = await api.loadLayout(user.id); // what you saved last time, or null
+const jali = createJali({ panes, presets, ...(saved ? { layout: saved } : {}) });
+
+// One save at a time, in order: a slow request can never land after a newer one.
+let saving = Promise.resolve();
+let latest: unknown;
+jali.on("layout", ({ layout, source }) => {
+  if (source !== "action") return; // Back, Forward and links aren't the person's own arrangement
+  latest = layout;
+  saving = saving.then(async () => {
+    if (latest !== layout) return; // a newer layout is queued; save that one instead
+    await api.saveLayout(user.id, layout);
+  });
+});
+```
+
+- `"layout"` fires once per change. `source` is `"action"` for the person's own changes and `"address"` for Back, Forward or a link. `action` names the action that made it (`"resetLayout"`, `"preset"`), when one did. Fitting to a new window size does not fire it.
+- `jali.getLayout()` is the layout on screen, as JSON, at any time.
+- A link in the address still wins over `layout`, so a shared link opens what was shared.
+- A layout that arrives after the instance is made goes through `jali.setLayout(saved)`. It fits the layout to the room, asks before losing unsaved work, and adds a history entry, so Back returns. It returns `{ ok: false, reason: "invalid" }` for a layout with a pane kind the app no longer has.
+
+### Keep each preset as it was left
+
+By default, choosing a preset builds its layout afresh, so a person who rearranges one preset, moves to another and comes back finds their changes gone. To bring each preset back as it was left, keep its layout as it changes and give it back with `saved`:
+
+```ts
+import { createJali, type LayoutInput } from "jali";
+import { presets } from "./presets";
+
+const left = new Map<string, LayoutInput>(); // or localStorage, or your server
+const jali = createJali({
+  panes,
+  presets: presets.map((p) => ({ ...p, saved: () => left.get(p.id) })),
+});
+
+jali.on("layout", ({ layout, source }) => {
+  // Only the person's own changes: a link that arrives must not replace what they left.
+  if (source !== "action") return;
+  const id = jali.get().presetId;
+  if (id) left.set(id, layout);
+});
+```
+
+A link opens what it holds, and the person's saved arrangement stays: choose the preset again and it comes back.
+
+- `saved` is asked every time the preset is chosen: from your menu, ⌘K or a key. Return `undefined` to build `layout`.
+- "Reset layout" (`jali.actions.resetLayout()`) always builds the preset's own `layout`, so the person can get back to it.
+- A saved layout naming a pane kind the app no longer has is ignored, and `layout` is built.
+- The switch is still one step in history, and still asks before losing unsaved work.
+
+The Markets example keeps its desks this way, in `localStorage`, with a button that resets every desk.
+
+### No presets: one starting layout
+
+An app that doesn't need presets passes one `layout`. It needs one or the other: with neither, `createJali` throws.
+
+`src/jali.ts`
+
+```tsx
+import { createJali } from "jali";
+import { orderKinds, orderList } from "../pane-kinds/orders";
+
+// With no presets, Jali opens on one layout: here, the order list alone.
+export const jali = createJali({
+  panes: orderKinds,
+  layout: orderList(),
+});
+```
+
+Without presets, ⌘K "Reset layout" is unavailable.
+
+### Let Jali arrange the panes
+
+When the panes a person opened have piled up, `jali.actions.autoLayout()` arranges them from the room there is and each kind's size hints, with no layout to write. It puts as many panes side by side as fit, linked panes next to each other, and adds a second row only for what doesn't fit across. The rest become tabs of the pane they were opened from, so a detail stays with its list. It keeps the same panes, so nothing reloads, and Back returns to the arrangement before. People find it in ⌘K as "Arrange panes automatically". See [Auto layout](layouts.md#auto-layout) for how it decides.
+
+```tsx
+<button onClick={() => jali.actions.autoLayout()}>Tidy up</button>;
+```
+
+To arrange the panes after each of an agent's turns, call it from your own code when the turn ends: see [Let an agent arrange panes](your-app.md#let-an-agent-arrange-panes).
+
+## Tabs
+
+Let people reorder, pin, rename and close tabs, and add your own items to a tab's menu.
+
+When several panes share one place, they show as tabs. Most of what people expect from tabs works without any setup: dragging a tab to a new position, a menu on each tab, pinning, middle-click to close, and a mark for unsaved work. Renaming and your own menu items take one option each.
+
+*Live demo on the site: Real tabs, the first one pinned. Right-click a tab, or drag one along the strip.*
+
+The rest of this guide sets up an app of saved reports, where people name and pin their own reports:
+
+`src/jali.tsx`
+
+```tsx
+import { useSyncExternalStore } from "react";
+import { createJali, pane, tabs } from "jali";
+import { definePane, useTitle } from "jali/react";
+import { ChartBarIcon } from "@phosphor-icons/react";
+import { defaultFeatures } from "jali/features";
+import { rename } from "jali/rename";
+
+// Your data: saved reports, with the name and pin the person gave each. Jali stores neither.
+interface Report {
+  id: number;
+  name: string;
+  pinned: boolean;
+}
+let reports: Report[] = [
+  { id: 1, name: "Weekly revenue", pinned: true },
+  { id: 2, name: "Refunds by region", pinned: false },
+  { id: 3, name: "Late orders", pinned: false },
+];
+const listeners = new Set<() => void>();
+const subscribe = (fn: () => void) => (listeners.add(fn), () => listeners.delete(fn));
+function save(id: number, change: Partial<Report>) {
+  reports = reports.map((r) => (r.id === id ? { ...r, ...change } : r));
+  listeners.forEach((fn) => fn());
+}
+const byId = (id: number) => reports.find((r) => r.id === id);
+
+export const reportKind = definePane("report", {
+  params: { id: Number },
+  title: ({ id }) => `Report ${id}`,
+  icon: ChartBarIcon,
+  width: { min: 360 },
+  Component: function ReportPane({ params }) {
+    const report = useSyncExternalStore(subscribe, () => byId(params.id));
+    useTitle(report?.name); // the tab shows the saved name, and follows a rename
+    return <h3>{report?.name}</h3>;
+  },
+});
+
+const idOf = (ref: { params: unknown }) => (ref.params as { id: number }).id;
+
+export const jali = createJali({
+  panes: [reportKind],
+  // One group of tabs; the report pinned in your data starts pinned.
+  layout: tabs(
+    ...reports.map((r) =>
+      pane(reportKind({ id: r.id }), { id: `report-${r.id}`, pinned: r.pinned }),
+    ),
+  ),
+  features: [
+    ...defaultFeatures(),
+    // Double-click or F2 on a tab opens a field; Enter saves the name in your data.
+    rename({
+      can: (p) => p.ref.kind === "report",
+      run: (p, text) => {
+        if (text.length > 60) return false; // keeps the field open, marked invalid
+        save(idOf(p.ref), { name: text });
+      },
+    }),
+  ],
+  // Your items, after Jali's own in the tab's menu.
+  tabMenu: (p) =>
+    p.ref.kind === "report"
+      ? [{ id: "report.export", title: "Export as CSV", run: () => exportCsv(idOf(p.ref)) }]
+      : undefined,
+});
+
+// A pin from the menu, setPinned, a link or Back: write it back to your data.
+jali.on("pin", ({ pane: id, pinned }) => {
+  const node = jali.model().pane(id);
+  if (node?.ref.kind === "report") save(idOf(node.ref), { pinned });
+});
+
+function exportCsv(id: number) {
+  console.log("export", id);
+}
+```
+
+### Reorder tabs
+
+People drag a tab along its own strip. A line shows where it will land, and dropping puts it there. While the pointer is over the strip, the drop zones for splitting stay hidden, so a short drag never splits the pane by accident. Dropping a pane in the middle of another still adds it as the last tab.
+
+From the keyboard, ⌘K ⇧PageUp and ⌘K ⇧PageDown move the focused tab one place. On Windows and Linux it's Ctrl+K Shift+PageUp and Ctrl+K Shift+PageDown. Screen readers hear the new place: "Orders moved to position 2 of 4". At the end of the strip, Jali says the tab is already last. Right to left, "left" is still the screen's left, which is later in the strip.
+
+From your code, use `jali.actions.moveTab(pane, index)`. The index starts at 0, and a number past the end means the end. The group keeps its place, its size and the tab it shows.
+
+Only tabs that someone made have an order to change. Tabs that the layout made, because a pane folded into a tab or was tucked, are placed by the layout, so moving one is refused with `"nothing-to-do"`.
+
+### The tab's menu
+
+Right-click a tab, or focus it and press Shift+F10 or the menu key. A pane on its own, with no tabs, has the same menu on its header: right-click its title bar. The menu acts on that pane, even when another one has focus. Right-clicking the content stays your app's. Jali's own items come first, and only those your app [allows](pane-kinds.md#choose-what-people-can-do-with-panes):
+
+- Close, Close other tabs, and Close tabs to the right (to the left, right to left).
+- Rename…, when you've set up `rename` and it allows this pane.
+- Pin tab, a checkbox.
+- Move tab left, Move tab right, and Move out of tabs.
+- Split right and Split down, when there is a `launcher` and no curated page is open.
+- Maximise or Restore, Full screen or Exit full screen, and Pop out (where the browser can and the app turned it on).
+- Tuck, on a pane without tabs.
+
+Close other tabs and Close tabs to the right are one change. `beforeClose` is asked once, with every pane in the list, and one Undo brings them all back. From your code, it's `jali.actions.closeTabs(pane, "others")` or `"after"`. "After" means later in reading order, so your code doesn't need to know the direction.
+
+#### Add your own items
+
+Give `createJali` a `tabMenu`: a function of the tab's pane. It's called each time a menu opens, and its items come after Jali's, below a line:
+
+```tsx
+import { createJali } from "jali";
+
+const jali = createJali({
+  panes,
+  layout,
+  tabMenu: (pane) =>
+    pane.ref.kind === "report"
+      ? [
+          { id: "report.export", title: "Export as CSV", run: (now) => exportCsv(now.ref) },
+          { id: "report.share", title: "Share", run: share, disabled: "Save the report first" },
+        ]
+      : undefined,
+});
+```
+
+- **`checked`** makes the item a checkbox, for a setting that's on or off.
+- **`disabled`** greys the item out but keeps it reachable from the keyboard. Give a string, and screen readers hear why it's unavailable.
+- **`keys`** shows a shortcut beside the item, when a command of yours does the same thing.
+
+Return `undefined` or `[]` for a pane with no items of its own. Choosing an item closes the menu and puts focus back on the tab before `run` is called, so an item that moves focus somewhere else wins. Esc closes the menu and returns focus to the tab.
+
+`run` gets the pane as it is when the item is chosen: a menu can stay open while the pane changes (a detail follows its list), so act on what `run` is given, not on what the menu was built from. Once the pane has closed, `run` isn't called. Jali's own items work the same way: **Move tab right** moves the tab one place right of where it is now, and **Pin tab** pins it (chosen after it was pinned elsewhere, it stays pinned), never toggles.
+
+The function is for every tab, not one per kind, because kinds often share their items. Branch on `pane.ref.kind` when they don't.
+
+### Pin tabs
+
+Pinning keeps a tab at the start of its group, in the order tabs were pinned. A pinned tab shows a pin before its icon, and screen readers hear "Pinned" first in its description. Unpinning moves the tab to the start of the unpinned ones.
+
+A pinned tab survives Close other tabs and Close tabs to the right. Closing it on its own still works: its × button, a middle-click, Delete or Backspace while it's focused, or the close keys, as in a browser. Moving a tab keeps it on its side of the line: pinned tabs move among the pinned, the others after them.
+
+People pin from the tab's menu. From your code, use `jali.actions.setPinned(pane, true)`, or `pinned: true` on a pane in a layout you build.
+
+#### Keep the pin in your data
+
+If your app saves documents, it may want the pin saved with each one. The `pin` event fires whenever a tab is pinned or unpinned, however it happened: the menu, `setPinned`, `setLayout`, Back and Forward, or a link.
+
+```tsx
+jali.on("pin", ({ pane, pinned }) => saveDocument(pane, { pinned }));
+```
+
+Setting a tab to the value it already has is no change, so it fires no event. Your app can call `setPinned` when its own data changes, and write back from `on("pin")`, without the two calling each other in a loop.
+
+A tab is as wide as its title, up to `--jali-tab-max-width` (default 20rem), and a title longer than that is shortened with an ellipsis. Pinned tabs stay in view while the other tabs scroll. `--jali-tab-pinned-width` caps a pinned tab's width (default 12rem); see [Theming](theming.md). When the header is narrow (under about 32rem), pinned tabs shrink to a pin and an icon, keeping their title as their name and tooltip, so the shown tab always has room. If even that does not fit, the pinned tabs scroll too.
+
+### Rename in place
+
+Jali doesn't store names. Your app saves the name, and the pane shows it, usually with [`useTitle`](../reference/react.md#usetitle). Turn renaming on with the `rename()` feature, from `jali/rename`, and give it a `run` function:
+
+```tsx
+import { createJali } from "jali";
+import { rename } from "jali/rename";
+
+const jali = createJali({
+  panes,
+  layout,
+  features: [
+    rename({
+      can: ({ ref }) => ref.kind === "report",
+      run: ({ ref }, text) => saveReportName(ref, text),
+    }),
+  ],
+});
+```
+
+Then a double-click or F2 on a tab opens a text field in its place, with the name selected. When a pane is on its own and has no tab, the field opens in its title. The tab's menu also has Rename….
+
+- **Enter** or leaving the field calls `run` with the trimmed text. Focus goes back to the tab.
+- **Esc** keeps the old name. So does an empty name or an unchanged one, and `run` isn't called.
+- **`run` returns `false`**, throws or rejects: the field stays open with the text, marked invalid, and screen readers hear it. The person can fix the name or press Esc.
+- **`run` returns a promise:** the field shows it's busy until the promise settles.
+- **The pane shows another object** (it opened something here, its list moved it, Back, Undo or a link): the field closes, the typed text is dropped and focus goes back to the pane. A save already running still finishes for the object the field was opened on, so a name never lands on the wrong object: `run` gets that object's ref.
+
+`can` says which panes can be renamed. Leave it out and every pane can. Without `rename()`, nothing offers renaming.
+
+F2 is the rename key in file managers. If something inside your pane uses F2 too, such as a grid that edits a cell, it gets the key first. If your app uses F2 for something else everywhere, list it in `keyboard.reserved`, and call `jali.actions.startRename(pane)` from your own command instead.
+
+### Close and unsaved work
+
+A tab's × closes it, and so does a middle-click on the tab or on a shelf chip. Both go through `beforeClose` with the reason `"close"`, exactly as the × does.
+
+A pane that reports unsaved work with `useUnsaved` shows a dot where its × would be. The dot turns back into × on hover or focus, so it takes no extra width. See [Unsaved work and pane state](unsaved-work-and-pane-state.md).
+
+### Keys
+
+| Does | Mac | Windows and Linux |
+| --- | --- | --- |
+| Focus the tab before / after, the first / last | ← → Home End | Left Right Home End |
+| Show the focused tab | Enter or Space | Enter or Space |
+| Move tab left / right | ⌘K ⇧PageUp / ⌘K ⇧PageDown | Ctrl+K Shift+PageUp / Ctrl+K Shift+PageDown |
+| Open the tab's menu | ⇧F10 or the menu key | Shift+F10 or the menu key |
+| Rename (with `rename`) | F2 | F2 |
+| Close the focused tab | Delete or Backspace | Delete or Backspace |
+
+The arrows only move focus, wrapping at the ends; right to left, ← moves on. The tab strip is one stop in the Tab order. The rest follow your `keyboard.prefix` and can be rebound through `keyboard.keymap`. A single chord such as ⌥⇧← works for moving tabs. See [Commands and keys](commands-and-keys.md).
+
+## Rows that scroll sideways
+
+Keep a sequence of panes at a width you can read, a board's stages or a week of days, in a row that scrolls instead of folding.
+
+Jali's root is the size its page gives it. When panes don't fit, Jali folds some into tabs, which suits a layout of different things: a fifth table beside four others is clutter. It suits a sequence of like things less well. Stages of a pipeline, days of a trip or columns of a board are something people move along, not pick from a menu. Give that row `scroll: "x"` and each pane keeps its own width, and the row scrolls to the rest.
+
+*Live demo on the site: Six orders in a row that scrolls, beside the list they came from. Swipe sideways over them, or hold Shift and use the wheel.*
+
+```ts
+import { row } from "jali";
+import { stage } from "./pipeline";
+
+row({ scroll: "x" }, stage({ name: "Lead" }), stage({ name: "Qualified" }), stage({ name: "Demo" }));
+```
+
+The panes in it are ordinary panes, of any kind: headers, menus, tabs, following, Keep, links and undo all work as anywhere else. Here is a pipeline whose stages scroll while the deal beside them stays put:
+
+`src/jali.tsx`
+
+```tsx
+import { column, createJali, pane, row } from "jali";
+import { definePane } from "jali/react";
+
+// A sales pipeline: every stage is a pane, side by side at a width you can read, in a row that scrolls.
+const STAGES = ["Lead", "Qualified", "Demo", "Proposal", "Negotiation", "Won"] as const;
+
+export const stageKind = definePane("stage", {
+  params: { name: String },
+  title: ({ name }) => name,
+  // The width each stage keeps in the row: it never shares out or folds.
+  width: { min: 260, comfortable: 300, max: 420 },
+  Component: ({ params }) => <StageList stage={params.name} />,
+});
+
+export const dealKind = definePane("deal", {
+  params: { id: Number },
+  title: ({ id }) => `Deal ${id}`,
+  width: { min: 300, comfortable: 340 },
+  Component: ({ params }) => <DealDetail id={params.id} />,
+});
+
+export const jali = createJali({
+  panes: [stageKind, dealKind],
+  layout: row(
+    // Every stage, in a row that scrolls sideways: none folds into a tab, however narrow the window.
+    row(
+      { id: "pipeline", scroll: "x" },
+      ...STAGES.map((name) => pane(stageKind({ name }), { id: name.toLowerCase() })),
+    ),
+    // Outside the row, the deal stays put while the stages scroll beside it.
+    column({ px: 360 }, pane(dealKind({ id: 1042 }), { id: "deal" })),
+  ),
+});
+
+function StageList({ stage }: { stage: string }) {
+  return <p>The deals in {stage}.</p>;
+}
+function DealDetail({ id }: { id: number }) {
+  return <p>Deal {id}.</p>;
+}
+```
+
+### How a row that scrolls takes its room
+
+Each pane in the row gets its kind's `width.comfortable`, within its `min` and `max`, or the width the person dragged it to. Together they can be wider than the row's window, and the row scrolls. When they're narrower, they share the window out as any row does, so no gap opens at the end.
+
+To the panes around it, the row asks for one of its panes, whole, at its comfortable width. A window narrower than that would cut off even the pane in view. When there isn't room for that, the panes beside the row fold first. The row itself folds only after them, like a [primary](../learn/fitting.md) pane, because it holds the most.
+
+Inside the row, nothing folds, and the pane cap counts the whole row as one pane. A row that scrolls inside another row that scrolls is a plain row.
+
+Make the whole layout scroll by making the row at its root scroll. Mix the two by putting fixed panes beside it, outside the row: in Trips, the trip's overview and the map stay where they are, and the week scrolls between them.
+
+### Scrolling
+
+The browser scrolls the row, so it feels like any page: a trackpad swipe with its momentum, Shift and the wheel, and a thin scrollbar in the gap under the panes. A swipe past the end stops there, rather than going back a page. The edges fade where there is more to see.
+
+Moving focus brings the pane wholly into view, scrolling as little as it can: a click, F6, ⌘K and an arrow, a link, or opening a pane. So a keyboard user never lands on a pane they can't see. A pane opened beside one in the row goes right after it, and comes into view with it, even though focus stays at the pane it came from. When both don't fit, the new pane shows whole. Panes scrolled out of view stay mounted and stay in the focus order, and they're `paused`, so a long row costs about what the few panes on screen do.
+
+Where the row came to rest is in the link: `?scroll=pipeline:732`, by the row's id. A reload or a shared link reopens there. Scrolling replaces the history entry, so Back doesn't step through every swipe. A row at its start adds nothing to the link.
+
+Right to left, the row starts at its right edge and scrolls towards the left.
+
+### Resizing
+
+A divider between two panes in the row widens or narrows the pane before it, and the rest of the row moves along: the row gets longer, and no neighbour is squeezed. A divider beside the row, between it and a fixed pane, shares out the row's window, and the panes in the row keep their width.
+
+### Moving panes in and out
+
+A pane leaves the row in any of these ways:
+
+- **Its menu.** Right-click its header, or use ⋯ or Shift+F10, and choose **Move out of the row**. It goes beside the row, on the side it's nearer on screen. In ⌘K, it's **Move pane out of the row**. From your code: `jali.actions.moveOutOfRow(pane)`.
+- **Moving it past the end.** "Move pane left" on the row's first pane, or "Move pane right" on its last, takes it out, even with nothing beside the row. Inside the row, those moves swap it with its neighbour.
+- **Dragging its header** onto a pane beside the row.
+
+Moving a pane in is the same in reverse: drag it onto a pane in the row, or move it towards the row. Hold a dragged pane at the row's edge, and the row scrolls on, so you can drop it on a pane out of view.
+
+If your app has its own drag, a card or a list row, give it the same edge scrolling with `edgeScroll`:
+
+```ts
+import { edgeScroll } from "jali";
+
+let last = { x: 0, y: 0 };
+// Runs after each step of scrolling, so your drag can find what is under the pointer again.
+const edge = edgeScroll(jali, () => findDropTarget(last.x, last.y));
+
+window.addEventListener("pointermove", (event) => {
+  last = { x: event.clientX, y: event.clientY };
+  edge.move(event.clientX, event.clientY);
+});
+window.addEventListener("pointerup", () => edge.stop());
+
+declare function findDropTarget(x: number, y: number): void; // your drag's own
+```
+
+The function you pass runs after each step of scrolling, so the drag can find what is under the pointer again as the panes slide past it.
+
+### On a phone
+
+On a phone, Jali shows one pane at a time, and its switcher lists every pane in the row.
+
+### Reading it from your code
+
+A pane in the row's window is `where: "shown"` in `jali.model()`, with its `box`; a pane scrolled out of it is `"hidden"`, with no box. Focusing it (`jali.actions.focus(id)`) scrolls the row to it. Where each row came to rest is in the address, as `scroll`.
+
+## Auto layout
+
+Let Jali arrange the panes on screen from the room there is and each kind's size hints, when they have piled up.
+
+After a while of opening things, a layout collects panes in whatever order the person opened them. `jali.actions.autoLayout()` arranges them again: the same panes, in a fresh layout built from the room there is and what each kind says about its size. Nothing reloads, because every pane stays the same pane, with its state, its link and its pin. People find it in ⌘K as **Arrange panes automatically**.
+
+```tsx
+<button onClick={() => jali.actions.autoLayout()}>Tidy up</button>
+```
+
+![Trips' Plan layout, arranged: the four panes stay side by side, the place moves next to the map it follows](https://jali.ramizrahman.com/media/auto-layout/plan.gif)
+
+### What it does
+
+![The four steps: order the panes, fill one row, add a second row for what didn't fit, and make the rest tabs](https://jali.ramizrahman.com/media/auto-layout/steps.svg)
+
+1. **Order.** The panes in front, in reading order, with each pane's linked panes right after it: a list, then its detail, then what the detail opened. Then the panes that were behind another tab, in the same way.
+2. **One row.** In that order, every chain of linked panes that fits across whole at its kinds' minimum widths, so linked panes sit next to each other, then single panes that still fit. A pane becomes a tab only when it didn't fit across in either row. The fit then shares the row out, bringing every pane towards its comfortable width.
+3. **A second row**, below, only for the panes that didn't fit across, and only when the height has room for both rows' tallest minimum. Never more than two rows.
+4. **Tabs** for the rest. A pane joins the tabs of the pane it was opened from, else of the pane whose tabs it already is, else of the pane before it in the order, as long as that cell's row still fits with the tab's width. The focused pane is the tab that shows, so the person never loses the pane they were in.
+
+![Studio's Mix at 1024 pixels: four panes in two rows, the mixer below the library and the timeline](https://jali.ramizrahman.com/media/auto-layout/mix.gif)
+
+### What it keeps
+
+- **The same panes.** Ids, objects, links, pins and Keep are unchanged, so pane state, unsaved work and followers all carry over.
+- **Rows that scroll sideways**, whole. A row made with `row({ scroll: "x" }, …)` was arranged on purpose, so auto layout places it as one unit with its panes in their order. It always gets a place of its own, and tabs never go into it. It asks for room for one of its panes, so beside other panes it may be left narrow: the row still scrolls to the rest.
+- **Hidden panes** (`hidden`), which stay hidden.
+
+![Trips' Days: the week stays a row that scrolls, beside the overview, the map and the place](https://jali.ramizrahman.com/media/auto-layout/week.gif)
+
+What it doesn't keep is the shape: sizes the person dragged, fixed `px` widths, and which panes shared a column. Tucked panes come back into the layout, since a tidy-up should show what is open.
+
+### What to expect
+
+- **Running it again changes nothing.** Arranging an arranged layout gives the same layout, and the action returns `"nothing-to-do"` without a new history entry.
+- **Every pane comes out once.** Auto layout never loses or copies a pane: if it ever would, it leaves the layout as it is.
+- **The tabs it makes are tabs.** They stay when the window grows, as tabs the person made do. Arrange again in the bigger window to spread them out. Panes that are only folded for room, by the fit, come back on their own as before.
+- **Back returns** to the arrangement before, as after choosing a preset.
+- **A narrower window** gets a second row before any tabs, and tabs before any pane is squeezed below its minimum.
+- **On a phone** it does nothing: Jali shows one pane at a time there, and a layout arranged for a phone's width would be a poor one when the window is wide again. The command is unavailable, and the action returns `{ ok: false, reason: "unavailable" }`.
+- **On a curated page** it's unavailable too: a page's arrangement is the page's.
+- **With one pane**, it returns `"nothing-to-do"`.
+- **A pane your app doesn't let move** (`allow: { move: false }`, for any pane on screen) keeps the layout as it is: auto layout moves every pane, so it returns `"not-allowed"`.
+
+### From your code
+
+- `jali.actions.autoLayout()` arranges the panes, as the command does.
+- To arrange the panes after an agent's turn that opened or closed panes, call `jali.actions.autoLayout()` from your own code when the turn ends. It asks your `allow` like any other action; skip it when the agent chose the layout itself. See [Let an agent arrange panes](your-app.md#let-an-agent-arrange-panes).
+
+## Next
+
+- [Keep the layout in the URL](url-and-routers.md): a link reopens the layout, and a preset has a link of its own.
+- [Test your layouts](testing.md): presets make good fixtures.
+- [Examples](../examples.md): every app opens on a preset; Trips' Days is a row that scrolls sideways.

@@ -99,7 +99,7 @@ if (result.ok) forgetSavedLayouts();
 else void result.settled?.then((end) => end.ok && forgetSavedLayouts());
 ```
 
-Some changes never ask, because the pane stays mounted and its work with it: moving it, putting it in tabs, folding it, tucking it and maximising another pane. Choosing a preset that has the same pane (the same `id`, showing the same object) doesn't ask either: the pane, its state and its unsaved work come along. See [A pane in more than one preset](presets.md#a-pane-in-more-than-one-preset).
+Some changes never ask, because the pane stays mounted and its work with it: moving it, putting it in tabs, folding it, tucking it and maximising another pane. Choosing a preset that has the same pane (the same `id`, showing the same object) doesn't ask either: the pane, its state and its unsaved work come along. See [A pane in more than one preset](layouts.md#a-pane-in-more-than-one-preset).
 
 Two more cases:
 

@@ -218,7 +218,7 @@ Name the layer order once, at the top of your CSS (`@layer base, jali;`, or with
 
 ## Before you write code
 
-Turn on only the features the app uses, each from its own entry: `createJali({ features: [urlSync(), palette()] })`, or `defaultFeatures()` from `jali/features` for Jali's usual set. Without `urlSync()` the layout isn't in the address; without `palette()` there is no ⌘K. See [Features](../guides/features.md).
+Turn on only the features the app uses, each from its own entry: `createJali({ features: [urlSync(), palette()] })`, or `defaultFeatures()` from `jali/features` for Jali's usual set. Without `urlSync()` the layout isn't in the address; without `palette()` there is no ⌘K. See [Features](../guides/your-app.md#choose-features).
 
 ## A checklist for a review
 

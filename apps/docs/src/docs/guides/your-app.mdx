@@ -1,0 +1,191 @@
+---
+title: Fit Jali into your app
+summary: "Choose the features you ship, put your own chrome around the panes, run two instances on one page, and let an agent arrange panes."
+---
+
+import app from "../../samples/guides/chrome/app.tsx?raw";
+import css from "../../samples/guides/chrome/app.css?raw";
+import two from "../../samples/guides/two-instances/two.tsx?raw";
+import pageCss from "../../samples/guides/two-instances/page.css?raw";
+import agent from "../../samples/guides/agents/agent.ts?raw";
+
+Jali fits into the app around it. Choose the [features](#choose-features) you ship and pay only for those, put your own top bar and status line [around the panes](#build-your-own-chrome), run [two instances](#two-instances-on-one-page) on one page, and let [an agent](#let-an-agent-arrange-panes) open panes within the limits you set.
+
+## Choose features
+
+Choose what Jali does beyond laying out panes, feature by feature, and see what each one adds to your bundle.
+
+Without any features, Jali lays out panes, fits them, folds them, moves focus, undoes, follows a list, and runs every command from its keys. Everything else is a feature: a value you pass in `createJali({ features })`, imported from its own entry. An app ships only the features it imports, their words included.
+
+```ts
+import { createJali } from "jali";
+import { urlSync } from "jali/url";
+import { palette } from "jali/palette";
+
+const jali = createJali({ panes, layout, features: [urlSync(), palette()] });
+```
+
+For Jali's usual set in one line, use `defaultFeatures()`:
+
+```ts
+import { createJali } from "jali";
+import { defaultFeatures } from "jali/features";
+import { rename } from "jali/rename";
+import { saveName } from "./names";
+
+const jali = createJali({
+  panes,
+  layout,
+  features: [...defaultFeatures(), rename({ run: ({ ref }, text) => saveName(ref, text) })],
+});
+```
+
+A feature given again takes the earlier one's place, so `[...defaultFeatures(), urlSync({ location })]` keeps the defaults with the address in a router's hands.
+
+### Every feature
+
+The sizes are what each feature adds to the floor (one kind of pane, a starting layout, no features), gzipped, in a production build. They come from `pnpm size` in Jali's repo (`tooling/size.mjs`), which measures every feature on its own and fails when one grows past its budget.
+
+| Feature | Import | What the person gets | Adds (gzipped) | In `defaultFeatures()` |
+|---|---|---|---|---|
+| `urlSync()` | `jali/url` | The layout in the address: links reopen it, Back and Forward step through it, a reload keeps it | 3.1 KB | Yes |
+| `palette()` | `jali/palette` | The ⌘K command palette | 1.5 KB | Yes |
+| `settings()` | `jali/settings` | The settings panel: theme, centre drop, pane cap, keys | 1.3 KB | Yes |
+| `chooser()` | `jali/chooser` | "Add to tabs of…", and `jali.dialogs.choose` for your own commands | 1.5 KB | Yes |
+| `pressed()` | `jali/pressed` | `data-pressed` on Jali's controls while they are held, for a theme that draws it | 0.6 KB | Yes |
+| `rename({ run })` | `jali/rename` | Renaming a pane in place: double-click or F2 on a tab | 0.6 KB | No: it needs your `run` |
+| `popOut()` | `jali/pop-out` | A pane in its own floating window (Chrome and Edge on desktop) | 1.3 KB | No |
+| `defaultFeatures()` | `jali/features` | The first five together | 7.1 KB | |
+
+A curated page is not a feature but a value you pass as `createJali({ page })`, made with `definePage` from `jali/page`. It adds about 6.1 KB, and an app without one ships none of it.
+
+The floor itself is 57.6 KB of core, 24.1 KB of React parts and 8.3 KB of styles. Without React, the instance alone is 53.0 KB; the layout builders alone (`row`, `column`, `tabs`, `pane`) are 10.9 KB. These are the numbers of 23 Nov 2026; the size gate keeps them from growing unnoticed.
+
+### Without a feature
+
+Leaving a feature out removes what it draws and what it adds to ⌘K, and refuses what asks for it, with the reason `"unavailable"`:
+
+- **No `urlSync()`:** Jali leaves the address alone. Back and Forward belong to your app, and a reload opens the starting layout. Your own writer still works through `createJali({ url })`.
+- **No `palette()`:** no palette, and ⌘K is your app's, unless `keyboard.keymap` binds `"palette.toggle"`. `jali.dialogs.openPalette()` is refused. Your own menu can list Jali's commands with `listCommands(jali)`.
+- **No `settings()`:** no settings panel, and "Open settings" is not in ⌘K. `jali.dialogs.openSettings()` is refused. Pass `createJali({ settings })` for the first settings a person gets.
+- **No `chooser()`:** "Add to tabs of…" is not offered, and `jali.dialogs.choose()` is refused.
+- **No `rename()`:** nothing offers renaming, and `jali.actions.startRename()` is refused.
+- **No `popOut()`:** no Pop out button, menu item or command.
+- **No `pressed()`:** Jali's controls carry no `data-pressed`. Jali's own styles never read it.
+
+### What every app has
+
+No feature is needed for: the layout and fitting, focus and F6, undo, following a list, the keyboard and its commands, tabs and their menus, the shelf, peek, the phone layout (one pane at a time, and two stacked), rows that scroll sideways, maximise and full screen. All of their words are in every app.
+
+## Build your own chrome
+
+Put a top bar, a status line, the shelf and toasts around Jali's panes, inside one JaliRoot, so the panes take the room your chrome leaves.
+
+`<JaliRoot jali={jali} />` on its own is a whole app: panes, dialogs, keys. Most apps add their own chrome around the panes: a top bar with the app's name and its layouts, a status line, toasts. This guide builds all three.
+
+### Chrome goes inside `<JaliRoot>`
+
+Pass your chrome as children of `<JaliRoot>`, and put `<JaliView />` where the panes go. The panes take whatever room your chrome leaves.
+
+<Code code={app} filename="src/App.tsx" highlight="85-93" />
+
+Keeping everything inside one root matters. `<JaliRoot>` is what renders the dialogs (the palette, Settings, the chooser, "Discard unsaved changes?"), the live region screen readers hear, and the full-screen layer, and it starts and stops the instance. Hooks such as `useJali` and `useJaliState` work anywhere inside it.
+
+Give the root a size and lay the chrome out with your own CSS:
+
+<Code code={css} lang="css" filename="src/app.css" />
+
+### What each part does
+
+- **`data-jali-chrome`** marks your bars. After a layout change, Jali moves keyboard focus back to the focused pane, but never out of an element marked this way, so a person using your top bar stays there.
+- **The shelf**, `<Shelf />`, lists tucked panes as chips, so they can come back with a click. Without it, tucked panes come back only through their tab's **Put back**, the keys, or ⌘K "Show a pane from the shelf". Put it somewhere always visible, such as the status line.
+- **Toasts** arrive as the `toast` event, and Jali draws none, so they look like the rest of your app. `useJaliEvent("toast", show)` hears them. A toast with `undo: true` offers Undo, which runs `jali.actions.undo()` (⌘K ⌘Z does the same). Render your toaster in `overlays`: it sits outside the panes, and while one of Jali's dialogs is open it is inert, as the panes are.
+- **Keys in tooltips:** `useJaliShortcut(id)` returns a command's keys as this person's keymap and platform print them ("⌘K ⌘M", "Ctrl+K Ctrl+M"), or `""` when the command has none.
+- **`IconButton`** draws a button as Jali's header buttons are drawn, so it matches in every theme.
+
+### A curated page's bar
+
+When the instance has a [curated page](/learn/curated-pages), put `<PageBar />` in your top bar. It holds the switch between Single view and Split view, **Back to** the page, and Reset. `<JaliView />` renders the page itself while it is open.
+
+### Your own command menu
+
+If your app already has a command menu (cmdk, say), leave the `palette()` feature out and list Jali's commands in yours with `listCommands(jali)`. ⌘K is then yours. See [Commands and keys](/guides/commands-and-keys#one-command-menu-yours).
+
+### Names for screen readers
+
+Your bars are part of your page, not of the panes, so give them your own landmarks (`<header>`, `<footer>`, `<nav aria-label>`). Jali's panes are a region named "Panes" inside your page's `<main>`, or the page's `<main>` itself with `createJali({ landmark: "main" })`. See [Accessibility](/learn/accessibility).
+
+## Two instances on one page
+
+Put two sets of panes side by side, or one in a dialog, without their links, saved settings or keys getting mixed up.
+
+Two instances of Jali on one page share nothing, except three things that belong to the page: the address, the browser's storage and the keyboard. Give each one its own share of those, and they work side by side.
+
+This page puts orders beside notes, each its own instance.
+
+<Code code={two} filename="src/main.tsx" />
+
+Each `<JaliRoot>` fills the box it is given, so each box needs a definite height:
+
+<Code code={pageCss} lang="css" filename="src/page.css" />
+
+### Its own name in the DOM
+
+`id` prefixes the instance's element ids (`orders-pane-…` and `notes-pane-…`, and its dialogs' ids) and its saved keys. The default is `"jali"`, so give each instance its own. Focus, dragging and F6 already look only inside their own root.
+
+### Its own name for screen readers
+
+`label` names the instance for assistive technology. Its landmark is called "Orders" instead of "Panes", and each of Jali's landmarks inside it adds the name: the pane "Order 7, Orders", the shelf "Shelf, Orders", and the switcher, the peek and a page's views the same way. Without it, both would have a "Panes" region, and a pane titled the same in each would repeat a name, so a screen-reader user moving by landmarks couldn't tell them apart.
+
+### Its own params in the address
+
+`urlSync({ prefix: "n." })` writes the notes instance's params as `n.l`, `n.zoom` and `n.preset`. Orders keeps the plain names. Each reads and writes only its own, and every other param is left alone, so one link reopens both, and Back and Forward step each one through its own changes.
+
+An instance that must not touch the address at all, such as one in a dialog, leaves `urlSync()` out of its features.
+
+### Its own storage
+
+An instance saves its settings and pane state to `localStorage` under its `id` by default: `orders:settings`, `notes:pane-state`. Each URL sync keeps its own keys under its `prefix`. So two instances with their own ids and prefixes never overwrite each other. Pass `storage` for somewhere else: another prefix (`storage: "my-app"`) or a port such as `memoryStorage()`.
+
+### Its own keys and start-up
+
+`keyboard: { scope: "local" }` makes an instance take only keys from inside its own root and its dialogs, plus keys pressed with nothing focused, when it was the last one used. So F6 in the notes moves between notes panes, and ⌘K then ⌘M maximises a notes pane. The palette renders outside the root, but it is the instance's own, so the chord finishes there. The default, `"page"`, takes every key on the page: right for one instance, wrong for two.
+
+Everything else an instance starts while its `<JaliRoot>` is mounted works for each one: saving settings and pane state, Back and Forward, and the browser's prompt when the page closes with unsaved work.
+
+### Inside a page with its own theme
+
+An instance sets `data-theme` on `<html>` from its theme setting, and on its own root and dialog layer. Inside a page that has its own light and dark (a docs site, an app with its own switch), pass `pageTheme: false`, and it writes none of them and follows the page's `.dark` and `[data-theme]` scopes instead.
+
+### Focus
+
+Mounting `<JaliRoot>` never takes the page's focus. A page with three instances, or one below the fold, keeps its place. Jali moves focus into its panes once the person is in it: when they click or tab into it, or run one of its commands.
+
+### Its own look
+
+To give one instance its own accent, set `--jali-accent` on an element around its `<JaliRoot>`. See [Theming](/guides/theming).
+
+## Let an agent arrange panes
+
+Give an AI model two tools of your own, built on jali.model() and jali.actions, so it can read what is open and open panes within the limits your app sets.
+
+A model working beside a person can use the panes the way the person does. Jali has no agent code to install: you write the tools your model needs, over the two things an app already has, `jali.model()` to read the panes and `jali.actions` to change them.
+
+This is for a model inside your app. For a coding agent that writes Jali code, see [Using Jali with coding agents](/get-started/coding-agents).
+
+<Code code={agent} filename="src/agent.ts" />
+
+### What the sample does
+
+- **Reading:** `jali.model()` is the layout as it is on screen. `list_panes` returns each pane's id, title and object, and whether it is shown. Return only what the model needs.
+- **Acting:** every action in `jali.actions` returns a typed result. `r.ok` is true, or `r.reason` says why not (`not-found`, `invalid`, `not-allowed`, `last-pane` and the rest of [`RefusalReason`](/reference/core/types)). Hand the reason back to the model, which can then try something else. A ref the model invents is refused as `invalid`, and nothing changes.
+- **Limits:** `allow` is the one place the app says what may happen, to the model and the person alike. Here a curated page keeps its panes: `close` is refused with `not-allowed` while one is open. A close that would lose unsaved work still asks the person.
+- **Telling who did it:** every event carries `input`. A person's change has their pointer or key, `mouse`, `touch`, `pen` or `keyboard`; a change from your code, tool calls included, has `code`.
+
+Offer only the actions you are willing to run for the model. A tool is a function you wrote, so it can open, arrange or pin panes and leave closing, renaming and settings to the person.
+
+## Next
+
+- [Theme and words](/guides/theming): make the panes look like the chrome around them.
+- [Test your layouts](/guides/testing)
+- [Troubleshooting](/guides/troubleshooting)

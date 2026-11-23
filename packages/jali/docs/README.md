@@ -24,23 +24,14 @@ Written from the docs site by tooling/agent-docs.mjs; don't edit these files.
 
 ## Guides
 
-- [Define a pane kind](guides/pane-kinds.md): Describe one kind of pane, what it shows, how narrow it can go, and the component that draws it.
-- [Features](guides/features.md): Choose what Jali does beyond laying out panes, feature by feature, and see what each one adds to your bundle.
-- [Start from presets](guides/presets.md): Give Jali named layouts to open on and switch between.
-- [Auto layout](guides/auto-layout.md): Let Jali arrange the panes on screen from the room there is and each kind's size hints, when they have piled up.
+- [Define a pane kind](guides/pane-kinds.md): Describe one kind of pane: what it shows, how narrow it can go, the component that draws it, and what people may do with it.
+- [Lay out panes](guides/layouts.md): Write the layouts Jali opens on, put panes in tabs and in rows that scroll sideways, and let Jali tidy them when they pile up.
 - [Keep the layout in the URL](guides/url-and-routers.md): Put the layout in the address so links reopen it and Back steps through it, with or without a router.
 - [Unsaved work and pane state](guides/unsaved-work-and-pane-state.md): Ask before a pane's unsaved work is lost, keep what a person expects back, and add a pane's commands to ⌘K.
-- [Tabs](guides/tabs.md): Let people reorder, pin, rename and close tabs, and add your own items to a tab's menu.
-- [Rows that scroll sideways](guides/scrolling-rows.md): Keep a sequence of panes at a width you can read, a board's stages or a week of days, in a row that scrolls instead of folding.
-- [Choose what people can do with panes](guides/pane-controls.md): Turn a pane's controls on or off, open, close, tuck, maximise, full screen, move, resize, pin and pop out, for a kind, for every pane, or for one layout.
 - [Commands and keys](guides/commands-and-keys.md): Rebind Jali's keys, share ⌘K and the keyboard with your app, let your content keep the keys it needs, and show the right shortcut.
-- [Build your own chrome](guides/custom-chrome.md): Put a top bar, a status line, the shelf and toasts around Jali's panes, inside one JaliRoot, so the panes take the room your chrome leaves.
-- [Theming](guides/theming.md): Make Jali match your app by setting a few tokens, mapping them from your Tailwind theme, or styling its parts.
-- [Translate Jali](guides/translating.md): Show and announce Jali's words in your app's language, or in your own wording, with English as the default.
-- [Use Jali with Chakni](guides/chakni.md): Share one theme between Jali and Chakni, its sister library for collections.
+- [Theme and words](guides/theming.md): Make Jali look like your app with its tokens and parts, speak your language, and share one theme with Chakni.
+- [Fit Jali into your app](guides/your-app.md): Choose the features you ship, put your own chrome around the panes, run two instances on one page, and let an agent arrange panes.
 - [Test your layouts](guides/testing.md): Test your layouts and pane rules without a browser, by running Jali's actions and reading its state with jali/testing.
-- [Two instances on one page](guides/two-instances.md): Put two sets of panes side by side, or one in a dialog, without their links, saved settings or keys getting mixed up.
-- [Let an agent arrange panes](guides/agents.md): Give an AI model two tools of your own, built on jali.model() and jali.actions, so it can read what is open and open panes within the limits your app sets.
 - [Troubleshooting and FAQ](guides/troubleshooting.md): Fixes for the problems people meet first, Jali's development warnings, and answers to common questions.
 
 ## Reference

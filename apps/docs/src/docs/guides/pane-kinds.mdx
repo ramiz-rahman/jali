@@ -1,11 +1,12 @@
 ---
 title: Define a pane kind
-summary: Describe one kind of pane, what it shows, how narrow it can go, and the component that draws it.
+summary: "Describe one kind of pane: what it shows, how narrow it can go, the component that draws it, and what people may do with it."
 ---
 
 import orders from "../../samples/guides/pane-kinds/orders.tsx?raw";
 import ticket from "../../samples/guides/pane-kinds/ticket.tsx?raw";
 import customer from "../../samples/guides/pane-kinds/customer.tsx?raw";
+import allow from "../../samples/guides/controls/allow.tsx?raw";
 
 A [pane kind](/get-started/key-concepts#kind) is one sort of pane in your app: an orders list, one order, a customer. You define it once with `definePane`, and every pane of that kind uses it.
 
@@ -325,7 +326,97 @@ const jali = createJali({ panes: orderKinds, launcher, presets });
 
 <Code code={orders} filename="src/panes/orders.tsx" />
 
+## Choose what people can do with panes
+
+Turn a pane's controls on or off, open, close, tuck, maximise, full screen, move, resize, pin and pop out, for a kind, for every pane, or for one layout.
+
+A pane can open others, and be closed, tucked, maximised, put full screen, moved, resized and pinned, and popped out into its own window. Not every app wants every one of these everywhere. With `allow`, your app decides, for a kind of pane, for every pane, or depending on the layout:
+
+<Code code={allow} filename="src/jali.tsx" highlight="6,22-28" />
+
+### The controls
+
+| Control | What it covers |
+|---|---|
+| `open` | Opening new panes from it: a link (`openBeside`) shows its object in the peek sheet instead, and Split, New tab here, `addTab` and the peek's Open beside are refused. Showing another object in the same pane (`openHere`) isn't covered |
+| `close` | Closing the pane: its ×, a tab's ×, middle-click, Delete on a tab, ⌘K, Close other tabs (which then leaves it open) |
+| `tuck` | Tucking it into its neighbour |
+| `maximise` | Maximising it (restoring is always allowed) |
+| `fullScreen` | Putting it on the whole screen (leaving is always allowed) |
+| `move` | Dragging it, the move keys, swapping, merging into tabs, pulling a tab out, reordering tabs |
+| `resize` | The dividers beside it |
+| `pin` | Pinning its tab |
+| `popOut` | Popping it out into a floating window (with the `popOut()` feature) |
+
+With every control that rearranges off, people can look without changing the layout. Links open as a peek, and nothing can be closed, moved, resized or tucked:
+
+```tsx
+import { createJali } from "jali";
+
+const viewer = createJali({
+  panes,
+  layout,
+  allow: { open: false, move: false, resize: false, tuck: false, close: false },
+});
+```
+
+Folding isn't a control: it is how a layout fits the room it has, so it always happens. Renaming has its own switch: the `rename({ can, run })` feature.
+
+### Who decides
+
+Three levels, and each can only take away. A control is allowed when none of them says `false`:
+
+1. **Jali's own rules.** A lone pane has nothing to maximise into; a phone shows one pane at a time and has nothing to drag; a curated page has rules of its own.
+2. **The kind**, `definePane("chart", { allow })`, for what its content can handle.
+3. **Every pane**, `createJali({ allow })`: defaults for all panes, and `when`, a function asked for each action, with the pane, the preset the layout came from and the curated page, if one is open.
+
+Everything is allowed by default. Pop out comes with its feature, `popOut()` from `jali/pop-out`: adding it also adds a Pop out button to the header, before Close, and **Pop out pane** (`pane.pop_out`) to ⌘K, with no key until you bind one.
+
+Because the levels only take away, `createJali({ allow })`'s `true` can't turn back on what a kind turned off. `when` is your code, not part of the layout, so the rule itself never travels in a link. What it reads can: a layout's preset and its panes come from the address. These controls shape what people are offered; they are not a security boundary. A rule that must hold, such as who may delete a record, belongs in your app's own checks too.
+
+### What people see
+
+Jali's actions check `allow` themselves, so every way of asking gets the same answer: a button, a key, ⌘K, a tab's menu, a drag, or an [agent](/guides/your-app#let-an-agent-arrange-panes). Each action names the controls it uses and on which panes (a swap, both panes; a divider, every pane beside it; Back to the page, every opened pane), and Jali asks them before anything else. Whatever offers an action asks the action's own check first, so nothing offers what the action would refuse.
+
+- **Buttons and menu items** for a control that isn't allowed aren't drawn: no ×, no grip, no divider handle, no Pin tab. On a curated page, no drop target, ⌥ preview or ⌥-click hint for a view that can't be placed there.
+- **⌘K** lists the command greyed out, with the reason ("Board can't be closed here").
+- **Keys** are refused, and screen readers hear the same reason.
+- **Agents** see what isn't allowed for each pane in their snapshot (`notAllowed`), and are refused if they ask.
+
+For a decision that depends on the moment, such as unsaved work in your app's own data, use `beforeClose`, which is asked as the pane is about to close.
+
+### Header buttons
+
+`allow` decides what can happen; `buttons` decides which of those get a button in the pane's header. The buttons are shortcuts. Everything allowed is always in the pane's menu, which opens from a right-click on the header, from the ⋯ button, or with Shift+F10, and in ⌘K.
+
+You don't have to set `buttons`. Jali's choice is Tuck, Maximise, Pop out (where it is allowed) and Close, with Full screen in Maximise's place on a lone pane, and only Close on a phone. A ⋯ button shows whenever the menu offers more than the buttons do, so nothing is out of reach on a touch screen.
+
+To change them, give a list, which replaces Jali's, or a function, which adjusts them. A kind's `buttons` win over `createJali`'s:
+
+```tsx
+import { createJali } from "jali";
+import { definePane } from "jali/react";
+import { Chart } from "./chart-view";
+
+// Charts: Jali's buttons, without Tuck (Tuck stays in the menu).
+const chart = definePane("chart", {
+  title: "Chart",
+  buttons: (defaults) => defaults.filter((b) => b !== "tuck"),
+  Component: Chart,
+});
+
+// Every other pane: only Maximise and Close.
+const jali = createJali({ panes: [chart], layout: chart(), buttons: ["maximise", "close"] });
+```
+
+`allow` still filters the list: a button for something that isn't allowed isn't drawn. And the way out of a state always shows, whatever the list says: Restore while a pane is maximised, Exit full screen while it is full screen.
+
+In a narrow pane, the title comes first. Before it gets shorter than a few characters, Tuck, Maximise, Full screen and Pop out move from the header into the pane's menu, where they keep their names and keys. Close and ⋯ stay. The header takes them back once there is room. `data-narrow` on the header and `data-count` on its buttons let a theme follow this (see [Parts](/reference/parts)).
+
+A header holds, in order: the grip, the title (or tabs), Following / Kept, the pane's own controls, and these buttons. A pane's content puts its own controls there with `useHeaderActions` (see [Controls in the header](/guides/pane-kinds#controls-in-the-header)).
+
 ## Next
 
-- [Start from presets](/guides/presets): lay these kinds out.
-- [Unsaved work and pane state](/guides/unsaved-work-and-pane-state): keep a draft and ask before losing it.
+- [Lay out panes](/guides/layouts): put your kinds in the layouts your app opens on.
+- [Unsaved work and pane state](/guides/unsaved-work-and-pane-state): a pane that edits something.
+- [Examples](/examples): six apps' pane kinds, running.

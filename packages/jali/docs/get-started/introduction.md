@@ -45,7 +45,7 @@ For work that centres on one item, such as reviewing a loan application, you can
 
 ### Only what you use
 
-Everything beyond laying out panes is a feature you pass in: the address, the ⌘K palette, Settings, renaming, Pop out. An app ships only the features it imports. See [Features](../guides/features.md).
+Everything beyond laying out panes is a feature you pass in: the address, the ⌘K palette, Settings, renaming, Pop out. An app ships only the features it imports. See [Features](../guides/your-app.md#choose-features).
 
 ## One package
 
@@ -54,7 +54,7 @@ Everything beyond laying out panes is a feature you pass in: the address, the �
 - [`jali`](../reference/core.md): pane kinds, layouts, `createJali`, actions and events. No framework.
 - [`jali/react`](../reference/react.md): `<JaliRoot>`, `definePane`, the hooks and the parts you place in your own chrome.
 - One entry per feature, such as `jali/url` and `jali/palette`, and [`jali/features`](../reference/features.md) for Jali's usual set.
-- [`jali/testing`](../reference/testing.md) for your tests. To give an AI model your panes as tools, see [Let an agent arrange panes](../guides/agents.md).
+- [`jali/testing`](../reference/testing.md) for your tests. To give an AI model your panes as tools, see [Let an agent arrange panes](../guides/your-app.md#let-an-agent-arrange-panes).
 
 ```sh
 npm install jali

@@ -65,4 +65,4 @@ Jali can't see inside your content. Each pane needs:
 ## Next
 
 - [Commands and keys](../guides/commands-and-keys.md)
-- [Build your own chrome](../guides/custom-chrome.md)
+- [Build your own chrome](../guides/your-app.md#build-your-own-chrome)
