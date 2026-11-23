@@ -361,8 +361,9 @@ export function createUrlSync({
 }: UrlSyncOptions = {}): UrlSync {
   const keys = urlKeys(prefix);
   const sizesKey = `${prefix ?? ""}sizes`;
-  /** The replace waiting for its slot: its address, or (debounced) how to read it when it is written. */
-  let waiting: (() => string) | null = null;
+  /** The replace waiting for its slot: this instance's share of the address as it was asked for, merged into the
+   *  address as it is when written, so what another instance wrote meanwhile stays. */
+  let waiting: UrlState | null = null;
   let timer: ReturnType<typeof setTimeout> | undefined;
   /** When the last replace was written. */
   let replaced = -Infinity;
@@ -387,16 +388,15 @@ export function createUrlSync({
     const next = Object.keys(own).length ? [[key, own] as [string, PersonalSizes], ...rest] : rest;
     storage.set(sizesKey, JSON.stringify(next.slice(0, 12)));
   };
-  /** The address for `s0`, keeping the host's params. */
-  const search = (s0: UrlState) => {
-    let s = s0;
-    if (sizes === "local" && !s.page) {
-      const split = splitPersonalSizes(s.layout);
-      keepSizes(split.layout, split.sizes);
-      s = { ...s, layout: split.layout };
-    }
-    return buildSearch(location.search(), s, keys);
+  /** What of `s` the address holds (in "local", without the sizes kept on the device). */
+  const linked = (s: UrlState): UrlState => {
+    if (sizes !== "local" || s.page) return s;
+    const split = splitPersonalSizes(s.layout);
+    keepSizes(split.layout, split.sizes);
+    return { ...s, layout: split.layout };
   };
+  /** The address with this instance's params from `s`, keeping everyone else's. */
+  const search = (s: UrlState) => buildSearch(location.search(), s, keys);
   const go = (next: string, mode: "push" | "replace") => {
     if (next !== location.search()) location.navigate(next, mode);
   };
@@ -404,11 +404,11 @@ export function createUrlSync({
   const flush = () => {
     clearTimeout(timer);
     timer = undefined;
-    const read = waiting;
+    const s = waiting;
     waiting = null;
-    if (!read) return;
+    if (!s) return;
     replaced = Date.now();
-    go(read(), "replace");
+    go(search(s), "replace");
   };
   const schedule = (ms: number) => {
     clearTimeout(timer);
@@ -420,17 +420,14 @@ export function createUrlSync({
       // A push is written at once, after the replace still waiting, so the entry it leaves says what it should.
       if (mode === "push") {
         flush();
-        return go(search(state()), "push");
+        return go(search(linked(state())), "push");
       }
-      // A debounced write reads the state when it is written, so it writes the latest sizes; it waits for the moves
-      // to rest, and for its slot.
-      if (mode === "debounce") {
-        waiting = () => search(state());
+      // Each write is the state as it was asked for: a push after it can't slip its own state into the entry it
+      // leaves. A debounced one (each move of a resize asks again) waits for the moves to rest, and for its slot.
+      waiting = linked(state());
+      if (mode === "debounce")
         return schedule(Math.max(PERSIST_MS, replaced + REPLACE_MS - Date.now()));
-      }
-      // A replace is the address now, written in its slot: a later one takes its place without moving the slot.
-      const next = search(state());
-      waiting = () => next;
+      // A replace is written in its slot: a later one takes its place without moving the slot.
       const wait = replaced + REPLACE_MS - Date.now();
       if (wait <= 0) flush();
       else if (!timer) schedule(wait);

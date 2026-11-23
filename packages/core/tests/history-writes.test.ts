@@ -201,6 +201,35 @@ describe("the writer", () => {
     moveFocus: false,
   });
 
+  it("writes a resize still waiting as it was before a push, so Back returns to it", () => {
+    vi.useFakeTimers();
+    const { port } = history();
+    const sync = createUrlSync({ location: port, storage: memoryStorage() });
+    let zoomed = "a";
+    sync.write(state("b"), "replace");
+    vi.advanceTimersByTime(1000);
+    sync.write(() => state(zoomed)(), "debounce");
+    zoomed = "b";
+    sync.write(() => state(zoomed)(), "push");
+    expect(port.entries().map((e) => new URLSearchParams(e).get("zoom"))).toEqual(["a", "b"]);
+    port.back();
+    expect(new URLSearchParams(port.search()).get("zoom")).toBe("a");
+  });
+
+  it("a replace written late keeps what another instance wrote to the address meanwhile", () => {
+    vi.useFakeTimers();
+    const { port } = history();
+    const one = createUrlSync({ location: port, storage: memoryStorage() });
+    const two = createUrlSync({ location: port, storage: memoryStorage(), prefix: "w2." });
+    one.write(state("a"), "replace");
+    one.write(state("b"), "replace");
+    two.write(state("a"), "replace");
+    vi.advanceTimersByTime(1000);
+    const q = new URLSearchParams(port.search());
+    expect(q.get("zoom")).toBe("b");
+    expect(q.get("w2.zoom")).toBe("a");
+  });
+
   it("writes at most one replace per 250 ms, the latest winning, with the address as it was asked for", () => {
     vi.useFakeTimers();
     const { port, writes } = history();
