@@ -8,7 +8,7 @@
  */
 import { edgeScroll, type Jali } from "jali";
 import type { PointerEvent as ReactPointerEvent } from "react";
-import { createStore, useStore } from "../store";
+import { createStore, useStore } from "../state/store";
 
 export interface Drop {
   day: number;

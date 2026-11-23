@@ -1,0 +1,15 @@
+/* What a pane says when it has nothing to show (ui/empty.tsx). */
+@layer app {
+  .empty {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    padding: 48px 24px;
+    text-align: center;
+    color: var(--jali-text-subtle);
+  }
+  .empty-title {
+    font-weight: 700;
+    color: var(--jali-text);
+  }
+}

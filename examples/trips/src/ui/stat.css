@@ -1,0 +1,67 @@
+/* A row of labelled figures (ui/stat.tsx). */
+@layer app {
+  /* A row of figures: the figure first, a line of context under it. No boxes: space and type separate them. */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px 12px;
+    margin: 18px 0 0;
+    padding: 14px 0;
+    border-block: 1px solid var(--jali-border);
+  }
+  .stat {
+    min-width: 0;
+  }
+  .stat + .stat {
+    padding-inline-start: 12px;
+    border-inline-start: 1px solid var(--jali-border);
+  }
+  .stat dt {
+    font-size: var(--type-caption);
+    font-weight: 600;
+    color: var(--jali-text-subtle);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .stat dd {
+    display: grid;
+    margin: 2px 0 0;
+  }
+  .stat-value {
+    font-family: var(--t-font-display);
+    font-size: var(--type-title);
+    line-height: var(--lead-snug);
+    font-weight: 600;
+    letter-spacing: var(--track-title);
+    white-space: nowrap;
+  }
+  .stat-sub {
+    display: block;
+    margin-top: 1px;
+    font-size: var(--type-caption);
+    color: var(--jali-text-subtle);
+  }
+  .stat[data-tone="over"] .stat-value,
+  .stat[data-tone="over"] .stat-sub {
+    color: var(--t-over);
+  }
+  .stat[data-tone="over"] .stat-sub {
+    font-weight: 600;
+  }
+  .stat-sub svg {
+    vertical-align: -1px;
+  }
+  /* Three across down to where the figures would touch: a 2 + 1 split reads as a layout fault, so it is the last resort. */
+  @container (max-width: 264px) {
+    .stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .stat:nth-child(3) {
+      grid-column: 1 / -1;
+      padding: 12px 0 0;
+      border-inline-start: 0;
+      border-top: 1px solid var(--jali-border);
+    }
+  }
+}

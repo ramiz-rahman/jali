@@ -35,22 +35,20 @@ export const distance = (km: number) =>
       ? `${km.toFixed(1)} km`
       : `${Math.round(km)} km`;
 
-/** "Thu 15 Apr", from an ISO date (read as a calendar date, not a moment). */
-export function day(iso: string): string {
+/** An ISO date as a calendar date in the local day, not a moment (which a time zone could move a day). */
+function calendarDate(iso: string): Date {
   const [y, m, d] = iso.split("-").map(Number);
-  return new Date(y!, m! - 1, d!).toLocaleDateString("en-GB", {
+  return new Date(y!, m! - 1, d!);
+}
+
+/** "Thu 15 Apr", from an ISO date. */
+export const day = (iso: string) =>
+  calendarDate(iso).toLocaleDateString("en-GB", {
     weekday: "short",
     day: "numeric",
     month: "short",
   });
-}
 
 /** "Thursday 15 April". */
-export function dayLong(iso: string): string {
-  const [y, m, d] = iso.split("-").map(Number);
-  return new Date(y!, m! - 1, d!).toLocaleDateString("en-GB", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  });
-}
+export const dayLong = (iso: string) =>
+  calendarDate(iso).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });

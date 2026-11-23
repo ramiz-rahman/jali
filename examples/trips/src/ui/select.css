@@ -1,0 +1,115 @@
+/* A labelled select (ui/field.tsx) and the select itself (ui/select.tsx, after shadcn/ui's). */
+@layer app {
+  .select {
+    display: grid;
+    gap: 4px;
+    font-size: var(--type-caption);
+    font-weight: 600;
+    color: var(--jali-text-subtle);
+    min-width: 0;
+  }
+  /* The select (ui/select.tsx, after shadcn/ui's): a button showing the choice, and a list in a portal on <body>. */
+  .select-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-width: 0;
+    min-height: 38px;
+    padding: 0 10px 0 12px;
+    border: 1px solid var(--jali-border-strong);
+    border-radius: var(--jali-radius-control);
+    background: var(--jali-surface);
+    color: var(--jali-text);
+    font-size: var(--type-meta);
+    font-weight: 500;
+    text-align: left;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .select-trigger > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .select-trigger:hover {
+    background: var(--jali-hover);
+  }
+  /* One ring: the border turns accent with a halo around it, in place of the outline other controls take. */
+  .select-trigger:focus-visible,
+  .select-trigger[data-state="open"] {
+    outline: none;
+    border-color: var(--jali-accent);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--jali-accent) 30%, transparent);
+  }
+  .select-trigger:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+  .select-trigger:disabled:hover {
+    background: var(--jali-surface);
+  }
+  .select-caret {
+    flex: none;
+    color: var(--jali-text-subtle);
+    transition: transform 120ms ease-out;
+  }
+  .select-trigger[data-state="open"] .select-caret {
+    transform: rotate(180deg);
+  }
+  .select-content {
+    z-index: 60;
+    min-width: max(var(--radix-select-trigger-width), 10rem);
+    max-height: min(var(--radix-select-content-available-height), 22.5rem);
+    overflow: hidden;
+    padding: 6px;
+    background: var(--jali-surface-raised);
+    border: 1px solid var(--jali-border);
+    border-radius: var(--jali-radius-menu);
+    box-shadow: var(--t-shadow-float);
+    color: var(--jali-text);
+    font-family: var(--jali-font);
+    font-size: var(--type-body);
+    transform-origin: var(--radix-select-content-transform-origin);
+    animation: select-in 140ms ease-out;
+  }
+  @keyframes select-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+  }
+  .select-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 36px;
+    padding: 0 10px 0 12px;
+    border-radius: 8px;
+    outline: none;
+    cursor: pointer;
+    user-select: none;
+  }
+  .select-item[data-highlighted] {
+    background: var(--jali-hover);
+  }
+  .select-item[data-state="checked"] {
+    font-weight: 600;
+  }
+  .select-item[data-disabled] {
+    opacity: 0.5;
+    cursor: default;
+  }
+  .select-check {
+    display: grid;
+    color: var(--jali-accent);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .select-content {
+      animation: none;
+    }
+    .select-caret {
+      transition: none;
+    }
+  }
+}

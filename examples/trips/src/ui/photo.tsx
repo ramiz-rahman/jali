@@ -6,6 +6,7 @@
 import { useId, useState, type CSSProperties } from "react";
 import { InfoIcon, XIcon } from "@phosphor-icons/react";
 import { photoOf, type PhotoInfo } from "../trip/photos";
+import "./photo.css";
 
 // Vite's base ("./"), so the photos load from any path the built site is served at.
 const base = import.meta.env.BASE_URL;

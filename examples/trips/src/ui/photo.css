@@ -1,0 +1,85 @@
+/*
+ * Photos (ui/photo.tsx): a frame in the photo's own tone until it loads, then the photo, cropped to fill, and the
+ * credit on it. Where each one sits and how big is its pane's (the place's hero, the trip's covers, the thumbnails).
+ */
+@layer app {
+  .photo {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    background: var(--tone, var(--jali-canvas));
+    isolation: isolate;
+  }
+  .photo img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: var(--focus, 50% 50%);
+    opacity: 0;
+    transition: opacity 320ms ease-out;
+  }
+  .photo[data-loaded] img {
+    opacity: 1;
+  }
+  .photo-none {
+    background: repeating-linear-gradient(
+      -45deg,
+      var(--jali-canvas) 0 6px,
+      var(--jali-hover) 6px 12px
+    );
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .photo img {
+      transition: none;
+    }
+  }
+
+  /* The credit: a small round button on the photo, and the line it opens over the photo's foot. */
+  .photo-credit-btn {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border: 0;
+    border-radius: 50%;
+    background: rgb(12 12 14 / 0.5);
+    color: #fff;
+    backdrop-filter: blur(6px);
+    cursor: pointer;
+  }
+  .photo-credit-btn:hover {
+    background: rgb(12 12 14 / 0.72);
+  }
+  .photo-credit-btn:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+  }
+  .photo-credit {
+    position: absolute;
+    inset: auto 0 0 0;
+    z-index: 1;
+    display: grid;
+    gap: 4px;
+    padding: 28px 50px 12px 14px;
+    background: linear-gradient(to top, rgb(12 12 14 / 0.88), rgb(12 12 14 / 0.6) 70%, transparent);
+    color: #fff;
+    font-size: var(--type-caption);
+    line-height: var(--lead-body);
+  }
+  .photo-credit[hidden] {
+    display: none;
+  }
+  .photo-credit a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .photo-standin {
+    font-weight: 600;
+  }
+}

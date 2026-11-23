@@ -14,7 +14,7 @@ function Day({ n, length }: { n: number; length: number }) {
   return <p data-day={n}>{`${dragged ?? "-"} ${drop}`}</p>;
 }
 
-/** What the overview reads (panes/trip.tsx), counted. */
+/** What the overview reads (panes/trip/trip.tsx), counted. */
 function Overview() {
   return <p>{useDropDay() ?? "-"}</p>;
 }

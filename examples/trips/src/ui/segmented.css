@@ -1,0 +1,25 @@
+/* A row of mutually exclusive buttons (ui/segmented.tsx). */
+@layer app {
+  .segmented {
+    display: inline-flex;
+    gap: 2px;
+    padding: 3px;
+    border-radius: var(--t-radius-pill);
+    background: var(--jali-hover);
+  }
+  .segmented button {
+    min-height: 32px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: var(--t-radius-pill);
+    background: none;
+    color: var(--jali-text-subtle);
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .segmented button[aria-pressed="true"] {
+    background: var(--jali-surface);
+    color: var(--jali-text);
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.12);
+  }
+}
