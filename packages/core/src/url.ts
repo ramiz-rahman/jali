@@ -131,6 +131,20 @@ function pageParams(q: URLSearchParams, s: UrlState, k: UrlKeys) {
   });
 }
 
+/**
+ * The maximised pane as a link names it. A page's opened panes get new ids when a link is read, so one of them is named
+ * by its place among the link's opened panes (`~2`, the second); a view, and any pane of a layout, by its id.
+ */
+function zoomText(s: UrlState, id: NodeId): string {
+  const at = s.page
+    ? core.tree
+        .panes(s.layout.root)
+        .filter((p) => !p.role)
+        .findIndex((p) => p.id === id)
+    : -1;
+  return at < 0 ? id : `~${at + 1}`;
+}
+
 /** A page link's params, in the order an instance writes them. */
 function setPage(q: URLSearchParams, k: UrlKeys, link: PageLink) {
   q.set(k.page, link.page);
@@ -157,7 +171,7 @@ export function buildSearch(search: string, s: UrlState, k: UrlKeys = urlKeys())
   if (!s.page) q.set(k.layout, core.encode(s.layout));
   // The preset the layout came from, so a link marks the right one and Reset rebuilds it. Only beside a layout.
   if (!s.page && s.presetId) q.set(k.preset, s.presetId);
-  if (s.view.zoomed) q.set(k.zoom, s.view.zoomed);
+  if (s.view.zoomed) q.set(k.zoom, zoomText(s, s.view.zoomed));
   else q.delete(k.zoom);
   // A peek is never in the address; an older link's goes at the first write.
   q.delete(k.peek);
@@ -221,7 +235,11 @@ export function readSearch(
     const item = q.get(k.item) || undefined;
     // Each object once, in the link's order, and at most OPEN_MAX: every one is a full open and fit.
     const investigation: ObjectRef[] = [];
+    // The zoom's opened pane (`~N`, zoomText): followed through what the read leaves out, to its place among those read.
+    const zoom = q.get(k.zoom);
+    let place = Number(zoom?.startsWith("~") && zoom.slice(1));
     for (const text of tooLong ? [] : q.getAll(k.open)) {
+      place--;
       // A hand-made link may name more than an instance writes: the first OPEN_MAX are read.
       if (investigation.length >= OPEN_MAX) break;
       const read = decodeRef(text);
@@ -232,11 +250,11 @@ export function readSearch(
       // their own, so each opened one comes back.
       if (!kinds[r.kind]!.scratch && investigation.some((x) => sameRef(x, r))) continue;
       investigation.push(r);
+      if (!place) view.zoomed = `~${investigation.length}`;
     }
     const page = q.get(k.page) || undefined;
     // Checked once the page's layout is built (`page.open`): only a pane it shows can be maximised.
-    const zoom = q.get(k.zoom);
-    if (zoom) view.zoomed = zoom;
+    if (zoom && !zoom.startsWith("~")) view.zoomed = zoom;
     return {
       page: { ...(page ? { page } : {}), tab: q.get(k.tab) ?? "", item, investigation },
       view,

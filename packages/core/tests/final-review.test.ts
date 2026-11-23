@@ -467,3 +467,40 @@ describe("C3. after any close on a page, a view is shown", () => {
     expect(jali.page!.showView("history").ok).toBe(true);
   });
 });
+
+describe("C4. a page link's zoom on an opened pane maximises the same object when reopened", () => {
+  it("close the first of three opened panes, maximise the middle one: a reload maximises that record", () => {
+    vi.useFakeTimers();
+    const storage = memoryStorage();
+    const { jali, location } = split({ storage });
+    expect(jali.actions.openBeside("application", r(9)).ok).toBe(true);
+    const first = jali.model().paneOf(r(9))!.id;
+    for (const id of [10, 11]) expect(jali.actions.addTab(first, r(id)).ok).toBe(true);
+    expect(jali.actions.close(jali.model().paneOf(r(9))!.id).ok).toBe(true);
+    expect(jali.actions.toggleZoom(jali.model().paneOf(r(10))!.id).ok).toBe(true);
+    vi.advanceTimersByTime(1000);
+    jali.destroy();
+    const fresh = make({ storage }, location.search()).jali;
+    vi.useRealTimers();
+    const zoomed = fresh.get().view.zoomed;
+    expect(zoomed && fresh.model().pane(zoomed)?.ref).toEqual(r(10));
+  });
+
+  it("each opened pane in turn, maximised, is the one a reload maximises", () => {
+    for (const target of [9, 10, 11]) {
+      vi.useFakeTimers();
+      const storage = memoryStorage();
+      const { jali, location } = split({ storage });
+      expect(jali.actions.openBeside("application", r(9)).ok).toBe(true);
+      const first = jali.model().paneOf(r(9))!.id;
+      for (const id of [10, 11]) expect(jali.actions.addTab(first, r(id)).ok).toBe(true);
+      expect(jali.actions.toggleZoom(jali.model().paneOf(r(target))!.id).ok).toBe(true);
+      vi.advanceTimersByTime(1000);
+      jali.destroy();
+      const fresh = make({ storage }, location.search()).jali;
+      vi.useRealTimers();
+      const zoomed = fresh.get().view.zoomed;
+      expect(zoomed && fresh.model().pane(zoomed)?.ref).toEqual(r(target));
+    }
+  });
+});
