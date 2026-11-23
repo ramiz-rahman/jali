@@ -2108,6 +2108,50 @@ adoptions are 7b.
   65.7 → 66.6, `+page` 61.5 → 62.2) and 1.6 KB headless (51.0 → 52.6: it now ships `frames`, which React scenarios
   already had); the React chunk is unchanged. Not raised: over every core budget, as since step 3.
 
+## 23 Nov 2026 · Stabilisation step 7b: every public name has a consumer (23 Nov 2026)
+
+Step 7, second half (docs/reviews/2026-11-23/PLAN.md, "The API (step 7)"): a gate that fails on any public name no
+example uses, and a real use for each name it found.
+
+- **The gate, `tooling/consumers.mjs`, in `pnpm verify` (--quick too).**
+  - **What it checks:** every runtime value an app entry of `jali` exports (from packages/jali/package.json's exports,
+    followed through re-exports and aliases to their declarations), every `createJali` option (`JaliOptions`) and every
+    pane-kind option (`PaneOptionsReact`, inherited ones included), and every exported type.
+  - **A use is real:** a value called, rendered, read or passed, never an import, a re-export, a comment or a type
+    position; an option given a value in an object literal typed as the options, or a literal's own property that
+    reaches where the options are expected (through constants, spreads and helper returns, so `testJaliOptions()`'s
+    `size` counts); a value typed as the options themselves (a `Partial<JaliOptions>` passed along) gives nothing. A
+    type is named by an example (a type position counts) or reachable from a public value's signature.
+  - **How:** TypeScript's own checker (`typescript/unstable/sync` of TypeScript 7, over the root tsconfig), so names are
+    matched by what they resolve to. About 6 s.
+  - **Consumers:** examples/* and their unit tests. Not the docs (a sample shows a name), not the packages' tests (a
+    test checks one). Real Data Studio, when its checkout is present, is read as text and printed beside each missing
+    name as a witness; it never makes one pass. No allowlist, no baseline.
+  - **`jali/adapter` is left out,** as tooling/public-types.mjs leaves it out: it is for adapter authors and may change
+    in any minor version. The design proposed checking its adapter-only values against packages/react/src and pruning
+    the rest; that is about 140 names that the React adapter doesn't use but core's and React's tests and the docs'
+    diagrams import, so it is a proposal for later, not part of this step.
+- **Its first run found 26 names:** `beforeClose`, `confirmDiscard`, `tabMenu`, `onPaneError`, `messages`, `id`,
+  `label`, `pageTheme`, `dir`, `gap`, `url`; the kinds' `identity`, `buttons`, `Loading`; `palette`, `settings`,
+  `chooser`, `pressed`, `rename`, `tabs`, `en`, `memoryLocation`, `memoryStorage`, `Activity`, `usePaneAttributes`,
+  `useHeaderActions`. Each got a use in the example it belongs to; none was cut.
+  - **Own-icons** takes each feature from its own entry and renames notes; two notes share a tab strip; a note's header
+    keeps Maximise and Close; its text loads with the kind's `Loading`. Its size scenario allows rename's files.
+  - **Markets asks about an unsent order itself** (`beforeClose`, `confirmDiscard: false`): its own dialog names the
+    order, and holds the page's unload. The design put this in Data Studio's query pane, but Jali's own browser tests
+    check Jali's discard question through that pane.
+  - **Data Studio:** a table's tab menu (its structure, a query of it); Jali's discard question in its words; a toast
+    naming a pane that fails; a query that changes data marked on its header, tab and chip; Chart this result in the
+    query's header; a reload test in memory.
+  - **Related lists** give an identity without their label (both related kinds, so they still match across kinds): a
+    link to "Loans by this member" goes to Loan review's open "Loan history".
+  - **The shared status line** shows Jali's `<Activity>` beside a busy tucked pane, not the raw activity id. The design
+    put `Activity` in Markets, whose panes report no activity.
+  - **Minimal** has a test of its notes embedded twice in a host page: `id`, `label`, `pageTheme`, `dir`, `gap`, `url`.
+- **`Messages` takes any text from a message that picks its words by a value.** Data Studio's override of
+  `confirmDiscard.body` didn't compile: the type copied English's two sentences as the only strings it could return.
+  A function that returns text now returns any text.
+
 ## 23 Nov 2026 · Stabilisation step 5, after Codex's review: the doors that were left open (23 Nov 2026)
 
 - **A page's role ids are pane ids**, so `definePageEngine` refuses `__proto__`, `constructor` and `prototype` as a role.
