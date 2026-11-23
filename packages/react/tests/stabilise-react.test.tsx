@@ -300,3 +300,47 @@ describe("review fixes", () => {
     btn.remove();
   });
 });
+
+describe("the browser's full screen follows Jali's", () => {
+  it("switching Full screen from B to A asks the browser for A", () => {
+    let fsEl: Element | null = null;
+    const asked: Element[] = [];
+    const doc = Object.getOwnPropertyDescriptor(Document.prototype, "fullscreenElement");
+    Object.defineProperty(document, "fullscreenElement", { configurable: true, get: () => fsEl });
+    const req = vi.fn(function (this: Element) {
+      asked.push(this);
+      fsEl = this;
+      document.dispatchEvent(new Event("fullscreenchange"));
+      return Promise.resolve();
+    });
+    (HTMLElement.prototype as { requestFullscreen?: unknown }).requestFullscreen = req;
+    document.exitFullscreen = vi.fn(() => {
+      fsEl = null;
+      document.dispatchEvent(new Event("fullscreenchange"));
+      return Promise.resolve();
+    });
+    try {
+      const jali = createJali({
+        panes: [note],
+        layout: row(pane(note({}), { id: "a" }), pane(note({}), { id: "b" })),
+        features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
+        storage: memoryStorage(),
+        size: { width: 1200, height: 600 },
+        moveFocus: false,
+      });
+      render(<JaliRoot jali={jali} />);
+      const store = storeOf(jali);
+      act(() => void jali.actions.toggleFullScreen("b"));
+      expect(fsEl).toBe(store.dom.pane("b"));
+      act(() => void store.run("setFullScreen", "a", true));
+      expect(store.get().fullScreen).toBe("a");
+      expect(fsEl).toBe(store.dom.pane("a"));
+      act(() => void jali.actions.toggleFullScreen());
+      expect(fsEl).toBeNull();
+    } finally {
+      delete (document as { fullscreenElement?: unknown }).fullscreenElement;
+      if (doc) Object.defineProperty(Document.prototype, "fullscreenElement", doc);
+      delete (HTMLElement.prototype as { requestFullscreen?: unknown }).requestFullscreen;
+    }
+  });
+});

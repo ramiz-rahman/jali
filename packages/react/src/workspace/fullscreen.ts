@@ -15,7 +15,10 @@ export function useFullScreen(store: JaliStore, m: ModelGeometry) {
     // The pane itself is the browser's full-screen element: the browser then shows only it, over anything the host
     // draws (a sticky top bar of any z-index). Jali's dialogs move inside it meanwhile (JaliRoot).
     const el = full ? store.dom.pane(full) : null;
-    if (el && !document.fullscreenElement && el.requestFullscreen) {
+    // Asked again when the pane on the whole screen changes (A from B): the browser's element follows it. Never over
+    // the host's own full screen.
+    const now = document.fullscreenElement;
+    if (el && now !== el && (!now || asked.current) && el.requestFullscreen) {
       asked.current = true;
       el.requestFullscreen().catch(() => (asked.current = false));
     } else if (!full && asked.current) {
