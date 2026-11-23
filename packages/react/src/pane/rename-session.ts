@@ -12,42 +12,50 @@ import { useStore } from "../state/react";
 export function useRenameSession(pane: NodeId, title: string) {
   const store = useStore();
   const [value, setText] = useState(title);
+  // The object this session began on: the core ends it when the pane shows another, and a save goes to this one.
+  const [began] = useState(() => store.model().pane(pane)?.ref);
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
   // Live from mount to end: ended by Enter, Esc or a save, or by the field leaving the screen.
   const live = useRef(true);
   useEffect(() => {
     live.current = true;
-    return () => void (live.current = false);
+    return () => {
+      // Still live as the field goes: the core ended it (its object changed), so focus returns to the pane.
+      if (live.current) refocus();
+      live.current = false;
+    };
   }, []);
 
-  /** Ends the session, focusing the tab (or the pane) again when it ended from the keyboard. */
-  const end = (refocus: boolean) => {
-    if (!live.current) return;
-    live.current = false;
-    store.actions.endRename(pane);
-    if (!refocus) return;
+  /** Puts focus back on the tab (or the pane), into the gap the field left. */
+  const refocus = () =>
     requestAnimationFrame(() => {
       // Only into the gap the field left: focus the person (or a field opened since) put elsewhere stays there.
       const at = document.activeElement;
-      if (at && at !== document.body) return;
+      if (store.ended() || (at && at !== document.body)) return;
       (
         store.dom.root().querySelector<HTMLElement>(`[role="tab"][data-tab=${cssString(pane)}]`) ??
         document.getElementById(paneDomId(store.dom.id, pane))
       )?.focus({ preventScroll: true });
     });
+
+  /** Ends the session, focusing the tab (or the pane) again when it ended from the keyboard. */
+  const end = (focus: boolean) => {
+    if (!live.current) return;
+    live.current = false;
+    store.actions.endRename(pane);
+    if (focus) refocus();
   };
 
   /** Saves the text through the app's `rename.run`; an empty or unchanged name ends the session saving nothing. */
   const save = async (refocus: boolean, input: HTMLInputElement | null) => {
     if (busy || !live.current) return;
     const text = value.trim();
-    const node = store.model().pane(pane);
-    if (!text || text === title || !node || !store.env.rename) return end(refocus);
+    if (!text || text === title || !began || !store.env.rename) return end(refocus);
     setBusy(true);
     let saved: boolean;
     try {
-      saved = (await store.env.rename.run({ id: pane, ref: node.ref }, text)) !== false;
+      saved = (await store.env.rename.run({ id: pane, ref: began }, text)) !== false;
     } catch {
       saved = false;
     }

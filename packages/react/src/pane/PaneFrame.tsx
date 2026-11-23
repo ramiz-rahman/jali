@@ -58,7 +58,7 @@ export const PaneFrame = /* @__PURE__ */ memo(
     const { actions } = store;
     const activity = useUi((s) => own(s.activity, node.id));
     const dirty = useUnsavedOf(node.id);
-    const renaming = useUi((s) => s.renaming === node.id) && !group;
+    const renaming = useUi((s) => s.renaming?.pane === node.id) && !group;
     const canRename = useCanRename();
     const coveredRef = useInert(covered);
     const isDragged = useUi((s) => s.dnd?.dragged === node.id);

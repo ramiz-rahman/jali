@@ -550,7 +550,7 @@ describe("renaming in place", () => {
     act(() => void jali.actions.startRename("c"));
     expect(field().value).toBe("Doc 3");
     await act(async () => settle[0]!());
-    expect(storeOf(jali).get().renaming).toBe("c");
+    expect(storeOf(jali).get().renaming?.pane).toBe("c");
     expect(field().value).toBe("Doc 3");
     // The same pane renamed again: the old save, settling late, is not the new field's.
     fireEvent.keyDown(field(), { key: "Escape" });
@@ -560,8 +560,39 @@ describe("renaming in place", () => {
     act(() => void jali.actions.startRename("c"));
     act(() => void jali.actions.startRename("a"));
     await act(async () => settle[1]!(false));
-    expect(storeOf(jali).get().renaming).toBe("a");
+    expect(storeOf(jali).get().renaming?.pane).toBe("a");
     expect(field().getAttribute("aria-invalid")).toBeNull();
+  });
+
+  it("belongs to its object: the pane opening another one closes the field, drops the text, and Enter does nothing", () => {
+    const run = vi.fn();
+    const jali = docs({ run });
+    render(<JaliRoot jali={jali} />);
+    act(() => void jali.actions.startRename("c"));
+    fireEvent.change(field(), { target: { value: "Typed for Doc 3" } });
+    act(() => void jali.actions.openHere("c", doc({ id: 4 })));
+    expect(screen.queryByRole("textbox")).toBeNull();
+    fireEvent.keyDown(document.body, { key: "Enter" });
+    expect(run).not.toHaveBeenCalled();
+    // The next rename starts afresh, on the new object.
+    act(() => void jali.actions.startRename("c"));
+    expect(field().value).toBe("Doc 4");
+  });
+
+  it("a save pending while the object changes completes for the object it started on", async () => {
+    let settle!: (v: void | false) => void;
+    const run = vi.fn(() => new Promise<void | false>((r) => (settle = r)));
+    const jali = docs({ run });
+    render(<JaliRoot jali={jali} />);
+    act(() => void jali.actions.startRename("c"));
+    fireEvent.change(field(), { target: { value: "Renamed" } });
+    await act(async () => void fireEvent.keyDown(field(), { key: "Enter" }));
+    act(() => void jali.actions.openHere("c", doc({ id: 4 })));
+    expect(screen.queryByRole("textbox")).toBeNull();
+    expect(run).toHaveBeenCalledTimes(1);
+    expect(run.mock.calls[0]).toEqual([{ id: "c", ref: doc({ id: 3 }) }, "Renamed"]);
+    await act(async () => settle());
+    expect(screen.queryByRole("textbox")).toBeNull();
   });
 
   it("saves nothing for an empty or unchanged name", async () => {

@@ -49,7 +49,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
   // A tab dragged over this strip: the line shows where it would go.
   const dropAt = useUi((s) => s.dnd?.tabAt);
   const dir = useUi((s) => s.dir);
-  const renaming = useUi((s) => s.renaming);
+  const renaming = useUi((s) => s.renaming?.pane);
   const canRename = useCanRename();
   // Made by you first, made by the layout (folded) after a hairline: the second kind returns by itself. Each tab hears
   // what its own pane reports (TabItem); the strip renders again for none of it.
