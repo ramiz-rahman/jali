@@ -10,8 +10,8 @@ import {
   type JaliOptions,
 } from "@jali/core";
 import { createKeymap, storeOf } from "@jali/core/adapter";
-import { JaliRoot, JaliView, definePane, useCommands } from "@jali/react";
-import { useJaliCommands } from "../src/commands/react";
+import { JaliRoot, JaliView, definePane, useCommands, useJali } from "@jali/react";
+import { useSyncExternalStore } from "react";
 import { defaultFeatures, noUrl, urlSync } from "./features";
 
 const note = definePane("note", {
@@ -118,7 +118,7 @@ describe("without the palette feature", () => {
   });
 });
 
-describe("listCommands and useJaliCommands", () => {
+describe("listCommands", () => {
   it("lists the focused pane's own commands first, then the workspace's, with keys and reasons", () => {
     const jali = make({ features: noUrl().filter((f) => f.id !== "palette") });
     render(<JaliRoot jali={jali} />);
@@ -135,11 +135,12 @@ describe("listCommands and useJaliCommands", () => {
     expect(new Set(list.map((c) => c.key)).size).toBe(list.length);
   });
 
-  it("runs a command, and the hook follows focus", () => {
+  it("runs a command, and a host's menu on jali.subscribe follows focus", () => {
     const jali = make({ features: noUrl().filter((f) => f.id !== "palette") });
     let seen: string[] = [];
     function HostMenu() {
-      seen = useJaliCommands()
+      const jali = useJali();
+      seen = useSyncExternalStore(jali.subscribe, () => listCommands(jali))
         .filter((c) => c.key.startsWith("pane:"))
         .map((c) => c.title);
       return null;

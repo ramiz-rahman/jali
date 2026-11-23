@@ -14,7 +14,7 @@ interface Props<T> {
   idPrefix: string;
   listId: string;
   listLabel: string;
-  items: T[];
+  items: readonly T[];
   keyOf(item: T): string;
   matches(item: T, query: string): boolean;
   /** Orders the matches for a query, lowest first (equal ranks keep their order). Default: the items' order. */

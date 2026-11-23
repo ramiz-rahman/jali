@@ -242,7 +242,7 @@ export function runDef(store: JaliStore, c: CommandDef): ActionResult | void {
   return store.run(c.step!, ...args);
 }
 
-function run(store: JaliStore, id: string): boolean {
+function runById(store: JaliStore, id: string): boolean {
   const c = forEnv(store.env).byId.get(id);
   if (!c) return false;
   const answer = commandAvailable(store, c);
@@ -252,7 +252,7 @@ function run(store: JaliStore, id: string): boolean {
 }
 
 /** Runs a command if it can run now, else says why (when Jali says). Returns whether it ran. */
-export const runCommand = (jali: AnyJali, id: string): boolean => run(storeOf(jali), id);
+export const runCommand = (jali: AnyJali, id: string): boolean => runById(storeOf(jali), id);
 
 export const commandById = (store: Pick<JaliStore, "env">, id: string) =>
   forEnv(store.env).byId.get(id);
@@ -297,13 +297,37 @@ export interface ListedCommand {
   run: () => void;
 }
 
-/** Every command a person can run now, in palette order. Read it again after each change (`jali.subscribe`). */
-export function listCommands(jali: AnyJali): ListedCommand[] {
+/** The same entry as far as a menu shows it. An instance command's `run` is kept per id, so it is the same function. */
+const sameEntry = (c: ListedCommand, d: ListedCommand) =>
+  c.key === d.key &&
+  c.id === d.id &&
+  c.title === d.title &&
+  c.group === d.group &&
+  c.keys === d.keys &&
+  c.disabled === d.disabled &&
+  c.reason === d.reason &&
+  c.run === d.run;
+
+/** Each instance's last list and its commands' runners, so a read that lists the same gives the same array. */
+const listed = /* @__PURE__ */ new WeakMap<
+  JaliStore,
+  { list: readonly ListedCommand[]; runs: Map<string, () => void> }
+>();
+
+/**
+ * Every command a person can run now, in palette order. Worked out on every read, and the same array (and the same
+ * entries) until something it lists changes, so `useSyncExternalStore(jali.subscribe, () => listCommands(jali))`
+ * re-renders only then.
+ */
+export function listCommands(jali: AnyJali): readonly ListedCommand[] {
   const store = storeOf(jali);
+  let kept = listed.get(store);
+  if (!kept) listed.set(store, (kept = { list: [], runs: new Map() }));
+  const { runs } = kept;
   const x = store.snapshot();
   const focused = x.s.view.focused;
   const own = ownOf(x.s.paneCommands, focused) ?? [];
-  return [
+  const next = [
     ...own.map((c): ListedCommand => ({
       key: `pane:${c.id}`,
       title: c.title,
@@ -315,6 +339,8 @@ export function listCommands(jali: AnyJali): ListedCommand[] {
     })),
     ...commandDefsOf(store).map((c): ListedCommand => {
       const answer = commandAvailable(store, c);
+      let run = runs.get(c.id);
+      if (!run) runs.set(c.id, (run = () => void runById(store, c.id)));
       return {
         key: c.id,
         id: c.id,
@@ -326,8 +352,16 @@ export function listCommands(jali: AnyJali): ListedCommand[] {
           (c.id === "peek.close" ? store.keymap.format([{ key: "Escape" }]) : ""),
         disabled: !answer.ok,
         ...(answer.message ? { reason: answer.message } : {}),
-        run: () => void run(store, c.id),
+        run,
       };
     }),
   ];
+  const was = kept.list;
+  const before = new Map(was.map((c) => [c.key, c]));
+  const list = next.map((c) => {
+    const b = before.get(c.key);
+    return b && sameEntry(b, c) ? b : c;
+  });
+  if (list.length === was.length && list.every((c, i) => c === was[i])) return was;
+  return (kept.list = Object.freeze(list));
 }

@@ -1,6 +1,7 @@
 import type { ListedCommand } from "@jali/core";
 import { listCommands } from "@jali/core/adapter";
-import { useModel, useStore, useUi } from "../state/react";
+import { useSyncExternalStore } from "react";
+import { useStore, useUi } from "../state/react";
 import { ListDialog } from "./ListDialog";
 import { closeThen } from "./close";
 
@@ -15,11 +16,10 @@ export function Palette() {
 
 function PaletteDialog() {
   const store = useStore();
-  // Re-read on every change: the list depends on focus, the layout and what each pane reports.
-  useUi((s) => s);
-  useModel();
+  // The same array until something it lists changes: focus, the layout, what each pane reports.
+  const read = () => listCommands(store.jali);
+  const items = useSyncExternalStore(store.subscribe, read, read);
   const close = () => store.run("dialogs.closePalette");
-  const items = listCommands(store.jali);
   const t = store.messages.palette;
   return (
     <ListDialog<ListedCommand>

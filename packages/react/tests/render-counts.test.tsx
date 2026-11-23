@@ -6,7 +6,7 @@
  * is counted by its calls of `frames`, which it makes once per render.
  */
 import { act, cleanup, fireEvent, render } from "@testing-library/react";
-import { useState, type ComponentType } from "react";
+import { useState, useSyncExternalStore, type ComponentType } from "react";
 import {
   afterAll,
   afterEach,
@@ -17,10 +17,17 @@ import {
   it,
   vi,
 } from "vite-plus/test";
-import { column, createJali, memoryLocation, memoryStorage, row, tabs } from "@jali/core";
+import {
+  column,
+  createJali,
+  listCommands,
+  memoryLocation,
+  memoryStorage,
+  row,
+  tabs,
+} from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
-import { JaliRoot, JaliView, Shelf, definePane } from "@jali/react";
-import { useJaliCommands } from "../src/commands/react";
+import { JaliRoot, JaliView, Shelf, definePane, useJali } from "@jali/react";
 import { defaultFeatures, urlSync } from "./features";
 
 const counts = vi.hoisted(() => ({
@@ -203,16 +210,18 @@ describe("render counts", () => {
   it("a keyboard resize commits only the two frames either side of the divider, and no pane body", () => {
     const jali = make();
     const { container } = render(<JaliRoot jali={jali} />);
-    expect(jali.model().visible).toHaveLength(10);
+    expect(storeOf(jali).model().visible).toHaveLength(10);
     // The divider inside the first column: its neighbours are that column's two panes.
-    const first = jali.model().resolved.dividers.find((d) => d.neighbours?.[0]?.length === 1)!;
+    const first = storeOf(jali)
+      .model()
+      .resolved.dividers.find((d) => d.neighbours?.[0]?.length === 1)!;
     const [[a], [b]] = first.neighbours!;
     const handle = container.querySelector<HTMLElement>(
       `[data-divider="${first.parentId}:${first.index}"] [role="separator"], [role="separator"][data-divider="${first.parentId}:${first.index}"]`,
     )!;
     expect(handle).not.toBeNull();
     const key = first.rect.width > first.rect.height ? "ArrowDown" : "ArrowRight";
-    const before = jali.model().resolved;
+    const before = storeOf(jali).model().resolved;
     const steps: string[][] = [];
     const total = { frame: 0, panes: 0, dividers: 0 };
     for (let i = 0; i < 10; i++) {
@@ -228,14 +237,14 @@ describe("render counts", () => {
     console.info(
       `keyboard resize, 10 steps: Panes ${total.panes}, DividerLayer ${total.dividers}, PaneFrame ${total.frame}`,
     );
-    expect(jali.model().resolved).not.toBe(before);
+    expect(storeOf(jali).model().resolved).not.toBe(before);
     for (const ids of steps) expect(ids).toEqual([a, b].sort());
   });
 
   it("a pane drag commits no pane frame or body per pointermove: only where it would land changes them", async () => {
     const jali = make();
     const { container } = render(<JaliRoot jali={jali} />);
-    const m = jali.model();
+    const m = storeOf(jali).model();
     const dragged = m.visible[0]!;
     const header = container.querySelector<HTMLElement>(
       `[data-pane="${dragged}"] .jali-pane-header`,
@@ -281,7 +290,7 @@ describe("render counts", () => {
     const { container } = render(<JaliRoot jali={jali} />);
     const store = storeOf(jali);
     const header = container.querySelector<HTMLElement>(
-      `[data-pane="${jali.model().visible[0]}"] .jali-pane-header`,
+      `[data-pane="${storeOf(jali).model().visible[0]}"] .jali-pane-header`,
     )!;
     let writes = 0;
     let last = store.get().dnd;
@@ -310,7 +319,9 @@ describe("render counts", () => {
     // Moved onto another column's pane and released before the frame: the drop is there.
     const layouts: unknown[] = [];
     const offLayout = jali.on("layout", (e) => void layouts.push(e));
-    const target = jali.model().resolved.panes.find((b) => b.id === jali.model().visible[6])!;
+    const target = storeOf(jali)
+      .model()
+      .resolved.panes.find((b) => b.id === storeOf(jali).model().visible[6])!;
     await act(async () => {
       window.dispatchEvent(
         new MouseEvent("pointermove", {
@@ -358,7 +369,7 @@ describe("render counts", () => {
     });
     const { container } = render(<JaliRoot jali={jali} />);
     const store = storeOf(jali);
-    const m = jali.model();
+    const m = storeOf(jali).model();
     const group = m.visible.find((id) => m.stackOf(id))!;
     const behind = m.stackOf(group)!.children.find((c) => c.id !== group)!.id;
     const [single, other] = m.visible.filter((id) => !m.stackOf(id));
@@ -391,10 +402,11 @@ describe("render counts", () => {
     expect(counts.frame).toEqual([]);
   });
 
-  it("useJaliCommands keeps its array while nothing a command shows changes", async () => {
+  it("listCommands keeps its array while nothing a command shows changes", async () => {
     const seen: unknown[] = [];
     function Probe() {
-      seen.push(useJaliCommands());
+      const jali = useJali();
+      seen.push(useSyncExternalStore(jali.subscribe, () => listCommands(jali)));
       return null;
     }
     const jali = make();
@@ -408,7 +420,7 @@ describe("render counts", () => {
     const first = seen.at(-1);
     // A drag across the panes: dnd changes on every move.
     const header = container.querySelector<HTMLElement>(
-      `[data-pane="${jali.model().visible[0]}"] .jali-pane-header`,
+      `[data-pane="${storeOf(jali).model().visible[0]}"] .jali-pane-header`,
     )!;
     await act(async () => {
       fireEvent.pointerDown(header, { button: 0, clientX: 20, clientY: 20, pointerId: 1 });
@@ -423,14 +435,14 @@ describe("render counts", () => {
     });
     expect(new Set(seen.slice(seen.indexOf(first))).size).toBe(1);
     // A divider moved and focus moved, in this even layout: nothing listed changes.
-    act(() => void store.actions.focus(jali.model().visible[3]!));
-    const d = jali.model().resolved.dividers[0]!;
+    act(() => void store.actions.focus(storeOf(jali).model().visible[3]!));
+    const d = storeOf(jali).model().resolved.dividers[0]!;
     act(() => void store.actions.setDividerSize(d.parentId, d.index, 300));
     expect(seen.at(-1)).toBe(first);
     // The focused pane lists a command of its own: a new list.
     act(
       () =>
-        void store.actions.setPaneCommands(jali.model().visible[3]!, [
+        void store.actions.setPaneCommands(storeOf(jali).model().visible[3]!, [
           { id: "refresh", title: "Refresh", run: () => {} },
         ]),
     );
@@ -460,7 +472,9 @@ describe("render counts", () => {
       const { container } = render(<JaliRoot jali={jali} />);
       expect(container.querySelector(".jali-tab-indicator")).not.toBeNull();
       const store = storeOf(jali);
-      const other = jali.model().visible.find((id) => !store.model().stackOf(id))!;
+      const other = storeOf(jali)
+        .model()
+        .visible.find((id) => !store.model().stackOf(id))!;
       made.length = 0;
       // A new title for the pane beside the strip changes nothing it measures.
       for (let i = 0; i < 5; i++) act(() => void store.actions.setTitle(other, `Live ${i}`));
@@ -502,7 +516,7 @@ describe("render counts", () => {
       moveFocus: false,
       ...more,
     });
-    const m = jali.model();
+    const m = storeOf(jali).model();
     const group = m.visible.find((id) => m.stackOf(id))!;
     const behind = m.stackOf(group)!.children.find((c) => c.id !== group)!.id;
     const [single, other] = m.visible.filter((id) => !m.stackOf(id)) as [string, string];
