@@ -82,6 +82,25 @@ describe("5. the last view on screen", () => {
   });
 });
 
+describe("6. Back to the page with an opened pane the app keeps", () => {
+  it("its step refuses, so every surface (the page bar too) can grey it out", () => {
+    const kept = { kind: "kept", title: "Kept", width: { min: 200 }, allow: { close: false } };
+    const location = memoryLocation();
+    const jali = createJali({
+      panes: [card, side, kept],
+      page,
+      features: [urlSync({ location })],
+      storage: memoryStorage(),
+      size: { width: 1400, height: 800 },
+      moveFocus: false,
+    });
+    jali.page!.open();
+    jali.page!.setMode("split");
+    jali.actions.addTab("main", { kind: "kept", params: {} });
+    expect(can(storeOf(jali), "page.back")).toMatchObject({ ok: false, reason: "not-allowed" });
+  });
+});
+
 describe("7. a target that isn't there", () => {
   it("is not-found, whatever the focused pane allows", () => {
     const { jali } = make({

@@ -212,6 +212,10 @@
   .jali-inv-back:hover {
     border-color: var(--jali-text-muted);
   }
+  .jali-inv-back[aria-disabled="true"] {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
   .jali-page-reset {
     margin-inline-start: auto;
     flex: none;
