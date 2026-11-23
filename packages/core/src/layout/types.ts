@@ -229,13 +229,17 @@ export interface SlotLevel {
   after: { id: NodeId; pane: NodeId }[];
   /** A tab group's: whether the pane was its shown tab. */
   active?: boolean;
+  /** A row's: it scrolled sideways. */
+  scroll?: "x";
 }
 /** A pane a close removed, as it was (its content, flags and links), and where it was. */
 export interface ClosedPane {
   pane: PaneNode;
   slot: SlotLevel[];
-  /** The panes linked to it then (their `linkedTo` was this pane), which the close unlinked. */
-  followers: { id: NodeId; follows?: boolean }[];
+  /** What the pane it was linked to showed: the link comes back only to a pane still showing it. */
+  source?: ObjectRef;
+  /** The panes linked to it then (their `linkedTo` was this pane), which the close unlinked, and what they showed. */
+  followers: { id: NodeId; ref: ObjectRef; follows?: boolean }[];
 }
 /** A size a close changed on a node that stayed (the space it gave, a split it collapsed): `size` is what it was,
  *  `after` what the close left. Undo puts it back only while the node still has `after`. */
@@ -250,7 +254,13 @@ export interface SizeChange {
  * it changed; or a tuck. Undo reinserts into the layout as it is now, so everything done since stays.
  */
 export type UndoEntry =
-  | { kind: "close" | "closeOthers"; closed: ClosedPane[]; sizes: SizeChange[] }
+  | {
+      kind: "close" | "closeOthers";
+      closed: ClosedPane[];
+      sizes: SizeChange[];
+      /** Tucks the close ended, of a closed pane or into one: they come back with their panes. */
+      tucks: TuckRecord[];
+    }
   | { kind: "tuck"; tucked: NodeId };
 export type TuckRefusal = "missing" | "tab" | "hidden" | "last";
 export type TuckCheck = { ok: true; home: NodeId } | { ok: false; reason: TuckRefusal };

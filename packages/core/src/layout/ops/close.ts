@@ -1,7 +1,6 @@
 import type {
   ClosedPane,
   Layout,
-  PaneNode,
   LayoutContext,
   LayoutNode,
   NodeId,
@@ -63,6 +62,7 @@ export function captureSlot(layout: Layout, id: NodeId): SlotLevel[] {
         .map((n) => near(n, true)),
       after: group.children.slice(at + 1).map((n) => near(n, false)),
       active: group.type === "stack" && group.active === child.id,
+      scroll: group.type === "row" ? group.scroll : undefined,
     });
   }
   return levels;
@@ -77,12 +77,14 @@ function record(
   targets: readonly NodeId[],
 ): UndoEntry | undefined {
   const left = new Map(nodes(after.root).map((n) => [n.id, n]));
+  const pane = (id?: NodeId) => panes(before.root).find((p) => p.id === id);
   const closed: ClosedPane[] = targets.map((id) => ({
-    pane: clone(find(before.root, id) as PaneNode),
+    pane: clone(pane(id)!),
     slot: captureSlot(before, id),
+    source: clone(pane(pane(id)!.linkedTo)?.ref),
     followers: panes(before.root)
       .filter((p) => p.linkedTo === id && left.has(p.id))
-      .map((p) => ({ id: p.id, follows: p.follows })),
+      .map((p) => ({ id: p.id, ref: clone(p.ref), follows: p.follows })),
   }));
   const sizes: SizeChange[] = [];
   for (const n of nodes(before.root)) {
@@ -90,7 +92,10 @@ function record(
     if (now && !sameSize(now.size, n.size))
       sizes.push({ id: n.id, size: clone(n.size), userSized: n.userSized, after: clone(now.size) });
   }
-  return closed.length ? { kind, closed, sizes } : undefined;
+  const tucks = (before.overlay?.tucks ?? []).filter(
+    (t) => targets.includes(t.pane) || targets.includes(t.home),
+  );
+  return closed.length ? { kind, closed, sizes, tucks: clone(tucks) } : undefined;
 }
 
 /**

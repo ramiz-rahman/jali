@@ -52,6 +52,16 @@ export default defineConfig({
               test: /packages[\\/]jali[\\/]dist[\\/](core-[\w-]+|index|adapter|testing|url|layout)\.js$/,
             },
             { name: "jali-react", priority: 1, test: /packages[\\/]jali[\\/]dist[\\/]/ },
+            // A peer scenario (tooling/size/peers/): the library and what it pulls in, apart from React and the app.
+            ...(process.env.SIZE_PEER
+              ? [
+                  {
+                    name: "peer",
+                    priority: 2,
+                    test: /node_modules[\\/](?!react[\\/]|react-dom[\\/]|scheduler[\\/])/,
+                  },
+                ]
+              : []),
           ],
         },
       },

@@ -183,6 +183,9 @@ function undoLast(x: Snapshot): Outcome {
   const e = s.undoStack.at(-1)!;
   if (e.kind === "tuck") return putBack.run(x, e.tucked);
   const r = restoreClosed(s.layout, unzoomed(s.view), e, ctx, e.kind === "close");
+  // On a curated page, views never fold for the panes put back: they go back to the page tabs, as for a link.
+  const { layout, view } =
+    s.page && x.env.page ? x.env.page.restored(x, r, Object.values(r.ids)) : r;
   // State kept for a pane under its old id is held for it under its new one: it is its state again as it lands
   // (state/pane-state.ts), and what stays under the old id goes with no pane to show it.
   let held = s.paneStateHeld;
@@ -196,8 +199,8 @@ function undoLast(x: Snapshot): Outcome {
   }
   return {
     op: "undo",
-    layout: r.layout,
-    view: r.view,
+    layout,
+    view,
     msg: say(x).undone(e.kind),
     undo: s.undoStack.slice(0, -1),
     patch: held === s.paneStateHeld ? undefined : { paneStateHeld: held },

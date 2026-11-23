@@ -1965,3 +1965,50 @@ review's two page findings, on branch `stabilise`.
   58.9, full 64.0 → 64.9, headless 49.7 → 50.2, `+page` 59.9 → 60.6; the layout tree alone unchanged at 10.7). Deleting
   the commands' checks saved 1.2 KB minified in the registry, but the descriptors, `can` and the limits cost more. Not
   raised: over every core budget, as after step 3.
+
+## 23 Nov 2026 · Stabilisation step 3, after Codex's review: what an undone close keeps
+
+Six problems Codex reproduced in step 3's undo, each fixed with its test on branch `stabilise-undo`.
+
+- **A batch's references follow its new ids.** Every restored pane's id is chosen before any is placed (its own
+  unless taken), and neighbours, links and tucks go through that map, so a pane never joins the object that took a
+  batch member's id.
+- **Links return only to the same objects.** An entry records what the pane's source and each follower showed; a link
+  comes back only to a pane in the batch or one still showing that object.
+- **A container made again keeps its panes' own sizes and a row its `scroll`.** A pane placed at an outer level takes
+  its branch's size until its own container is remade around it, then has its own size again.
+- **Tucks come back.** The tucks a close ended (of a closed pane, or into one) are recorded and added back while both
+  panes are there and the pane can be tucked.
+- **A curated page's undo keeps its placement rule.** Undo runs the page's settleRoles for the panes it put back: views
+  go back to the page tabs rather than fold. Not done: the page's tab fallback for a restored opened pane that itself
+  has no room (it folds, as before).
+- **Size:** about 0.5 KB more gzipped in core; still over the budgets, none raised.
+
+## 23 Nov 2026 · Stabilisation step 8: the peers in the size harness (23 Nov 2026)
+
+`pnpm size` now builds the same kind of minimal app with each of four peers and prints their gzipped JS and CSS beside
+Jali's minimal and full. The next round sets a hard size target from these numbers (docs/reviews/2026-11-23/PLAN.md).
+
+- **Peers are reported, never gated.** They have no budget and cannot fail `pnpm size`; only Jali's scenarios do.
+- **Each is the smallest real layout the library supports** (tooling/size/peers/): two panes side by side, resizable,
+  the library's own stylesheet if it ships one. Where it has tabs the left pane holds two (Dockview, FlexLayout,
+  react-mosaic's tab container). Production build, React in a chunk of its own, the library and what it pulls in (its
+  own dependencies such as react-dnd) counted as its JS, the app's few lines not.
+- **Versions are pinned exactly** in tooling/package.json, each at least two weeks old on 23 Nov 2026: `dockview-react`
+  8.9.0 (Dockview's React binding; `dockview` 8 itself is framework-free), `flexlayout-react` 0.11.1,
+  `react-mosaic-component` 7.2.1, `react-resizable-panels` 4.21.0 (4.22+ is newer than two weeks).
+- **The numbers** (gzipped KB, this commit; Jali's JS is core + react, React itself is 65.8 KB in every row and left
+  out):
+
+  | Library                | Version | JS   | CSS  | Total |
+  | ---------------------- | ------- | ---- | ---- | ----- |
+  | Jali minimal           |         | 82.7 | 8.3  | 91.0  |
+  | Jali full              |         | 96.5 | 8.3  | 104.8 |
+  | Dockview               | 8.9.0   | 89.5 | 10.2 | 99.6  |
+  | FlexLayout             | 0.11.1  | 47.0 | 3.7  | 50.6  |
+  | react-mosaic           | 7.2.1   | 37.4 | 2.9  | 40.3  |
+  | react-resizable-panels | 4.21.0  | 14.6 | 0.0  | 14.6  |
+
+- **Reading them.** The peers do less than Jali (no history, address, keyboard, curated page, or feature set), and
+  react-resizable-panels is only a split. Jali's own budgets are unchanged and its core is still about 1.9 KB over
+  them (known, after the correctness steps); that is for the next round's target, not this step.

@@ -244,6 +244,97 @@ describe("an undone close puts the pane back in its slot, and keeps what happene
   });
 });
 
+describe("an undone batch keeps what each pane was (Codex review of step 3)", () => {
+  it("a batch whose ids were taken meanwhile comes back in its own tab group", () => {
+    const m = make(
+      row(
+        { id: "r" },
+        pane(rec(1), { id: "a" }),
+        tabs({ id: "t" }, pane(rec(2), { id: "pane-1" }), pane(rec(3), { id: "pane-2" })),
+      ),
+    );
+    m.a.closeOthers("a");
+    expect(m.a.openBeside("a", rec(9)).pane).toBe("pane-1");
+    m.a.undo();
+    const at = (id: number) => L.tree.panes(tree(m) as never).find((p) => p.ref.params.id === id)!;
+    const group = parentOf(m, at(2).id)!;
+    expect(group.type).toBe("stack");
+    expect(group.children.map((c) => (c as { ref: ObjectRef }).ref)).toEqual([rec(2), rec(3)]);
+    expect(parentOf(m, "pane-1")?.type).not.toBe("stack");
+  });
+
+  it("a restored link never attaches to an unrelated pane under its old source's id", () => {
+    const m = make(
+      row(
+        { id: "r" },
+        pane(rec(1), { id: "a" }),
+        pane(rec(2), { id: "pane-1" }),
+        pane(rec(3), { id: "b", linkedTo: "pane-1", follows: true }),
+      ),
+    );
+    m.a.close("b");
+    m.a.remove("pane-1");
+    expect(m.a.openBeside("a", rec(9)).pane).toBe("pane-1");
+    m.a.undo();
+    expect(node(m, "b")).not.toHaveProperty("linkedTo");
+    expect(node(m, "b")).not.toHaveProperty("follows");
+  });
+
+  it("nested panes keep their own sizes when their container is made again", () => {
+    const m = make(
+      row(
+        { id: "r" },
+        pane(rec(1), { id: "a" }),
+        column(
+          { id: "k", weight: 2 },
+          pane(rec(2), { id: "b", px: 250 }),
+          pane(rec(3), { id: "c", weight: 3 }),
+        ),
+        pane(rec(4), { id: "d" }),
+      ),
+    );
+    m.a.closeOthers("d");
+    m.a.undo();
+    expect(node(m, "k")?.size).toEqual({ weight: 2 });
+    expect(node(m, "b")?.size).toEqual({ px: 250 });
+    expect(node(m, "c")?.size).toEqual({ weight: 3 });
+  });
+
+  it("a tucked pane comes back tucked, and so does one tucked into a pane that comes back", () => {
+    const m = make(
+      row(
+        { id: "r" },
+        pane(rec(1), { id: "a" }),
+        pane(rec(2), { id: "b" }),
+        pane(rec(3), { id: "c" }),
+      ),
+    );
+    expect(m.a.tuck("b").ok).toBe(true);
+    const tucked = () => m.jali.getLayout().overlay?.tucks.map((t) => [t.pane, t.home]);
+    const home = tucked()![0]![1];
+    m.a.close("b");
+    m.a.undo();
+    expect(tucked()).toEqual([["b", home]]);
+    m.a.close(home);
+    expect(tucked() ?? []).toEqual([]);
+    m.a.undo();
+    expect(tucked()).toEqual([["b", home]]);
+  });
+
+  it("a row that scrolls comes back scrolling", () => {
+    const m = make(
+      column(
+        { id: "col" },
+        pane(rec(1), { id: "a" }),
+        row({ id: "s", scroll: "x" }, pane(rec(2), { id: "b" }), pane(rec(3), { id: "c" })),
+      ),
+    );
+    m.a.closeOthers("a");
+    m.a.undo();
+    expect(node(m, "s")).toMatchObject({ type: "row", scroll: "x" });
+  });
+});
+
 describe("entries for what is gone or open again are dropped", () => {
   it("close B, remove C, undo: only B comes back", () => {
     const m = make(
@@ -381,5 +472,20 @@ describe("Back to the page closes the investigation; undo reopens only it", () =
     expect(roles()).toHaveLength(6);
     expect(L.tree.find(store.get().layout.root, "borrower")).toMatchObject({ pinned: true });
     expect(store.get().undoStack).toEqual([]);
+  });
+
+  it("undo keeps the page's placement rule: views go back to the tabs rather than fold", () => {
+    store = createTestStore({ initial: { area: { width: 1300, height: 1000 } } });
+    store.run("page.open", { item: 4, tab: "application" });
+    store.run("page.setMode", "split");
+    store.actions.openBeside("application", loan(77));
+    store.run("page.back");
+    store.actions.placeTab("officer", "application", "right");
+    store.actions.undo();
+    expect(opened()).toHaveLength(1);
+    const folded = store
+      .model()
+      .resolved.panes.filter((b) => b.hidden === "tab" && roles().some((r) => r.id === b.id));
+    expect(folded.map((b) => b.id)).toEqual([]);
   });
 });

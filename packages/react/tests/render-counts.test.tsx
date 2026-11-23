@@ -7,7 +7,16 @@
  */
 import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { useState, type ComponentType } from "react";
-import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vite-plus/test";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vite-plus/test";
 import { column, createJali, memoryLocation, memoryStorage, row, tabs } from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
 import { JaliRoot, JaliView, Shelf, definePane } from "@jali/react";
@@ -136,7 +145,31 @@ afterAll(() => {
   for (const k of Object.keys(size))
     delete (HTMLElement.prototype as unknown as Record<string, unknown>)[k];
 });
-afterEach(cleanup);
+
+// Frames are counted, not waited for: the drag tests step a clock of their own, one `frame()` being one animation
+// frame, so how busy the machine is changes how long a test takes and never what it counts. (jsdom's real
+// requestAnimationFrame fires every 16 ms of wall time, so 60 frames timed out a loaded run, and the timeout then
+// left a drag half done for every test after it.)
+let pending = new Map<number, FrameRequestCallback>();
+let nextFrame = 0;
+beforeEach(() => {
+  pending = new Map();
+  nextFrame = 0;
+  vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => {
+    pending.set(++nextFrame, cb);
+    return nextFrame;
+  });
+  vi.stubGlobal("cancelAnimationFrame", (id: number) => void pending.delete(id));
+});
+afterEach(async () => {
+  // Whatever a failed test left in flight (a drag, a held key) ends here, so the next test starts clean.
+  await act(async () => {
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    window.dispatchEvent(new MouseEvent("pointerup", {}));
+  });
+  cleanup();
+  vi.unstubAllGlobals();
+});
 
 /** Ten panes: five columns of two. */
 const make = () =>
@@ -159,7 +192,12 @@ const reset = () => {
   counts.dividers = 0;
   counts.chrome.length = 0;
 };
-const frame = () => new Promise<void>((done) => requestAnimationFrame(() => done()));
+/** One animation frame: runs what was asked for since the last one (and what those ask for waits for the next). */
+const frame = async () => {
+  const due = [...pending];
+  pending.clear();
+  for (const [, cb] of due) cb(performance.now());
+};
 
 describe("render counts", () => {
   it("a keyboard resize commits only the two frames either side of the divider, and no pane body", () => {

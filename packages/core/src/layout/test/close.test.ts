@@ -36,10 +36,13 @@ describe("close", () => {
               active: false,
             },
           ],
+          // Linked to A then: the link comes back only to a pane still showing A's object.
+          source: (find(tree.root, "a") as PaneNode).ref,
           followers: [],
         },
       ],
       sizes: [{ id: "a", size: { weight: 1 }, after: { weight: 2 } }],
+      tucks: [],
     });
     expect(result.undo!.kind === "tuck" || result.undo!.closed[0]!.pane).not.toBe(
       find(tree.root, "b"),

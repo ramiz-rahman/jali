@@ -9,5 +9,11 @@
     "jali": "workspace:*",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "dockview-react": "8.9.0",
+    "flexlayout-react": "0.11.1",
+    "react-mosaic-component": "7.2.1",
+    "react-resizable-panels": "4.21.0"
   }
 }

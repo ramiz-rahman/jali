@@ -2,10 +2,12 @@
 /**
  * What an app ships of Jali. Builds each scenario in tooling/size/ with `vp build` in production mode against the
  * packed dist (run `pnpm build:packages` first; `pnpm size` does), each package in a chunk of its own, and prints
- * minified and gzipped bytes per package. Fails when a package's share of a scenario is over its budget.
+ * minified and gzipped bytes per package. Fails when a package's share of a scenario is over its budget. Also builds
+ * the same kind of minimal app with each peer library (PEERS), and prints their gzipped JS and CSS beside Jali's:
+ * reported only, never gated.
  *
  *   node tooling/size.mjs              every scenario, with the budget check
- *   node tooling/size.mjs minimal      one scenario
+ *   node tooling/size.mjs minimal      one scenario (the peers are named dockview, flexlayout, mosaic, resizable-panels)
  *   node tooling/size.mjs --modules    also list the source files of @jali/* each scenario ships, largest first
  *   node tooling/size.mjs --json       the numbers as JSON
  */
@@ -154,6 +156,20 @@ function featureEntry(name) {
   return file;
 }
 
+// The peers: the smallest real layout each library supports (two panes side by side, resizable; tabs where it has
+// them), its own stylesheet if it ships one, in tooling/size/peers/. Versions are pinned in tooling/package.json.
+// Reported, never gated: no budget, and nothing here can fail the run (docs/DECISIONS.md, "Stabilisation step 8").
+const PEERS = {
+  dockview: { entry: "peers/dockview.tsx", label: "Dockview", pkg: "dockview-react" },
+  flexlayout: { entry: "peers/flexlayout.tsx", label: "FlexLayout", pkg: "flexlayout-react" },
+  mosaic: { entry: "peers/mosaic.tsx", label: "react-mosaic", pkg: "react-mosaic-component" },
+  "resizable-panels": {
+    entry: "peers/resizable-panels.tsx",
+    label: "react-resizable-panels",
+    pkg: "react-resizable-panels",
+  },
+};
+
 const PACKAGES = {
   core: "jali-core",
   react: "jali-react",
@@ -215,13 +231,14 @@ function bytesPerSource(code, map) {
   return per;
 }
 
-function build(name, entry) {
+function build(name, entry, peer = false) {
   execFileSync("pnpm", ["exec", "vp", "build", "--config", "tooling/size/vite.config.ts"], {
     cwd: root,
     env: {
       ...process.env,
       SIZE_SCENARIO: name.replace("+", "plus-"),
       SIZE_ENTRY: entry,
+      ...(peer ? { SIZE_PEER: "1" } : {}),
       NODE_ENV: "production",
     },
     stdio: ["ignore", "ignore", "inherit"],
@@ -233,8 +250,16 @@ function build(name, entry) {
     if (file.endsWith(".map")) continue;
     const chunk = file.replace(/-[\w-]{8}\.(js|css)$/, "");
     const ext = file.endsWith(".css") ? "css" : "js";
-    const key =
-      ext === "css"
+    // A peer's CSS is all its library's (the app has none); its JS is the "peer" chunk (lib) and a few lines of app.
+    const key = peer
+      ? ext === "css"
+        ? "css"
+        : chunk === "peer"
+          ? "lib"
+          : chunk === "react"
+            ? "react_dom"
+            : "app"
+      : ext === "css"
         ? chunk === "jali-react"
           ? "css"
           : "app"
@@ -265,9 +290,25 @@ for (const [name, { entry, feature, budget }] of Object.entries(SCENARIOS)) {
   results[name] = { parts, budget, over: over.map(([k]) => k), leaks, modules };
 }
 
+// The peers: built the same way, never checked against anything.
+const peers = {};
+for (const [name, { entry, label, pkg }] of Object.entries(PEERS)) {
+  if (only.length && !only.includes(name) && !only.includes("peers")) continue;
+  const version = JSON.parse(
+    readFileSync(join(root, "tooling", "node_modules", pkg, "package.json"), "utf8"),
+  ).version;
+  peers[name] = { label, pkg, version, parts: build(`peer-${name}`, entry, true).parts };
+}
+/** Gzipped KB of JS and of CSS, for one scenario's parts: the library's own code, not React or the app. */
+const jaliShare = ({ parts }) => [
+  ((parts.core?.gzip ?? 0) + (parts.react?.gzip ?? 0) + (parts.phosphor?.gzip ?? 0)) / 1024,
+  (parts.css?.gzip ?? 0) / 1024,
+];
+const peerShare = ({ parts }) => [(parts.lib?.gzip ?? 0) / 1024, (parts.css?.gzip ?? 0) / 1024];
+
 if (asJson) {
   for (const r of Object.values(results)) delete r.modules;
-  console.log(JSON.stringify(results, null, 2));
+  console.log(JSON.stringify({ ...results, peers }, null, 2));
 } else {
   const cols = ["core", "react", "css", "phosphor", "react_dom", "app"];
   const head = [
@@ -289,6 +330,33 @@ if (asJson) {
       return `${cell}${b}${over.includes(c) ? "!" : ""}`.padStart(20);
     });
     console.log(name.padEnd(12) + cells.join(""));
+  }
+  if (Object.keys(peers).length) {
+    const rows = [
+      ...["minimal", "full"]
+        .filter((n) => results[n])
+        .map((n) => [`Jali ${n}`, "", ...jaliShare(results[n])]),
+      ...Object.values(peers).map((p) => [p.label, p.version, ...peerShare(p)]),
+    ];
+    console.log(
+      "\nThe same layout with each peer (not gated): gzipped KB of the library's JS and CSS",
+    );
+    console.log("(its dependencies counted, React and the app's few lines not)\n");
+    console.log(
+      "library".padEnd(26) +
+        "version".padEnd(12) +
+        "JS".padStart(9) +
+        "CSS".padStart(9) +
+        "total".padStart(9),
+    );
+    for (const [label, version, js, css] of rows)
+      console.log(
+        label.padEnd(26) +
+          version.padEnd(12) +
+          kb(js * 1024).padStart(9) +
+          kb(css * 1024).padStart(9) +
+          kb((js + css) * 1024).padStart(9),
+      );
   }
   if (showModules)
     for (const [name, { modules }] of Object.entries(results)) {

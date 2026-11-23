@@ -17,6 +17,8 @@ import type {
 } from "../types";
 import { clone, find, newId, panes, parent, replace, unzoom } from "../tree/tree";
 import { sameSize } from "../tree/size";
+import { sameRef } from "./ref";
+import { overlayOf, withOverlay } from "../fit/overlay";
 import { fitLayout } from "../fit/refit";
 import { focus } from "./focus";
 
@@ -44,32 +46,56 @@ export function restoreClosed(
 ): { layout: Layout; view: ViewState; ids: Record<NodeId, NodeId> } {
   const next = clone(layout);
   const at = (id: NodeId) => find(next.root, id);
+  // Every pane's id first: its own unless another pane took it meanwhile, so the batch's references to each other
+  // (neighbours, links, tucks) follow it, and never reach the pane that took it.
   const ids: Record<NodeId, NodeId> = {};
+  const taken = new Set(panes(next.root).map((p) => p.id));
+  const fresh = entry.closed.filter((c) => taken.has(c.pane.id) || !taken.add(c.pane.id));
+  for (const c of entry.closed) if (!fresh.includes(c)) ids[c.pane.id] = c.pane.id;
+  for (const c of fresh) {
+    let i = 1;
+    while (taken.has(`pane-${i}`)) i++;
+    taken.add((ids[c.pane.id] = `pane-${i}`));
+  }
+  const id = (n: NodeId) => ids[n] ?? n;
+  // Each pane's own size in its own container, for when that container is made again around it.
+  const own: Record<NodeId, SlotLevel> = {};
   // Nodes wrapped in a new split or tab group for a pane to go beside them: sized once the close's sizes are back.
   const wrapped: NodeId[] = [];
   /** `node` and `pane` in a new container in node's place, with node's size: `id` again unless that is taken. */
   const wrap = (node: LayoutNode, pane: PaneNode, level: SlotLevel, after: boolean) => {
     const children = after ? [node, pane] : [pane, node];
     const shared = { size: clone(node.size), ...(node.userSized ? { userSized: true } : {}) };
-    const id = at(level.parent)
+    const made = at(level.parent)
       ? newId(next.root, level.type === "stack" ? "stack" : "split")
       : level.parent;
-    wrapped.push(node.id);
+    const mine = own[node.id];
+    if (mine?.parent === level.parent) {
+      node.size = clone(mine.size);
+      node.userSized = mine.userSized;
+      if (!mine.userSized) delete node.userSized;
+    } else wrapped.push(node.id);
     next.root = replace(
       next.root,
       node.id,
       level.type === "stack"
         ? {
-            id,
+            id: made,
             type: "stack",
             ...shared,
             children: [node as PaneNode],
             active: node.id,
             origin: "user",
           }
-        : { id, type: level.type, ...shared, children },
+        : {
+            id: made,
+            type: level.type,
+            ...shared,
+            children,
+            ...(level.scroll && { scroll: level.scroll }),
+          },
     );
-    const stack = at(id);
+    const stack = at(made);
     if (stack?.type === "stack") intoStack(stack, pane, after ? 1 : 0, level.active);
   };
   const place = (pane: PaneNode, slot: readonly SlotLevel[]) => {
@@ -90,7 +116,7 @@ export function restoreClosed(
         ...level.after.map((n) => ({ ...n, after: false })),
       ]) {
         // A tab joins its neighbour pane; anything else goes beside the neighbour, or the pane nearest it in there.
-        let target = level.type === "stack" ? at(a.pane) : (at(a.id) ?? at(a.pane));
+        let target = level.type === "stack" ? at(id(a.pane)) : (at(id(a.id)) ?? at(id(a.pane)));
         if (!target || (level.type === "stack" && target.type !== "pane")) continue;
         const group = parent(next.root, target.id);
         if (group?.type === "stack") {
@@ -127,9 +153,9 @@ export function restoreClosed(
     }
   };
   for (const c of entry.closed) {
-    const pane = clone(c.pane);
-    if (at(pane.id)) pane.id = newId(next.root);
-    ids[c.pane.id] = pane.id;
+    const pane = { ...clone(c.pane), id: id(c.pane.id) };
+    const first = c.slot[0];
+    if (first && first.type !== "stack") own[pane.id] = first;
     place(pane, c.slot);
   }
   const back = Object.values(ids);
@@ -144,8 +170,10 @@ export function restoreClosed(
     );
   for (const c of entry.closed) {
     const pane = paneAt(ids[c.pane.id]!)!;
-    const to = pane.linkedTo && (ids[pane.linkedTo] ?? pane.linkedTo);
-    if (to && paneAt(to) && to !== pane.id) {
+    // Its source: put back with it, or still showing what it showed.
+    const to = pane.linkedTo && id(pane.linkedTo);
+    const source = to ? paneAt(to) : undefined;
+    if (to && source && to !== pane.id && (to !== pane.linkedTo || sameRef(source.ref, c.source))) {
       pane.linkedTo = to;
       if (followed(to, pane)) delete pane.follows;
     } else {
@@ -155,7 +183,7 @@ export function restoreClosed(
     // The panes the close unlinked from it, while nothing linked them elsewhere since.
     for (const f of c.followers) {
       const p = paneAt(f.id);
-      if (!p || p.linkedTo || back.includes(p.id)) continue;
+      if (!p || p.linkedTo || back.includes(p.id) || !sameRef(p.ref, f.ref)) continue;
       p.linkedTo = pane.id;
       if (f.follows && !followed(pane.id, p)) p.follows = true;
     }
@@ -174,7 +202,22 @@ export function restoreClosed(
     const n = at(id);
     if (n && !n.userSized) n.size = { weight: 1 };
   }
+  // Tucks the close ended, while both panes are here and the pane can be tucked (not a tab, not tucked already).
+  const o = overlayOf(next);
+  const tucks = [...o.tucks];
+  for (const t of entry.tucks) {
+    const pane = id(t.pane),
+      home = id(t.home);
+    if (
+      paneAt(pane) &&
+      paneAt(home) &&
+      parent(next.root, pane)?.type !== "stack" &&
+      !tucks.some((u) => [u.pane, u.home].includes(pane) || u.pane === home)
+    )
+      tucks.push({ pane, home, seq: 1 + Math.max(0, ...tucks.map((u) => u.seq)) });
+  }
+  const restored = tucks.length > o.tucks.length ? withOverlay(next, { ...o, tucks }) : next;
   const first = back[0];
   const nextView = focusFirst && first ? focus(unzoom(view), first, ctx) : unzoom(view);
-  return { layout: fitLayout(next, nextView, ctx, { mode: "fold" }), view: nextView, ids };
+  return { layout: fitLayout(restored, nextView, ctx, { mode: "fold" }), view: nextView, ids };
 }
