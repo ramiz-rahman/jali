@@ -227,6 +227,8 @@ export interface UrlWriter {
   /** The instance is going away (`jali.destroy()`): drop a write still waiting (a debounced one), and every later
    *  one. */
   cancel?(): void;
+  /** The page is leaving (a reload, a closed tab, a hidden page): write a replace still waiting, now. */
+  flush?(): void;
 }
 
 /**

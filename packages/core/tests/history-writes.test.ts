@@ -132,6 +132,38 @@ describe("one history decision per action", () => {
   });
 });
 
+describe("a replace still waiting when the page goes away", () => {
+  it("is written on pagehide, on a hidden page and on beforeunload, not lost to a reload within 250 ms", () => {
+    vi.useFakeTimers();
+    for (const leave of [
+      () => window.dispatchEvent(new Event("pagehide")),
+      () => {
+        Object.defineProperty(document, "visibilityState", { value: "hidden", configurable: true });
+        document.dispatchEvent(new Event("visibilitychange"));
+        delete (document as { visibilityState?: unknown }).visibilityState;
+      },
+      () => window.dispatchEvent(new Event("beforeunload", { cancelable: true })),
+    ]) {
+      const { port } = history();
+      const jali = make(port);
+      vi.advanceTimersByTime(1000);
+      const store = storeOf(jali);
+      const at = (zoomed: string) => () => ({
+        layout: store.get().layout,
+        view: { focusHistory: [], zoomed },
+        presetId: undefined,
+        page: null,
+      });
+      store.url!.write(at("a"), "replace");
+      store.url!.write(at("b"), "replace");
+      const before = port.search();
+      leave();
+      expect(port.search()).not.toBe(before);
+      jali.destroy();
+    }
+  });
+});
+
 describe("a gesture writes the address once, when it ends (SAFARI-3)", () => {
   const day = {
     kind: "day",

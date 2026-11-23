@@ -90,6 +90,7 @@ export function startUi(
   });
   // Leaving the page with unsaved work: the browser asks first.
   const onUnload = (e: BeforeUnloadEvent) => {
+    store.url?.flush?.();
     if (store.env.confirmDiscard !== false && Object.keys(store.get().unsaved).length)
       e.preventDefault();
   };
@@ -102,10 +103,16 @@ export function startUi(
     saveTimer = undefined;
     flushPaneState(store);
   };
-  const onHidden = () => {
-    if (document.visibilityState === "hidden") saveNow();
+  // The address too: its replace waits up to 250 ms, and a reload within that would reopen the old one. Not when the
+  // instance is stopped or destroyed: a write then would land on the next route's address.
+  const leaving = () => {
+    store.url?.flush?.();
+    saveNow();
   };
-  window.addEventListener("pagehide", saveNow);
+  const onHidden = () => {
+    if (document.visibilityState === "hidden") leaving();
+  };
+  window.addEventListener("pagehide", leaving);
   document.addEventListener("visibilitychange", onHidden);
   const offTheme = watchSystemTheme((systemDark) => store.set({ systemDark }));
   const offKeys = installKeyboard(store, keys);
@@ -118,7 +125,7 @@ export function startUi(
     offKeys();
     // Pane state still waiting to be saved is saved now, not dropped.
     saveNow();
-    window.removeEventListener("pagehide", saveNow);
+    window.removeEventListener("pagehide", leaving);
     document.removeEventListener("visibilitychange", onHidden);
     window.removeEventListener("beforeunload", onUnload);
   };
