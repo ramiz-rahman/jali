@@ -165,8 +165,8 @@ export function usePaneAttributes(
 
 /**
  * Put the pane's own controls in its header: after the title (and Following / Kept), before Jali's buttons. Pass them on
- * every render, like any JSX; `null` takes them away, as does the component unmounting. One set per pane: the last
- * call wins. They render inside the pane's context, so the pane's hooks work in them, as do providers above
+ * every render, like any JSX; `null` takes them away, as does the component unmounting. One set shows per pane: the
+ * latest mounted call's that has controls; when it unmounts, the one before it shows again. They render inside the pane's context, so the pane's hooks work in them, as do providers above
  * `<JaliRoot>`; a provider inside your component doesn't reach them.
  *
  * A narrow header gives way before its title gets shorter than a few characters: first Jali's tuck, maximise, full
@@ -176,11 +176,12 @@ export function usePaneAttributes(
  */
 export function useHeaderActions(controls: ReactNode): void {
   const { header } = usePaneContext("useHeaderActions");
+  const owner = useId();
   // Before paint, so the header never shows a frame without them.
   useLayoutEffect(() => {
-    header?.set(controls);
+    header?.set(owner, controls);
   });
-  useLayoutEffect(() => () => header?.set(null), [header]);
+  useLayoutEffect(() => () => header?.release(owner), [header, owner]);
 }
 
 /** What a launcher chooses from: the objects opened recently, whether one is open now, and its title. */
