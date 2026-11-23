@@ -157,13 +157,9 @@ function onTarget<A extends unknown[]>(
   return {
     check: (x, pane, ...a) =>
       missing(x, pane) ? refuse("not-found") : step.check?.(x, idOf(x, pane)!, ...a),
-    ...(step.control
-      ? {
-          // A pane named but not there asks nothing: the check says not-found, never the focused pane's controls.
-          control: (x: Snapshot, pane: PaneTarget | undefined, ...a: A) =>
-            missing(x, pane) ? [] : step.control!(x, idOf(x, pane)!, ...a),
-        }
-      : {}),
+    // A pane named but not there asks nothing: the check says not-found, never the focused pane's controls.
+    control: (x, pane, ...a) =>
+      missing(x, pane) ? [] : (step.control?.(x, idOf(x, pane)!, ...a) ?? []),
     run: (x, pane, ...a) => {
       const id = idOf(x, pane);
       return withPane(step.run(x, id!, ...a), id ?? x.s.view.focused);

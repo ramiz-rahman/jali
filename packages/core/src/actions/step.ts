@@ -50,8 +50,8 @@ export const mapped = <A extends unknown[], B extends unknown[]>(
   step: Step<A>,
   f: (...b: B) => A,
 ): Step<B> => ({
-  ...(step.check ? { check: (x: Snapshot, ...b: B) => step.check!(x, ...f(...b)) } : {}),
-  ...(step.control ? { control: (x: Snapshot, ...b: B) => step.control!(x, ...f(...b)) } : {}),
+  check: (x, ...b) => step.check?.(x, ...f(...b)),
+  control: (x, ...b) => step.control?.(x, ...f(...b)) ?? [],
   run: (x, ...b) => step.run(x, ...f(...b)),
 });
 

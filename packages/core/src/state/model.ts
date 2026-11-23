@@ -20,6 +20,7 @@ import type {
 import { PHONE_BELOW, titleOf, type Env } from "../env";
 import { foldPair, stackPair, type Hinge, type StackPair } from "../workspace/stack";
 import { placement } from "../workspace/placement";
+import { currentPane } from "../workspace/frames";
 import { sameRef } from "../layout/ops/ref";
 import { own } from "../own";
 import { messagesOf } from "./messages";
@@ -229,10 +230,7 @@ export function buildModel({ layout, view, area, ctx, env, titles, hinge }: Mode
           (b) => !b.hidden && !b.clip && b.rect.x + b.rect.width > area.width + 0.5,
         )),
   };
-  const current = () =>
-    view.focused && byId.has(view.focused) && !model.off.includes(view.focused)
-      ? view.focused
-      : model.onScreen[0]?.id;
+  const current = () => currentPane(model, view);
   // A fold splits the layout: a pane each side of it, presented as the one-pane chrome with two panes.
   const across =
     hinge && env.phone?.fold !== false
@@ -304,18 +302,18 @@ const sameRect = (a: Readonly<Rect> | null, b: Readonly<Rect> | null) =>
   a === b ||
   (!!a && !!b && a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height);
 
+/** Every field the same: the box by its numbers, a ref by `sameRef`, the rest by value. */
 const samePane = (a: PaneOf, b: PaneOf) =>
-  a.id === b.id &&
-  (a.ref === b.ref || sameRef(a.ref, b.ref)) &&
-  a.title === b.title &&
-  a.where === b.where &&
-  a.focused === b.focused &&
-  sameRect(a.box, b.box) &&
-  (a.selected === b.selected || sameRef(a.selected, b.selected)) &&
-  a.linkedTo === b.linkedTo &&
-  a.follows === b.follows &&
-  a.kept === b.kept &&
-  a.pinned === b.pinned;
+  Object.keys({ ...a, ...b }).every((k) => {
+    const x = a[k as keyof PaneOf],
+      y = b[k as keyof PaneOf];
+    return (
+      x === y ||
+      (k === "box"
+        ? sameRect(a.box, b.box)
+        : typeof x === "object" && sameRef(x as ObjectRef, y as ObjectRef))
+    );
+  });
 
 /** What the public model is made from besides the engine's model: the store's state it reads. */
 export type PublicInput = Pick<
