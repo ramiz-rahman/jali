@@ -2118,3 +2118,24 @@ adoptions are 7b.
   (`label`, `current`, `onChoose`).
 - **The development freeze freezes a node before walking its parts**, so a ref that refers to itself can't overflow it;
   selections and Recent are frozen as they are committed.
+
+## 23 Nov 2026 · Stabilisation step 7a, after Codex's review: the model says what is drawn
+
+Four problems Codex found in step 7a, each fixed with its test on branch `stabilise-fix7a`.
+
+- **`where` and `box` come from the placement the adapter draws.** The projection worked out visibility on its own: a
+  maximised pane in a row that scrolls read "hidden" once the row had scrolled it away, and stacked view ignored the
+  on-screen keyboard, the divider the person moved, a curated page (which never stacks) and a pane on the whole
+  screen. `placement` moves from the React adapter into core (jali/adapter) and both read it. The keyboard and the
+  divider's share become the store's (`keyboardUp`, `stackShare`, which the adapter sets), so the model can read them
+  and keys its cache on them, the page and the full-screen pane. A maximised pane is placed before its row's window
+  is asked; a pane on the whole screen is shown with the root's whole box and every other pane is hidden.
+  - **`box` is in the root's coordinates** (inside the inset, under the phone's switcher), as the frames are, where it
+    was in the panes' area's: what an app overlays on Jali's root lines up with it.
+  - **Size:** `placement` moves from the React chunk to core, which grows by about what React loses.
+- **A host menu passes its read as the server's snapshot too.** `useSyncExternalStore(jali.subscribe, () =>
+  listCommands(jali))` throws "Missing getServerSnapshot" in a server render; every place that shows the pattern now
+  writes `useSyncExternalStore(jali.subscribe, read, read)`, and a sample test renders the guide's menu on the server.
+- **No page names a read the instance doesn't have.** `useTitle`'s reference still said `jali.model().title(id)`; it
+  says `jali.model().pane(id)?.title`, and the reference coverage test checks every `.model().x` and `.get().x` a docs
+  page writes against what the instance has.
