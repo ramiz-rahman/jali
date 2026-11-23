@@ -54,6 +54,50 @@ const settle = () => {
   vi.useRealTimers();
 };
 
+describe("3. a view change meets the address's text limit too", () => {
+  it("at the limit, maximising (which the address holds) is refused, and a reload keeps what is on screen", () => {
+    const note = { kind: "note", title: "Note", params: { text: String }, width: { min: 200 } };
+    const location = memoryLocation();
+    const jali = createJali({
+      panes: [note],
+      layout: row(
+        pane({ kind: "note", params: { text: "x" } }, { id: "a" }),
+        pane({ kind: "note", params: { text: "y" } }, { id: "b" }),
+      ),
+      features: [urlSync({ location, sizes: "link" })],
+      storage: memoryStorage(),
+      size: { width: 1400, height: 800 },
+      moveFocus: false,
+    });
+    jali.start();
+    const store = storeOf(jali);
+    const measure = (store.url as unknown as { measure(s: unknown): number }).measure;
+    // Grow b's text until the address is exactly at the limit (an openHere past it is refused).
+    const at = (n: number) => {
+      if (!jali.actions.openHere("b", { kind: "note", params: { text: "y".repeat(n) } }).ok)
+        return Infinity;
+      const s = store.get();
+      return measure({ layout: s.layout, view: s.view, presetId: s.presetId, page: s.page });
+    };
+    let lo = 600_000,
+      hi = 800_000;
+    while (lo < hi) {
+      const mid = Math.ceil((lo + hi) / 2);
+      if (at(mid) <= 1_000_000) lo = mid;
+      else hi = mid - 1;
+    }
+    expect(at(lo)).toBeLessThanOrEqual(1_000_000);
+    expect(at(lo + 1)).toBeGreaterThan(1_000_000);
+    at(lo);
+    settle();
+    const before = location.search();
+    expect(jali.actions.toggleZoom("a")).toMatchObject({ ok: false, reason: "blocked" });
+    expect(jali.get().view.zoomed).toBeUndefined();
+    settle();
+    expect(location.search()).toBe(before);
+  });
+});
+
 describe("4. placing the view on screen beside itself", () => {
   it("from Single view, ⌥-click on the view shown is nothing to do, and stays in Single view", () => {
     const { jali } = make({ page, allow: { open: false } });
