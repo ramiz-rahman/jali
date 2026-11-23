@@ -2280,5 +2280,22 @@ follows the action to its next consequence (packages/core/tests/final-review.tes
   of calls mounted together the innermost shows; after that the latest mounted. The reference says so.
 - **Code quality** (Opus, P2): an unknown step name is refused `invalid`; undo puts a tuck back through put back's
   gate; restore's side effects are plain statements; the store's stale comments are fixed.
-- **Size** (gzipped KB, before → after): minimal core 60.7 → 61.0, full 67.1 → 67.4 and React 30.3 → 30.4, `+page`
-  62.6 → 63.0, headless 53.0 → 53.2. Every scenario stays inside the budgets set at the end of the round.
+- **Confirming pass** (Codex, at 23595a98): eight cases the fixes above missed, each a test of the rule, not only the
+  case (final-review.test.ts, C1–C8). All eight were real.
+  - Pane state: each record names its writer (`by`, a token per instance); an instance removes only a record still
+    carrying its token and its `at`. Identical drafts written in one millisecond no longer pass for each other.
+  - Undo: one reservation set for every id it gives, so a container made again never takes a restored pane's id. The
+    fuzz starts one layout with containers named `pane-N`.
+  - Page close: the rule is checked on what the close leaves (a view in front); a view behind an opened pane's tab
+    no longer counts.
+  - Page link zoom: an opened pane is named by its place among the link's opened panes (`zoom=~2`), followed through
+    what the reader leaves out; a view keeps its id.
+  - The host's own close: only a close, only when every pane the host let go is gone, and the evidence travels with a
+    promised yes. `openHere` whose pane the host closed stays refused.
+  - Menus: `setZoom` and `setFullScreen` (adapter forms of the toggles, no public name) set the menu's pane. Under it,
+    `toggleZoom` on B while A was maximised restored everything (focus carried the zoom to B, then the toggle took it
+    off); it now maximises B.
+  - Every question asked again during an answer takes the answer's input (`askedBy`), through any number of them.
+- **Size** (gzipped KB, before → after the round's fixes and the confirming pass): minimal core 60.7 → 61.2, full
+  67.1 → 67.7 and React 30.3 → 30.4, `+page` 62.6 → 63.2, headless 53.0 → 53.4. Every scenario stays inside the
+  budgets set at the end of the round.
