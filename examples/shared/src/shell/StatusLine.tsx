@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDataLayer } from "../data/react";
-import { useJali, useJaliModel, useJaliState, Shelf } from "jali/react";
+import { Activity, useJali, useJaliModel, useJaliState, Shelf } from "jali/react";
 import { BuiltWithJali, Maker } from "../maker/maker";
 import { useShowStats } from "./stats-pref";
 
@@ -57,9 +57,15 @@ export function StatusLine() {
         {folded ? ` · ${folded} folded` : ""}
         {" · "}Focus: {view.focused ? title(view.focused) : "none"}
       </span>
+      {/* A tucked pane that is working, needs the person or failed, with Jali's own mark for it, as its tab has. */}
       {busy.length ? (
         <span className="status-busy">
-          {busy.map(([id, a]) => `${title(id)}: ${a}`).join(" · ")}
+          {busy.map(([id, a]) => (
+            <span key={id} className="status-busy-pane">
+              <Activity activity={a} />
+              {title(id)}
+            </span>
+          ))}
         </span>
       ) : null}
       <span

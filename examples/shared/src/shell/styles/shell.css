@@ -239,7 +239,13 @@
     color: var(--jali-text);
   }
   .status-busy {
-    color: var(--jali-blocked);
+    display: inline-flex;
+    gap: 0.75rem;
+  }
+  .status-busy-pane {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
   }
   /* Narrow desktop: the hint makes room for the shelf. */
   @media (max-width: 73.75rem) {
