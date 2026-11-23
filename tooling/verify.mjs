@@ -61,7 +61,9 @@ const ports = {
   MARKETS_URL: await url(),
   STUDIO_URL: await url(),
   TRIPS_URL: await url(),
+  HANDSHAKE_URL: await url(),
   DOCS_URL: await url(),
+  SITE_URL: await url(),
 };
 
 /** The last line of a log that looks like a result (Playwright's "N passed", Vitest's "Tests  N passed", …). */
@@ -197,6 +199,14 @@ const GATES = [
     env: (results) => (results["docs-build"]?.ok ? { DOCS_BUILT: "1" } : {}),
     detail: (log) =>
       [playwright(log), lastMatch(log, /^C14 \(known/)].filter(Boolean).join("; ") || undefined,
+  },
+  // The public site as Netlify serves it: the docs and every hosted example from their folders (e2e/site).
+  {
+    name: "e2e-site",
+    full: true,
+    browser: true,
+    cmd: ["pnpm", "exec", "playwright", "test", "-c", "e2e/site"],
+    detail: playwright,
   },
 ];
 

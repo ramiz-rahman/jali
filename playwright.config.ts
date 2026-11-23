@@ -16,6 +16,8 @@ const CLIPBOARD = ["clipboard-read", "clipboard-write"];
 // project, which re-runs the area specs with app.shot() enabled, plus screens.spec.ts (the shelf shots).
 export default defineConfig({
   testDir: "./e2e",
+  // The public site's check has its own config and server (e2e/site/playwright.config.ts).
+  testIgnore: /\/site\//,
   timeout: 90_000,
   // Spec files run side by side (WORKERS at once); the tests in one file run in order.
   fullyParallel: false,
@@ -34,6 +36,6 @@ export default defineConfig({
     ? [{ name: "screens", use: { channel: "chrome", permissions: CLIPBOARD } }]
     : browsers({ chrome: { permissions: CLIPBOARD } }).map((p) => ({
         ...p,
-        testIgnore: /screens\.spec\.ts/,
+        testIgnore: [/screens\.spec\.ts/, /\/site\//],
       })),
 });
