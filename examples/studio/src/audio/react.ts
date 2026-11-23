@@ -5,12 +5,39 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { useJaliTheme } from "jali/react";
-import { useServices } from "../services";
 import { useStore } from "@jali-examples/shared/store";
-import type { TransportState } from "./engine";
+import { useServices } from "../services";
+import { sessionById } from "../sessions/load";
+import type { SessionData } from "../sessions/types";
+import type { Loop, TransportState } from "./engine";
 
 export function useTransport<T>(select: (s: TransportState) => T): T {
   return useStore(useServices().engine, select);
+}
+
+/** The data of the session in the transport, kept up to date. */
+export function useTransportSession(): SessionData {
+  const id = useTransport((s) => s.session);
+  // The transport only moves to a session whose data has loaded.
+  return sessionById(id)!;
+}
+
+/** The transport as one session's pane sees it: everything is about that session, or off. */
+export interface SessionTransport {
+  /** The session is the transport's. */
+  inTransport: boolean;
+  playing: boolean;
+  loading: boolean;
+  /** The transport's loop, when it loops this session. */
+  loop: Loop | null;
+}
+
+export function useSessionTransport(session: string): SessionTransport {
+  const inTransport = useTransport((s) => s.session === session);
+  const playing = useTransport((s) => s.session === session && s.playing);
+  const loading = useTransport((s) => s.session === session && s.status === "loading");
+  const loop = useTransport((s) => (s.session === session ? s.loop : null));
+  return { inTransport, playing, loading, loop };
 }
 
 /** The playhead, rounded down to `step` seconds, re-read every frame while playing and on screen. */
@@ -19,23 +46,23 @@ export function usePosition(paused: boolean, step = 0.1): number {
   const playing = useTransport((s) => s.playing);
   const at = useTransport((s) => s.at);
   const session = useTransport((s) => s.session);
-  const q = (t: number) => Math.floor(t / step + 1e-6) * step;
-  const [pos, setPos] = useState(() => q(engine.position()));
+  const [pos, setPos] = useState(() => quantise(engine.position(), step));
 
   useEffect(() => {
     if (paused) return; // out of sight: keep what is shown
-    setPos(q(engine.position()));
+    const read = () => setPos(quantise(engine.position(), step));
+    read();
     if (!playing) return;
     let frame = requestAnimationFrame(function tick() {
-      setPos(q(engine.position()));
+      read();
       frame = requestAnimationFrame(tick);
     });
     return () => cancelAnimationFrame(frame);
-    // q depends on step only.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [engine, paused, playing, at, session, step]);
   return pos;
 }
+
+const quantise = (t: number, step: number) => Math.floor(t / step + 1e-6) * step;
 
 /**
  * Calls `draw(position)` every frame while playing and on screen, and once whenever `deps` or the transport change.
@@ -63,6 +90,7 @@ export function useFrame(paused: boolean, draw: (position: number) => void, deps
       cancelAnimationFrame(settle);
       cancelAnimationFrame(frame);
     };
+    // `deps` are the caller's: what its drawing reads besides the transport.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [engine, paused, playing, at, theme, ...deps]);
 }
