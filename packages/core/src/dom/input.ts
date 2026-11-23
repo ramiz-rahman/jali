@@ -22,6 +22,25 @@ let held: JaliInput[] = [];
 /** How many started instances listen on each document (a floating window's is a document of its own). */
 const listening = /* @__PURE__ */ new WeakMap<Document, number>();
 
+/** The element the last pointer press landed on in each document, until a key is pressed there. */
+const pressed = /* @__PURE__ */ new WeakMap<Document, Element>();
+
+/**
+ * The control the last pointer press on `doc` landed on (a button, a link, or what a button is inside), while no key
+ * has been pressed since. Safari does not focus a button it is clicked on, so a dialog opened from a button finds
+ * focus on the page body, or on what had it before: the pressed control is where focus belongs when it closes.
+ */
+export function lastPressedControl(
+  doc: Document | undefined = globalThis.document,
+): HTMLElement | null {
+  const el = doc ? pressed.get(doc) : undefined;
+  const control = el?.closest<HTMLElement>(
+    'button, a[href], [role="button"], summary, input, select, textarea',
+  );
+  // A menu's item closes the menu: it is never where focus goes back to.
+  return control?.isConnected && !control.closest('[role="menu"]') ? control : null;
+}
+
 const note = (input: JaliInput) => {
   noted = input;
   if (clear === undefined)
@@ -30,9 +49,17 @@ const note = (input: JaliInput) => {
       clear = undefined;
     });
 };
-const onPointer = (e: PointerEvent) =>
+const onPointer = (e: PointerEvent) => {
+  if (e.type === "pointerdown" && e.target instanceof Element)
+    pressed.set(e.target.ownerDocument, e.target);
   note(e.pointerType === "touch" || e.pointerType === "pen" ? e.pointerType : "mouse");
-const onKey = () => note("keyboard");
+};
+const onKey = (e: KeyboardEvent) => {
+  const at = e.target;
+  const doc = at instanceof Node ? (at.ownerDocument ?? (at as Document)) : undefined;
+  if (doc) pressed.delete(doc);
+  note("keyboard");
+};
 /** A click is a pointer's when a press came first in this task; otherwise a key's (Enter, Space) or a virtual one. */
 const onClick = (e: MouseEvent) => {
   if (noted === undefined) note(e.detail === 0 ? "virtual" : "mouse");
@@ -69,6 +96,7 @@ export function trackInput(doc: Document | undefined = globalThis.document): () 
     const left = (listening.get(doc) ?? 1) - 1;
     listening.set(doc, left);
     if (left === 0) {
+      pressed.delete(doc);
       doc.removeEventListener("pointerdown", onPointer, true);
       doc.removeEventListener("pointerup", onPointer, true);
       doc.removeEventListener("keydown", onKey, true);

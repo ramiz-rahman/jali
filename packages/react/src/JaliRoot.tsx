@@ -177,7 +177,10 @@ export function JaliRoot({
             <Guard onError={onError}>
               <InstanceScope>
                 <Announcer />
-                <Dialogs settingsExtra={<Guard onError={onError}>{settingsExtra}</Guard>} />
+                <Dialogs
+                  onError={onError}
+                  settingsExtra={<Guard onError={onError}>{settingsExtra}</Guard>}
+                />
               </InstanceScope>
             </Guard>
           </div>,
@@ -206,7 +209,13 @@ export function JaliRoot({
  * back when the one above closes (core's `topDialog`). Each but the discard question is its feature's part
  * (`palette()`, `settings()`, `chooser()`): core's steps never open one the instance doesn't have.
  */
-function Dialogs({ settingsExtra }: { settingsExtra: ReactNode }) {
+function Dialogs({
+  settingsExtra,
+  onError,
+}: {
+  settingsExtra: ReactNode;
+  onError?: (error: unknown) => void;
+}) {
   const store = useStore();
   const env = store.env;
   const Palette = partOf(env, "palette");
@@ -214,15 +223,28 @@ function Dialogs({ settingsExtra }: { settingsExtra: ReactNode }) {
   const Chooser = partOf(env, "chooser");
   // Core keeps no dialog whose feature the instance lacks (its steps refuse it), so the top one is always drawable.
   const top = useUi(topDialog);
-  return top === "confirm" ? (
-    <ConfirmDiscard />
-  ) : top === "chooser" && Chooser ? (
-    <Chooser />
-  ) : top === "palette" && Palette ? (
-    <Palette />
-  ) : top === "settings" && Settings ? (
-    <Settings>{settingsExtra}</Settings>
-  ) : null;
+  // A dialog that throws closes through its own close step (as Esc does) and tells the host, so it never stays open in
+  // state, drawing nothing and hiding the dialogs after it. Keyed by dialog: the next one starts clean.
+  const guarded = (close: () => unknown, dialog: ReactNode) => (
+    <Guard
+      key={top}
+      onError={(error) => {
+        close();
+        onError?.(error);
+      }}
+    >
+      {dialog}
+    </Guard>
+  );
+  return top === "confirm"
+    ? guarded(() => store.actions.keepEditing(), <ConfirmDiscard />)
+    : top === "chooser" && Chooser
+      ? guarded(() => store.actions.closeChooser(), <Chooser />)
+      : top === "palette" && Palette
+        ? guarded(() => store.run("dialogs.closePalette"), <Palette />)
+        : top === "settings" && Settings
+          ? guarded(() => store.run("dialogs.closeSettings"), <Settings>{settingsExtra}</Settings>)
+          : null;
 }
 
 /** In place of the root's children when something in them threw: the instance's name, could not be shown, Retry. */

@@ -46,10 +46,11 @@ export const PaneFrame = /* @__PURE__ */ memo(
     const alone = chrome === ALONE_CHROME;
     const store = useStore();
     const [menu, setMenu] = useState<TabMenuAt | null>(null);
-    // What had focus when the menu opened (the ⋯ button, the pane): focus goes back there when it closes.
+    // What opened the menu (the ⋯ button, the pane for a right-click or Shift+F10): focus goes back there when it
+    // closes. Taken from the event, not from what has focus: Safari doesn't focus a button it is clicked.
     const opener = useRef<HTMLElement | null>(null);
-    const openMenu = (at: TabMenuAt) => {
-      opener.current = document.activeElement as HTMLElement | null;
+    const openMenu = (at: TabMenuAt, from: HTMLElement | null) => {
+      opener.current = from;
       setMenu(at);
     };
     const RenameField = renameFieldOf(store);
@@ -153,7 +154,10 @@ export const PaneFrame = /* @__PURE__ */ memo(
           )?.getBoundingClientRect();
           if (!r) return;
           const rtl = store.get().dir === "rtl";
-          openMenu({ pane: node.id, x: rtl ? r.left : r.right, y: r.bottom + 2, end: true });
+          openMenu(
+            { pane: node.id, x: rtl ? r.left : r.right, y: r.bottom + 2, end: true },
+            e.currentTarget,
+          );
         }}
         className={cls}
         style={style}
@@ -175,7 +179,7 @@ export const PaneFrame = /* @__PURE__ */ memo(
             )
               return;
             e.preventDefault();
-            openMenu({ pane: node.id, x: e.clientX, y: e.clientY });
+            openMenu({ pane: node.id, x: e.clientX, y: e.clientY }, store.dom.pane(node.id));
           }}
           onPointerDown={
             draggable ? (e) => inHeader(e) && startPaneDrag(store, e, node.id) : undefined
@@ -229,7 +233,7 @@ export const PaneFrame = /* @__PURE__ */ memo(
               chrome={chrome}
               tabs={!!group}
               narrow={narrow}
-              onMenu={(at) => openMenu({ pane: node.id, ...at })}
+              onMenu={(at, from) => openMenu({ pane: node.id, ...at }, from)}
             />
           )}
         </div>

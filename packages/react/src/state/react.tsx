@@ -36,7 +36,7 @@ import { reactDom } from "../dom";
 // Development checks test the literal, so a production build drops them and their messages (dev.ts).
 declare const process: { env: { NODE_ENV?: string } };
 
-const StoreContext = /* @__PURE__ */ createContext<JaliStore | null>(null);
+export const StoreContext = /* @__PURE__ */ createContext<JaliStore | null>(null);
 
 /** Each store's DOM id as the host gave it, and the provider that scopes it while mounted. */
 const bases = new WeakMap<JaliStore, string>();

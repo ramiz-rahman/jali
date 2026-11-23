@@ -5,9 +5,16 @@
 import { useSyncExternalStore, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
-/** One pane's header slot: the controls its content gave, and the element Jali places them in. */
+/**
+ * One pane's header slot: the controls its content gave, and the element Jali places them in. Each caller of
+ * useHeaderActions is an owner: the slot shows the controls of the latest owner to register that has some, and an
+ * owner that unmounts releases only its own, so the one before shows again.
+ */
 export interface HeaderSlot {
-  set(controls: ReactNode): void;
+  /** Give `owner`'s controls (`null`: none). The first call from an owner makes it the latest. */
+  set(owner: object | string, controls: ReactNode): void;
+  /** `owner` has gone: its controls with it. */
+  release(owner: object | string): void;
   /** The element in the header, as a callback ref. */
   target(el: HTMLElement | null): void;
   subscribe(fn: () => void): () => void;
@@ -16,14 +23,28 @@ export interface HeaderSlot {
 
 export function createHeaderSlot(): HeaderSlot {
   let now: { controls: ReactNode; el: HTMLElement | null } = { controls: null, el: null };
+  /** Owners in the order they registered: the last with controls is shown. */
+  const owners = new Map<object | string, ReactNode>();
   const subs = new Set<() => void>();
   const put = (next: Partial<typeof now>) => {
     const was = now;
     now = { ...now, ...next };
     if (was.controls !== now.controls || was.el !== now.el) for (const fn of subs) fn();
   };
+  const shown = (): ReactNode => {
+    let controls: ReactNode = null;
+    for (const c of owners.values()) controls = c || controls;
+    return controls;
+  };
   return {
-    set: (controls) => put({ controls: controls ?? null }),
+    set(owner, controls) {
+      owners.set(owner, controls);
+      put({ controls: shown() });
+    },
+    release(owner) {
+      owners.delete(owner);
+      put({ controls: shown() });
+    },
     target: (el) => put({ el }),
     subscribe(fn) {
       subs.add(fn);

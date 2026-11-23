@@ -236,7 +236,7 @@ export {
   shownShelf,
 } from "./dom/focus";
 export { cssString, paneDomId, paneTitleId } from "./dom/ids";
-export { currentInput, trackInput } from "./dom/input";
+export { currentInput, lastPressedControl, trackInput } from "./dom/input";
 export {
   directionOf,
   forwardArrow,

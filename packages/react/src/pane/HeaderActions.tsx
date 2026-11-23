@@ -19,7 +19,7 @@ interface P {
   /** How far a narrow header has given way (header-width.ts): 1 or more, the buttons the menu also offers move into it. */
   narrow?: NarrowLevel;
   /** Open the pane's menu, from the ⋯ button. */
-  onMenu: (at: { x: number; y: number; end: boolean }) => void;
+  onMenu: (at: { x: number; y: number; end: boolean }, opener: HTMLElement) => void;
 }
 
 /** The menu item each button stands for: the ⋯ shows when the menu offers something no button does. */
@@ -175,7 +175,10 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs, narrow = 0, onM
         title={keys.withKeys(t.menuTip, "Shift+F10")}
         onClick={(e) => {
           const r = e.currentTarget.getBoundingClientRect();
-          onMenu({ x: store.get().dir === "rtl" ? r.left : r.right, y: r.bottom + 2, end: true });
+          onMenu(
+            { x: store.get().dir === "rtl" ? r.left : r.right, y: r.bottom + 2, end: true },
+            e.currentTarget,
+          );
         }}
       >
         <icon.menu {...ICON.header} aria-hidden />
