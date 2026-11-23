@@ -1,9 +1,12 @@
-import { TerminalWindowIcon } from "@phosphor-icons/react";
+import { ChartBarIcon, TerminalWindowIcon } from "@phosphor-icons/react";
 import { appOnly, optional, keyHint } from "jali";
 import {
   definePane,
+  IconButton,
   useActivity,
   useCommands,
+  useHeaderActions,
+  usePaneAttributes,
   usePaneState,
   useUnsaved,
   type PaneProps,
@@ -31,6 +34,10 @@ export const ORDERS_BY_STATUS_SQL =
  * behind that: `autorun` runs the app's own queries only, and any other SQL waits, shown, for the person to run.
  */
 const OWN_SQL: ReadonlySet<string> = new Set([DEFAULT_SQL, ORDERS_BY_STATUS_SQL]);
+
+/** SQL that changes the data or its tables, rather than reading it. */
+export const changesData = (sql: string) =>
+  /^\s*(insert|update|delete|merge|truncate|drop|alter|create|grant|revoke)\b/i.test(sql);
 
 /** A query may come with its SQL, and a preset may ask it to run on load (never a link). A new query has neither. */
 export const queryParams = { sql: optional(String), autorun: appOnly(Boolean) };
@@ -63,6 +70,22 @@ export function QueryPane({ params, paused, focused, openBeside }: PaneProps<typ
 
   // An edit that has not run is work the person would lose by closing the pane.
   useUnsaved(sql.trim() !== ran.trim() && "an edited query that has not run");
+
+  // A query that changes data is marked wherever the pane appears (its header, its tab, its shelf chip), so it is
+  // never run by mistake for one that only reads (panes.css).
+  const writes = changesData(sql);
+  usePaneAttributes(writes ? { "data-query": "writes" } : null);
+
+  // What the result leads to sits in the header; a narrow header moves it to the pane's menu, as "Chart this result".
+  useHeaderActions(
+    <IconButton
+      label="Chart this result"
+      disabled={!handle}
+      onClick={() => handle && openBeside(chartRef(handle.runId))}
+    >
+      <ChartBarIcon size={16} aria-hidden />
+    </IconButton>,
+  );
 
   // ⌘K lists what this pane can do while it is focused.
   useCommands([
@@ -110,17 +133,12 @@ export function QueryPane({ params, paused, focused, openBeside }: PaneProps<typ
               <span className="pk-mono">{formatCount(handle.rowCount)}</span> rows in{" "}
               <span className="pk-mono">{formatMs(handle.ms)}</span>
             </>
+          ) : writes ? (
+            "SQL · changes data"
           ) : (
             "SQL"
           )}
         </span>
-        <button
-          className="pk-btn"
-          disabled={!handle}
-          onClick={() => handle && openBeside(chartRef(handle.runId))}
-        >
-          Chart this result
-        </button>
       </div>
       <textarea
         className="pk-sql"

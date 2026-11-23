@@ -276,6 +276,12 @@
   background: var(--z200);
   flex: none;
 }
+/* A query that changes data (Data Studio's query.tsx, with usePaneAttributes): an edge in the warning colour on its
+   header, and on its tab, shelf chip and menu entries, wherever it appears. */
+.jali-pane[data-query="writes"] .jali-pane-header,
+:not(.jali-pane)[data-query="writes"] {
+  box-shadow: inset 0 2px 0 var(--jali-blocked);
+}
 .pk-sql {
   font: var(--type-meta)/1.5 var(--mono);
   border: 0;
