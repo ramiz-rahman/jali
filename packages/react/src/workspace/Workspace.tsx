@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState } from "react";
-import { keepPaneFocus, ALONE_CHROME, CHROME, currentPane } from "@jali/core/adapter";
+import { useEffect, useRef } from "react";
 import { FoldLine, StackDivider, useKeyboardUp, useStackAnnouncement } from "./Stacked";
-import { placement } from "./placement";
+import { keepPaneFocus, ALONE_CHROME, CHROME, currentPane, placement } from "@jali/core/adapter";
 import { PaneSwitcher } from "../chrome/PaneSwitcher";
 import { Peek } from "../chrome/Peek";
 import { DividerLayer } from "../dividers/DividerLayer";
@@ -47,10 +46,13 @@ export function Panes() {
   const single = m.onePane;
   // A curated page in Single mode shows one view under its tabs: the tabs name it, so the pane has no header.
   const page = useUi((s) => s.page?.mode);
-  // Stacked view (a portrait phone, phone.stack): two linked panes, unless the keyboard is up.
-  const keyboardUp = useKeyboardUp();
+  // Stacked view (a portrait phone, phone.stack): two linked panes, unless the keyboard is up. Both are the store's,
+  // so the public model places the panes as they are drawn.
+  useKeyboardUp(store);
+  const keyboardUp = useUi((s) => !!s.keyboardUp);
   // The top pane's share once the person moves the divider; until then the kinds' heights decide it.
-  const [stackRatio, setStackRatio] = useState<number | undefined>(undefined);
+  const stackRatio = useUi((s) => s.stackShare);
+  const setStackRatio = (stackShare: number) => store.set({ stackShare });
   // Every frame's final rect and the divider, from one calculation (placement.ts).
   const {
     presentation: mode,

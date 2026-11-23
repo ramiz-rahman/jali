@@ -94,7 +94,8 @@ describe("the public model", () => {
       title: "Alpha",
       where: "shown",
       focused: true,
-      box: { x: 0, y: 0, width: expect.any(Number), height: 800 },
+      // In the root's coordinates: inside its inset (the gap, 6px).
+      box: { x: 6, y: 6, width: expect.any(Number), height: 800 },
       follows: false,
       kept: false,
       pinned: false,
@@ -190,7 +191,7 @@ describe("where a pane is", () => {
     jali.actions.focus("b");
     jali.actions.toggleZoom();
     expect(where(jali)).toEqual({ a: "hidden", b: "shown", c: "hidden" });
-    expect(jali.model().pane("b")?.box).toEqual({ x: 0, y: 0, width: 1500, height: 800 });
+    expect(jali.model().pane("b")?.box).toEqual({ x: 6, y: 6, width: 1500, height: 800 });
     jali.actions.toggleZoom();
     expect(where(jali)).toEqual({ a: "shown", b: "shown", c: "shown" });
   });
@@ -223,7 +224,8 @@ describe("where a pane is", () => {
       size: { width: 400, height: 800 },
     });
     expect(where(jali)).toEqual({ a: "shown", b: "tab" });
-    expect(jali.model().pane("a")?.box).toEqual({ x: 0, y: 0, width: 400, height: 800 });
+    // Under the pane switcher (44px), across the whole root.
+    expect(jali.model().pane("a")?.box).toEqual({ x: 0, y: 44, width: 412, height: 768 });
     jali.actions.focus("b");
     expect(where(jali)).toEqual({ a: "tab", b: "shown" });
     const crowded = make({ size: { width: 400, height: 800 } });

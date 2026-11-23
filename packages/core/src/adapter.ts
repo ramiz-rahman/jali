@@ -288,6 +288,12 @@ export {
   type TabDrop,
 } from "./workspace/dnd";
 export {
+  placement,
+  type LayoutBox,
+  type Placement,
+  type PlacementInput,
+} from "./workspace/placement";
+export {
   STACK_GAP,
   stackGap,
   stackSplit,
