@@ -54,6 +54,21 @@ const settle = () => {
   vi.useRealTimers();
 };
 
+describe("2. a page link keeps each scratch pane it opened", () => {
+  it("two scratch panes opened reopen as two", () => {
+    const { jali, location } = make({ page });
+    jali.page!.open();
+    jali.page!.setMode("split");
+    const s = { kind: "scratch", params: {} };
+    expect(jali.actions.addTab("main", s).ok).toBe(true);
+    expect(jali.actions.addTab("main", s).ok).toBe(true);
+    settle();
+    const opened = (j: typeof jali) => j.model().panes.filter((p) => !p.role).length;
+    expect(opened(jali)).toBe(2);
+    expect(opened(make({ page }, location.search()).jali)).toBe(2);
+  });
+});
+
 describe("3. a view change meets the address's text limit too", () => {
   it("at the limit, maximising (which the address holds) is refused, and a reload keeps what is on screen", () => {
     const note = { kind: "note", title: "Note", params: { text: String }, width: { min: 200 } };

@@ -744,6 +744,7 @@ export function createPaneKinds<D extends PaneKindBase = PaneKindBase>(
         if (local.length) k.appOnly = local;
         const unlinked = unlinkedParams(types);
         if (unlinked.length) k.unlinked = unlinked;
+        if (d.scratch) k.scratch = true;
         // A link drops app-only params once read, so a value of one it can't read doesn't break the link.
         if (types)
           k.checkParams = (p) =>

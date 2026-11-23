@@ -124,6 +124,8 @@ export interface PaneKind {
   /** Params kept out of the address (`optional(type, { link: false })`): links Jali writes leave them out, a link that
    *  carries one still sets it. */
   unlinked?: readonly string[];
+  /** Every pane is its own (`scratch`): two of the same params are two panes, in a link too. */
+  scratch?: true;
 }
 export type KindRegistry = Record<string, PaneKind>;
 export interface Rect {

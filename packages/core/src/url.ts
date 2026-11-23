@@ -226,8 +226,9 @@ export function readSearch(
       if (!read || !Object.hasOwn(kinds, read.kind) || !readable(kinds, read)) continue;
       // A link never sets a param only the app sets (`appOnly`): every ref read from it is without them.
       const r = readRef(kinds, read);
-      // Jali's one ref equality (`sameRef`): the same kind and params, in any key order.
-      if (investigation.some((x) => sameRef(x, r))) continue;
+      // Each object once (`sameRef`: the same kind and params, in any key order); a scratch kind's panes are each
+      // their own, so each opened one comes back.
+      if (!kinds[r.kind]!.scratch && investigation.some((x) => sameRef(x, r))) continue;
       investigation.push(r);
     }
     const page = q.get(k.page) || undefined;
