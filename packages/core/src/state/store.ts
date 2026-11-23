@@ -204,8 +204,6 @@ export interface UiState {
   announcement: { text: string; seq: number };
 }
 
-/** The URL sink: writes the state (read when the write happens) to the address bar in a history mode. */
-/** The share of the instance's state an address holds: what a URL writer reads. */
 /** `view` without the peek, which no address holds. */
 function withoutPeek(view: ViewState): ViewState {
   if (!view.peek) return view;
@@ -339,8 +337,8 @@ export interface JaliStore {
   /** Every word this instance shows or says: English with `createJali({ messages })` over it. */
   messages: Messages;
   storage: StoragePort;
-  /** Pane state and its storage, kept in step (state/pane-state.ts): what this instance changed is written over what
-   *  other tabs wrote, and what they write comes in. */
+  /** Pane state and its storage (state/pane-state.ts): read once at the start; what this instance changed is merged
+   *  into what other tabs wrote, and only its own records are ever removed. */
   paneStates: PaneStateSync;
   /** The address to share, from the URL port. */
   href(): string;

@@ -12,7 +12,12 @@ import {
   row,
   type JaliOptions,
 } from "@jali/core";
-import { definePageEngine as definePage, paneDomId } from "@jali/core/adapter";
+import {
+  definePageEngine as definePage,
+  paneDomId,
+  paneStateFor,
+  storeOf,
+} from "@jali/core/adapter";
 import { answerDiscard, reportUnsaved } from "@jali/core/testing";
 import { urlSync } from "../src/features/url-sync";
 import { withInput } from "../src/dom/input";
@@ -249,5 +254,60 @@ describe("11. a close the host's beforeClose made itself", () => {
     expect(jali.actions.close("b").ok).toBe(true);
     expect(jali.model().pane("b")).toBeUndefined();
     expect(heard).toEqual(["b"]);
+  });
+});
+
+describe("9. a tab never erases a draft another tab saved", () => {
+  const layout = row(pane(r(1), { id: "a" }), pane(r(2), { id: "b" }));
+  const mk = (storage: ReturnType<typeof memoryStorage>) =>
+    createJali({
+      panes: [record],
+      layout,
+      storage,
+      size: { width: 1600, height: 900 },
+      moveFocus: false,
+    });
+  const draftOf = (j: ReturnType<typeof mk>) =>
+    paneStateFor(storeOf(j).get(), storeOf(j).env.kinds, "b", r(2))?.draft;
+  const flush = (j: ReturnType<typeof mk>) => storeOf(j).paneStates.flush(storeOf(j).get());
+
+  it("B, opened after A saved, closes b for good: A's reload still has its draft", () => {
+    const storage = memoryStorage();
+    const A = mk(storage);
+    storeOf(A).actions.setPaneState("b", "draft", "my long reply");
+    flush(A);
+    const B = mk(storage);
+    expect(B.actions.close("b").ok).toBe(true);
+    expect(B.actions.remove("b").ok).toBe(true);
+    flush(B);
+    A.destroy();
+    expect(draftOf(mk(storage))).toBe("my long reply");
+  });
+
+  it("B wrote b's state before A saved over it: B closing b leaves A's record", () => {
+    const storage = memoryStorage();
+    const A = mk(storage),
+      B = mk(storage);
+    storeOf(B).actions.setPaneState("b", "scroll", 10);
+    flush(B);
+    storeOf(A).actions.setPaneState("b", "draft", "my long reply");
+    flush(A);
+    expect(B.actions.close("b").ok).toBe(true);
+    expect(B.actions.remove("b").ok).toBe(true);
+    flush(B);
+    A.destroy();
+    expect(draftOf(mk(storage))).toBe("my long reply");
+  });
+
+  it("this tab's own record of a pane gone for good is still removed", () => {
+    const storage = memoryStorage();
+    const A = mk(storage);
+    storeOf(A).actions.setPaneState("b", "draft", "x");
+    flush(A);
+    expect(A.actions.close("b").ok).toBe(true);
+    expect(A.actions.remove("b").ok).toBe(true);
+    flush(A);
+    A.destroy();
+    expect(draftOf(mk(storage))).toBeUndefined();
   });
 });

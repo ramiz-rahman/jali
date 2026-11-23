@@ -148,6 +148,8 @@ export interface PaneStateSync {
 export function paneStateSync(storage: StoragePort): PaneStateSync {
   /** The records this instance and storage agree on, as last read or written. */
   const synced = new Map<NodeId, PaneRecord>();
+  /** The records this instance wrote: the only ones it may remove (another tab's are never its to erase). */
+  const mine = new WeakSet<PaneRecord>();
   let initial: PaneRecords = {};
   const now = clock();
   const inStep = (s: HeldPaneState, id: NodeId, r?: PaneRecord) =>
@@ -173,12 +175,21 @@ export function paneStateSync(storage: StoragePort): PaneStateSync {
         const r = { of, values, at: now() };
         load()[id] = r;
         synced.set(id, r);
+        mine.add(r);
       }
       for (const [id, was] of synced)
         if (!Object.hasOwn(s.paneState, id)) {
           synced.delete(id);
-          // Gone here: removed from storage while it still belongs to the object this instance held.
-          if (own(load(), id)?.of === was.of) delete records![id];
+          // Gone here: removed from storage while it is still the record this instance wrote there (`at` alone is no
+          // revision: two tabs can write in one millisecond). One read from storage, or written over since by another
+          // tab, is that tab's.
+          const stored = own(load(), id);
+          if (
+            mine.has(was) &&
+            stored?.at === was.at &&
+            JSON.stringify([stored.of, stored.values]) === JSON.stringify([was.of, was.values])
+          )
+            delete records![id];
         }
       if (records) writeRecords(storage, records);
       return !!records;
