@@ -97,15 +97,6 @@ export function useBookRecord<T extends BookTable>(table: T, id: number | undefi
   );
 }
 
-/**
- * One row by id, read as a query (`where id`), whose cache entry is its own, rather than as a record, whose entry it
- * would share with the record pane showing the same row. The header reads the case this way and is never paused,
- * and a hidden pane doesn't hear the answers to a query it shares (FINDINGS.md, 5): a fetch the header made on a
- * shared entry would leave that pane loading until it is shown. A workaround, kept until the shared hooks change.
- */
-const useUnsharedRow = <T extends BookTable>(table: T, id: number | undefined) =>
-  useBookRows(table, id === undefined ? undefined : { where: { id }, limit: 1 })?.[0];
-
 /** How many rows match: one row fetched, the total read. */
 export function useCount(table: BookTable, where: Record<string, number>) {
   return useRows(table, { where, limit: 1 }, { paused: usePaused() }).data?.total;
@@ -184,10 +175,10 @@ export interface Assessed extends Partial<Case> {
  * they never disagree. An application the database doesn't have reads nothing more.
  */
 export function useAssessment(item: number): Assessed {
-  const app = useUnsharedRow("loan_applications", item);
-  const borrower = useUnsharedRow("borrowers", app?.borrower_id);
-  const property = useUnsharedRow("properties", app?.property_id);
-  const officer = useUnsharedRow("loan_officers", app?.loan_officer_id);
+  const app = useBookRecord("loan_applications", item);
+  const borrower = useBookRecord("borrowers", app?.borrower_id);
+  const property = useBookRecord("properties", app?.property_id);
+  const officer = useBookRecord("loan_officers", app?.loan_officer_id);
   const mortgages = useMortgagesOf(app?.borrower_id);
   const { byMortgage, all: payments } = usePayments(mortgages);
   const theCase = { borrower, property, mortgages, payments };

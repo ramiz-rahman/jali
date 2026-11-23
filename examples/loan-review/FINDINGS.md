@@ -48,7 +48,9 @@ As in Markets and Data Studio: the app has its own `.icon-btn` because `.jali-ic
 
 **Workaround.** The header reads its rows as queries (`where id`), whose cache entries are its own, not as records (`src/data.ts`: `useUnsharedRow`, used by `useAssessment`). Overview and the Application view read the same way, and their gates don't depend on those reads.
 
-**Suggested change.** Keep a paused query subscribed but not fetching, or let a paused pane's gate treat "paused, no data yet" as waiting rather than loading or gone. Not changed in the shared hooks yet: keeping hidden panes subscribed re-renders every hidden pane on every cache update in every example (Studio's and Markets' live panes among them), so it needs its own pass.
+**Suggested change.** Keep a paused query subscribed but not fetching, or let a paused pane's gate treat "paused, no data yet" as waiting rather than loading or gone.
+
+**Now.** A paused read does no work but keeps listening (23 Nov 2026): the shared hooks stop fetching while a pane is out of sight and stay subscribed to its cache entries, so an answer the header fetched reaches the hidden pane, which shows it when it comes back with no fetch. A hidden pane is notified only when its own entries change, and only Data Studio and Loan review read through these hooks. `useUnsharedRow` is gone; the header reads records like every pane (`src/data.ts`, `useAssessment`). Tested in `examples/shared/src/data/paused.test.tsx`.
 
 ## 6. A command has no keys
 
