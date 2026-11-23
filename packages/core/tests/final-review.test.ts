@@ -486,6 +486,14 @@ describe("C4. a page link's zoom on an opened pane maximises the same object whe
     expect(zoomed && fresh.model().pane(zoomed)?.ref).toEqual(r(10));
   });
 
+  it("a page link without a zoom, or with one that names no opened pane, maximises nothing", () => {
+    for (const zoom of ["", "&zoom=~x", "&zoom=~0", "&zoom=~9"])
+      expect(
+        make({}, `?page=review&item=1&tab=application&open=record~id=9${zoom}`).jali.get().view
+          .zoomed,
+      ).toBeUndefined();
+  });
+
   it("each opened pane in turn, maximised, is the one a reload maximises", () => {
     for (const target of [9, 10, 11]) {
       vi.useFakeTimers();

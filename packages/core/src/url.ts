@@ -237,7 +237,7 @@ export function readSearch(
     const investigation: ObjectRef[] = [];
     // The zoom's opened pane (`~N`, zoomText): followed through what the read leaves out, to its place among those read.
     const zoom = q.get(k.zoom);
-    let place = Number(zoom?.startsWith("~") && zoom.slice(1));
+    let place = (zoom?.startsWith("~") && Number(zoom.slice(1))) || 0;
     for (const text of tooLong ? [] : q.getAll(k.open)) {
       place--;
       // A hand-made link may name more than an instance writes: the first OPEN_MAX are read.
