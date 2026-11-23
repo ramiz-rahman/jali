@@ -1,6 +1,6 @@
 import type { Layout, LayoutContext, ObjectRef, OpenResult, PaneNode, ViewState } from "../types";
 import { clone, find, map, nodes, stackOf, newId, noFocus, panes, unzoom } from "../tree/tree";
-import { sameSize } from "../tree/size";
+import { sameSize, sizeFrom } from "../tree/size";
 import { tab } from "../tree/insert";
 import { overlayOf, rekey, withOverlay } from "../fit/overlay";
 import { resolve } from "../fit/resolve";
@@ -119,10 +119,7 @@ export function addTab(
   const targetNode = find(next.root, target)!;
   const ownStack = stackOf(next.root, target);
   tab(next, target, pane);
-  if (!ownStack) {
-    targetNode.size = { weight: 1 };
-    delete targetNode.userSized;
-  }
+  if (!ownStack) sizeFrom(targetNode, { size: { weight: 1 } });
   const nextView = focus(unzoom(view), pane.id, ctx);
   return { layout: fitLayout(next, nextView, ctx), view: nextView, opened: pane.id, mode: "tab" };
 }

@@ -1,4 +1,4 @@
-import type { Edge, Layout, PaneNode, SplitNode } from "../types";
+import type { Edge, Layout, PaneNode, SplitNode, StackNode } from "../types";
 import { balance, find, newId, parent, replace } from "./tree";
 const axisFor = (edge: Edge) => (edge === "left" || edge === "right" ? "row" : "column");
 const before = (edge: Edge) => edge === "left" || edge === "top";
@@ -46,16 +46,19 @@ export function beside(
     balance(split);
   }
 }
+/** Put `pane` into `stack` at `index`, kept within its section (pinned tabs first); `active` shows it. */
+export function intoStack(stack: StackNode, pane: PaneNode, index: number, active?: boolean): void {
+  const pinned = stack.children.filter((c) => c.pinned).length;
+  const at = Math.min(index, stack.children.length);
+  stack.children.splice(pane.pinned ? Math.min(at, pinned) : Math.max(at, pinned), 0, pane);
+  if (active) stack.active = pane.id;
+}
 export function tab(layout: Layout, targetId: string, pane: PaneNode): void {
   const target = find(layout.root, targetId)!;
   const container = parent(layout.root, targetId);
   if (container?.type === "stack") {
     // A pinned tab joins at the end of the group's pinned tabs; any other at the end.
-    const at = pane.pinned
-      ? container.children.filter((c) => c.pinned).length
-      : container.children.length;
-    container.children.splice(at, 0, pane);
-    container.active = pane.id;
+    intoStack(container, pane, Infinity, true);
     container.origin = "user";
   } else if (target.type === "pane") {
     layout.root = replace(layout.root, target.id, {

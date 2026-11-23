@@ -21,7 +21,7 @@ import {
   unzoom,
   noFocus,
 } from "../tree/tree";
-import { combined, sameSize } from "../tree/size";
+import { combined, sameSize, sizeFrom } from "../tree/size";
 import { focus } from "./focus";
 import { fitLayout } from "../fit/refit";
 import { resolve } from "../fit/resolve";
@@ -189,8 +189,7 @@ export function closeOthers(layout: Layout, view: ViewState, keep: string, ctx: 
   const root = clone(pane);
   delete root.linkedTo;
   delete root.follows;
-  root.size = { weight: 1 };
-  delete root.userSized;
+  sizeFrom(root, { size: { weight: 1 } });
   const next: Layout = { version: 1, root };
   const nextView = focus({ ...unzoom(view), focusHistory: [] }, keep, ctx);
   const others = panes(layout.root).flatMap((p) => (p.id === keep ? [] : [p.id]));

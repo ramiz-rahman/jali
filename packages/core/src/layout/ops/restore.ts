@@ -11,24 +11,16 @@ import type {
   NodeId,
   PaneNode,
   SlotLevel,
-  StackNode,
   UndoEntry,
   ViewState,
 } from "../types";
 import { clone, find, newId, panes, parent, replace, unzoom } from "../tree/tree";
-import { sameSize } from "../tree/size";
+import { sameSize, sizeFrom } from "../tree/size";
+import { intoStack } from "../tree/insert";
 import { sameRef } from "./ref";
-import { overlayOf, withOverlay } from "../fit/overlay";
+import { overlayOf, withOverlay, withTuck } from "../fit/overlay";
 import { fitLayout } from "../fit/refit";
 import { focus } from "./focus";
-
-/** Put `pane` into `stack` at `index`, kept within its section (pinned tabs first). */
-function intoStack(stack: StackNode, pane: PaneNode, index: number, active?: boolean): void {
-  const pinned = stack.children.filter((c) => c.pinned).length;
-  const at = Math.min(index, stack.children.length);
-  stack.children.splice(pane.pinned ? Math.min(at, pinned) : Math.max(at, pinned), 0, pane);
-  if (active) stack.active = pane.id;
-}
 
 /**
  * Put the panes of a close's undo entry back into `layout` as it is now (see the header), in the order they were
@@ -70,11 +62,8 @@ export function restoreClosed(
       ? newId(next.root, level.type === "stack" ? "stack" : "split")
       : level.parent;
     const mine = own[node.id];
-    if (mine?.parent === level.parent) {
-      node.size = clone(mine.size);
-      node.userSized = mine.userSized;
-      if (!mine.userSized) delete node.userSized;
-    } else wrapped.push(node.id);
+    if (mine?.parent === level.parent) sizeFrom(node, mine);
+    else wrapped.push(node.id);
     next.root = replace(
       next.root,
       node.id,
@@ -100,11 +89,7 @@ export function restoreClosed(
   };
   const place = (pane: PaneNode, slot: readonly SlotLevel[]) => {
     for (const level of slot) {
-      if (level.type !== "stack") {
-        pane.size = clone(level.size);
-        pane.userSized = level.userSized;
-        if (!level.userSized) delete pane.userSized;
-      }
+      if (level.type !== "stack") sizeFrom(pane, level);
       const container = at(level.parent);
       if (container?.type === level.type) {
         if (container.type === "stack") intoStack(container, pane, level.index, level.active);
@@ -139,8 +124,7 @@ export function restoreClosed(
       }
     }
     // At the end in reading order: the last child of a row at the root, else beside the whole layout.
-    pane.size = { weight: 1 };
-    delete pane.userSized;
+    sizeFrom(pane, { size: { weight: 1 } });
     if (next.root.type === "row") next.root.children.push(pane);
     else {
       const row = newId(next.root, "split");
@@ -192,9 +176,7 @@ export function restoreClosed(
   for (const s of entry.sizes) {
     const n = at(s.id);
     if (!n || back.includes(n.id) || !sameSize(n.size, s.after)) continue;
-    n.size = clone(s.size);
-    n.userSized = s.userSized;
-    if (!s.userSized) delete n.userSized;
+    sizeFrom(n, s);
     wrapped.splice(wrapped.indexOf(n.id) >>> 0, 1);
   }
   // A node wrapped with no size to return to shares its new split as a new neighbour would.
@@ -204,7 +186,7 @@ export function restoreClosed(
   }
   // Tucks the close ended, while both panes are here and the pane can be tucked (not a tab, not tucked already).
   const o = overlayOf(next);
-  const tucks = [...o.tucks];
+  let tucks = o.tucks;
   for (const t of entry.tucks) {
     const pane = id(t.pane),
       home = id(t.home);
@@ -214,9 +196,9 @@ export function restoreClosed(
       parent(next.root, pane)?.type !== "stack" &&
       !tucks.some((u) => [u.pane, u.home].includes(pane) || u.pane === home)
     )
-      tucks.push({ pane, home, seq: 1 + Math.max(0, ...tucks.map((u) => u.seq)) });
+      tucks = withTuck(tucks, pane, home);
   }
-  const restored = tucks.length > o.tucks.length ? withOverlay(next, { ...o, tucks }) : next;
+  const restored = tucks !== o.tucks ? withOverlay(next, { ...o, tucks }) : next;
   const first = back[0];
   const nextView = focusFirst && first ? focus(unzoom(view), first, ctx) : unzoom(view);
   return { layout: fitLayout(restored, nextView, ctx, { mode: "fold" }), view: nextView, ids };

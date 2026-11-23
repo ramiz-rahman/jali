@@ -11,7 +11,7 @@ import type {
   ViewState,
 } from "../types";
 import { find, isSplit, noFocus, panes, parent, unzoom } from "../tree/tree";
-import { overlayOf, withOverlay } from "../fit/overlay";
+import { overlayOf, withOverlay, withTuck } from "../fit/overlay";
 import { resolve } from "../fit/resolve";
 import { fitLayout } from "../fit/refit";
 import { focus } from "./focus";
@@ -134,13 +134,7 @@ export function tuck(
   const result = check(layout, pane, ctx);
   if (!result.ok) return result;
   const o = overlayOf(layout);
-  const next = withOverlay(layout, {
-    ...o,
-    tucks: [
-      ...o.tucks,
-      { pane, home: result.home, seq: 1 + Math.max(0, ...o.tucks.map((t) => t.seq)) },
-    ],
-  });
+  const next = withOverlay(layout, { ...o, tucks: withTuck(o.tucks, pane, result.home) });
   return {
     ok: true,
     layout: next,

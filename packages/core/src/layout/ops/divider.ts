@@ -1,6 +1,6 @@
 import type { Layout, LayoutContext, LayoutNode, ResolvedLayout } from "../types";
 import { clone, find, isSplit, panes, noFocus } from "../tree/tree";
-import { sameSize } from "../tree/size";
+import { sameSize, sizeFrom } from "../tree/size";
 import { resolve } from "../fit/resolve";
 import { extentIn } from "../geometry/extent";
 /**
@@ -96,8 +96,7 @@ export function resetDivider(layout: Layout, parentId: string, index: number, ct
         : [];
     for (const child of children) {
       changed ||= !!child.userSized || !sameSize(child.size, child.base ?? { weight: 1 });
-      child.size = clone(child.base ?? { weight: 1 });
-      delete child.userSized;
+      sizeFrom(child, { size: child.base ?? { weight: 1 } });
     }
     // Siblings that a drag only re-expressed as proportions (never sized by the person) return to their defaults too,
     // so the reset pair and its siblings share space in the same units again.

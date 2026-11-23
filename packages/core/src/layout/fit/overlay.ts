@@ -256,6 +256,12 @@ export function withOverlay(layout: Layout, overlay: import("../types").Overlay)
   if (o.tucks.length || o.folds.length || Object.keys(o.shown).length || o.hidden) next.overlay = o;
   return next;
 }
+/** `tucks` and `pane` tucked behind `home`, last in the order tucks were made. */
+export const withTuck = (
+  tucks: readonly import("../types").TuckRecord[],
+  pane: string,
+  home: string,
+) => [...tucks, { pane, home, seq: 1 + Math.max(0, ...tucks.map((t) => t.seq)) }];
 export const overlayOf = (layout: Layout): import("../types").Overlay =>
   layout.overlay ?? { tucks: [], folds: [], shown: {} };
 /** Panes the overlay has taken off screen. */
