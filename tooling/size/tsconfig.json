@@ -12,6 +12,6 @@
     "isolatedModules": true,
     "types": ["vite/client"]
   },
-  "include": ["*.ts", "*.tsx"],
+  "include": ["*.ts", "*.tsx", "peers/*.tsx"],
   "exclude": ["vite.config.ts", "src.config.ts"]
 }
