@@ -2310,3 +2310,20 @@ follows the action to its next consequence (packages/core/tests/final-review.tes
 - **Size** (gzipped KB, before → after the round's fixes and both confirming passes): minimal core 60.7 → 61.3, full
   67.1 → 67.8 and React 30.3 → 30.4, `+page` 62.6 → 63.3, headless 53.0 → 53.5. Every scenario stays inside the
   budgets set at the end of the round.
+
+## 23 Nov 2026 · Stabilisation: the last browser run
+
+Every Chrome suite and the React 18 check, run at f82e28fd after the final review's fixes, found two things. Neither
+came from those fixes.
+
+- **The same state writes the same address; only a write takes the replace slot** (20c70207). Trips' reload test
+  lost the place just clicked, every time on a quiet machine (it had passed under load, slowly enough to clear the
+  slot). `pageParams` deleted the layout param and set it again, so with `zoom` or `scroll` in the address the same
+  state alternated between two orders, and every action made a history write. And a replace that wrote nothing still
+  took the 250 ms slot, so a click's second action waited for it. Chrome takes a reload's address before `pagehide`
+  or `beforeunload`, so a flush on the way out can't save a write still waiting: it has to be written in time. The
+  instance's params now go and come back after the host's in one order, and only a write takes the slot. The flush on
+  the way out stays, for a closed tab and a phone switching apps.
+- **The React 18 check is Jali's packages** (e156e238). It typechecked the whole repository on React 18, so
+  own-icons' `use` (React 19, from step 7b's consumer for `Loading`) failed it. Jali's packages run on React 18.2 and
+  up; the examples are apps on this repository's React 19, and the docs already teach `use` for a pane that loads.

@@ -1,3 +1,22 @@
+# Migrating to the stabilisation's final review (23 Nov 2026)
+
+Behaviour an app can see changed where the final review's fixes made an action do what it says. No name changed.
+
+| Before                                                                                                                         | After                                                                                                                                    |
+| ------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `toggleZoom(b)` while `a` is maximised: restored everything                                                                    | maximises `b`                                                                                                                            |
+| New tab here (`newTab`) in a curated page's Single view: succeeded, with the tab hidden by Single view's chrome                | refused, as `addTab` is                                                                                                                  |
+| A close whose `beforeClose` closed those panes itself: `not-found`                                                             | `{ ok: true }`. Only a close; an `openHere` whose pane the host closed is still refused                                                  |
+| On a curated page, a close that leaves no view in front (Close other tabs, closing an opened pane whose tab hid the last view) | a view behind a tab is brought forward; failing that, refused `last-pane`. Close other tabs hides views, never closes them               |
+| A page link's `zoom` on an opened pane: its id, which named another record after a reload                                      | its place among the link's opened panes (`zoom=~2`); a view id starting with `~` is written `~~…`                                        |
+| Pane-state records: `{ of, values, at }`                                                                                       | also `by`, the instance that wrote it; an instance removes only its own. Records stored before carry none and are never removed by a tab |
+
+## `jali/adapter`
+
+| Before                                     | After             |
+| ------------------------------------------ | ----------------- |
+| `can(store, name)` with a name no step has | refused `invalid` |
+
 # Migrating to the stabilisation step 7a (23 Nov 2026): a designed read API
 
 `jali.get()` and `jali.model()` return Jali's own shapes, which hold only what an app reads; the engine's state, model,
