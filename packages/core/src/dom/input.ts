@@ -1,21 +1,20 @@
 /**
- * Where a change came from: the kind of input a person used, an agent, or the app's own code. Every event carries it
- * (`jali.on("close", ({ input }) => …)`), so an app can tell a person's close from its own, or from an agent's.
+ * Where a change came from: the kind of input a person used, or the app's own code. Every event carries it
+ * (`jali.on("close", ({ input }) => …)`), so an app can tell a person's close from its own.
  *
  * A person's input is read from the page: a capture listener on the document notes each pointer press and key press,
  * and the note lasts until the current task ends, so an action that runs in that event's handlers (Jali's or the
- * app's) sees it. Anything that runs later (after a timer or an await) reads as `code`. An agent's actions run inside
- * `withInput("agent", …)`, which wins over the page.
+ * app's) sees it. Anything that runs later (after a timer or an await) reads as `code`, except an action held for an
+ * answer: the store runs its end inside `withInput`, with the input of whoever asked.
  */
 
 /**
  * - `mouse`, `touch`, `pen`: a pointer of that kind.
  * - `keyboard`: a key.
  * - `virtual`: a click with no pointer or key behind it, as a screen reader sends.
- * - `agent`: an agent, when an adapter marks its actions.
  * - `code`: the app's own code, with no input of a person's behind it.
  */
-export type JaliInput = "mouse" | "touch" | "pen" | "keyboard" | "virtual" | "agent" | "code";
+export type JaliInput = "mouse" | "touch" | "pen" | "keyboard" | "virtual" | "code";
 
 let noted: JaliInput | undefined;
 let clear: ReturnType<typeof setTimeout> | undefined;
@@ -42,7 +41,7 @@ const onClick = (e: MouseEvent) => {
 /** The input behind a change starting now. */
 export const currentInput = (): JaliInput => held.at(-1) ?? noted ?? "code";
 
-/** Run `fn` with every change it makes marked as `input` (an adapter passes `agent`). */
+/** Run `fn` with every change it makes marked as `input`: a held action's end, as whoever asked for it. */
 export function withInput<T>(input: JaliInput, fn: () => T): T {
   held.push(input);
   try {

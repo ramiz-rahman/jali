@@ -1,7 +1,6 @@
 /** Every event says where its change came from (`input`): a person's pointer or key, an agent, or the app's code. */
 import { afterEach, describe, expect, it } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, row, type JaliInput } from "@jali/core";
-import { withInput } from "@jali/core/adapter";
 import { definePane } from "@jali/react";
 import { defaultFeatures, urlSync } from "./features";
 
@@ -66,12 +65,5 @@ describe("event input", () => {
     press("click", { detail: 0 });
     jali.actions.close(pane());
     expect(seen).toEqual(["keyboard", "virtual"]);
-  });
-
-  it("is agent inside withInput, whatever the page last saw", () => {
-    const { jali, seen, pane } = make();
-    press("pointerdown", { pointerType: "mouse" });
-    withInput("agent", () => jali.actions.close(pane()));
-    expect(seen).toEqual(["agent"]);
   });
 });

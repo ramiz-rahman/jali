@@ -971,7 +971,7 @@ interface JaliEvents<R extends ObjectRef = ObjectRef> { open; close; pin; focus;
 
 What `jali.on` (and `useJaliEvent` in React) tells you. `ref.kind` says which of the instance's kinds, and narrows `ref.params`. Each fires once per change, after the change is made, and never for the steps inside one action (a drag before it drops, the steps of a preset switch). In one change they come in this order: `close`, `open`, `pin`, `focus`, `layout`.
 
-Every event also carries `input`, where the change came from (`JaliInput`), so you can tell a person's close from your own code's, or from an agent's:
+Every event also carries `input`, where the change came from (`JaliInput`), so you can tell a person's close from your own code's:
 
 ```ts
 import { analytics } from "./analytics";
@@ -1016,10 +1016,10 @@ What every event in `JaliEvents` carries, beside its own fields.
 *type*, from `jali`
 
 ```ts
-type JaliInput = "mouse" | "touch" | "pen" | "keyboard" | "virtual" | "agent" | "code"
+type JaliInput = "mouse" | "touch" | "pen" | "keyboard" | "virtual" | "code"
 ```
 
-Where a change came from. `mouse`, `touch` and `pen` are a person's pointer; `keyboard` a key; `virtual` a click with no pointer or key behind it, as a screen reader sends; `agent` an agent, when an adapter marks its actions; `code` your own code, with nothing a person did behind it.
+Where a change came from. `mouse`, `touch` and `pen` are a person's pointer; `keyboard` a key; `virtual` a click with no pointer or key behind it, as a screen reader sends; `code` your own code, with nothing a person did behind it.
 
 A person's input is noted from the page while the instance is started (`<JaliRoot>` starts it), and lasts until the event that caused it is handled. A change your code makes after a timer or an `await` reads as `code`, even if a click started it. Use it for analytics and to tell changes apart, not to make Jali behave differently.
 

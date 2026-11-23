@@ -21,8 +21,8 @@ import type { Selection, UiState, JaliStore } from "./store";
 
 /** What every event carries. */
 export interface JaliEventBase {
-  /** Where the change came from: a person's `mouse`, `touch`, `pen`, `keyboard` or `virtual` click, an `agent`, or the
-   *  app's own `code`. For analytics, and to tell a person's change from your own; not to change what Jali does. */
+  /** Where the change came from: a person's `mouse`, `touch`, `pen`, `keyboard` or `virtual` click, or the app's own
+   *  `code`. For analytics, and to tell a person's change from your own; not to change what Jali does. */
   input: JaliInput;
 }
 

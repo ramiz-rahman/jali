@@ -43,13 +43,13 @@ The core reaches the outside world only through small interfaces, so an app or a
 
 ## The action path
 
-Every change, whoever asks (an app's `jali.actions.close(...)`, a key, a ⌘K command, a drag, a menu, an agent), takes the same path:
+Every change, whoever asks (an app's `jali.actions.close(...)`, a key, a ⌘K command, a drag, a menu), takes the same path:
 
 1. **`store.run(name, ...args)`.** One table of steps (`actions/index.ts`, `STEPS`) holds every action. Each step names the public action it is, so events and refusals say which one ran. The public `jali.actions`, `jali.page` and `jali.dialogs` are thin calls into `run`.
 2. **A pure step.** `(snapshot, ...args) => Outcome`. It reads the current state and model and returns what should change: a new layout and view, an announcement, a toast, a deferred step. Or it returns a **typed refusal**, `{ ok: false, reason }`, with one of a fixed set of reasons (`not-found`, `unavailable`, `not-allowed`, `unsaved`, `pending`, …). Nothing throws at a person's click.
 3. **Guards.** Before a change that would remove panes or replace what one shows, `beforeClose` and unsaved work are asked. A question holds the action and returns `reason: "pending"` or `"unsaved"` with `settled`, a promise of how it ended. The answer re-runs the change against the state as it is then.
 4. **`apply()`** (`state/apply.ts`) commits the outcome once: state, then the address, then the announcement, the toast and DOM focus, as a policy table says for the kind of change. An action is all or nothing: however many steps it is made of, a refusal part way puts back every change before it (nothing of them is announced, written to the address or told as an event), and a question holds the whole action. The one action whose parts are separate on purpose (following several details, where one with unsaved work stays) says so with `each`. Every operation declares what it may do to the geometry (`focus`, `swap`, `reshape`, `direct`), and in development `apply()` checks that a focus or swap change moved nothing.
-5. **Events.** Subscribers hear one notification per action. `jali.on` hears `close`, `open`, `pin`, `focus`, `layout` and `toast`, in that order, each carrying `input`: where the change came from (`mouse`, `touch`, `pen`, `keyboard`, `virtual`, `agent` or `code`).
+5. **Events.** Subscribers hear one notification per action. `jali.on` hears `close`, `open`, `pin`, `focus`, `layout` and `toast`, in that order, each carrying `input`: where the change came from (`mouse`, `touch`, `pen`, `keyboard`, `virtual` or `code`).
 
 The layout itself is a tree of rows, columns and stacks whose leaves are panes. What isn't shown in its place (folded for room, tucked by the person, hidden by a curated page) is an **overlay** beside the tree, so the tree never changes when a pane folds, and a pane always goes back to its exact slot. Fitting is a pure function from the tree, the overlay and the room to the boxes on screen.
 
