@@ -26,7 +26,9 @@ test.describe("A long drag", () => {
     await app.open();
     // Let writes from opening settle (a replace waits for its 250 ms slot), then count from zero.
     await page.waitForTimeout(500);
-    await page.evaluate(() => ((window as unknown as { historyWrites: string[] }).historyWrites = []));
+    await page.evaluate(
+      () => ((window as unknown as { historyWrites: string[] }).historyWrites = []),
+    );
     const writes = () =>
       page.evaluate(() => (window as unknown as { historyWrites: string[] }).historyWrites.length);
     const before = page.url();
