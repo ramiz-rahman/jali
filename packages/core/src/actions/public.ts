@@ -82,11 +82,12 @@ export interface JaliActions<R extends ObjectRef = ObjectRef> {
   closeOthers(pane?: PaneTarget<R>): ActionResult;
   /** Close the other tabs of `pane`'s group, or the tabs after it in reading order: one change, one Undo. */
   closeTabs(pane: PaneTarget<R>, which: "others" | "after"): ActionResult;
-  /** Undo the last close or tuck. */
+  /** Undo the last close or tuck, in the layout as it is now: closed panes go back to their places, and everything
+   *  done since stays. */
   undo(): ActionResult;
   /** Remove a pane whose object the app closed elsewhere: quietly, with no undo, and without asking (`beforeClose`
    *  and the unsaved-work question are not asked). The last pane becomes the launcher; without one it stays
-   *  (`"last-pane"`). */
+   *  (`"last-pane"`). An object closed but still in Undo leaves Undo instead. */
   remove(pane: PaneTarget<R>): ActionResult;
 
   // ---------- tuck, tabs and moving ----------

@@ -115,24 +115,24 @@ Opens `ref` as a new tab of `target`'s tab group (a new group when `target` has 
 *function*, from `jali`
 
 ```ts
-layout.close(layout, view, target, ctx): { layout: Layout; view: ViewState; undo: UndoEntry }
+layout.close(layout, view, target, ctx): { layout: Layout; view: ViewState; undo?: UndoEntry }
 ```
 
 Removes a pane. Its space goes to the pane it was opened from when that is a sibling, else the next sibling, else the previous. Links to it are dropped. When it had focus, focus goes to the most recently focused pane still open. The last pane is never closed: the same layout comes back.
 
-**Returns** `{ layout; view; undo }`: `undo` holds the layout and view before, for the instance's undo.
+**Returns** `{ layout; view; undo? }`: `undo`, for the instance's undo, records the operation, not the layout before: the closed pane as it was, where it was (its container, position and size, and its neighbours), and the sizes the close changed. Absent when nothing closed.
 
 ### layout.closeOthers
 
 *function*, from `jali`
 
 ```ts
-layout.closeOthers(layout, view, keep, ctx): { layout; view; undo }
+layout.closeOthers(layout, view, keep, ctx): { layout; view; undo? }
 ```
 
 Leaves only `keep`, unlinked and at full size, focused, with an empty focus history.
 
-**Returns** `{ layout; view; undo }`:
+**Returns** `{ layout; view; undo? }`: `undo` records every pane closed, in one entry, as `layout.close` does.
 
 ### layout.swap
 

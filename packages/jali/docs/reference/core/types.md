@@ -1741,9 +1741,9 @@ A pane that is not there gives `reason: "not-found"`. What a refusal reads out t
 
 - **`actions.closeOthers`**, `closeOthers(pane?: PaneTarget)`: Close every other pane. In a curated page, `jali.page.back()`.
 
-- **`actions.undo`**, `undo()`: Undo the last close, close others or tuck. `"nothing-to-do"` when there is none.
+- **`actions.undo`**, `undo()`: Undo the last close, close others or tuck. It reverses that change in the layout as it is now: each closed pane goes back to its place (the same parent, position, size and tab group, with its pane state), else beside the neighbour it had, else at the end, and everything done since stays. A closed pane whose object is open again, or that `remove` took away, is not brought back. `"nothing-to-do"` when there is none.
 
-- **`actions.remove`**, `remove(pane: PaneTarget)`: Take away a pane whose object your app closed elsewhere. It is quiet: no Undo, no toast, nothing read out, and nothing asked (`beforeClose` and "Discard unsaved changes?" are skipped, since the object is gone). The address is replaced, so Back does not bring it back. The last pane becomes the launcher; without a launcher it stays (`"last-pane"`), so show something else in it with `openHere`. A curated page's views are refused (`"unavailable"`).
+- **`actions.remove`**, `remove(pane: PaneTarget)`: Take away a pane whose object your app closed elsewhere. It is quiet: no Undo, no toast, nothing read out, and nothing asked (`beforeClose` and "Discard unsaved changes?" are skipped, since the object is gone). The address is replaced, so Back does not bring it back. The last pane becomes the launcher; without a launcher it stays (`"last-pane"`), so show something else in it with `openHere`. A curated page's views are refused (`"unavailable"`). An object that is closed but could still come back with Undo (named by its pane's id or by the object) is taken out of Undo instead.
 
 - **`actions.tuck`**, `tuck(pane?: PaneTarget)`: Tuck a pane into its neighbour. Without `pane`, the focused pane or the one focused last.
 
@@ -1799,7 +1799,7 @@ interface JaliPage<I extends ItemId = ItemId>
 
 - **`page.showItem`**, `showItem(item: I)`: Show another item; the previous item's opened panes close.
 
-- **`page.back`**, `back()`: Close every opened pane, with Undo.
+- **`page.back`**, `back()`: Close every opened pane, with Undo. The views keep their sizes and what was done to them meanwhile; Undo reopens only the opened panes.
 
 - **`page.reset`**, `reset()`: Split view back to the design; opened panes stay.
 

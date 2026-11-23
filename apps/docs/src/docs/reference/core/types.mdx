@@ -1027,8 +1027,8 @@ A pane that is not there gives `reason: "not-found"`. What a refusal reads out t
 <Members title="Close">
 <Member name="actions.close" signature="close(pane?: PaneTarget)">Close a pane, with an Undo toast. The last pane stays (`"last-pane"`). A curated page's view goes back to the tabs.</Member>
 <Member name="actions.closeOthers" signature="closeOthers(pane?: PaneTarget)">Close every other pane. In a curated page, `jali.page.back()`.</Member>
-<Member name="actions.undo" signature="undo()">Undo the last close, close others or tuck. `"nothing-to-do"` when there is none.</Member>
-<Member name="actions.remove" signature="remove(pane: PaneTarget)">Take away a pane whose object your app closed elsewhere. It is quiet: no Undo, no toast, nothing read out, and nothing asked (`beforeClose` and "Discard unsaved changes?" are skipped, since the object is gone). The address is replaced, so Back does not bring it back. The last pane becomes the launcher; without a launcher it stays (`"last-pane"`), so show something else in it with `openHere`. A curated page's views are refused (`"unavailable"`).</Member>
+<Member name="actions.undo" signature="undo()">Undo the last close, close others or tuck. It reverses that change in the layout as it is now: each closed pane goes back to its place (the same parent, position, size and tab group, with its pane state), else beside the neighbour it had, else at the end, and everything done since stays. A closed pane whose object is open again, or that `remove` took away, is not brought back. `"nothing-to-do"` when there is none.</Member>
+<Member name="actions.remove" signature="remove(pane: PaneTarget)">Take away a pane whose object your app closed elsewhere. It is quiet: no Undo, no toast, nothing read out, and nothing asked (`beforeClose` and "Discard unsaved changes?" are skipped, since the object is gone). The address is replaced, so Back does not bring it back. The last pane becomes the launcher; without a launcher it stays (`"last-pane"`), so show something else in it with `openHere`. A curated page's views are refused (`"unavailable"`). An object that is closed but could still come back with Undo (named by its pane's id or by the object) is taken out of Undo instead.</Member>
 </Members>
 
 <Members title="Tuck, move and tabs">
@@ -1070,7 +1070,7 @@ What drags, keys and panes report (dividers, drops, focus keys, `useUnsaved`, `u
 <Member name="page.setMode" signature="setMode(mode: ViewMode)">Single view or Split view.</Member>
 <Member name="page.showView" signature="showView(view: string)">What a click on a page tab does. It never reshapes: Single view swaps the view; Split view focuses it, chooses its tab, or puts it in place of the view you're in.</Member>
 <Member name="page.showItem" signature="showItem(item: I)">Show another item; the previous item's opened panes close.</Member>
-<Member name="page.back" signature="back()">Close every opened pane, with Undo.</Member>
+<Member name="page.back" signature="back()">Close every opened pane, with Undo. The views keep their sizes and what was done to them meanwhile; Undo reopens only the opened panes.</Member>
 <Member name="page.reset" signature="reset()">Split view back to the design; opened panes stay.</Member>
 </Members>
 
