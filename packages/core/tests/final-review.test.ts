@@ -607,3 +607,69 @@ describe("C8. every question an action asks keeps the input that asked for it", 
     expect(inputs).toEqual(["keyboard", "keyboard"]);
   });
 });
+
+// ---------- Codex's second confirming pass (at 6bdacf84): each rule held by construction ----------
+
+const VIEWS = ["application", "borrower", "history"];
+const viewShown = (jali: ReturnType<typeof make>["jali"]) =>
+  jali.model().panes.some((p) => VIEWS.includes(p.id) && p.where === "shown");
+
+describe("D1. every close on a page leaves a view shown", () => {
+  it("Codex's sequence: closing an opened pane never leaves only opened panes in front", () => {
+    const { jali } = split();
+    expect(jali.actions.openBeside("application", r(9)).ok).toBe(true);
+    const x = jali.model().paneOf(r(9))!.id;
+    expect(jali.actions.openBeside(x, r(10)).ok).toBe(true);
+    const y = jali.model().paneOf(r(10))!.id;
+    expect(jali.actions.close("history").ok).toBe(true);
+    expect(jali.actions.mergeInto("application", x).ok).toBe(true);
+    expect(jali.actions.mergeInto("borrower", x).ok).toBe(true);
+    expect(jali.actions.setPinned("borrower", true).ok).toBe(true);
+    jali.actions.closeTabs(x, "others");
+    expect(viewShown(jali)).toBe(true);
+    jali.actions.close(y);
+    expect(viewShown(jali)).toBe(true);
+    expect(jali.page!.showView("history").ok).toBe(true);
+  });
+
+  it("random page sequences: after every close of any shape, a view is shown", () => {
+    const problems: string[] = [];
+    for (let seed = 1; seed <= 150 && problems.length < 3; seed++) {
+      let n = seed;
+      const rand = () => (n = (n * 1103515245 + 12345) % 2 ** 31) / 2 ** 31;
+      const { jali } = split();
+      const log: string[] = [];
+      for (let i = 0; i < 30; i++) {
+        const ids = jali.model().panes.map((p) => p.id);
+        const p = ids[Math.floor(rand() * ids.length)]!,
+          q = ids[Math.floor(rand() * ids.length)]!,
+          v = VIEWS[Math.floor(rand() * 3)]!;
+        const a = jali.actions;
+        const steps: [string, boolean, () => { ok: boolean }][] = [
+          ["openBeside", false, () => a.openBeside(p, r(9 + Math.floor(rand() * 6)))],
+          ["addTab", false, () => a.addTab(p, r(20 + Math.floor(rand() * 6)))],
+          ["mergeInto", false, () => a.mergeInto(p, q)],
+          ["setPinned", false, () => a.setPinned(p, rand() < 0.5)],
+          ["focus", false, () => a.focus(p)],
+          ["showView", false, () => jali.page!.showView(v)],
+          ["close", true, () => a.close(p)],
+          ["closeOthers", true, () => a.closeOthers(p)],
+          ["closeTabs others", true, () => a.closeTabs(p, "others")],
+          ["closeTabs after", true, () => a.closeTabs(p, "after")],
+          ["back", true, () => jali.page!.back()],
+          ["undo", false, () => a.undo()],
+        ];
+        const [name, isClose, run] = steps[Math.floor(rand() * steps.length)]!;
+        const res = run();
+        const arg = name === "showView" ? v : name === "mergeInto" ? `${p}, ${q}` : p;
+        log.push(`${name}(${arg}) ${res.ok ? "ok" : "no"}`);
+        if (isClose && res.ok && !viewShown(jali)) {
+          problems.push(`seed ${seed}: no view shown after ${log.slice(-8).join(" · ")}`);
+          break;
+        }
+      }
+      jali.destroy();
+    }
+    expect(problems.join("\n")).toBe("");
+  });
+});

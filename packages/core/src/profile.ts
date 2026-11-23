@@ -124,12 +124,13 @@ export interface PageEngine {
   back: Step<[]>;
   reset: Step<[]>;
   /** Closing `ids` on the page, for every close (`close`, Close other tabs, Back): views go back to the page tabs and
-   *  never close; the other panes close, as one change with one undo entry. */
+   *  never close; the other panes close, as one change with one undo entry; `focus` is where focus ends. A view is
+   *  always left in front. */
   closing(
     x: Snapshot,
     ids: readonly NodeId[],
     kind: "close" | "closeOthers",
-    keepSizes?: boolean,
+    o?: { keepSizes?: boolean; focus?: NodeId },
   ): PageClosing;
   /** How a link from `source` opens while the page is open: `openBeside` asks, and does what it says. */
   opening(x: Snapshot, source: NodeId, ref: ObjectRef, edge?: Edge): PageOpening;

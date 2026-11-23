@@ -11,7 +11,7 @@ import { UNSAFE_IDS } from "../layout/codec/validate";
 import * as core from "../layout/engine";
 import { endSide, treeSide } from "../layout/geometry/direction";
 import { toLayout } from "../layout/build";
-import { zoomable } from "../layout/fit/overlay";
+import { hiddenOf, zoomable } from "../layout/fit/overlay";
 import type {
   Edge,
   Layout,
@@ -653,14 +653,14 @@ const back: Step<[]> = {
     const name = x.env.profile?.name ?? "page";
     const opened = investigation(x.m.panes).map((p) => p.id);
     // The views keep their sizes, a resize made meanwhile included: none takes an opened pane's room as its own.
-    const plan = closing(x, opened, "closeOthers", true);
+    const plan = closing(x, opened, "closeOthers", {
+      keepSizes: true,
+      focus: x.m.pane(x.s.view.focused)?.role ? undefined : (currentRole(x) ?? r.tab),
+    });
     if ("op" in plan) return plan;
-    const view = x.m.pane(x.s.view.focused)?.role
-      ? plan.view
-      : core.focus(plan.view, currentRole(x) ?? r.tab, x.ctx);
     return closed(
       x,
-      { ...plan, view },
+      plan,
       "close",
       say(x).backToPage(name, opened.length),
       messagesOf(x).toasts.backToPage(name, opened.length),
@@ -670,19 +670,22 @@ const back: Step<[]> = {
 
 /**
  * Closing panes on the page, for every close (`close`, Close other tabs, Back): its views go back to the page tabs,
- * never closed for good, and the other panes close, as one change with one undo entry. One view stays on screen,
- * whatever opened panes are beside it; Single view has no layout to take a view out of. Both are found before anything
- * changes, so a check that asks gets the refusal the action would give.
+ * never closed for good, and the other panes close, as one change with one undo entry. Single view has no layout to
+ * take a view out of. The page's rule for every close is checked here, on what the close leaves, with its tabs and
+ * focus (`focus`) as they end: a view in front. A view behind another pane's tab is brought to the front, and focused;
+ * with none to bring, the close is refused. All of it before anything changes, so a check that asks gets the refusal
+ * the action would give.
  */
 function closing(
   x: Snapshot,
   ids: readonly NodeId[],
   kind: "close" | "closeOthers",
-  keepSizes?: boolean,
+  o: { keepSizes?: boolean; focus?: NodeId } = {},
 ): PageClosing {
   const { m, ctx } = x;
   const views = ids.filter((id) => m.pane(id)?.role);
   const names = views.map((id) => label(x.env.profile!, m.pane(id)!.role));
+  const last = () => refuse("last-pane", names[0] && say(x).lastView(names[0]));
   if (views.length && x.s.page?.mode === "single")
     return refuse("single-view", say(x).singleNoLayout);
   // Views first: what closes is recorded where it is once they are out, so Undo never puts it beside a hidden view.
@@ -690,19 +693,25 @@ function closing(
     view = unzoomed(x.s.view);
   for (const id of views) {
     const r = core.hide(layout, view, id, ctx);
-    if (!r.ok)
-      return r.reason === "last"
-        ? refuse("last-pane", say(x).lastView(names[0]!))
-        : refuse("blocked");
+    if (!r.ok) return r.reason === "last" ? last() : refuse("blocked");
     ({ layout, view } = r);
   }
   const others = ids.filter((id) => !views.includes(id));
-  const { undo, ...r } = closeMany(layout, view, others, ctx, kind, { keepSizes });
+  const { undo, ...r } = closeMany(layout, view, others, ctx, kind, o);
   ({ layout, view } = r);
-  // Checked on what the close leaves: a view on screen, in front (one behind another pane's tab doesn't count).
+  if (o.focus) view = core.focus(view, o.focus, ctx);
   const isView = (id: NodeId) => (core.tree.find(layout.root, id) as PaneNode | undefined)?.role;
-  if (views.length && !core.resolve(layout, view, ctx).panes.some((b) => !b.hidden && isView(b.id)))
-    return refuse("last-pane", say(x).lastView(names[0]!));
+  const inFront = () =>
+    core.resolve(layout, view, ctx).panes.some((b) => !b.hidden && isView(b.id));
+  if (!inFront()) {
+    const behind = core.tree
+      .panes(layout.root)
+      .find((p) => p.role && !hiddenOf(layout).includes(p.id));
+    if (!behind) return last();
+    layout = core.reveal(layout, behind.id, ctx);
+    view = core.focus(view, behind.id, ctx);
+    if (!inFront()) return last();
+  }
   return {
     layout,
     view,

@@ -20,14 +20,21 @@ const pageOf = (x: Snapshot) => (x.s.page ? x.env.page : undefined);
 
 /** Closing `ids` (or the one pane of a `"close"`), planned: on a curated page by the page (`closing`), which sends its
  *  views back to the page tabs instead of closing them. */
-function plan(x: Snapshot, ids: NodeId[], kind: "close" | "closeOthers"): PageClosing {
+function plan(
+  x: Snapshot,
+  ids: NodeId[],
+  kind: "close" | "closeOthers",
+  focus?: NodeId,
+): PageClosing {
   const { s, ctx } = x;
   const page = pageOf(x);
-  if (page) return page.closing(x, ids, kind);
+  if (page) return page.closing(x, ids, kind, { focus });
   const view = unzoomed(s.view);
-  return kind === "close"
-    ? core.close(s.layout, view, ids[0]!, ctx)
-    : closeMany(s.layout, view, ids, ctx, kind);
+  const r =
+    kind === "close"
+      ? core.close(s.layout, view, ids[0]!, ctx)
+      : closeMany(s.layout, view, ids, ctx, kind);
+  return focus ? { ...r, view: core.focus(r.view, focus, ctx) } : r;
 }
 
 /** A close as a change: what closed has its toast and undo entry; views a page sent back to its tabs are said too (no
@@ -165,15 +172,15 @@ export const closeTabs: Step<[NodeId, "others" | "after"]> = {
   check(x, id, which) {
     const closing = tabsToClose(x, id, which);
     if (!closing.length) return refuse("nothing-to-do", say(x).noTabsToClose);
-    return pageOf(x) ? refusal(plan(x, closing, "closeOthers")) : undefined;
+    return pageOf(x) ? refusal(plan(x, closing, "closeOthers", id)) : undefined;
   },
   run(x, id, which) {
-    const r = plan(x, tabsToClose(x, id, which), "closeOthers");
+    const r = plan(x, tabsToClose(x, id, which), "closeOthers", id);
     if ("op" in r) return r;
     const n = r.undo?.closed.length ?? 0;
     return closed(
       x,
-      { ...r, view: core.focus(r.view, id, x.ctx) },
+      r,
       "closeOthers",
       say(x).tabsClosed(n),
       messagesOf(x).toasts.tabsClosed(n),
