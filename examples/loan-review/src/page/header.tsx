@@ -23,7 +23,7 @@ import {
   term,
   usd,
 } from "../model/words";
-import { useChrome, useChromeKeys } from "./chrome";
+import { useChrome } from "./chrome";
 import { CollapseToggle } from "./collapse-toggle";
 import { QueueSheet } from "./queue/sheet";
 
@@ -40,7 +40,6 @@ interface Figure {
 export function ApplicationHeader({ item }: { item: number }) {
   const { app, borrower, property, assessment } = useAssessment(item);
   const collapsed = useChrome().header;
-  useChromeKeys();
   const name = borrower ? household(borrower.name, borrower.co_borrower) : "…";
   const figures: Figure[] = [
     ...(app

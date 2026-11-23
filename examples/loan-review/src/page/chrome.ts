@@ -3,9 +3,10 @@
  * strip and to one line, so the views take the rest. The reader's own choice, like Single or Split: it stays in this
  * browser (a convenience; without storage it simply starts open) and never goes in a link.
  *
- * ⌘B collapses the queue, ⌘. both at once (focus); ⌘K has all three. Each has a button where it collapses.
+ * ⌘B collapses the queue, ⌘. both at once (focus); ⌘K has all three. Each has a button where it collapses. The keys
+ * are the commands' own (`keys`), so Jali binds them, prints them in ⌘K and the tooltips, and lets the app rebind them.
  */
-import { useEffect, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 import type { Command } from "jali";
 
 export interface Chrome {
@@ -56,34 +57,20 @@ export const useChrome = () =>
     () => OPEN,
   );
 
-/** The keys, in the tooltips as on the keyboard. */
-const MAC = typeof navigator !== "undefined" && /Mac|iP(hone|ad)/.test(navigator.platform);
-export const KEYS = { queue: MAC ? "⌘B" : "Ctrl+B", focus: MAC ? "⌘." : "Ctrl+." } as const;
+/** The commands' ids, for the tooltips that print their keys (`useJaliShortcut`). */
+export const QUEUE_COMMAND = "loan-review.queue";
 
-/** ⌘B and ⌘.: with a modifier, so they never take a key someone is typing (WCAG 2.1.4). Mounted once, by the header. */
-export function useChromeKeys() {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (!(MAC ? e.metaKey : e.ctrlKey) || e.altKey || e.shiftKey || e.repeat) return;
-      if (e.key === "b" || e.key === "B") {
-        // Below 768px the queue is a sheet, with nothing to collapse.
-        if (!matchMedia("(min-width: 768px)").matches) return;
-        toggleQueue();
-      } else if (e.key === ".") toggleFocus();
-      else return;
-      e.preventDefault();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
-}
+/** Below 768px the queue is a sheet, with nothing to collapse. */
+const queueIsSheet = () => !matchMedia("(min-width: 768px)").matches;
 
-/** The same, in ⌘K. */
+/** In ⌘K, with their keys: with a modifier, so they never take a key someone is typing (WCAG 2.1.4). */
 export const chromeCommands: Command[] = [
   {
-    id: "loan-review.queue",
-    title: `Collapse or expand the queue (${KEYS.queue})`,
+    id: QUEUE_COMMAND,
+    title: "Collapse or expand the queue",
     group: "Loan review",
+    keys: "Mod+B",
+    disabled: () => queueIsSheet() && "On a narrow window the queue is a sheet",
     run: toggleQueue,
   },
   {
@@ -94,8 +81,9 @@ export const chromeCommands: Command[] = [
   },
   {
     id: "loan-review.focus",
-    title: `Focus on the review: collapse the queue and header (${KEYS.focus})`,
+    title: "Focus on the review: collapse the queue and header",
     group: "Loan review",
+    keys: "Mod+.",
     run: toggleFocus,
   },
 ];

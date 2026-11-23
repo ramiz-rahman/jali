@@ -1,20 +1,20 @@
 /** The button that collapses the queue or the header, and expands it again: one for both, so they read the same. */
 import { CaretDownIcon, CaretUpIcon, SidebarSimpleIcon } from "@phosphor-icons/react";
-import { IconButton } from "jali/react";
-import { KEYS, toggleHeader, toggleQueue } from "./chrome";
+import { IconButton, useJaliShortcut } from "jali/react";
+import { QUEUE_COMMAND, toggleHeader, toggleQueue } from "./chrome";
 
 const PARTS = {
   header: {
     noun: "the header",
     toggle: toggleHeader,
-    hint: "",
+    command: undefined,
     open: <CaretUpIcon size={14} weight="bold" aria-hidden />,
     collapsed: <CaretDownIcon size={14} weight="bold" aria-hidden />,
   },
   queue: {
     noun: "the queue",
     toggle: toggleQueue,
-    hint: ` · ${KEYS.queue}`,
+    command: QUEUE_COMMAND,
     open: <SidebarSimpleIcon size={16} aria-hidden />,
     collapsed: <SidebarSimpleIcon size={16} aria-hidden />,
   },
@@ -29,7 +29,9 @@ export function CollapseToggle({
   collapsed: boolean;
   className: string;
 }) {
-  const { noun, toggle, hint, open, collapsed: icon } = PARTS[part];
+  const { noun, toggle, command, open, collapsed: icon } = PARTS[part];
+  const keys = useJaliShortcut(command ?? "");
+  const hint = keys && ` · ${keys}`;
   const verb = collapsed ? "Expand" : "Collapse";
   return (
     <IconButton

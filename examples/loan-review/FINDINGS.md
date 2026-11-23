@@ -61,3 +61,5 @@ As in Markets and Data Studio: the app has its own `.icon-btn` because `.jali-ic
 **Workaround.** `chrome.ts` hand-rolls a `keydown` handler on the window (`useChromeKeys`, mounted by the header), checks the width itself, prints the keys per platform itself (`KEYS`) and writes them into the commands' titles.
 
 **Suggested change.** Give `Command` optional `keys` (merged into the keymap, which the app can still rebind) and a check that says when it can't run, so the palette greys it out and prints its key, and the app keeps no handler of its own.
+
+**Now.** `Command` has `keys` and `disabled` (23 Nov 2026). The queue's command says `keys: "Mod+B"` and is disabled below 768px with its reason; focus says `keys: "Mod+."`. `useChromeKeys` and `KEYS` are gone: Jali binds the keys, ⌘K prints them, and the collapse button's tooltip reads its key with `useJaliShortcut`. Tested in `e2e/chrome.spec.ts`.
