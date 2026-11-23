@@ -377,6 +377,22 @@ describe("the writer", () => {
     expect(new URLSearchParams(port.search()).get("zoom")).toBe("b");
   });
 
+  it("a replace that changes nothing leaves its slot free, so the change after it is written at once", () => {
+    vi.useFakeTimers();
+    const { port, writes } = history();
+    const sync = createUrlSync({ location: port, storage: memoryStorage() });
+    sync.write(state("a"), "replace");
+    vi.advanceTimersByTime(1000);
+    // An action the address doesn't hold (a focus change): nothing is written…
+    sync.write(state("a"), "replace");
+    expect(writes).toEqual(["replace"]);
+    // …and the one right after it (a click's second action) is written now, not 250 ms on, so a reload at once
+    // reopens it: Chrome takes a reload's address before the page hears it is leaving.
+    sync.write(state("b"), "replace");
+    expect(writes).toEqual(["replace", "replace"]);
+    expect(new URLSearchParams(port.search()).get("zoom")).toBe("b");
+  });
+
   it("a push writes the replace still waiting first, so Back returns to it", () => {
     vi.useFakeTimers();
     const { port, writes } = history();

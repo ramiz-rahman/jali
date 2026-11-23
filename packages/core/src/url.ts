@@ -168,19 +168,19 @@ interface PageLink {
 /** The search string for `s`, keeping every param of `search` that is not the instance's. */
 export function buildSearch(search: string, s: UrlState, k: UrlKeys = urlKeys()): string {
   const q = new URLSearchParams(search);
+  // The instance's params all go, then come back after the host's in one order, so the same state always writes the
+  // same address: a write that changes nothing makes no history entry. A peek is never in the address; an older
+  // link's goes at the first write.
+  for (const key of [k.zoom, k.scroll, k.peek]) q.delete(key);
   pageParams(q, s, k);
   if (!s.page) q.set(k.layout, core.encode(s.layout));
   // The preset the layout came from, so a link marks the right one and Reset rebuilds it. Only beside a layout.
   if (!s.page && s.presetId) q.set(k.preset, s.presetId);
   if (s.view.zoomed) q.set(k.zoom, zoomText(s, s.view.zoomed));
-  else q.delete(k.zoom);
-  // A peek is never in the address; an older link's goes at the first write.
-  q.delete(k.peek);
   // Rows that scroll sideways, where each came to rest: `week:732`, comma-separated. None at their start.
   const scroll = Object.entries(s.view.scroll ?? {}).filter(([, v]) => Math.round(v) > 0);
   if (!s.page && scroll.length)
     q.set(k.scroll, scroll.map(([id, v]) => `${id}:${Math.round(v)}`).join(","));
-  else q.delete(k.scroll);
   const text = q.toString();
   return text ? `?${text}` : "";
 }
@@ -487,20 +487,23 @@ export function createUrlSync({
   };
   /** The address with this instance's params from `s`, keeping everyone else's. */
   const search = (s: UrlState) => buildSearch(location.search(), s, keys);
+  /** Write `next` unless the address says it already, and say whether it wrote. */
   const go = (next: string, mode: "push" | "replace") => {
-    if (next !== location.search()) location.navigate(next, mode);
+    if (next === location.search()) return false;
+    location.navigate(next, mode);
+    return true;
   };
   const stopTimer = () => {
     clearTimeout(timer);
     timer = undefined;
   };
-  /** Write the replace waiting, now. */
+  /** Write the replace waiting, now. Only a write takes the slot: one that changes nothing (an action the address
+   *  doesn't hold) leaves the next its turn at once, so a reload right after still reopens what is on screen (Chrome
+   *  takes a reload's address before the page hears it is leaving). */
   const flush = () => {
     const s = waiting;
     drop();
-    if (!s) return;
-    replaced = Date.now();
-    go(search(s), "replace");
+    if (s && go(search(s), "replace")) replaced = Date.now();
   };
   const schedule = (ms: number) => {
     clearTimeout(timer);
@@ -521,7 +524,8 @@ export function createUrlSync({
       if (!s) return;
       if (mode === "push") {
         flush();
-        return go(search(s), "push");
+        go(search(s), "push");
+        return;
       }
       // Each write is the state as it was asked for: a push after it can't slip its own state into the entry it
       // leaves. A debounced one (each move of a resize asks again) waits for the moves to rest, and for its slot.
