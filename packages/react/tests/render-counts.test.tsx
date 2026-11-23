@@ -406,7 +406,13 @@ describe("render counts", () => {
     const seen: unknown[] = [];
     function Probe() {
       const jali = useJali();
-      seen.push(useSyncExternalStore(jali.subscribe, () => listCommands(jali)));
+      seen.push(
+        useSyncExternalStore(
+          jali.subscribe,
+          () => listCommands(jali),
+          () => listCommands(jali),
+        ),
+      );
       return null;
     }
     const jali = make();

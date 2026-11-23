@@ -9,7 +9,7 @@ import { Chooser } from "../dialogs/Chooser";
 import type { ReactParts } from "./feature-parts";
 
 /** ⌘K, Jali's command palette. Leave it out when your app's own command menu lists Jali's commands
- *  (`useSyncExternalStore(jali.subscribe, () => listCommands(jali))`): the palette's key is then yours, unless
+ *  (`useSyncExternalStore(jali.subscribe, read, read)` with `read = () => listCommands(jali)` (the same read is the server's snapshot)): the palette's key is then yours, unless
  *  `keyboard.keymap` binds "palette.toggle". */
 export const palette = (): Feature =>
   paletteFeature({ palette: Palette } satisfies Pick<ReactParts, "palette">);
