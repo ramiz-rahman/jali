@@ -1,5 +1,6 @@
 import type { FitOptions, Layout, LayoutNode, PaneNode, Size } from "../types";
 import { combined } from "../tree/size";
+import { find } from "../tree/tree";
 import { bounds, combineBounds, NO_BOUNDS, type Bounds } from "../geometry/bounds";
 export interface Projected {
   id: string;
@@ -266,6 +267,9 @@ export const overlayOf = (layout: Layout): import("../types").Overlay =>
   layout.overlay ?? { tucks: [], folds: [], shown: {} };
 /** Panes the overlay has taken off screen. */
 export const hiddenOf = (layout: Layout): readonly string[] => layout.overlay?.hidden ?? [];
+/** Whether a link can maximise `id` in `layout`: a pane of it that the layout doesn't hide. */
+export const zoomable = (layout: Layout, id: string | null | undefined): id is string =>
+  !!id && find(layout.root, id)?.type === "pane" && !hiddenOf(layout).includes(id);
 /** Deliberately moved or closed panes no longer belong to their former overlay. Owned draft only. */
 export function forget(layout: Layout, ids: readonly string[]): void {
   if (!layout.overlay) return;

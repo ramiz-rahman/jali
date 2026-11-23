@@ -11,6 +11,7 @@ import { UNSAFE_IDS } from "../layout/codec/validate";
 import * as core from "../layout/engine";
 import { endSide, treeSide } from "../layout/geometry/direction";
 import { toLayout } from "../layout/build";
+import { zoomable } from "../layout/fit/overlay";
 import type {
   Edge,
   Layout,
@@ -226,10 +227,12 @@ function openPage(x: Snapshot, o: OpenPage = {}): Outcome {
       ? single(p, page.item, page.tab, x.ctx)
       : split(y, p, page.item, page.tab, false);
   const { layout, view } = reopen(base, opened, base.view.focused ?? page.tab, x.ctx);
+  // A link's maximised pane, if the page's layout shows it (in Single view, only the view on screen).
+  const { zoomed, ...given } = o.view ?? {};
   return {
     op: o.fromUrl ? "arrive" : "mode",
     layout,
-    view: { ...view, ...o.view },
+    view: { ...view, ...given, ...(zoomable(layout, zoomed) ? { zoomed } : {}) },
     msg: say(x).pageOpened(p.name, page.mode),
     patch: { page, prefs, peekSource: undefined, resizeMode: null },
     undo: [],

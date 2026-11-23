@@ -20,6 +20,7 @@ import { readLayout, readRef } from "./pane-kinds";
 import { browserLocation, browserStorage, type LocationPort, type StoragePort } from "./ports";
 import { own as ownOf } from "./own";
 import { sameRef } from "./layout/ops/ref";
+import { zoomable } from "./layout/fit/overlay";
 import { fitsLink, linkUsage, MAX_LINK_TEXT, OPEN_MAX } from "./layout/codec/limits";
 
 declare const process: { env: { NODE_ENV?: string } };
@@ -233,6 +234,9 @@ export function readSearch(
       investigation.push(r);
     }
     const page = q.get(k.page) || undefined;
+    // Checked once the page's layout is built (`page.open`): only a pane it shows can be maximised.
+    const zoom = q.get(k.zoom);
+    if (zoom) view.zoomed = zoom;
     return {
       page: { ...(page ? { page } : {}), tab: q.get(k.tab) ?? "", item, investigation },
       view,
@@ -246,12 +250,7 @@ export function readSearch(
   const layout = readLayout(kinds, decoded);
   const zoom = q.get(k.zoom);
   // Only a pane on screen can be maximised: one the layout hides is left unzoomed.
-  if (
-    zoom &&
-    core.tree.panes(layout.root).some((p) => p.id === zoom) &&
-    !layout.overlay?.hidden?.includes(zoom)
-  )
-    view.zoomed = zoom;
+  if (zoomable(layout, zoom)) view.zoomed = zoom;
   const scroll = readScroll(q.get(k.scroll), layout);
   if (scroll) view.scroll = scroll;
   return { layout, view, ...named };

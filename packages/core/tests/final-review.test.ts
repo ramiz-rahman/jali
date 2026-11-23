@@ -2,7 +2,7 @@
  * The stabilisation round's final review (Codex and Opus, 23 Nov 2026, at 65043990). Each test follows the action to
  * its next consequence: the view closed, then asked for again; the address written, then opened in a fresh instance.
  */
-import { describe, expect, it } from "vite-plus/test";
+import { describe, expect, it, vi } from "vite-plus/test";
 import {
   column,
   createJali,
@@ -128,5 +128,27 @@ describe("5. Single view has no layout to add a tab to", () => {
     if (jali.get().page!.mode !== "single") expect(jali.page!.setMode("single").ok).toBe(true);
     expect(jali.actions.newTab().reason).toBe("single-view");
     expect(jali.model().panes).toHaveLength(1);
+  });
+});
+
+describe("4. a page link keeps its maximised pane", () => {
+  it("maximise a view in Split view: a reload opens the address maximised", () => {
+    vi.useFakeTimers();
+    // The same person's reload: Split view is their mode (a link opens in the reader's own mode).
+    const storage = memoryStorage();
+    const { jali, location } = split({ storage });
+    expect(jali.actions.toggleZoom("application").ok).toBe(true);
+    vi.advanceTimersByTime(1000);
+    vi.useRealTimers();
+    expect(location.search()).toContain("zoom=application");
+    jali.destroy();
+    const fresh = make({ storage }, location.search()).jali;
+    expect(fresh.get().page?.mode).toBe("split");
+    expect(fresh.get().view.zoomed).toBe("application");
+  });
+
+  it("a zoom the page's layout doesn't show is left out", () => {
+    const fresh = make({}, "?page=review&item=1&tab=application&zoom=nope").jali;
+    expect(fresh.get().view.zoomed).toBeUndefined();
   });
 });
