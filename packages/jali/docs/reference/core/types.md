@@ -1290,10 +1290,12 @@ interface Command {
   id: string; title: string;
   group: "Focus" | "Pane" | "Move" | "Tabs" | "Layout" | "Peek" | "Settings";
   run: (jali: Jali) => void;
+  keys?: KeyString | readonly KeyString[];
+  disabled?: (jali: Jali) => boolean | string;
 }
 ```
 
-A command. `run` gets the instance. Your own commands go in `createJali({ commands })`, with a group of your own if you like. Whether one of Jali's can run now is in [`listCommands`](../core.md#listcommands) (`disabled`, `reason`).
+A command. `run` gets the instance. Your own commands go in `createJali({ commands })`, with a group of your own if you like. `keys` binds your command, written as `keyboard.keymap` writes keys (`"Mod+B"`, or several). They are bound as written, and `keyboard.keymap` can rebind or unbind them. `disabled` is asked each time ⌘K lists commands and each time the command's key is pressed: return `true` while it can't run, or the reason as text. Whether any command can run now is in [`listCommands`](../core.md#listcommands) (`disabled`, `reason`).
 
 ### Keymap
 

@@ -317,7 +317,7 @@ For keys your content handles itself, `keyHint("Mod+Enter")` prints them the sam
 
 ## Your app's own commands
 
-Commands that belong to your app rather than to one pane, such as "Refresh orders", go in `createJali({ commands })`. They are listed in ⌘K after Jali's, and `keyboard.keymap` binds them like any other:
+Commands that belong to your app rather than to one pane, such as "Refresh orders", go in `createJali({ commands })`. They are listed in ⌘K after Jali's. A command carries its own keys (`keys`), and ⌘K prints them beside it. `keyboard.keymap` can still rebind or unbind them, as it does Jali's. A command that can't always run says so with `disabled`: return `true`, or the reason as text. While it can't run, ⌘K greys it out and shows the reason, and its key only announces the reason. Your app keeps no key handler of its own.
 
 `src/jali.ts`
 
@@ -332,12 +332,15 @@ const commands: Command[] = [
     id: "orders.refresh",
     title: "Refresh orders",
     group: "Orders",
+    keys: "Mod+K Mod+U",
     run: () => void fetch("/api/orders/refresh", { method: "POST" }),
   },
   {
     id: "orders.export",
     title: "Export orders as CSV",
     group: "Orders",
+    // Greyed out in ⌘K, with the reason, while it can't run; its key would only say the reason.
+    disabled: () => !navigator.onLine && "You're offline",
     run: () => window.open("/api/orders.csv"),
   },
 ];
@@ -347,12 +350,12 @@ export const jali = createJali({
   launcher,
   presets,
   commands,
-  // Bound like any of Jali's commands.
-  keyboard: { keymap: { "orders.refresh": "Mod+K Mod+U" } },
+  // A person's or a platform's own keys go over the command's, as for Jali's commands.
+  keyboard: { keymap: { "orders.export": "Mod+K Mod+E" } },
 });
 ```
 
-Give them ids of your own (`orders.refresh`), not one of Jali's prefixes. If an id repeats one of Jali's, Jali's wins.
+Give them ids of your own (`orders.refresh`), not one of Jali's prefixes. If an id repeats one of Jali's, Jali's wins, and the app command's keys are dropped with it. A key that already runs another command stays with that command, and the second binding is reported to `keyboard.onInvalid`.
 
 ### Commands that ask for something
 

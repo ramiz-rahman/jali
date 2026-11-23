@@ -2381,3 +2381,20 @@ who has read one example finds their way in another, and can tell what a part ma
   commands are a table; `panes.css` (1,340 lines) is one file per layer and pane, in the same order. The simulated
   market is still deterministic for a seed, but its prices differ from before: the instruments' random streams are
   drawn in a different order.
+
+## 23 Nov 2026 · An app command carries its keys and says when it can't run (Loan review, FINDINGS.md #6)
+
+- **Why:** a `Command` was `{ id, title, group, run }`. An app that wanted ⌘B for its own command bound it apart, in
+  `keyboard.keymap`, or, as Loan review did, wrote its own `keydown` handler, printed the keys per platform itself and
+  checked by hand when the command couldn't run. ⌘K then listed a command it couldn't grey out.
+- **Now:** `Command.keys` (one binding or several, written as the keymap writes them) and `Command.disabled`
+  (`(jali) => boolean | string`). The keys go into the keymap under the app's own `keyboard.keymap`, which still
+  rebinds or unbinds them; they are bound as written, so `prefix` doesn't move them. `disabled` is asked as ⌘K lists
+  commands and as the key is pressed: while it says so, ⌘K greys the command out with the reason, and the key takes
+  the press and only announces the reason, as Jali's own commands do. An app command that repeats a Jali id is
+  dropped with its keys.
+- **Also:** a key bound to two commands is refused for the second and reported to `onInvalid` ("⌘\\ already runs
+  pane.split.right"). Before, the second binding was kept and could never run, silently.
+- **Not added:** a pane command's keys stay a hint (`keys` on a pane's own commands is printed, not bound): a pane's
+  command runs only while its pane is focused, and its keys belong to its content.
+- **Tests:** `packages/core/tests/command-keys.test.ts`, `examples/loan-review/e2e/chrome.spec.ts`.

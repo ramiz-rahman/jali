@@ -95,7 +95,7 @@ Its listeners (keys, Back and Forward, theme and saving) start with `jali.start(
 
 - **`settings`** (`Partial<Settings>`): Settings for a person who has none saved on this device yet: `{ theme: "dark" }` for a dark-first app. They are not saved; what the person changes is, and wins from then on, setting by setting. See [`Settings`](core/types.md#settings).
 
-- **`commands`** (`readonly Command[]`): Your own commands. They are listed in ⌘K after Jali's, and `keyboard.keymap` can bind them like any other (`{ "orders.refresh": "Mod+K Mod+U" }`). If an id repeats one of Jali's, Jali's wins.
+- **`commands`** (`readonly Command[]`): Your own commands. They are listed in ⌘K after Jali's, each with its own `keys` and a `disabled` check if it needs one ([`Command`](core/types.md#command)). `keyboard.keymap` can rebind or unbind their keys like any other (`{ "orders.refresh": "Mod+K Mod+U" }`). If an id repeats one of Jali's, Jali's wins.
 
 - **`keyboard`** (`KeyboardOptions`):
 

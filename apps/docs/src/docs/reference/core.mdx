@@ -50,7 +50,7 @@ Its listeners (keys, Back and Forward, theme and saving) start with `jali.start(
 <Param name="id" type="string" default={`"jali"`}>Prefix for DOM ids (`jali-pane-orders`). Give each instance on one page its own.</Param>
 <Param name="pageTheme" type="boolean" default="true">Set `data-theme` on `<html>` from the person's theme setting, and on the instance's root and dialog layer too, for rules scoped to the instance. `false` when the instance sits in a page that has its own theme: then it writes none of them.</Param>
 <Param name="settings" type="Partial<Settings>" default="Jali's (theme system, pane cap 8)">Settings for a person who has none saved on this device yet: `{ theme: "dark" }` for a dark-first app. They are not saved; what the person changes is, and wins from then on, setting by setting. See <Ref to="Settings" page="/reference/core/types" />.</Param>
-<Param name="commands" type="readonly Command[]">Your own commands. They are listed in ⌘K after Jali's, and `keyboard.keymap` can bind them like any other (`{ "orders.refresh": "Mod+K Mod+U" }`). If an id repeats one of Jali's, Jali's wins.</Param>
+<Param name="commands" type="readonly Command[]">Your own commands. They are listed in ⌘K after Jali's, each with its own `keys` and a `disabled` check if it needs one (<Ref to="Command" page="/reference/core/types" />). `keyboard.keymap` can rebind or unbind their keys like any other (`{ "orders.refresh": "Mod+K Mod+U" }`). If an id repeats one of Jali's, Jali's wins.</Param>
 <Param name="keyboard" type="KeyboardOptions">
 
 Jali's keys, in one place. See <Ref to="KeyboardOptions" page="/reference/core/types" />.

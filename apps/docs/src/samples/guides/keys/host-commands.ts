@@ -8,12 +8,15 @@ const commands: Command[] = [
     id: "orders.refresh",
     title: "Refresh orders",
     group: "Orders",
+    keys: "Mod+K Mod+U",
     run: () => void fetch("/api/orders/refresh", { method: "POST" }),
   },
   {
     id: "orders.export",
     title: "Export orders as CSV",
     group: "Orders",
+    // Greyed out in ⌘K, with the reason, while it can't run; its key would only say the reason.
+    disabled: () => !navigator.onLine && "You're offline",
     run: () => window.open("/api/orders.csv"),
   },
 ];
@@ -23,6 +26,6 @@ export const jali = createJali({
   launcher,
   presets,
   commands,
-  // Bound like any of Jali's commands.
-  keyboard: { keymap: { "orders.refresh": "Mod+K Mod+U" } },
+  // A person's or a platform's own keys go over the command's, as for Jali's commands.
+  keyboard: { keymap: { "orders.export": "Mod+K Mod+E" } },
 });

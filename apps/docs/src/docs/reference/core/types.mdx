@@ -776,9 +776,9 @@ One item in a tab's menu. `disabled` greys it out but keeps it reachable from th
 
 </Entry>
 
-<Entry name="Command" kind="type" from="jali" signature={`interface Command {\n  id: string; title: string;\n  group: "Focus" | "Pane" | "Move" | "Tabs" | "Layout" | "Peek" | "Settings";\n  run: (jali: Jali) => void;\n}`} compact>
+<Entry name="Command" kind="type" from="jali" signature={`interface Command {\n  id: string; title: string;\n  group: "Focus" | "Pane" | "Move" | "Tabs" | "Layout" | "Peek" | "Settings";\n  run: (jali: Jali) => void;\n  keys?: KeyString | readonly KeyString[];\n  disabled?: (jali: Jali) => boolean | string;\n}`} compact>
 
-A command. `run` gets the instance. Your own commands go in `createJali({ commands })`, with a group of your own if you like. Whether one of Jali's can run now is in <Ref to="listCommands" page="/reference/core" /> (`disabled`, `reason`).
+A command. `run` gets the instance. Your own commands go in `createJali({ commands })`, with a group of your own if you like. `keys` binds your command, written as `keyboard.keymap` writes keys (`"Mod+B"`, or several). They are bound as written, and `keyboard.keymap` can rebind or unbind them. `disabled` is asked each time ⌘K lists commands and each time the command's key is pressed: return `true` while it can't run, or the reason as text. Whether any command can run now is in <Ref to="listCommands" page="/reference/core" /> (`disabled`, `reason`).
 
 </Entry>
 

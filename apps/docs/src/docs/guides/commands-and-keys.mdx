@@ -110,11 +110,11 @@ For keys your content handles itself, `keyHint("Mod+Enter")` prints them the sam
 
 ## Your app's own commands
 
-Commands that belong to your app rather than to one pane, such as "Refresh orders", go in `createJali({ commands })`. They are listed in ⌘K after Jali's, and `keyboard.keymap` binds them like any other:
+Commands that belong to your app rather than to one pane, such as "Refresh orders", go in `createJali({ commands })`. They are listed in ⌘K after Jali's. A command carries its own keys (`keys`), and ⌘K prints them beside it. `keyboard.keymap` can still rebind or unbind them, as it does Jali's. A command that can't always run says so with `disabled`: return `true`, or the reason as text. While it can't run, ⌘K greys it out and shows the reason, and its key only announces the reason. Your app keeps no key handler of its own.
 
 <Code code={hostCommands} filename="src/jali.ts" />
 
-Give them ids of your own (`orders.refresh`), not one of Jali's prefixes. If an id repeats one of Jali's, Jali's wins.
+Give them ids of your own (`orders.refresh`), not one of Jali's prefixes. If an id repeats one of Jali's, Jali's wins, and the app command's keys are dropped with it. A key that already runs another command stays with that command, and the second binding is reported to `keyboard.onInvalid`.
 
 ### Commands that ask for something
 
