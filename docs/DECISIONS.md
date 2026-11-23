@@ -1891,3 +1891,21 @@ React-side items of docs/reviews/2026-11-23/PLAN.md (SAFARI-1, SAFARI-2, A1-4, A
 - **Boundaries reset with the instance.**
   - **What:** `Guard`, the one boundary around the host's code in Jali's chrome (the root's children, the dialog layer, Settings' extra fieldsets, icons, a page's rail and header), clears its failure when the instance it is in is replaced, without remounting the host's healthy children. Each dialog sits in a Guard of its own (keyed by dialog): one that throws closes through its close step (`keepEditing`, `closeChooser`, `dialogs.closePalette`, `dialogs.closeSettings`) and reports to `onError`, so it no longer stays open in state, drawing nothing over the dialogs after it. Panes are unchanged.
   - **Why:** the boundaries sat outside the instance's scope, so `<JaliRoot jali={b}>` kept showing a's failure until Retry (A1-5).
+
+## 23 Nov 2026 · Stabilisation step 3, after Codex's review: what an undone close keeps
+
+Six problems Codex reproduced in step 3's undo, each fixed with its test on branch `stabilise-undo`.
+
+- **A batch's references follow its new ids.** Every restored pane's id is chosen before any is placed (its own
+  unless taken), and neighbours, links and tucks go through that map, so a pane never joins the object that took a
+  batch member's id.
+- **Links return only to the same objects.** An entry records what the pane's source and each follower showed; a link
+  comes back only to a pane in the batch or one still showing that object.
+- **A container made again keeps its panes' own sizes and a row its `scroll`.** A pane placed at an outer level takes
+  its branch's size until its own container is remade around it, then has its own size again.
+- **Tucks come back.** The tucks a close ended (of a closed pane, or into one) are recorded and added back while both
+  panes are there and the pane can be tucked.
+- **A curated page's undo keeps its placement rule.** Undo runs the page's settleRoles for the panes it put back: views
+  go back to the page tabs rather than fold. Not done: the page's tab fallback for a restored opened pane that itself
+  has no room (it folds, as before).
+- **Size:** about 0.5 KB more gzipped in core; still over the budgets, none raised.
