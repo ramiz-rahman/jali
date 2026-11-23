@@ -1,4 +1,5 @@
 import { defineConfig } from "@playwright/test";
+import { browsers } from "../../e2e/fixtures/browsers";
 import { devServer } from "../../e2e/fixtures/server";
 
 // The markets example's own smoke test, against a server it starts itself on :5320, or on MARKETS_URL's port. It never
@@ -13,9 +14,9 @@ export default defineConfig({
   reporter: [["list"]],
   webServer: devServer("examples/markets", URL),
   use: {
-    channel: "chrome",
     baseURL: URL,
     viewport: { width: 1440, height: 900 },
     reducedMotion: "reduce",
   },
+  projects: browsers(),
 });

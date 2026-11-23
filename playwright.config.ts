@@ -1,4 +1,5 @@
 import { defineConfig } from "@playwright/test";
+import { browsers } from "./e2e/fixtures/browsers";
 import { devServer } from "./e2e/fixtures/server";
 
 const SCREENS = !!process.env.SCREENS;
@@ -8,6 +9,8 @@ const SCREENS = !!process.env.SCREENS;
 // else holds; REUSE_SERVER=1 runs against servers you started (e2e/fixtures/server.ts).
 const STUDIO = process.env.DATA_STUDIO_URL ?? "http://localhost:5300";
 const REVIEW = process.env.LOAN_REVIEW_URL ?? "http://localhost:5350";
+// Copy link writes the clipboard: Chrome asks for these by name, WebKit lets the click write it and takes none.
+const CLIPBOARD = ["clipboard-read", "clipboard-write"];
 
 // Normal runs (`pnpm test:e2e`) never write docs/screens. `pnpm screens` sets SCREENS=1 and runs the `screens`
 // project, which re-runs the area specs with app.shot() enabled, plus screens.spec.ts (the shelf shots).
@@ -20,12 +23,16 @@ export default defineConfig({
   // Strict, so the tests never drift to another port while waiting.
   webServer: [devServer("examples/data-studio", STUDIO), devServer("examples/loan-review", REVIEW)],
   use: {
-    channel: "chrome",
     baseURL: STUDIO,
     viewport: { width: 1600, height: 900 },
-    permissions: ["clipboard-read", "clipboard-write"],
     // Tests read end positions; reshapes slide (180ms) only when motion is allowed.
     reducedMotion: "reduce",
   },
-  projects: SCREENS ? [{ name: "screens" }] : [{ name: "e2e", testIgnore: /screens\.spec\.ts/ }],
+  // Every spec in Chrome and WebKit (e2e/fixtures/browsers.ts); the shots in Chrome only, so they stay one set.
+  projects: SCREENS
+    ? [{ name: "screens", use: { channel: "chrome", permissions: CLIPBOARD } }]
+    : browsers({ chrome: { permissions: CLIPBOARD } }).map((p) => ({
+        ...p,
+        testIgnore: /screens\.spec\.ts/,
+      })),
 });

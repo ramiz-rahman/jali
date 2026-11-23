@@ -34,13 +34,14 @@ export default defineConfig<PlatformOptions>({
     timeout: 180_000,
   },
   use: {
-    channel: "chrome",
     baseURL: URL,
     viewport: { width: 1440, height: 900 },
   },
   projects: [
-    { name: "mac", use: mac },
+    { name: "mac", use: { channel: "chrome", ...mac } },
     // Only the smoke test: the tour reads the same page either way.
-    { name: "windows", use: windows, testMatch: /smoke\.spec\.ts/ },
+    { name: "windows", use: { channel: "chrome", ...windows }, testMatch: /smoke\.spec\.ts/ },
+    // Safari's engine, with its own user agent: a Mac reader in Safari.
+    { name: "webkit", use: { browserName: "webkit", platform: "MacIntel" } },
   ],
 });

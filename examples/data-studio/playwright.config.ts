@@ -1,4 +1,5 @@
 import { defineConfig } from "@playwright/test";
+import { browsers } from "../../e2e/fixtures/browsers";
 import { devServer } from "../../e2e/fixtures/server";
 
 // Data Studio's own browser tests: the standard's checks on every preset, against a server it starts itself on :5300,
@@ -14,9 +15,9 @@ export default defineConfig({
   reporter: [["list"]],
   webServer: devServer("examples/data-studio", URL),
   use: {
-    channel: "chrome",
     baseURL: URL,
     viewport: { width: 1440, height: 900 },
     reducedMotion: "reduce",
   },
+  projects: browsers(),
 });

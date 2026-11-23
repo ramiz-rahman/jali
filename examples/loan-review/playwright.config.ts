@@ -1,4 +1,5 @@
 import { defineConfig } from "@playwright/test";
+import { browsers } from "../../e2e/fixtures/browsers";
 import { devServer } from "../../e2e/fixtures/server";
 
 // Loan review's own browser tests: the standard's checks on every view and in Split view, against a server it starts
@@ -14,9 +15,9 @@ export default defineConfig({
   reporter: [["list"]],
   webServer: devServer("examples/loan-review", URL),
   use: {
-    channel: "chrome",
     baseURL: URL,
     viewport: { width: 1440, height: 900 },
     reducedMotion: "reduce",
   },
+  projects: browsers(),
 });

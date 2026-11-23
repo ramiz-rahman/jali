@@ -1,4 +1,5 @@
 import { defineConfig } from "@playwright/test";
+import { browsers } from "../../e2e/fixtures/browsers";
 import { devServer } from "../../e2e/fixtures/server";
 
 // The studio example's own smoke test, against a server it starts itself on :5330, or on STUDIO_URL's port. It never
@@ -14,13 +15,14 @@ export default defineConfig({
   reporter: [["list"]],
   webServer: devServer("examples/studio", URL),
   use: {
-    // Installed Chrome, as the repository's other Playwright configs use. The sessions are MP3, which Playwright's own
-    // Chromium builds decode too (scripts/audio/checks/decode.txt); the build this Playwright version wants is not
-    // installed on every machine, so the tests don't depend on it.
-    channel: "chrome",
     baseURL: URL,
     viewport: { width: 1440, height: 900 },
     reducedMotion: "reduce",
-    launchOptions: { args: ["--autoplay-policy=no-user-gesture-required"] },
   },
+  // Installed Chrome, as the repository's other Playwright configs use, and WebKit. The sessions are MP3, which
+  // Playwright's own Chromium builds decode too (scripts/audio/checks/decode.txt); the build this Playwright version
+  // wants is not installed on every machine, so the tests don't depend on it.
+  projects: browsers({
+    chrome: { launchOptions: { args: ["--autoplay-policy=no-user-gesture-required"] } },
+  }),
 });
