@@ -601,8 +601,6 @@ function heldAnswer(
   answer: Promise<boolean>,
   again: AnswerStep,
 ): Promise<ActionResult> {
-  // The change made on a yes is still the one asked for, by whoever asked: its events carry that input.
-  const input = currentInput();
   return new Promise<ActionResult>((resolve) => {
     const ended = () => resolve(UNAVAILABLE);
     if (io.signal.aborted) return ended();
@@ -612,7 +610,8 @@ function heldAnswer(
       if (io.signal.aborted) return ended();
       if (!yes) return resolve(refused("kept"));
       try {
-        const r = withInput(input, () => apply(io, again));
+        // The change made on a yes is still the one asked for, by whoever asked: `again` carries their input.
+        const r = apply(io, again);
         resolve(r.reason === "pending" && r.settled ? r.settled : r);
       } catch (err) {
         console.error(err);
@@ -621,6 +620,10 @@ function heldAnswer(
     });
   });
 }
+
+/** Whoever asked for the action `c` works out: when it answers a question, whoever asked that, through every question
+ *  it asks again; otherwise the input behind it now. */
+const askedBy = (c: Run): JaliInput => c.top.input ?? currentInput();
 
 /** The closes: what a host's `beforeClose` can do for them, by closing their panes itself. */
 const CLOSES: ReadonlySet<ActionName | undefined> = /* @__PURE__ */ new Set<ActionName>([
@@ -820,6 +823,7 @@ function step(c: Run, o: Outcome): Res {
           intent: (x) => hold.intent(x),
           agreed: { ...c.agreed, host: [...host, ...leaving] },
           action: c.action,
+          input: askedBy(c),
         });
         return ok({ ok: false, reason: "pending", settled: hold.settled });
       }
@@ -852,7 +856,7 @@ function step(c: Run, o: Outcome): Res {
               intent: (x) => hold.intent(x),
               settled,
               settle,
-              input: currentInput(),
+              input: askedBy(c),
             },
           });
           return ok({ ok: false, reason: "unsaved", settled });

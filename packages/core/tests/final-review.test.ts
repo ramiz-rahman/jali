@@ -543,3 +543,22 @@ describe("C7. a host's own close, answered later, is done", () => {
     expect(jali.model().pane("b")).toBeUndefined();
   });
 });
+
+describe("C8. every question an action asks keeps the input that asked for it", () => {
+  it("keyboard Close others, a second dirty pane asks again: both answers commit as keyboard", () => {
+    const { jali } = make({
+      page: undefined,
+      layout: row(pane(r(1), { id: "a" }), pane(r(2), { id: "b" }), pane(r(3), { id: "c" })),
+    });
+    const inputs: string[] = [];
+    jali.on("close", (e) => inputs.push(e.input));
+    reportUnsaved(jali, "b", "draft b");
+    expect(withInput("keyboard", () => jali.actions.closeOthers("a")).reason).toBe("unsaved");
+    reportUnsaved(jali, "c", "draft c");
+    withInput("mouse", () => answerDiscard(jali, "discard"));
+    expect(discardQuestion(jali)).not.toBeNull();
+    withInput("mouse", () => answerDiscard(jali, "discard"));
+    expect(jali.model().panes.map((p) => p.id)).toEqual(["a"]);
+    expect(inputs).toEqual(["keyboard", "keyboard"]);
+  });
+});
