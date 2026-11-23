@@ -2356,3 +2356,28 @@ fixes.
 - The docs site's suite stays at one worker: its tour tests sleep 2.5–4 s to see that nothing moves, which a busier
   machine could make flaky, and it wasn't part of the check. Those sleeps are the next thing to take out (Playwright's
   `page.clock`).
+
+## 23 Nov 2026 · The examples' shared UI is atomic; Markets restructured to match
+
+The owner's call: every example lays out its shared UI after Brad Frost's atomic design, so that someone (or an agent)
+who has read one example finds their way in another, and can tell what a part may depend on from where it sits.
+
+- **Only the shared UI is atomic.** `src/ui/atoms`, `ui/molecules` and `ui/organisms`, beside plain helpers
+  (`format.ts`) and hooks (`ui/hooks`). The domain stays in its own folders, by domain; the workspace, pane kinds and
+  shell stay where the standard puts them. Atomic design's templates and pages are already Jali's: a preset is a
+  template, a desk on screen is a page, so neither has a folder.
+- **Imports go one way, down.** An atom imports nothing of the app; a molecule only atoms; an organism only what is
+  below it. Nothing in `ui/` imports the app's runtime code; molecules and organisms may import its types. A part
+  only one pane uses lives with that pane (`panes/quote/Touch.tsx`), and moves to `ui/` when a second place needs it.
+  `examples/shared/src/atomic.test.ts` checks every example.
+- **A pane is a file, or a folder when it has parts** (`panes/chart/index.tsx`, `Plot.tsx`, `axes.ts`). The standard
+  said "one file a pane"; Studio already had folders, and a 500-line pane file was the worse choice.
+- **Markets** is the first example laid out this way, from a structural review: one type per kind of instrument and a
+  table of what each asset class is (`market/classes.ts`), in place of about fifty scattered class tests and 38 `!`
+  assertions; a quote is `null` until its price is known, not a zeroed placeholder; the simulator and Kraken share one
+  topic registry (`market/topics.ts`) and are each split by concern; the paper book's arithmetic is pure
+  (`model/ledger.ts`), and fills are told after the state changes, not from inside the update; the ticket's requests
+  arrive through an inbox the ticket empties (`model/ticket.ts`), not a timestamp compared with pane state; the ⌘K
+  commands are a table; `panes.css` (1,340 lines) is one file per layer and pane, in the same order. The simulated
+  market is still deterministic for a seed, but its prices differ from before: the instruments' random streams are
+  drawn in a different order.

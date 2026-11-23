@@ -51,3 +51,13 @@ Markets is built on the public API alone (`@jali/core`, `@jali/react`). Each fin
 **What happened.** Markets kept its watchlists, paper book and desk layouts in local storage and trusted what it read back: `markets:lists = {}` crashed the watchlist (C13).
 
 **Now.** Every kept value goes through the shared store (`examples/shared/src/store.ts`): a version and a `parse` per store, falling back to defaults when the data is bad. Every `usePaneState` in Markets passes `parse`. The desks' saved layouts needed nothing extra, because Jali already checks any layout it is given. The docs could say so, so that apps don't add a second check.
+
+## 6. Nothing says when a revealed pane has taken focus
+
+**Wanted.** "Buy LMNA" from a quote brings the blotter forward and puts the cursor in the ticket's quantity, so the person can type the size at once.
+
+**What happened.** Showing the blotter (`focus`, `addTab` or `openBeside`) moves focus into the pane Jali reveals, a moment later. Focus the quantity before then, and Jali's move takes it back to the pane; nothing tells the pane that the move has happened.
+
+**Workaround.** The ticket waits `FOCUS_AFTER_REVEAL_MS` (150 ms) after taking a request, then focuses the quantity (`src/panes/blotter/Ticket.tsx`). It works, but the number is a guess at Jali's timing.
+
+**Suggested change.** Let an action say where focus should land inside the pane it reveals (`focus(id, { within: "[name=qty]" })`), or give a pane an event when it has been focused by an action, so it can move focus inside itself.
