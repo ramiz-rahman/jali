@@ -193,35 +193,37 @@ export function startDividerDrag(
     done = true;
     if (raf) cancelAnimationFrame(raf);
     raf = 0;
-    if (commitIt) render(); // flush the last pointer position, so the commit equals what was last shown
-    else {
-      pointer = start;
-      snapped = false;
-      render();
-    }
-    sepEl.removeEventListener("pointermove", onMove);
-    sepEl.removeEventListener("pointerup", onUp);
-    sepEl.removeEventListener("pointercancel", onCancel);
-    sepEl.removeEventListener("lostpointercapture", onUp);
-    window.removeEventListener("keydown", onKey, true);
-    try {
-      sepEl.releasePointerCapture(e.pointerId);
-    } catch {
-      /* already released */
-    }
-    store.dom.setDragging(null, sepEl);
-    line?.hide();
-    for (const release of held) release();
-    // One commit, one URL write (120ms after the drag settles, once the gesture ends). React re-renders only the
-    // frames whose rect changed, with the values already on screen.
+    // Whatever throws on the way (the adapter's line, a held pane's release, the commit), the listeners go and the
+    // gesture ends, or the address would stay unwritten for good.
     let landed = false;
     try {
+      if (commitIt) render(); // flush the last pointer position, so the commit equals what was last shown
+      else {
+        pointer = start;
+        snapped = false;
+        render();
+      }
+      try {
+        sepEl.releasePointerCapture(e.pointerId);
+      } catch {
+        /* already released */
+      }
+      store.dom.setDragging(null, sepEl);
+      line?.hide();
+      for (const release of held) release();
+      // One commit, one URL write (120ms after the drag settles, once the gesture ends). React re-renders only the
+      // frames whose rect changed, with the values already on screen.
       landed =
         commitIt &&
         preview !== layout0 &&
         store.get().layout === layout0 &&
         store.actions.commitDividerDrag(preview, parentId, index).ok;
     } finally {
+      sepEl.removeEventListener("pointermove", onMove);
+      sepEl.removeEventListener("pointerup", onUp);
+      sepEl.removeEventListener("pointercancel", onCancel);
+      sepEl.removeEventListener("lostpointercapture", onUp);
+      window.removeEventListener("keydown", onKey, true);
       disown();
     }
     // The drag owns what it previewed until its commit lands. Refused (the app's allow changed its mind), cancelled,

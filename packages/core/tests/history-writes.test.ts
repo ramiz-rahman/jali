@@ -18,7 +18,14 @@ import {
   type JaliOptions,
   type LocationPort,
 } from "@jali/core";
-import { browserLocation, createUrlSync, edgeScroll, storeOf } from "@jali/core/adapter";
+import {
+  browserLocation,
+  createUrlSync,
+  edgeScroll,
+  noDom,
+  startDividerDrag,
+  storeOf,
+} from "@jali/core/adapter";
 import { urlSync } from "../src/features/url-sync";
 
 afterEach(() => vi.useRealTimers());
@@ -198,6 +205,47 @@ describe("a gesture writes the address once, when it ends (SAFARI-3)", () => {
     vi.advanceTimersByTime(1000);
     expect(writes).toEqual(["replace", "replace"]);
     expect(new URLSearchParams(port.search()).get("scroll")).toBe("week:600");
+  });
+
+  it("a divider drag whose line throws as it ends still lets the address be written", () => {
+    vi.useFakeTimers();
+    const { port, writes } = history();
+    const jali = make(port, {
+      layout: row(
+        pane({ kind: "list", params: {} }, { id: "a" }),
+        pane(c(1), { id: "b" }),
+        pane(c(2), { id: "c" }),
+      ),
+    });
+    const store = storeOf(jali);
+    store.dom.use({
+      ...noDom,
+      dividerLine: () => ({
+        show() {},
+        snap() {},
+        place() {},
+        hide() {
+          throw new Error("the line is gone");
+        },
+      }),
+    });
+    vi.advanceTimersByTime(1000);
+    writes.length = 0;
+    const d = store.model().content.dividers[0]!;
+    const sep = document.createElement("div");
+    document.body.append(sep);
+    startDividerDrag(
+      store,
+      { pointerId: 1, button: 0, clientX: 300, clientY: 10, currentTarget: sep },
+      d.parentId,
+      d.index,
+    );
+    const quiet = (e: ErrorEvent) => e.preventDefault();
+    window.addEventListener("error", quiet);
+    sep.dispatchEvent(new Event("pointerup"));
+    window.removeEventListener("error", quiet);
+    jali.actions.close("c");
+    expect(writes).toEqual(["push"]);
   });
 });
 
