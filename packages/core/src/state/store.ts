@@ -551,6 +551,8 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
     if (DEV && process.env.NODE_ENV !== "production") {
       if (next.layout !== state.layout) freezeTree(next.layout);
       if (next.view !== state.view) freezeTree(next.view);
+      if (next.selection !== state.selection) freezeTree(next.selection);
+      if (next.recent !== state.recent) freezeTree(next.recent);
     }
     state = next;
     events.changed();
@@ -666,7 +668,8 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
       // What the caller gave is copied here, once: a later edit of a ref or a layout changes nothing, held or not.
       let given: typeof args;
       try {
-        given = copyIn(args);
+        // The chooser's items are the app's own objects (its label reads them by identity); the rest is data.
+        given = name === "dialogs.choose" ? args : copyIn(args);
       } catch {
         return commit(() => refuse("invalid"), as);
       }
