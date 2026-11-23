@@ -86,13 +86,10 @@ export interface StoragePort {
   set(key: string, value: string): void;
   /** Take `key` out of storage. Optional: without it, Jali writes an empty value over a key it no longer uses. */
   remove?(key: string): void;
-  /** Hear `key` change by another means than this port's `set` (another tab, with localStorage). Optional: without
-   *  it, an instance learns what other tabs saved when it next starts. Returns the unsubscribe. */
-  subscribe?(key: string, fn: () => void): () => void;
 }
 
 /** localStorage under `prefix`. Reads and writes never throw: private mode or blocked storage just saves nothing.
- *  Other tabs' writes are heard through the `storage` event. */
+ */
 export function browserStorage(prefix: string): StoragePort {
   return {
     get(key) {
@@ -108,12 +105,6 @@ export function browserStorage(prefix: string): StoragePort {
       } catch {
         /* nothing saved */
       }
-    },
-    subscribe(key, fn) {
-      // `key` null: another tab cleared storage.
-      const on = (e: StorageEvent) => (e.key === null || e.key === `${prefix}:${key}`) && fn();
-      addEventListener("storage", on);
-      return () => removeEventListener("storage", on);
     },
   };
 }

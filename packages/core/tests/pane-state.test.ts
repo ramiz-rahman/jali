@@ -1,8 +1,9 @@
 /**
  * Pane state, one record per pane (core-opus CORE-2, core-codex CORE-1, react-codex REACT-1). Each pane's values and
  * the object they belong to are one record under a new key, `pane-state@2`. A tab writes only what it changed, over
- * what other tabs wrote since, and hears what they write. The two keys before it are dropped, never read, so an old
- * build's tab can't attach its values to the wrong object. DECISIONS, 22 Nov 2026.
+ * what other tabs wrote since (it does not hear them while it runs; the last write wins per pane). The two keys
+ * before it are dropped, never read, so an old build's tab can't attach its values to the wrong object. DECISIONS,
+ * 22 Nov 2026 and 23 Nov 2026.
  */
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import {
@@ -30,29 +31,19 @@ const order = { kind: "order", title: "Order", params: { id: Number }, width: { 
 const ref = (id: number) => ({ kind: "order", params: { id } });
 const KEY = "pane-state@2";
 
-/** Storage two workspaces share as two tabs share localStorage: each hears the other's writes (`subscribe`), as the
- *  `storage` event tells a tab. It notes its writes of pane state. */
+/** Storage two tabs share, as they share localStorage. It notes its writes of pane state. */
 const shared = (initial: Record<string, string> = {}) => {
   const m = new Map(Object.entries(initial));
-  const fns = new Map<string, Set<() => void>>();
   const writes: string[] = [];
-  const tell = (k: string) => fns.get(k)?.forEach((fn) => fn());
   const port: Required<StoragePort> = {
     get: (k) => m.get(k) ?? null,
     set: (k, v) => {
       if (k.startsWith("pane-state")) writes.push(k);
       m.set(k, v);
-      tell(k);
     },
     remove: (k) => {
       writes.push(`-${k}`);
-      if (m.delete(k)) tell(k);
-    },
-    subscribe: (k, fn) => {
-      let set = fns.get(k);
-      if (!set) fns.set(k, (set = new Set()));
-      set.add(fn);
-      return () => set.delete(fn);
+      m.delete(k);
     },
   };
   return { port, writes };
@@ -100,7 +91,7 @@ describe("two tabs of one build", () => {
     expect(loadPaneStateOwners(port).a).toBe(objectKey(reload.env.kinds, ref(7)));
   });
 
-  it("a draft typed in one tab shows in the other, for the same object under the same pane", () => {
+  it("a draft typed in one tab is not heard by the other while it runs, and is read when one starts", () => {
     const storage = shared().port;
     const a = tab(two, storage);
     const b = tab(two, storage);
@@ -108,26 +99,40 @@ describe("two tabs of one build", () => {
     b.jali.start();
     a.actions.setPaneState("a", "draft", "Dear");
     flushPaneState(a);
-    expect(stateOf(b, "a")).toEqual({ draft: "Dear" });
+    expect(stateOf(b, "a")).toBeUndefined();
+    expect(stateOf(tab(two, storage), "a")).toEqual({ draft: "Dear" });
     a.jali.destroy();
     b.jali.destroy();
   });
 
-  it("another tab's record for another object is never taken in, and never removed", () => {
+  it("the last write wins per pane, and the other pane's record stays", () => {
+    const storage = shared().port;
+    const a = tab(two, storage);
+    const b = tab(two, storage);
+    a.actions.setPaneState("a", "draft", "from A");
+    a.actions.setPaneState("b", "scroll", 5);
+    flushPaneState(a);
+    b.actions.setPaneState("a", "draft", "from B");
+    flushPaneState(b);
+    const reload = tab(two, storage);
+    expect(stateOf(reload, "a")).toEqual({ draft: "from B" });
+    expect(stateOf(reload, "b")).toEqual({ scroll: 5 });
+  });
+
+  it("another tab's record for another object is never removed by a tab that did not hold it", () => {
     const storage = shared().port;
     const a = tab(one(1), storage);
     const b = tab(one(9), storage);
     b.jali.start();
     a.actions.setPaneState("a", "draft", "for order 1");
     flushPaneState(a);
-    expect(stateOf(b, "a")).toBeUndefined();
     expect(b.get().paneState).toEqual({});
     flushPaneState(b);
     expect(loadPaneState(storage)).toEqual({ a: { draft: "for order 1" } });
     b.jali.destroy();
   });
 
-  it("a pane closed for good takes its record out, unless another tab wrote it since", () => {
+  it("a pane closed for good takes its record out while it still belongs to the same object", () => {
     const storage = memoryStorage();
     const a = tab(two, storage);
     a.actions.setPaneState("b", "scroll", 10);
@@ -136,10 +141,23 @@ describe("two tabs of one build", () => {
     // The undo could bring it back: kept until the undo goes.
     flushPaneState(a);
     expect(loadPaneState(storage).b).toEqual({ scroll: 10 });
+    // Nothing can bring it back once a later change of layout finds it gone from the undo stack too.
     a.set({ undoStack: [] });
-    a.actions.setPaneState("a", "x", 1);
-    // Another tab writes `b` meanwhile.
-    savePaneState(storage, { b: { scroll: 99 } }, { b: objectKey(a.env.kinds, ref(2)) });
+    a.actions.openBeside("a", ref(3));
+    flushPaneState(a);
+    expect(loadPaneState(storage).b).toBeUndefined();
+  });
+
+  it("a pane closed for good leaves a record another tab wrote for another object", () => {
+    const storage = memoryStorage();
+    const a = tab(two, storage);
+    a.actions.setPaneState("b", "scroll", 10);
+    flushPaneState(a);
+    a.jali.actions.close("b");
+    a.set({ undoStack: [] });
+    a.actions.openBeside("a", ref(3));
+    // Another tab now keeps pane `b` for order 5.
+    savePaneState(storage, { b: { scroll: 99 } }, { b: objectKey(a.env.kinds, ref(5)) });
     flushPaneState(a);
     expect(loadPaneState(storage).b).toEqual({ scroll: 99 });
   });

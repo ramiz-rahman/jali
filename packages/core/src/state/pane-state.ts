@@ -18,7 +18,7 @@ export type HeldStates = Record<NodeId, Record<string, Record<string, unknown>>>
 /**
  * Where pane state is kept: one record per pane, `{ v: 2, panes: { [paneId]: { of, values, at } } }`. The object
  * (`of`, `objectKey`) and the values are one record, so they can never disagree; `at` is when this record was written,
- * for merging and for keeping the newest. A new key name, not only a new shape: a tab of a build from before 22 Nov
+ * for keeping the newest when there are more than the cap. A new key name, not only a new shape: a tab of a build from before 22 Nov
  * 2026 writes the old keys, which this one never reads, so an old tab can't attach its values to a newer tab's objects.
  */
 export const PANE_STATE_KEY = "pane-state@2";
@@ -120,9 +120,9 @@ export interface HeldPaneState {
 }
 
 /**
- * An instance's pane state and its storage, kept in step. Each tab writes only what it changed (merging over what
- * other tabs wrote since, so a second tab never erases the first one's drafts), never writes when it changed nothing,
- * and takes in what other tabs write for the panes it shows (`merge`, on the storage port's `subscribe`).
+ * An instance's pane state and its storage, kept in step. Each write reads storage fresh and puts only this instance's
+ * changed records over it, so a second tab never erases the first one's drafts; it writes nothing when nothing
+ * changed. The last write wins per pane. What another tab writes is read when an instance starts, not while it runs.
  */
 export interface PaneStateSync {
   /** Saved pane state, as the instance starts. The old keys are dropped: never read, so state saved by a build from
@@ -130,26 +130,15 @@ export interface PaneStateSync {
   read(): HeldPaneState;
   /** The instance started with `s`: what of it came from storage is in step with it. */
   adopt(s: HeldPaneState): void;
-  /** Write what changed since the last write: new and changed records, and records of panes gone for good that no
-   *  other tab has written since. True when something was written. */
+  /** Write what changed since the last write: new and changed records, and the records of panes gone for good that
+   *  still belong to the object this instance held. True when something was written. */
   flush(s: HeldPaneState): boolean;
-  /**
-   * What other tabs wrote: records for an object this instance shows at that pane id (in `layouts`), where this
-   * instance has no change of its own waiting. `patch` is the new pane state, if any; `resave`: another tab removed a
-   * record this one still holds, so it is written again.
-   */
-  merge(
-    s: HeldPaneState,
-    kinds: Pick<PaneKinds, "identityOf">,
-    layouts: readonly Layout[],
-  ): { patch?: HeldPaneState; resave: boolean };
 }
 
 export function paneStateSync(storage: StoragePort): PaneStateSync {
   /** The records this instance and storage agree on, as last read or written. */
   const synced = new Map<NodeId, PaneRecord>();
   let initial: PaneRecords = {};
-  let last = 0;
   const inStep = (s: HeldPaneState, id: NodeId, r?: PaneRecord) =>
     !!r && own(s.paneState, id) === r.values && own(s.paneStateOf, id) === r.of;
   return {
@@ -170,47 +159,18 @@ export function paneStateSync(storage: StoragePort): PaneStateSync {
       for (const [id, values] of Object.entries(s.paneState)) {
         const of = own(s.paneStateOf, id);
         if (of === undefined || inStep(s, id, synced.get(id))) continue;
-        const r = { of, values, at: (last = Math.max(Date.now(), last + 1)) };
+        const r = { of, values, at: Date.now() };
         load()[id] = r;
         synced.set(id, r);
       }
       for (const [id, was] of synced)
         if (!Object.hasOwn(s.paneState, id)) {
           synced.delete(id);
-          // Gone here: removed from storage only if no other tab has written it since.
-          if (own(load(), id)?.at === was.at) delete records![id];
+          // Gone here: removed from storage while it still belongs to the object this instance held.
+          if (own(load(), id)?.of === was.of) delete records![id];
         }
       if (records) writeRecords(storage, records);
       return !!records;
-    },
-    merge(s, kinds, layouts) {
-      const records = readRecords(storage);
-      const shown = new Set(
-        layouts.flatMap((l) =>
-          core.tree.panes(l.root).map((p) => p.id + " " + objectKey(kinds, p.ref)),
-        ),
-      );
-      let patch: HeldPaneState | undefined,
-        resave = false;
-      for (const [id, r] of Object.entries(records)) {
-        const was = synced.get(id);
-        // Its own, already in step; a change of this instance's own, still to be written, wins; another object.
-        if (was?.at === r.at || (Object.hasOwn(s.paneState, id) && !inStep(s, id, was))) continue;
-        if (!shown.has(id + " " + r.of)) continue;
-        // Defined, never assigned: a pane id `__proto__` is a key like any other.
-        const at = patch ?? s;
-        patch = {
-          paneState: { ...at.paneState, [id]: r.values },
-          paneStateOf: { ...at.paneStateOf, [id]: r.of },
-        };
-        synced.set(id, r);
-      }
-      for (const id of synced.keys())
-        if (!Object.hasOwn(records, id)) {
-          synced.delete(id);
-          resave ||= Object.hasOwn(s.paneState, id);
-        }
-      return { patch, resave };
     },
   };
 }

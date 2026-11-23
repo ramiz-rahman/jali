@@ -9,7 +9,7 @@ import { applyTheme, resolveTheme, saveSettings, watchSystemTheme } from "./stat
 import type { JaliStore } from "./state/store";
 import { applyTokens } from "./tokens";
 import { savePrefs } from "./state/page-prefs";
-import { ownedPaneState, ownedSelection, PANE_STATE_KEY } from "./state/pane-state";
+import { ownedPaneState, ownedSelection } from "./state/pane-state";
 import { agreeOnArrival } from "./actions/follow";
 
 /** Put the first state in place before the first render: the address's layout if it has one, fitted to the window. */
@@ -108,18 +108,6 @@ export function startUi(
   window.addEventListener("pagehide", saveNow);
   document.addEventListener("visibilitychange", onHidden);
   const offTheme = watchSystemTheme((systemDark) => store.set({ systemDark }));
-  // Pane state another tab saved, for an object this one shows under that pane id, comes in (a draft typed there
-  // shows here); a record another tab took out that this one still holds is saved again.
-  const offShared =
-    store.storage.subscribe?.(PANE_STATE_KEY, () => {
-      const s = store.get();
-      const { patch, resave } = store.paneStates.merge(s, store.env.kinds, [
-        s.layout,
-        ...s.undoStack.map((e) => e.before.layout),
-      ]);
-      if (patch) store.set(patch);
-      if (resave) saveSoon();
-    }) ?? (() => {});
   const offKeys = installKeyboard(store, keys);
   // Each feature's listeners for the page's lifetime (urlSync: Back and Forward).
   const offFeatures = (store.env.features ?? []).map((f) => f.start?.(store) ?? (() => {}));
@@ -127,7 +115,6 @@ export function startUi(
     for (const off of offFeatures) off();
     offStore();
     offTheme();
-    offShared();
     offKeys();
     // Pane state still waiting to be saved is saved now, not dropped.
     saveNow();
