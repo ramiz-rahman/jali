@@ -87,7 +87,7 @@ try {
   // ---------- "use client": on React's files only ----------
   const dist = join(pkgDir, "dist");
   const FRAMEWORK_FREE =
-    /^(index|adapter|agent|testing|url|layout|core-[\w-]+|rolldown-runtime-[\w-]+)\.js$/;
+    /^(index|adapter|testing|url|layout|core-[\w-]+|rolldown-runtime-[\w-]+)\.js$/;
   for (const f of readdirSync(dist).filter((f) => f.endsWith(".js"))) {
     const client = readFileSync(join(dist, f), "utf8").startsWith('"use client";');
     if (FRAMEWORK_FREE.test(f) ? client : !client)

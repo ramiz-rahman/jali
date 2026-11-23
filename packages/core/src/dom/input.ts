@@ -12,7 +12,7 @@
  * - `mouse`, `touch`, `pen`: a pointer of that kind.
  * - `keyboard`: a key.
  * - `virtual`: a click with no pointer or key behind it, as a screen reader sends.
- * - `agent`: an agent, through the agent bridge.
+ * - `agent`: an agent, when an adapter marks its actions.
  * - `code`: the app's own code, with no input of a person's behind it.
  */
 export type JaliInput = "mouse" | "touch" | "pen" | "keyboard" | "virtual" | "agent" | "code";
@@ -42,7 +42,7 @@ const onClick = (e: MouseEvent) => {
 /** The input behind a change starting now. */
 export const currentInput = (): JaliInput => held.at(-1) ?? noted ?? "code";
 
-/** Run `fn` with every change it makes marked as `input` (the agent bridge passes `agent`). */
+/** Run `fn` with every change it makes marked as `input` (an adapter passes `agent`). */
 export function withInput<T>(input: JaliInput, fn: () => T): T {
   held.push(input);
   try {

@@ -49,7 +49,7 @@ export default defineConfig({
             {
               name: "jali-core",
               priority: 2,
-              test: /packages[\\/]jali[\\/]dist[\\/](core-[\w-]+|index|adapter|agent|testing|url|layout)\.js$/,
+              test: /packages[\\/]jali[\\/]dist[\\/](core-[\w-]+|index|adapter|testing|url|layout)\.js$/,
             },
             { name: "jali-react", priority: 1, test: /packages[\\/]jali[\\/]dist[\\/]/ },
           ],

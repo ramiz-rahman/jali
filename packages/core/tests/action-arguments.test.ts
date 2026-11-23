@@ -6,7 +6,6 @@
 import { describe, expect, it } from "vite-plus/test";
 import { createJali, memoryStorage, pane, row } from "@jali/core";
 import { definePageEngine as definePage } from "@jali/core/adapter";
-import { createAgent } from "@jali/core/agent";
 
 const ticket = { kind: "ticket", title: "Ticket", params: { id: String }, width: { min: 200 } };
 const note = { kind: "note", title: "Note", width: { min: 200 } };
@@ -73,17 +72,6 @@ describe("a public action given what its type doesn't allow", () => {
     expect(jali.get().layout).toBe(before.layout);
     expect(jali.get().page).toBe(before.page);
     expect(jali.get().settings).toBe(before.settings);
-  });
-
-  it("is the same refusal for an agent", async () => {
-    const jali = make();
-    jali.page.open();
-    const agent = createAgent(jali);
-    const mode = jali.get().page?.mode;
-    const r = await agent.act({ steps: [{ action: "page.setMode", args: ["invalid-mode"] }] });
-    expect(r.ok).toBe(false);
-    expect(r.steps[0]).toMatchObject({ action: "page.setMode", ok: false, reason: "invalid" });
-    expect(jali.get().page?.mode).toBe(mode);
   });
 
   it("still takes what it allows: an option left out, a valid value", () => {

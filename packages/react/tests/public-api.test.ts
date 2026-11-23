@@ -1,5 +1,5 @@
 /**
- * The packages' public entry points. A change to what "@jali/core", "@jali/react", "@jali/react/icons" or "@jali/core/agent" exports fails here, so it is made
+ * The packages' public entry points. A change to what "@jali/core", "@jali/react" or "@jali/react/icons" exports fails here, so it is made
  * on purpose: update the list, and the docs and changelog with it. "@jali/core/adapter" is for adapters: only its
  * shape is checked here (an explicit list of names).
  */
@@ -9,7 +9,6 @@ import { describe, expect, expectTypeOf, it } from "vite-plus/test";
 import * as core from "@jali/core";
 import * as react from "@jali/react";
 import * as icons from "@jali/react/icons";
-import * as agent from "@jali/core/agent";
 
 describe("public API", () => {
   it("@jali/core exports exactly these values", () => {
@@ -112,10 +111,6 @@ describe("public API", () => {
   it("@jali/react/icons exports Jali's default set, with an icon for every name", () => {
     expect(Object.keys(icons)).toEqual(["defaultIcons"]);
     expect(Object.keys(icons.defaultIcons).length).toBe(32);
-  });
-
-  it("@jali/core/agent exports the bridge and its actions", () => {
-    expect(Object.keys(agent).sort()).toEqual(["AGENT_ACTIONS", "createAgent"]);
   });
 
   it("the layout namespace is the pure tree API", () => {

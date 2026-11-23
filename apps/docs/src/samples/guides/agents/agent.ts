@@ -1,5 +1,4 @@
-import type { Jali } from "jali";
-import { createAgent } from "jali/agent";
+import type { Allow, Jali, ObjectRef } from "jali";
 
 // Your model client: anything that takes tools and runs a conversation with them.
 declare function runModel(options: {
@@ -8,35 +7,50 @@ declare function runModel(options: {
     name: string;
     description: string;
     inputSchema: object;
-    execute(input: unknown): unknown;
+    execute(input: never): unknown;
   }[];
 }): Promise<string>;
 
-export function connectAgent(jali: Jali) {
-  const agent = createAgent(jali, {
-    // Everything but closing panes: the agent opens, arranges and pins; the person closes.
-    actions: [
-      "focus",
-      "openBeside",
-      "addTab",
-      "peek",
-      "select",
-      "moveTab",
-      "setPinned",
-      "autoLayout",
-      "preset",
-    ],
-    // Asked before every step. A string refuses it, and the agent hears why.
-    allow: (step) => step.action !== "preset" || jali.get().page === null || "Leave the page first",
-    // The agent adds and removes panes; Jali arranges them after each turn.
-    arrange: "after-changes",
-  });
+// Limits, for the model and the person alike: pass as `createJali({ allow })`. A page keeps its panes.
+export const allow: Allow = { when: ({ action, page }) => !(page && action === "close") };
 
-  // Offer the tools to the browser's own agent, where it has one (WebMCP).
-  const withdraw = agent.registerTools();
+export function agentTools(jali: Jali) {
+  const listPanes = {
+    name: "list_panes",
+    description: "The panes: id, title, the object each shows, and whether it is on screen.",
+    inputSchema: { type: "object", properties: {} },
+    execute() {
+      const model = jali.model();
+      return model.panes.map((p) => ({
+        id: p.id,
+        title: model.title(p.id),
+        ref: p.ref,
+        shown: model.visible.includes(p.id),
+      }));
+    },
+  };
 
-  // Or give them to your own model.
-  const ask = (prompt: string) => runModel({ prompt, tools: agent.tools() });
+  const openBeside = {
+    name: "open_beside",
+    description: "Open an object beside a pane. Says why when it cannot.",
+    inputSchema: {
+      type: "object",
+      properties: { pane: { type: "string" }, ref: { type: "object" } },
+      required: ["pane", "ref"],
+    },
+    execute({ pane, ref }: { pane: string; ref: ObjectRef }) {
+      const r = jali.actions.openBeside(pane, ref);
+      return r.ok ? { ok: true, pane: r.pane } : { ok: false, reason: r.reason };
+    },
+  };
 
-  return { agent, ask, withdraw };
+  return [listPanes, openBeside];
 }
+
+export const ask = (jali: Jali, prompt: string) => runModel({ prompt, tools: agentTools(jali) });
+
+// A person's changes carry their pointer or key as `input`; the agent's run in your code, so it is `code`.
+export const watch = (jali: Jali) =>
+  jali.on("open", ({ ref, input }) => {
+    if (input === "code") console.info("opened by code", ref);
+  });

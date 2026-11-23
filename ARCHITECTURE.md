@@ -16,7 +16,6 @@ packages/core     @jali/core (private)   no framework, no dependencies
   dom/, workspace/  the DOM port and the instance's scope in the DOM, focus and drag, edge scrolling, the phone layouts
   env.ts, profile.ts what an instance is made of; a curated page's types and its engine's contract
   ports.ts          the location and storage ports
-  agent.ts          the agent bridge (jali/agent)
   testing.ts        what an app's tests need (jali/testing)
 
 packages/react    @jali/react (private)  React 18.2+ only
@@ -84,7 +83,7 @@ A curated page works the same way without being a feature: `definePage` (from `j
 `packages/jali` holds no code of its own: each entry (`src/index.ts`, `src/react.ts`, `src/url.ts`, …) re-exports `@jali/core`, `@jali/core/adapter` or `@jali/react/internal`. `vp pack` (`packages/jali/vite.config.ts`) builds them into `dist/`:
 
 - **Two chunks hold the code:** `core` (everything from `packages/core`) and `react` (everything from `packages/react`). Each entry imports the chunks it needs, so an app's bundler tree-shakes as before, and the size gate can measure each.
-- **`"use client"`** starts the `react` chunk and every entry that re-exports it, so a React Server Components host loads them on the client. The framework-free entries (`jali`, `jali/url`, `jali/agent`, `jali/testing`, `jali/adapter`) don't have it.
+- **`"use client"`** starts the `react` chunk and every entry that re-exports it, so a React Server Components host loads them on the client. The framework-free entries (`jali`, `jali/url`, `jali/testing`, `jali/adapter`) don't have it.
 - **The `layout` namespace** is built as a file of its own and re-exported, so bundlers tree-shake it member by member.
 - **React stays an import**, an optional peer. Nothing else is imported at run time.
 - **The internals are bundled.** `@jali/core` and `@jali/react` are dev dependencies of `jali`, never published; an app installs `jali` alone.

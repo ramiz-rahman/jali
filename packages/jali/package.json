@@ -42,12 +42,6 @@
       "import": "./dist/page.js",
       "default": "./dist/page.js"
     },
-    "./agent": {
-      "source": "./src/agent.ts",
-      "types": "./dist/agent.d.ts",
-      "import": "./dist/agent.js",
-      "default": "./dist/agent.js"
-    },
     "./testing": {
       "source": "./src/testing.ts",
       "types": "./dist/testing.d.ts",
@@ -147,11 +141,6 @@
         "types": "./dist/page.d.ts",
         "import": "./dist/page.js",
         "default": "./dist/page.js"
-      },
-      "./agent": {
-        "types": "./dist/agent.d.ts",
-        "import": "./dist/agent.js",
-        "default": "./dist/agent.js"
       },
       "./testing": {
         "types": "./dist/testing.d.ts",

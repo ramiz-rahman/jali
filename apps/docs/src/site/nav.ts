@@ -66,7 +66,6 @@ export const NAV: NavSection[] = [
       { path: "/reference/react" },
       { path: "/reference/features" },
       { path: "/reference/testing" },
-      { path: "/reference/agent" },
       { path: "/reference/tokens" },
       { path: "/reference/parts" },
       { path: "/reference/commands" },

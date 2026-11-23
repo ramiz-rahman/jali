@@ -24,12 +24,6 @@
       "import": "./dist/adapter.js",
       "default": "./dist/adapter.js"
     },
-    "./agent": {
-      "source": "./src/agent.ts",
-      "types": "./dist/agent.d.ts",
-      "import": "./dist/agent.js",
-      "default": "./dist/agent.js"
-    },
     "./testing": {
       "source": "./src/testing.ts",
       "types": "./dist/testing.d.ts",
@@ -49,11 +43,6 @@
         "types": "./dist/adapter.d.ts",
         "import": "./dist/adapter.js",
         "default": "./dist/adapter.js"
-      },
-      "./agent": {
-        "types": "./dist/agent.d.ts",
-        "import": "./dist/agent.js",
-        "default": "./dist/agent.js"
       },
       "./testing": {
         "types": "./dist/testing.d.ts",

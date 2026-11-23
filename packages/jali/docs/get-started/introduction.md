@@ -54,7 +54,7 @@ Everything beyond laying out panes is a feature you pass in: the address, the âŒ
 - [`jali`](../reference/core.md): pane kinds, layouts, `createJali`, actions and events. No framework.
 - [`jali/react`](../reference/react.md): `<JaliRoot>`, `definePane`, the hooks and the parts you place in your own chrome.
 - One entry per feature, such as `jali/url` and `jali/palette`, and [`jali/features`](../reference/features.md) for Jali's usual set.
-- [`jali/testing`](../reference/testing.md) for your tests, and [`jali/agent`](../reference/agent.md) for an AI agent inside your app.
+- [`jali/testing`](../reference/testing.md) for your tests. To give an AI model your panes as tools, see [Let an agent arrange panes](../guides/agents.md).
 
 ```sh
 npm install jali

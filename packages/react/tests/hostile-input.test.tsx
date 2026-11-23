@@ -32,7 +32,6 @@ import {
   structureKey,
   urlKeys,
 } from "@jali/core/adapter";
-import { createAgent } from "@jali/core/agent";
 import { JaliRoot, definePane, usePaneState } from "@jali/react";
 import { follow } from "../../core/src/actions/follow";
 import { defaultFeatures, noUrl, urlSync } from "./features";
@@ -227,11 +226,6 @@ describe("C3: names on Object.prototype", () => {
         ok: false,
         reason: "invalid",
       });
-      expect(jali.model().panes).toHaveLength(2);
-      const agent = createAgent(jali, { actions: ["openBeside"] });
-      expect(
-        agent.act({ steps: [{ action: "openBeside", args: ["a", { kind, params: {} }] }] }).ok,
-      ).toBe(false);
       expect(jali.model().panes).toHaveLength(2);
     },
   );

@@ -1,6 +1,6 @@
 /**
  * What may happen to a pane: the app's rules, checked by the actions themselves, so every way in (a button, a key,
- * ⌘K, a tab's menu, a drag, the agent bridge) obeys the same answer, and the chrome only draws what is allowed.
+ * ⌘K, a tab's menu or a drag) obeys the same answer, and the chrome only draws what is allowed.
  *
  * Each level can only take away: Jali's own rules (a lone pane has no maximise, a phone no drag), then the kind
  * (`definePane({ allow })`, what its content can handle), then the instance (`createJali({ allow })`: defaults, or a

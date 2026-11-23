@@ -44,7 +44,6 @@ createRoot(document.getElementById("root")!).render(<JaliRoot jali={jali} />);
 | `jali/features`                                                                                            | `defaultFeatures()`: the address, ⌘K, Settings, the chooser and `data-pressed` |
 | `jali/url`, `jali/palette`, `jali/settings`, `jali/chooser`, `jali/rename`, `jali/pop-out`, `jali/pressed` | One feature each: an app ships only the features it imports                    |
 | `jali/testing`                                                                                             | `createTestJali`, `pressKeys` and what a rendered pane would report            |
-| `jali/agent`                                                                                               | The agent bridge                                                               |
 | `jali/icons`                                                                                               | Jali's default icons (Phosphor's, copied in)                                   |
 | `jali/styles.css`, `jali/theme.css`, `jali/tailwind.css`                                                   | The styles, in the `jali` cascade layer                                        |
 | `jali/adapter`                                                                                             | For a framework adapter. **May change in any minor version.**                  |

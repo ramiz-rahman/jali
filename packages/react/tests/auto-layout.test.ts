@@ -12,7 +12,6 @@ import {
   type Layout,
 } from "@jali/core";
 import { definePane } from "@jali/react";
-import { createAgent } from "../../core/src/agent";
 import { defaultFeatures, urlSync } from "./features";
 
 const list = definePane("list", {
@@ -398,23 +397,5 @@ describe("jali.actions.autoLayout", () => {
       ok: false,
       reason: "unavailable",
     });
-  });
-
-  it("an agent's automatic arrange asks allow, skips a turn that chose a preset, and is quiet on a phone", () => {
-    const steps = (jali: ReturnType<typeof make>, options: Parameters<typeof createAgent>[1]) =>
-      createAgent(jali, options).act({
-        steps: [{ action: "addTab", args: [jali.model().visible[0]!, order({ id: 7 })] }],
-      }).steps;
-    // The app's allow says no to autoLayout: the turn's own step runs, the automatic one doesn't.
-    const vetoed = steps(make(row(list(), order({ id: 1 }))), {
-      arrange: "after-changes",
-      allow: ({ action }) => action !== "autoLayout",
-    });
-    expect(vetoed.map((s) => s.action)).toEqual(["addTab"]);
-    // On a phone there is nothing to arrange: no failed step reported.
-    const phone = steps(make(row(list(), order({ id: 1 })), 390, 844), {
-      arrange: "after-changes",
-    });
-    expect(phone.map((s) => s.action)).toEqual(["addTab"]);
   });
 });

@@ -8,7 +8,7 @@ import { defineConfig } from "vite-plus";
 //   An app's bundler tree-shakes each, as it did @jali/core's and @jali/react's dist, and the size gate measures
 //   each as before (tooling/size.mjs).
 // - "use client" starts the `react` chunk and every entry that re-exports it, so a React Server Components host
-//   (Next.js's App Router) loads them on the client. The framework-free entries (`jali`, `jali/url`, `jali/agent`,
+//   (Next.js's App Router) loads them on the client. The framework-free entries (`jali`, `jali/url`,
 //   `jali/testing`, `jali/adapter`) and the `core` chunk don't have it.
 // - `layout` is a namespace (`export * as layout`). Bundled, it becomes an object of getters an app can't tree-shake,
 //   so it is built as a file of its own and re-exported from it (`export * as layout from "./layout.js"`), which
@@ -18,7 +18,6 @@ const ENTRIES = [
   "index",
   "react",
   "page",
-  "agent",
   "testing",
   "adapter",
   "icons",
@@ -31,7 +30,7 @@ const ENTRIES = [
   "pressed",
   "features",
 ];
-const FRAMEWORK_FREE = new Set(["index", "agent", "testing", "adapter", "url", "layout"]);
+const FRAMEWORK_FREE = new Set(["index", "testing", "adapter", "url", "layout"]);
 const fromReact = (id: string) => /[\\/]packages[\\/]react[\\/]src[\\/]/.test(id);
 
 const layoutNamespace = {

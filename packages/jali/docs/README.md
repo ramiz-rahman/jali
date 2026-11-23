@@ -40,7 +40,7 @@ Written from the docs site by tooling/agent-docs.mjs; don't edit these files.
 - [Use Jali with Chakni](guides/chakni.md): Let a list inside a pane drive the pane's following detail through the active-item port, and share one theme.
 - [Test your layouts](guides/testing.md): Test your layouts and pane rules without a browser, by running Jali's actions and reading its state with jali/testing.
 - [Two instances on one page](guides/two-instances.md): Put two sets of panes side by side, or one in a dialog, without their links, saved settings or keys getting mixed up.
-- [Let an agent arrange panes](guides/agents.md): Give an AI agent your panes as tools, so it can read what is open and open, arrange and pin panes through Jali's own actions, within the limits your app sets.
+- [Let an agent arrange panes](guides/agents.md): Give an AI model two tools of your own, built on jali.model() and jali.actions, so it can read what is open and open panes within the limits your app sets.
 - [Troubleshooting and FAQ](guides/troubleshooting.md): Fixes for the problems people meet first, Jali's development warnings, and answers to common questions.
 
 ## Reference
@@ -51,7 +51,6 @@ Written from the docs site by tooling/agent-docs.mjs; don't edit these files.
 - [jali/react](reference/react.md): Every component, hook and type jali/react exports, with its props, defaults and what it returns.
 - [Features](reference/features.md): What an instance does beyond laying out panes, each a value from its own entry, so an app ships only what it uses.
 - [jali/testing](reference/testing.md): An instance for tests, keys, and what a rendered pane would report, without the adapter's internals.
-- [jali/agent](reference/agent.md): Every function and type jali/agent exports, the bridge that lets an AI agent read your panes and act on them through Jali's own actions.
 - [Tokens](reference/tokens.md): Every public --jali-* token, what reads it, its light and dark values, and how the Tailwind bridge maps it.
 - [Parts](reference/parts.md): Every part of Jali you can style, its element, its selector, and the attributes that carry its state.
 - [Commands](reference/commands.md): Every command, its default keys on a Mac and on Windows and Linux, and when it is refused.

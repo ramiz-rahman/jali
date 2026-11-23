@@ -1,6 +1,6 @@
 /**
  * What a public action takes, checked where it comes in. An app's TypeScript is checked by the compiler; a call from
- * JavaScript, a key binding's arguments or an agent's step (`jali/agent`, whose arguments are a model's JSON) is not.
+ * JavaScript, a key binding's arguments or a model's tool call (whose arguments are JSON) is not.
  * Each public step declares one check per argument (`checked([...], step)`), and the step's own argument types are
  * read from those checks, so the two can't drift. A value that won't do is refused as `"invalid"` before the step
  * runs: the same refusal for every caller, never a throw and never a value stored as given.

@@ -12,7 +12,7 @@ import {
   type DeepReadonly,
   type Layout,
 } from "@jali/core";
-import { createAgent } from "@jali/core/agent";
+import { withInput } from "@jali/core/adapter";
 import { urlSync } from "../src/features/url-sync";
 
 const item = { kind: "item", title: "Item", params: { id: Number }, width: { min: 200 } };
@@ -145,8 +145,7 @@ describe("a change made on a later yes", () => {
     const inputs: string[] = [];
     jali.on("close", (e) => inputs.push(e.input));
     jali.on("layout", (e) => inputs.push(e.input));
-    const agent = createAgent(jali);
-    agent.act({ steps: [{ action: "close", args: [ids(jali)[1]!] }] });
+    withInput("agent", () => jali.actions.close(ids(jali)[1]!));
     answer(true);
     await new Promise((r) => setTimeout(r, 0));
     expect(jali.model().panes).toHaveLength(1);

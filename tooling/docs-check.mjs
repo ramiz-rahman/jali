@@ -121,7 +121,6 @@ const MODULES = [
   "jali/react",
   "jali/page",
   "jali/testing",
-  "jali/agent",
   "jali/features",
   "jali/url",
   "jali/palette",
