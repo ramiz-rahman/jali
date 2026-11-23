@@ -2313,8 +2313,9 @@ follows the action to its next consequence (packages/core/tests/final-review.tes
 
 ## 23 Nov 2026 · Stabilisation: the last browser run
 
-Every Chrome suite and the React 18 check, run at f82e28fd after the final review's fixes, found two things. Neither
-came from those fixes.
+Every Chrome suite and the React 18 check, run at f82e28fd after the final review's fixes, then every WebKit suite
+(the first WebKit run this round: the screen had been locked until then), found three things. None came from those
+fixes.
 
 - **The same state writes the same address; only a write takes the replace slot** (20c70207). Trips' reload test
   lost the place just clicked, every time on a quiet machine (it had passed under load, slowly enough to clear the
@@ -2327,3 +2328,12 @@ came from those fixes.
 - **The React 18 check is Jali's packages** (e156e238). It typechecked the whole repository on React 18, so
   own-icons' `use` (React 19, from step 7b's consumer for `Loading`) failed it. Jali's packages run on React 18.2 and
   up; the examples are apps on this repository's React 19, and the docs already teach `use` for a pane that loads.
+- **WebKit: the console guard passes over WebKit's word on loads a navigation cancelled** (d3c9ec7d). Every WebKit
+  suite passed but Trips, whose tests failed on the console guard alone (each test's body passed, the map included).
+  Every message came between a navigation's request and the next page's DOMContentLoaded: the page being left, still
+  loading MapLibre's worker, its style and lazy modules. Chrome drops those loads silently; WebKit writes each as an
+  error. `cancelledByLeaving` (examples/shared/e2e/quality.ts) passes over exactly those messages, and only while the
+  page is being left. The plan's "Trips' map worker doesn't load in WebKit" was this: ad01afd1's change to how the
+  worker is imported was a guess made while WebKit couldn't run, and is reverted (02fab7af).
+- **WebKit results** at d3c9ec7d: root 144 (5 skipped), Data Studio 20, Loan review 28, Markets 32, Studio 49, Trips
+  50, docs site 41. The Safari focus fixes (step 6) and the long-drag history writes are confirmed there.
