@@ -216,12 +216,27 @@ test("a mixer fader drags without jumping, settles at 0 dB, and a pan dial turns
   const body = (await pan.locator(".dial-body").boundingBox())!;
   const cx = body.x + body.width / 2;
   const cy = body.y + body.height / 2;
-  await page.mouse.move(cx, cy - 18);
+  // WebKit gives a page whole-pixel pointer positions and Chrome fractional ones, so a point 18px from the centre
+  // can be 1.6° off the angle it was aimed at, and a 90° turn lands on 34 instead of 32. The test aims at pixels
+  // both report alike: the start is the whole pixel nearest 12 o'clock, and the end the whole pixel (near the
+  // same radius) whose angle from the start is nearest 90°, so the turn is 90° to a fraction of a degree.
+  const at = (x: number, y: number) => (Math.atan2(x - cx, cy - y) * 180) / Math.PI;
+  const start = { x: Math.round(cx), y: Math.round(cy - 18) };
+  let end = { x: start.x + 18, y: start.y + 18 };
+  let best = Infinity;
+  for (let x = Math.round(cx) + 10; x <= Math.round(cx) + 26; x++)
+    for (let y = Math.round(cy) - 8; y <= Math.round(cy) + 8; y++) {
+      const off = Math.abs(at(x, y) - at(start.x, start.y) - 90);
+      if (off < best) [best, end] = [off, { x, y }];
+    }
+  expect(best, "a whole pixel within half a degree of a quarter turn").toBeLessThan(0.5);
+  await page.mouse.move(start.x, start.y);
   await page.mouse.down();
-  for (let a = 0; a <= 90; a += 10) {
+  for (let a = 10; a < 90; a += 10) {
     const r = (a * Math.PI) / 180;
-    await page.mouse.move(cx + Math.sin(r) * 18, cy - Math.cos(r) * 18);
+    await page.mouse.move(Math.round(cx + Math.sin(r) * 18), Math.round(cy - Math.cos(r) * 18));
   }
+  await page.mouse.move(end.x, end.y);
   await page.mouse.up();
   await expect(pan).toHaveAttribute("aria-valuenow", "32");
   await pan.dblclick();

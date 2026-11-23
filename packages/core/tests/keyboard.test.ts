@@ -317,3 +317,21 @@ describe("two workspaces on one page", () => {
     }
   });
 });
+
+describe("a key whose target is not a node", () => {
+  it("a keydown on window, with a root, is not from inside the instance and does not throw", () => {
+    off();
+    const root = document.createElement("div");
+    document.body.append(root);
+    const offRoot = installKeyboard(store, { root: () => root });
+    try {
+      const focused = store.get().view.focused;
+      expect(() => keydown(window, { key: "F6" })).not.toThrow();
+      expect(store.get().view.focused).toBe(focused);
+    } finally {
+      offRoot();
+      root.remove();
+      setup();
+    }
+  });
+});

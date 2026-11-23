@@ -56,20 +56,37 @@ test("package-manager tabs: arrows switch, each tab has its panel, and the choic
   await expect(hero.getByRole("tab", { name: "pnpm" })).toHaveAttribute("aria-selected", "true");
 });
 
-test("copy buttons copy the code as written", async ({ page, context }) => {
-  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+test("copy buttons copy the code as written", async ({ page }) => {
+  // What the buttons write, captured as it is written: WebKit lets a click write the clipboard but has no permission
+  // to grant for a script to read it back.
+  await page.addInitScript(() => {
+    const w = window as unknown as { copied: string[] };
+    w.copied = [];
+    const clip = navigator.clipboard;
+    const writeText = clip.writeText.bind(clip);
+    clip.writeText = (text) => {
+      w.copied.push(text);
+      return writeText(text);
+    };
+    const write = clip.write.bind(clip);
+    clip.write = async (items) => {
+      for (const item of items) w.copied.push(await (await item.getType("text/plain")).text());
+      return write(items);
+    };
+  });
+  const copied = () => page.evaluate(() => (window as unknown as { copied: string[] }).copied);
   await page.goto("/get-started/quickstart");
   const block = page.locator("figure.code", { hasText: "jali.ts" }).first();
   await block.hover();
   await block.getByRole("button", { name: "Copy code" }).click();
   await expect(block.getByRole("button", { name: "Copied" })).toBeVisible();
-  const text = await page.evaluate(() => navigator.clipboard.readText());
+  const text = (await copied()).at(-1)!;
   expect(text).toContain('import { createJali, row } from "jali";');
   expect(text).not.toContain("​");
 
   await page.getByRole("button", { name: "Copy page" }).click();
   await expect(page.locator("[data-copy-page]")).toHaveAttribute("data-copied", "");
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toMatch(/^# Quickstart\n/);
+  expect((await copied()).at(-1)).toMatch(/^# Quickstart\n/);
 });
 
 test("the theme toggle sets the theme, and it is kept", async ({ page }) => {
@@ -117,6 +134,7 @@ test("headings are read as their words, without their link", async ({ page }) =>
 
 test("every heading's permalink is a named link the keyboard reaches, outside the heading", async ({
   page,
+  browserName,
 }) => {
   await page.goto("/learn/fitting");
   const headings = page.locator(".prose :is(h2, h3, h4).heading");
@@ -140,8 +158,10 @@ test("every heading's permalink is a named link the keyboard reaches, outside th
     (el as HTMLElement).focus();
   });
   const reached: string[] = [];
+  // Safari's Tab skips links; Option+Tab reaches them (as it does in any Mac browser with that setting off).
+  const next = browserName === "webkit" ? "Alt+Tab" : "Tab";
   for (let i = 0; i < 400 && reached.length < n; i++) {
-    await page.keyboard.press("Tab");
+    await page.keyboard.press(next);
     const href = await page.evaluate(() =>
       document.activeElement?.matches(".heading-anchor")
         ? document.activeElement.getAttribute("href")

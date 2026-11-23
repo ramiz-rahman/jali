@@ -134,20 +134,22 @@ test.describe("tab overflow and marks", () => {
     for (const width of [1280, 1100, 900, 800]) {
       await page.setViewportSize({ width, height: 900 });
       await app.stable();
-      const cut = await page.locator(".jali-tabs").evaluateAll((strips) =>
-        strips.flatMap((s) => {
-          const tab = s.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]');
-          if (!tab || !s.checkVisibility()) return [];
-          const a = tab.getBoundingClientRect(),
-            b = s.getBoundingClientRect();
-          return a.left < b.left - 1 || a.right > b.right + 1
-            ? [
-                `${tab.textContent} ${Math.round(a.left - b.left)}..${Math.round(a.right - b.right)}`,
-              ]
-            : [];
-        }),
-      );
-      expect(cut, `width ${width}`).toEqual([]);
+      // The strip shows its active tab again from a ResizeObserver, a frame after the viewport settles.
+      const cut = () =>
+        page.locator(".jali-tabs").evaluateAll((strips) =>
+          strips.flatMap((s) => {
+            const tab = s.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]');
+            if (!tab || !s.checkVisibility()) return [];
+            const a = tab.getBoundingClientRect(),
+              b = s.getBoundingClientRect();
+            return a.left < b.left - 1 || a.right > b.right + 1
+              ? [
+                  `${tab.textContent} ${Math.round(a.left - b.left)}..${Math.round(a.right - b.right)}`,
+                ]
+              : [];
+          }),
+        );
+      await expect.poll(cut, { message: `width ${width}` }).toEqual([]);
     }
     // A strip narrower than its active tab shows the tab's start ("Ord…"), never its end ("ders").
     await page.setViewportSize({ width: 1280, height: 900 });
@@ -157,10 +159,15 @@ test.describe("tab overflow and marks", () => {
     await first.focus();
     await page.keyboard.press("Enter");
     await expect(first).toHaveAttribute("aria-selected", "true");
-    const [t, s] = await Promise.all([
-      first.boundingBox(),
-      page.locator(".jali-tabs").first().boundingBox(),
-    ]);
-    expect(Math.round(t!.x)).toBeGreaterThanOrEqual(Math.round(s!.x) - 1);
+    // The strip shows the tab's start from its resize observer, after the narrower strip is laid out.
+    await expect
+      .poll(async () => {
+        const [t, s] = await Promise.all([
+          first.boundingBox(),
+          page.locator(".jali-tabs").first().boundingBox(),
+        ]);
+        return Math.round(t!.x) - Math.round(s!.x);
+      })
+      .toBeGreaterThanOrEqual(-1);
   });
 });

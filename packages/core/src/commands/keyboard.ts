@@ -153,6 +153,14 @@ export interface KeyboardScope {
   root?: () => ParentNode | null;
 }
 
+/** Whether an event's target is a DOM node (a keydown on `window` is not), in the page's realm or the target window's. */
+function isNode(t: EventTarget | null, target: Window): t is Node {
+  return (
+    !!t &&
+    (t instanceof Node || t instanceof ((target as unknown as { Node?: typeof Node }).Node ?? Node))
+  );
+}
+
 export function installKeyboard(
   store: JaliStore,
   { target = window, root }: KeyboardScope = {},
@@ -164,14 +172,14 @@ export function installKeyboard(
     const el = root(),
       t = e.target as Node | null;
     if (!el) return false;
-    if (t && (el.contains(t) || store.dom.layer()?.contains(t))) return true;
+    if (t && isNode(t, target) && (el.contains(t) || store.dom.layer()?.contains(t))) return true;
     return active && (!t || t === target.document.body || t === target.document.documentElement);
   };
   // A click on something unfocusable inside the instance counts as being there, as focus moving in does.
   const onFocus = (e: Event) => {
     const el = root?.();
-    const t = e.target as Node;
-    if (el) active = el.contains(t) || !!store.dom.layer()?.contains(t);
+    const t = e.target;
+    if (el && isNode(t, target)) active = el.contains(t) || !!store.dom.layer()?.contains(t);
   };
   const take = (e: KeyboardEvent) => {
     e.preventDefault();

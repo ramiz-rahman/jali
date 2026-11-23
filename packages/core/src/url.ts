@@ -510,6 +510,10 @@ export function createUrlSync({
       timer = undefined;
       waiting = null;
     },
+    // The page is leaving: a replace still waiting (up to 250 ms) is written now, so a reload reopens what was on screen.
+    flush() {
+      if (!closed) flush();
+    },
     keepBroken: (code) => storage.set(`${prefix ?? ""}${BROKEN_KEY}`, code),
     // Back or Forward left the entry a waiting replace was for: it would write that entry's address over this one's.
     onPop: (fn) =>

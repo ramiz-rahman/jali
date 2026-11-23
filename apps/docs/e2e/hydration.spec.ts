@@ -72,6 +72,10 @@ for (const platform of PLATFORMS) {
       const res = await page.goto("/nope");
       expect(res?.status()).toBe(404);
       await expect(page.locator(".not-found .page-summary code")).toHaveText("/nope");
+      // WebKit logs the document's own 404 as a failed resource load, with no location to tell it from another's
+      // (Chrome's is dropped by `prepare`): that one message is allowed, a second would be a real failed load.
+      const own = errors.findIndex((e) => /^Failed to load resource: .*404/.test(e));
+      if (own >= 0) errors.splice(own, 1);
       expect(errors).toEqual([]);
     });
   });
