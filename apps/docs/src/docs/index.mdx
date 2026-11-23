@@ -4,6 +4,7 @@ summary: Split views for React. Panes fold into tabs instead of squeezing, follo
 ---
 
 import { TreeView, Frame, Spotlight } from "../live";
+import { ExampleGrid } from "../examples/ExampleApp";
 import { Opening, Stage, Section, MinimalApp, Path, Proof, LinkDemo, KeysDemo, Close, Package, Theming, SiteFooter } from "../shell/landing";
 
 <Opening title="Split views for your React app" lead="Split any part of your app into panes, from two side by side to a dozen in rows, columns and tabs. Jali keeps every layout usable on every screen size.">
@@ -32,6 +33,10 @@ import { Opening, Stage, Section, MinimalApp, Path, Proof, LinkDemo, KeysDemo, C
       Move focus, maximise, tuck, close and undo from the keyboard, and rebind or turn off any key. Click inside the panes to try them, or press a key below.
     </Proof>
   </Path>
+</Section>
+
+<Section id="examples" label="Examples" title="Six apps, running" lead="Whole apps built on Jali, each running on this site: open one and try what it shows.">
+  <ExampleGrid />
 </Section>
 
 <Close title="One package: jali" lead="One install. The core has no framework; jali/react renders it, and each feature has its own entry.">

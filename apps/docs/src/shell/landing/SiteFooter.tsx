@@ -93,7 +93,9 @@ export function SiteFooter() {
           <span>
             Designed and built by <Maker />
           </span>
-          <span>Licence to come.</span>
+          <span>
+            <a href={`${REPO_URL}/blob/master/LICENSE`}>Apache-2.0</a>
+          </span>
         </p>
       </div>
     </footer>

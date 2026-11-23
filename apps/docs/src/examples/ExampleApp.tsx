@@ -7,7 +7,7 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { ArrowRightIcon, ArrowUpRightIcon, GithubLogoIcon } from "@phosphor-icons/react";
 import { Fragment, type ReactNode } from "react";
-import { appPath, appOf, sourceUrl } from "./data";
+import { EXAMPLES, appPath, appOf, sourceUrl } from "./data";
 
 const PUBLIC = [join(process.cwd(), "public"), join(process.cwd(), "apps/docs/public")].find(
   existsSync,
@@ -94,5 +94,46 @@ export function ExampleApp({ id }: { id: string }) {
         <a href={`http://localhost:${app.port}`}>localhost:{app.port}</a>.
       </p>
     </div>
+  );
+}
+
+/** The six apps as a grid of screenshots, for the home page: each opens its part of the Examples page. */
+export function ExampleGrid() {
+  return (
+    <ul className="example-grid" aria-label="Example apps">
+      {EXAMPLES.map((app) => {
+        const both = app.opens !== "dark" && hasShot(shot(app.id, "dark"));
+        return (
+          <li key={app.id}>
+            <a className="example-tile" href={`/examples#${app.id}`}>
+              <span className="example-tile-shot">
+                <img
+                  src={shot(app.id, "light")}
+                  alt=""
+                  width={1440}
+                  height={900}
+                  loading="lazy"
+                  decoding="async"
+                  data-shot={both ? "light" : undefined}
+                />
+                {both ? (
+                  <img
+                    src={shot(app.id, "dark")}
+                    alt=""
+                    width={1440}
+                    height={900}
+                    loading="lazy"
+                    decoding="async"
+                    data-shot="dark"
+                  />
+                ) : null}
+              </span>
+              <span className="example-tile-name">{app.name}</span>
+              <span className="example-tile-text">{app.summary}</span>
+            </a>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
