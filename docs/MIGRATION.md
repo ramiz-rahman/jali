@@ -1,3 +1,33 @@
+# Migrating to the stabilisation step 2 (23 Nov 2026): the commit model
+
+An action is a proposal until it commits, it makes one history write, and the address is written less often. No
+public name changes; what changes is when things happen. Data Studio's `beforeClose` and the examples needed nothing
+but tests that read the address straight after a replace.
+
+## Behaviour
+
+| Before                                                                                                  | After                                                                                                                                                                   |
+| ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| an action your `beforeClose` runs while it answers at once waited, returning `"pending"` with `settled` | it happens at once and returns its real result; the change being decided is worked out again afterwards (asking again only if it would now lose other work)             |
+| its events came after the change being decided                                                          | they come first: it was made first                                                                                                                                      |
+| a draft or unsaved mark the guard reported was lost when the discard question held the change           | it stays; Keep editing leaves it, and closing again asks again                                                                                                          |
+| a guard that destroyed the instance still saw the change happen, or a `settled` that never resolved     | the change is `"unavailable"`, nothing is told, and every `settled` resolves                                                                                            |
+| `destroy()` settled an open question (`beforeClose`, "Discard unsaved changes?") as `"kept"`            | as `"unavailable"`                                                                                                                                                      |
+| `destroy()` from a listener let the batches still to be told go out                                     | nothing more is told to `on` or `subscribe`                                                                                                                             |
+| each part of an action, and the URL feature around arrivals, wrote the address                          | one write per action, after it commits, the strongest of its parts (push > replace > debounce); a held action writes nothing until it lands, and nothing if it doesn't  |
+| a broken link's fallback wrote the address, toast and announcement before `beforeClose` allowed it      | all three come with the fallback, once it is allowed                                                                                                                    |
+| a drag with edge scrolling replaced the history entry about ten times a second                          | nothing is written during a gesture; once, when it ends                                                                                                                 |
+| a replace was written at once                                                                           | at once if 250 ms have passed since the last, else in the next slot, the latest winning (a test reading the address advances its timers 250 ms); a push writes it first |
+| a history write the browser refused (Safari's `SecurityError`) threw from the action                    | it is dropped with one development warning; the address lags until the next write, and the action still happens                                                         |
+
+## `jali/adapter`
+
+| Before                                                                                | After                                                                                                                                                                 |
+| ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ApplyIO` with `set`, `restore`, `snapshot`, `host`, `later` and an optional `signal` | `ApplyIO` with `snapshotOf(s)`, `reduce(s, patch)`, `publish(state, effects)` and a required `signal`: `apply` works an action out on its own copy, then publishes it |
+| `Change` without `history`                                                            | `Change.history`: the history mode the change writes when it commits, in place of its op's                                                                            |
+| `store.apply` from inside `beforeClose` returned `"pending"`                          | it commits at once                                                                                                                                                    |
+
 # Migrating to the stabilisation step 1b (23 Nov 2026)
 
 The viewer role becomes the host's `allow`, and the peek leaves the address. Loan review was the only example that used the viewer role; it now passes `allow: { open: false }` for its officer persona.

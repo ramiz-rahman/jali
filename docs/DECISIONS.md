@@ -1781,3 +1781,48 @@ Second part of step 1 of docs/reviews/2026-11-23/PLAN.md: the cuts that change b
 - **`"agent"` leaves `JaliInput`.** Nothing produces it since the agent bridge went; an app's agent acts in the app's code, as `code`. `withInput` stays internal (a held action ends with the input of whoever asked) and leaves `jali/adapter`.
 - **Size:** unchanged budgets, none raised (full core 61.9 of 63.0 KB, `+page` 58.1 of 59.7).
 - **Tests:** the viewer tests (`page-viewer`, `viewer-downgrade`, the officer browser test) become `allow.open` tests that follow each action to its next consequence (a peek instead of a pane, then its Open beside refused and the layout unchanged; Split view on a page, then a link that peeks; `when` per source pane; the chrome drawn without the buttons), and the peek's address tests become "a peek writes nothing, and a fresh instance on the same address shows none".
+
+## 23 Nov 2026 · Stabilisation step 2: the commit model, one history decision, and history writes (23 Nov 2026)
+
+Step 2 of docs/reviews/2026-11-23/PLAN.md, as the owner approved it, from Codex's design with the lead's notes. Each is
+a commit on branch `stabilise`.
+
+- **An action is a proposal until it commits.**
+  - **What:** `apply()` works an action out on a private copy of the state, with its effects queued, and publishes
+    both in one batch. A refusal or a question that holds it discards the proposal: `transaction`, `mark`, `restore`
+    and `ApplyIO.restore` are gone, and so are the store's `hosting`, `waiting` and `wait()` and the REPORT_STEPS
+    bypass. `beforeClose` runs while nothing of the action is written, so what the host does meanwhile (a report, pane
+    state, an action of its own) commits at once with its real result. After a synchronous yes that changed the
+    state, the action is worked out again from the state then, with what the host allowed; it asks again only for
+    panes it hasn't allowed. A promise's yes runs the intent again, as before.
+  - **Why:** putting back a whole state took back what others wrote meanwhile (finding A2-1), and made the host's own
+    actions wait to be safe from it. A proposal has nothing to put back.
+  - **Lifetime:** checked after every host callback (an outcome function, `beforeClose`, both branches of a held
+    answer) and between effects. A destroyed instance commits, writes, announces and tells nothing; `destroy()`
+    silences events (queued batches and toasts are dropped, even mid-listener) and the lifetime aborts before it
+    cancels; every hold, including the discard question, settles as `"unavailable"` (finding A2-3). A held answer
+    settles once and never rejects.
+  - **Kept:** `Intent`, `AnswerStep`, `Agreed`, `covered()`, `each`'s independent parts, and the discard question as
+    the one thing a held action leaves. A change computed outside a step is refused `"kept"` once its layout changed.
+- **One history decision per action.** The store keeps the strongest mode a batch asks for (push > replace > debounce
+  > none) and writes it once, from the final state, after one pane at a time settles and before subscribers hear it.
+  > A discarded proposal asks for nothing, so a held or kept action writes nothing. An arrival's canonicalising replace
+  > is a `history` override on its change, and a broken link's toast and announcement are part of its action (URL-2).
+- **History writes.** While a gesture is in progress (gestures now nest: a pane drag that edge-scrolls is two), the
+  store keeps the strongest mode and writes once when the last ends; edge scrolling is a gesture from its first move
+  to its stop, a pane drag holds through its drop and a divider drag through its commit (SAFARI-3). `UrlWriter` is
+  unchanged (no `pause`). `createUrlSync` writes a replace at most every 250 ms, the latest winning, its address
+  captured when asked for; a push writes a waiting replace first; Back or Forward drops one; `href()` writes one
+  first, so "Copy link" copies what is on screen. `browserLocation().navigate` catches a refused write and warns once
+  in development.
+- **Decided beyond the design:**
+  - Back or Forward that the host or the person keeps still puts the address back to what is on screen (a replace,
+    after the answer). The design dropped that repair; without it a reload after Keep editing opens what the person
+    said no to, and the held-questions tests (C9) require it.
+  - A restart after a synchronous yes happens only when the host changed the state; a held answer whose host also
+    wrote the state reruns the whole action on its yes. More than 8 restarts in one action refuse it as `"kept"`.
+  - A waiting replace is dropped on Back or Forward rather than written over the new entry, and written first by
+    `href()`.
+- **Size:** unchanged budgets, none raised.
+- **Known limit:** the long-drag browser test runs in Data Studio, which has no row that scrolls, so it exercises the
+  drop's single write rather than edge scrolling; the unit tests cover edge scrolling's ten-second hold.
