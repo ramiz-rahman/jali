@@ -1,5 +1,5 @@
 import { defineConfig } from "@playwright/test";
-import { browsers } from "./e2e/fixtures/browsers";
+import { browsers, WORKERS } from "./e2e/fixtures/browsers";
 import { devServer } from "./e2e/fixtures/server";
 
 const SCREENS = !!process.env.SCREENS;
@@ -17,8 +17,9 @@ const CLIPBOARD = ["clipboard-read", "clipboard-write"];
 export default defineConfig({
   testDir: "./e2e",
   timeout: 90_000,
+  // Spec files run side by side (WORKERS at once); the tests in one file run in order.
   fullyParallel: false,
-  workers: 1,
+  workers: WORKERS,
   reporter: [["list"]],
   // Strict, so the tests never drift to another port while waiting.
   webServer: [devServer("examples/data-studio", STUDIO), devServer("examples/loan-review", REVIEW)],

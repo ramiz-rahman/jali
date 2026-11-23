@@ -1,5 +1,5 @@
 import { defineConfig } from "@playwright/test";
-import { browsers } from "../../e2e/fixtures/browsers";
+import { browsers, WORKERS } from "../../e2e/fixtures/browsers";
 import { devServer } from "../../e2e/fixtures/server";
 
 // Loan review's own browser tests: the standard's checks on every view and in Split view, against a server it starts
@@ -11,7 +11,7 @@ const URL = process.env.LOAN_REVIEW_URL ?? "http://localhost:5350";
 export default defineConfig({
   testDir: "./e2e",
   timeout: 90_000,
-  workers: 1,
+  workers: WORKERS,
   reporter: [["list"]],
   webServer: devServer("examples/loan-review", URL),
   use: {

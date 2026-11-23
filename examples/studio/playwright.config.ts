@@ -1,5 +1,5 @@
 import { defineConfig } from "@playwright/test";
-import { browsers } from "../../e2e/fixtures/browsers";
+import { browsers, WORKERS } from "../../e2e/fixtures/browsers";
 import { devServer } from "../../e2e/fixtures/server";
 
 // The studio example's own smoke test, against a server it starts itself on :5330, or on STUDIO_URL's port. It never
@@ -11,7 +11,7 @@ const URL = process.env.STUDIO_URL ?? "http://localhost:5330";
 export default defineConfig({
   testDir: "./e2e",
   timeout: 60_000,
-  workers: 1,
+  workers: WORKERS,
   reporter: [["list"]],
   webServer: devServer("examples/studio", URL),
   use: {
