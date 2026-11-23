@@ -1,0 +1,252 @@
+/* ---------- the underwriting figures: stats, gauges, the payment (figures.tsx) ---------- */
+
+/* Numbers in a row (`Stat`): a loan book, or a list's summary. */
+.rv-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 20px;
+  margin: 0;
+}
+@container (min-width: 300px) {
+  .rv-stats:not(:has(> :nth-child(4))) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@container (min-width: 440px) {
+  .rv-stats {
+    grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  }
+}
+.rv-stats > div {
+  min-width: 0;
+}
+.rv-stats dt {
+  font-size: var(--type-meta);
+  color: var(--text-3);
+}
+.rv-stats dd {
+  margin: 2px 0 0;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: var(--lr-track-title);
+  font-variant-numeric: tabular-nums;
+}
+.rv-stats dd.rv-note {
+  margin-top: 0;
+}
+.rv-stats .is-warn dd:not(.rv-note) {
+  color: var(--risk);
+}
+.rv-stats-strip {
+  padding: 14px 0 6px;
+  max-width: 720px;
+}
+
+.rv-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  background: color-mix(in oklab, var(--risk) 8%, var(--island));
+  box-shadow: inset 3px 0 0 var(--risk);
+  color: var(--risk);
+  font-weight: 500;
+}
+.rv-alert svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+/* Gauges: each ratio on a track, the program's limit as a tick. Two across once there is room. */
+.rv-gauges {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px 28px;
+}
+@container (min-width: 460px) {
+  .rv-gauges {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.rv-gauge {
+  --tone: var(--ok);
+  min-width: 0;
+}
+.rv-gauge[data-tone="warn"] {
+  --tone: var(--warn);
+}
+.rv-gauge[data-tone="risk"] {
+  --tone: var(--risk);
+}
+.rv-gauge-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.rv-gauge-label {
+  color: var(--text-2);
+}
+.rv-gauge-value {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: var(--lr-track-title);
+  font-variant-numeric: tabular-nums;
+}
+.rv-gauge[data-tone="risk"] .rv-gauge-value,
+.rv-gauge[data-tone="warn"] .rv-gauge-value {
+  color: var(--tone);
+}
+.rv-gauge-track {
+  position: relative;
+  height: 6px;
+  margin: 8px 0 6px;
+  background: var(--hover);
+}
+.rv-gauge-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--tone);
+  transform-origin: left;
+}
+.rv-gauge-limit {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--text);
+}
+.rv-gauge-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: var(--type-meta);
+  color: var(--text-3);
+}
+.rv-gauge-foot span:last-child {
+  white-space: nowrap;
+}
+
+/* The payment: one stacked bar, then its lines with a swatch each. */
+.rv-pay {
+  --pay-1: #1f3a5f;
+  --pay-2: #5b7fa8;
+  --pay-3: #9db6d3;
+  --pay-4: #c9a227;
+  --pay-5: #d97757;
+  --pay-6: #8a8f98;
+  display: grid;
+  gap: 12px;
+}
+:is(.dark, [data-theme="dark"]) .rv-pay {
+  --pay-1: #8fb3e0;
+  --pay-2: #5f87b8;
+  --pay-3: #3d5f88;
+  --pay-4: #d9b443;
+  --pay-5: #e58c6c;
+  --pay-6: #8a8f98;
+}
+.rv-pay [data-line="principalInterest"] {
+  --swatch: var(--pay-1);
+}
+.rv-pay [data-line="firstLien"] {
+  --swatch: var(--pay-6);
+}
+.rv-pay [data-line="tax"] {
+  --swatch: var(--pay-2);
+}
+.rv-pay [data-line="insurance"] {
+  --swatch: var(--pay-3);
+}
+.rv-pay [data-line="mortgageInsurance"] {
+  --swatch: var(--pay-5);
+}
+.rv-pay [data-line="hoa"] {
+  --swatch: var(--pay-4);
+}
+.rv-pay-bar {
+  display: flex;
+  gap: 2px;
+  height: 12px;
+  overflow: hidden;
+  transform-origin: left;
+}
+.rv-pay-bar span {
+  flex-basis: 0;
+  min-width: 3px;
+  background: var(--swatch);
+}
+.rv-pay-lines {
+  margin: 0;
+  display: grid;
+  gap: 2px;
+}
+.rv-pay-lines > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 3px 0;
+}
+.rv-pay-lines dt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-2);
+}
+.rv-pay-lines dt i {
+  width: 10px;
+  height: 10px;
+  background: var(--swatch);
+}
+.rv-pay-lines dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+.rv-pay-lines .rv-pay-total {
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+  font-weight: 600;
+}
+.rv-pay-lines .rv-pay-total dt {
+  color: var(--text);
+}
+
+/* Motion: the ratios and the payment draw in when a view opens, then move, rather than jump, from one application
+   to the next. Nothing moves for a reader who asks for less. */
+@media (prefers-reduced-motion: no-preference) {
+  .rv-gauge-fill {
+    transition:
+      width 520ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      background-color 300ms ease;
+    animation: lr-draw 720ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  .rv-gauge:nth-child(2) .rv-gauge-fill {
+    animation-delay: 40ms;
+  }
+  .rv-gauge:nth-child(3) .rv-gauge-fill {
+    animation-delay: 80ms;
+  }
+  .rv-gauge:nth-child(4) .rv-gauge-fill {
+    animation-delay: 120ms;
+  }
+  .rv-gauge-limit {
+    transition: left 520ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .rv-gauge-value {
+    transition: color 300ms ease;
+  }
+  .rv-pay-bar {
+    animation: lr-draw 720ms cubic-bezier(0.2, 0.8, 0.2, 1) 60ms both;
+  }
+  .rv-pay-bar span {
+    transition: flex-grow 520ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+}
+@keyframes lr-draw {
+  from {
+    transform: scaleX(0);
+  }
+}

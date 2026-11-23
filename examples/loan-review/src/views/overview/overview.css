@@ -1,0 +1,219 @@
+/* ---------- Overview ----------
+   What to check first, across the top, then one card per question. Wide (≥ 1040px): qualifying beside the payment,
+   the mortgages across, then borrower, property and officer side by side. Medium: two columns. Narrow: one. The cards
+   sit apart on the pane's ground, so the eye takes them one at a time rather than as one ruled sheet. */
+.rv:has(> .ov) {
+  --rv-max: 1360px;
+  background: var(--lr-paper-2);
+}
+.ov {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "checks" "qualify" "payment" "history" "borrower" "property" "officer";
+}
+@container rv (min-width: 640px) {
+  .ov {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+      "checks checks"
+      "qualify payment"
+      "history history"
+      "borrower property"
+      "officer officer";
+  }
+}
+@container rv (min-width: 1040px) {
+  .ov {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-areas:
+      "checks checks checks"
+      "qualify qualify payment"
+      "history history history"
+      "borrower property officer";
+  }
+}
+
+.ov-checks,
+.ov-sec {
+  container-type: inline-size;
+  min-width: 0;
+  background: var(--island);
+  border: 1px solid var(--line);
+  padding: 18px 20px 20px;
+}
+
+/* What to check: a title with the tally, then one column per area (credit, capacity, collateral, loan). */
+.ov-checks-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+}
+.ov-checks-head h3,
+.ov-head h3 {
+  margin: 0;
+  font-size: var(--type-name);
+  font-weight: 600;
+  letter-spacing: var(--lr-track-title);
+  color: var(--text);
+}
+.ov-tally {
+  display: inline-flex;
+  gap: 8px;
+  font-size: var(--type-meta);
+  font-weight: 500;
+}
+.ov-tally span {
+  padding: 1px 7px;
+  border-radius: var(--jali-radius-chip);
+  background: color-mix(in oklab, var(--tone) 12%, var(--island));
+  color: var(--tone);
+}
+.ov-tally [data-tone="risk"] {
+  --tone: var(--risk);
+}
+.ov-tally [data-tone="warn"] {
+  --tone: var(--warn);
+}
+.ov-tally [data-tone="ok"] {
+  --tone: var(--ok);
+}
+.ov-areas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px 28px;
+  margin-top: 14px;
+}
+.ov-area h4 {
+  margin: 0 0 8px;
+  font-size: var(--type-caption);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-3);
+}
+.ov-area ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.ov-area li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  min-width: 0;
+}
+.ov-area li b {
+  display: block;
+  font-weight: 500;
+}
+.ov-area li[data-tone="risk"] b {
+  color: var(--risk);
+}
+.ov-area li b,
+.ov-detail {
+  text-wrap: pretty;
+}
+.ov-detail {
+  display: block;
+  margin-top: 1px;
+  line-height: 1.45;
+  font-size: var(--type-meta);
+  color: var(--text-3);
+}
+
+/* A section card: its title and a way to the full view, a lead figure with a line under it, then its body. */
+.ov-sec {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+.ov-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.ov-sec .ov-head h3 {
+  font-size: var(--type-caption);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-3);
+}
+/* "Open ›": a quiet text link until hovered. */
+.ov-go {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  border: 0;
+  background: none;
+  padding: 2px 4px;
+  margin-right: -4px;
+  color: var(--text-3);
+  font: inherit;
+  font-size: var(--type-meta);
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 140ms ease;
+}
+.ov-go svg {
+  transition: transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.ov-go:hover {
+  color: var(--lr-link);
+}
+.ov-go:hover svg {
+  transform: translateX(2px);
+}
+.ov-go:hover .ov-go-text {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.ov-lead-block {
+  display: grid;
+  gap: 2px;
+  margin-top: -6px;
+}
+.ov-lead {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: var(--lr-track-display);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.ov-lead.is-warn {
+  color: var(--risk);
+}
+.ov-note {
+  margin: 0;
+  font-size: var(--type-meta);
+  color: var(--text-3);
+}
+.ov-sec .rv-table td,
+.ov-sec .rv-table th {
+  padding-top: 7px;
+  padding-bottom: 7px;
+}
+.ov-sec .rv-fact:last-child {
+  border-bottom: 0;
+}
+.ov-sec .rv-fact {
+  padding: 6px 0;
+}
+
+@container rv (max-width: 520px) {
+  .ov {
+    gap: 12px;
+  }
+  .ov-checks,
+  .ov-sec {
+    padding: 14px 16px 16px;
+  }
+}

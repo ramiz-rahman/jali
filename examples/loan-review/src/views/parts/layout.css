@@ -1,0 +1,267 @@
+/* ---------- Loan review views: the parts they share (records/, lists/, overview/) ----------
+   Each view sizes itself to its pane, not the window: `.rv` is an inline-size container, and every breakpoint in these
+   files is a container query. Narrow (Split view, 360–520px): one column. Wide: main column and a side column of links.
+   Very wide (Single at 1920): the content stops at a readable width instead of stretching. */
+
+/* ---------- the frame, head, columns, facts and tables (layout.tsx) ---------- */
+
+.rv {
+  container: rv / size;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 20px 24px 28px;
+  color: var(--text);
+  --rv-max: 1120px;
+  --ok: var(--act-done);
+  --warn: var(--amber);
+  --risk: var(--red);
+}
+.rv > * {
+  max-width: var(--rv-max);
+}
+@media (max-width: 767px) {
+  .rv {
+    padding: 16px 16px 24px;
+  }
+}
+.pk .rv .num,
+.rv-num {
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+}
+.rv-muted {
+  color: var(--text-3);
+}
+.rv-warn {
+  color: var(--risk);
+  font-weight: 500;
+}
+
+/* The view's own head: what this is, then its name. The page header above holds the application's facts. */
+.rv-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding-bottom: 14px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--line);
+}
+.rv-head-text {
+  flex: 1;
+  min-width: 0;
+}
+.rv-kicker {
+  font-size: var(--type-meta);
+  color: var(--text-3);
+}
+.rv-title {
+  margin: 4px 0 0;
+  font-size: 23px;
+  line-height: 1.25;
+  font-weight: 500;
+  letter-spacing: var(--lr-track-display);
+  text-wrap: balance;
+}
+.rv-sub {
+  margin-top: 2px;
+  color: var(--text-2);
+}
+.rv-contact {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+}
+.rv-tel {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-2);
+  text-decoration: none;
+  font-variant-numeric: tabular-nums;
+}
+.rv-tel:hover {
+  color: var(--lr-link);
+}
+
+/* A short pane (Split view, ~320px tall): the pane header names the view, so the head shrinks to the title. */
+@container rv (max-height: 440px) {
+  .rv-head {
+    padding-bottom: 8px;
+  }
+  .rv-head .rv-kicker {
+    display: none;
+  }
+  .rv-title {
+    font-size: var(--type-title);
+  }
+  .rv-sec {
+    padding-top: 10px;
+  }
+}
+
+/* Body: one column; a side column for people and related records once there is room. */
+.rv-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  column-gap: 32px;
+}
+.rv-main,
+.rv-side {
+  min-width: 0;
+}
+/* The main column sizes its own facts and stats: beside the side column it is narrower than the pane. */
+.rv-main {
+  container-type: inline-size;
+}
+@container rv (min-width: 720px) {
+  .rv-body {
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 300px);
+  }
+  .rv-side {
+    border-left: 1px solid var(--line);
+    padding-left: 24px;
+  }
+}
+
+.rv-sec {
+  padding: 14px 0 6px;
+}
+.rv-sec + .rv-sec {
+  border-top: 1px solid var(--line);
+}
+.rv-sec-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.rv-sec-head h4 {
+  margin: 0;
+  font-size: var(--type-name);
+  font-weight: 600;
+  letter-spacing: var(--lr-track-title);
+  color: var(--text);
+}
+
+/* Facts: label beside value, close together. Two columns of pairs from 560px, three from 960px. */
+.rv-facts {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  column-gap: 32px;
+  margin: 0;
+}
+.rv-fact {
+  display: grid;
+  grid-template-columns: minmax(96px, 9.5em) minmax(0, 1fr);
+  gap: 12px;
+  align-items: baseline;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--line);
+}
+.rv-fact dt {
+  color: var(--text-3);
+}
+.rv-fact dd {
+  margin: 0;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 8px;
+}
+.rv-val {
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: break-word;
+}
+.rv-note,
+.rv-stats .rv-note {
+  font-size: var(--type-meta);
+  color: var(--text-3);
+  font-weight: 400;
+}
+@container (min-width: 560px) {
+  .rv-facts:not([data-cols="1"]) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* A reviewer's table: priority columns. 1 always; 2 from 520px; 3 from 720px. Below, the first cell carries them. */
+/* A list view's table, straight under its head. */
+.rv > .rv-table {
+  margin-top: 6px;
+}
+.rv-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--type-body);
+}
+.rv-table th {
+  text-align: left;
+  font-size: var(--type-meta);
+  font-weight: 400;
+  color: var(--text-3);
+  padding: 8px 12px 8px 0;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.rv-table td {
+  padding: 10px 12px 10px 0;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+.rv-table th:last-child,
+.rv-table td:last-child {
+  padding-right: 0;
+}
+.rv-table .num {
+  text-align: right;
+}
+.rv-table td.num {
+  font-weight: 500;
+}
+.rv-table .num + :not(.num) {
+  padding-left: 16px;
+}
+.rv-table tr[data-status="closed"] td:not(:first-child) {
+  color: var(--text-2);
+}
+.rv-table tr[data-status="overdue"] td:first-child {
+  box-shadow: inset 2px 0 0 var(--risk);
+  padding-left: 8px;
+}
+.rv-table tr[data-status="overdue"] th:first-child {
+  padding-left: 8px;
+}
+.rv-table [data-pri="2"],
+.rv-table [data-pri="3"] {
+  display: none;
+}
+.rv-stack {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 8px;
+  font-size: var(--type-meta);
+  color: var(--text-3);
+}
+.rv-stack > [data-pri] {
+  display: inline;
+}
+@container rv (min-width: 520px) {
+  .rv-table [data-pri="2"] {
+    display: table-cell;
+  }
+  .rv-stack > [data-pri="2"] {
+    display: none;
+  }
+}
+@container rv (min-width: 720px) {
+  .rv-table [data-pri="3"] {
+    display: table-cell;
+  }
+  .rv-stack > [data-pri="3"] {
+    display: none;
+  }
+}

@@ -1,0 +1,152 @@
+/* ---------- links to related records and lists (links.tsx) ---------- */
+
+/* Related records: a list of things to open, each with a count or a name in words. */
+.rv-rels {
+  list-style: none;
+  margin: 0 -8px;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+.rv-rel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 40px;
+  padding: 6px 8px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 140ms ease;
+}
+button.rv-rel:hover {
+  background: var(--hover);
+}
+button.rv-rel:hover .rv-rel-label {
+  color: var(--lr-link);
+}
+button.rv-rel:focus-visible,
+.rv-link:focus-visible,
+.ov-go:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.rv-rel.is-static {
+  cursor: default;
+  color: var(--text-3);
+}
+.rv-rel-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  background: var(--hover);
+  color: var(--text-2);
+}
+.rv-rel-text {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+}
+.rv-rel-label {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rv-rel-note {
+  font-size: var(--type-meta);
+  color: var(--text-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rv-rel.is-static .rv-rel-label {
+  font-weight: 400;
+}
+.rv-rel-go {
+  flex: none;
+  color: var(--text-4);
+  transition:
+    color 140ms ease,
+    transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+button.rv-rel:hover .rv-rel-go {
+  color: var(--lr-link);
+  transform: translate(1px, -1px);
+}
+.rv-avatar {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  background: var(--text);
+  color: var(--island);
+  font-size: var(--type-caption);
+  font-weight: 600;
+}
+.rv-rel-icon:has(.rv-avatar) {
+  background: none;
+}
+
+.rv-link {
+  color: var(--lr-link);
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+}
+.rv-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: var(--jali-radius-chip);
+  font-size: var(--type-caption);
+  line-height: 18px;
+  font-weight: 500;
+  background: var(--ground);
+  color: var(--text);
+  vertical-align: 1px;
+}
+.rv-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Nothing to show: a quiet hairline square above the words, centred in the view rather than stuck to its top. */
+.rv:has(> .pk-state) {
+  display: flex;
+}
+.rv .pk-state {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  margin: auto;
+  padding: 16px;
+  max-width: 300px;
+  text-wrap: balance;
+}
+.rv .pk-state::before {
+  content: "";
+  width: 28px;
+  height: 28px;
+  margin-bottom: 10px;
+  border: 1px solid var(--line-strong);
+  background:
+    linear-gradient(var(--line-strong), var(--line-strong)) center / 10px 1px no-repeat,
+    var(--island);
+}
+.rv .pk-state b {
+  margin: 0;
+  font-size: var(--type-name);
+  font-weight: 600;
+  letter-spacing: var(--lr-track-title);
+}
