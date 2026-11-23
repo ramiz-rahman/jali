@@ -1,3 +1,51 @@
+# Migrating to the stabilisation cuts (23 Nov 2026, step 1a)
+
+Names and behaviours that go. Each row says what to use instead. The examples used none of them, except that `examples/own-icons` dropped its `openFull` icon.
+
+## `jali`
+
+| Before                                                                                                                    | After                                                                                                                                        |
+| ------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `jali/agent` (`createAgent`, `AGENT_ACTIONS` and the `Agent*` types)                                                      | write two tools of your own over `jali.model()` and `jali.actions` ([Let an agent arrange panes](/guides/agents)); `input: "code"` on events |
+| `activeItemPort(jali, pane, mapping)`, `ActiveItemPort`, `ActiveItemAction`, `ActiveItemWriteResult`, `ActiveItemMapping` | `select(ref)` reports a list's current item; `peek(ref)` shows it in the sheet                                                               |
+| `linkSearch(link, options)`, `JaliLink`, `PageLink`, `LayoutLink`, `LinkSearchOptions`                                    | none for now: copy the address with `copyLink(jali)` or `jali.href`; real links (`<PaneLink>`) are the next feature                          |
+| `commandsOf(jali)`                                                                                                        | `listCommands(jali)` for what a person can run now; `commandDefsOf` in `jali/adapter` for the whole table                                    |
+| `formatKeys(seq, platform, words)`                                                                                        | `jali.keymap.format(seq)`, or `keyHint("Mod+K", platform, words)` for a binding string                                                       |
+| `DEFAULT_KEYMAP`                                                                                                          | `jali.keymap.sequences(id)` for an instance's bindings; the table is in `jali/adapter`                                                       |
+| `GAP`                                                                                                                     | `jali.env.spacing.gap` (6 by default); `jali/adapter` still exports `GAP`                                                                    |
+| `toLayout(input)`                                                                                                         | everything that takes a layout takes a builder's result; `jali/adapter` still exports `toLayout`                                             |
+| `browserLocation()`, `browserStorage(prefix)`                                                                             | the defaults of `url` and `storage` (`storage: "prefix"` is the same as `browserStorage("prefix")`); `jali/adapter` still exports them       |
+| `StoragePort.subscribe`                                                                                                   | removed: a port has `get`, `set` and an optional `remove`                                                                                    |
+| `createJali({ inset })`                                                                                                   | removed: the inset is the gap (`createJali({ gap })`); `--jali-inset` equals `--jali-gap`                                                    |
+| `createJali({ onUnstable })`                                                                                              | removed: development still reports it through `console.error` (`Layout stability: "<op>" …`)                                                 |
+
+## `jali/react`
+
+| Before                                  | After                                                                                               |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `useActiveItemPort(mapping)`            | `select(ref)` and `peek(ref)` from the pane                                                         |
+| `useJaliCommands()`                     | `listCommands(jali)`, read again in an effect on `jali.subscribe` (see the Commands and keys guide) |
+| `useJaliIcons()`                        | none: draw your own chrome with your own icons                                                      |
+| `shallow`                               | an equality function of your own (`useJaliState(select, isEqual)`)                                  |
+| `CuratedPage`                           | `<JaliView />` draws the page                                                                       |
+| the icon name `openFull` in `JaliIcons` | removed with the button; delete it from a complete icon map                                         |
+
+## Other entries
+
+| Before                        | After                                                                                 |
+| ----------------------------- | ------------------------------------------------------------------------------------- |
+| `jali/icons` (`defaultIcons`) | removed: give `<JaliRoot icons>` the icons you want; a part of the set is enough      |
+| `jali/testing`: `pressKeys`   | dispatch `keydown` events on the document (`fireEvent.keyDown`, `userEvent.keyboard`) |
+
+## Behaviour
+
+| Before                                                                  | After                                                                                                                |
+| ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| the peek sheet had **Open full**; `peek.open_full` was in ⌘K            | removed with `jali.actions.openPeekFull`; **Open beside** keeps the peeked object                                    |
+| a draft typed in one tab appeared in another tab showing the same pane  | not while it runs: a tab reads what others saved when it starts. Writes still merge and the last write wins per pane |
+| a pane closed for good kept its record if another tab had written since | deleted while the stored record is still for the same object; a record for another object stays                      |
+| the `jali-inset` could differ from the gap                              | always equal                                                                                                         |
+
 # Migrating to the React architecture pass (23 Nov 2026)
 
 Apps change nothing: `jali`, `jali/react` and the features keep every name. What changes is in `jali/adapter`, for people writing an adapter, and a few behaviours. Data Studio uses none of the names below (checked by search over its whole repo, 23 Nov 2026).

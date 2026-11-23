@@ -1736,3 +1736,28 @@ A review of `packages/react` (at 7db3209a) found the adapter's structure sound a
 ## 23 Nov 2026 · The engine tests own their kinds
 
 The React pass left the fourteen tests that ran the engine against Data Studio's and Loan review's kinds in `tests/examples/`. They now run on a fixture the package owns (`packages/core/tests/fixtures/workspace.ts`): plain kinds, no React, in the same shapes as the apps (kind names, size hints, params, preset ids, the page's views and the sample's application-to-borrower rule), so each test still reads like the app it stands for and none changed beyond its imports. The eleven that import no React are core's; the three that render or use hooks stay in React's project and build their store from the same fixture. No package test imports an example app, so an example can change without breaking them; the apps' own suites (and their e2e runs) test the apps. **Rejected:** keeping a unit-level suite against the real examples, which would only repeat what their e2e suites check, through code the package doesn't own.
+
+## 23 Nov 2026 · Stabilisation step 1a: the cuts (23 Nov 2026)
+
+First part of step 1 of docs/reviews/2026-11-23/PLAN.md, which the owner approved the same day: the mechanical cuts. Each is a commit on branch `stabilise`. The viewer role, `allow.open` and peek's leaving the address are step 1b.
+
+- **The agent bridge (`jali/agent`).**
+  - **What:** `createAgent`, `AGENT_ACTIONS` and their types, the `jali/agent` and `@jali/core/agent` entries, the reference page and its nav entry go. The guide is a recipe, "Let an agent arrange panes": two tools an app writes over `jali.model()` and `jali.actions`.
+  - **Why:** the bridge was a second API over the first (a snapshot shape, a step runner, a schema for every action, WebMCP), kept in step by hand. A typed result, a refusal with its reason, `input` on events and `allow` already give an app what it needs, and an app knows its own model and its own tools better than Jali does. `input: "agent"` stays in the type for an adapter that marks its own actions.
+- **The active-item port.**
+  - **What:** `activeItemPort`, `useActiveItemPort`, `ActiveItemPort`, `ActiveItemAction`, `ActiveItemWriteResult` and `ActiveItemMapping` go, with `contracts/active-item.ts`.
+  - **Why:** it was a shape kept for a library (Chakni) whose side was never built, and no app or example used it. `select(ref)` and `peek(ref)` do the work, as Markets' watchlist shows.
+- **Peek "Open full".**
+  - **What:** the button, the `peek.open_full` command, `openPeekFull` and its `openFull` op, its three messages and the `openFull` icon go.
+  - **Why:** nothing needed it, and on a curated page it replaced every role with one pane while the page stayed active (finding A2-4). Open beside is the one way to keep a peeked object.
+- **Live sync of pane state between tabs.**
+  - **What:** `merge` on storage events, the revision bookkeeping and `StoragePort.subscribe` (with browserStorage's `storage` listener) go. Kept: pane state survives a reload; each write reads storage fresh and writes only this instance's changed records over it, so two tabs never erase each other's records; the last write wins per pane. A pane closed for good has its record deleted while the stored record still belongs to the same object.
+  - **Why:** the merge needed a revision per record, which was finding A2-2's weak point (the timestamp doubled as identity), and no app needed a draft typed in one tab to appear in another. A reload still brings back what a tab saved.
+- **Names with no consumer benefit.**
+  - **What:** `linkSearch` (with `JaliLink`, `PageLink`, `LayoutLink`, `LinkSearchOptions`) and `commandsOf` are deleted. `toLayout`, `browserLocation`, `browserStorage`, `DEFAULT_KEYMAP`, `formatKeys` and `GAP` leave `jali` but stay in `jali/adapter`, since the core and the docs machinery use them. `shallow`, `CuratedPage`, `useJaliIcons` and `useJaliCommands` leave `jali/react` and stay internal. `pressKeys` is deleted (`jali/testing`), and so are `defaultIcons` and the `jali/icons` entry (its types are exported by `jali/react`). `DefaultKeymapId` is written out, so a public type names no value the package doesn't export.
+  - **Why:** each had no use that `jali.keymap`, `listCommands`, `select`/`peek` and the options don't cover. "Links are real links" (`<PaneLink>`) is the first feature after this round, so a half-way `linkSearch` would only be replaced.
+- **Options.**
+  - **What:** `createJali({ inset, onUnstable })` go. `--jali-inset` stays and is always `--jali-gap`; the development warning that an action which never moves anything moved panes stays, internal, through `console.error`. `onPaneError` stays.
+  - **Why:** an inset apart from the gap was tried (Studio) and rejected, and `onUnstable` was a test hook that no app set.
+- **Size:** unchanged budgets, none raised. Core now ships 0.3 to 1.2 KB less than its budgets in every scenario (full 62.4 of 63.0, minimal 56.0 of 56.6); step 8 ratchets them.
+- **Tests:** the tests of the cut names go; the tests that used the bridge, `commandsOf` or `onUnstable` to reach an action or an observation now call it directly (`withInput`, `commandDefsOf`, a shared collector for the stability warning). The live-merge tests become three about reload, merge-on-write and last write wins.
