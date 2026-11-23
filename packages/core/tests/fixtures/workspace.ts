@@ -295,7 +295,6 @@ const loanReview = definePageEngine({
   id: "loan-review",
   name: "Loan review",
   itemNoun: "application",
-  viewers: { full: "credit reviewer", limited: "loan officer" },
   roles: ROLES,
   home: "overview",
   build,

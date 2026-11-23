@@ -36,7 +36,7 @@ It serves on [localhost:5350](http://localhost:5350). A credit reviewer works th
 - a profile: the queue at the left, the application's header, and tabs for its views (Overview, Application, Borrower, Loan history, Group, Field officer);
 - Single view, one view at a time with links opening as a peek, and Split view, the views side by side in a designed layout the person can rearrange;
 - following a link from a view, which opens a pane after the layout, and "Back to Loan review" to return;
-- two kinds of viewer, a credit reviewer with full access and a loan officer who stays in Single view;
+- two personas, switched from the header (`?role=officer`): a credit reviewer who opens links beside, and a loan officer whose links open as a peek (`allow: { open: false }`);
 - a link that carries only the content (`?page=loan-review&item=4&tab=application`), while the mode and arrangement stay the person's own.
 
 The app has the page and nothing else (`page`, with no layout or presets), so it opens on the page and stays in it.

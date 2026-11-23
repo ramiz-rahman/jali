@@ -77,7 +77,6 @@ export const customerPage = definePage({
   id: "customer",
   name: "Customer",
   itemNoun: "customer",
-  viewers: { full: "account manager", limited: "support agent" },
   roles,
   home: "overview",
   build,
@@ -93,7 +92,6 @@ export const customerPage = definePage({
 - **`build(item)`** is the designed layout for Split view. Every role is in it; the ones that should not show at first are listed in `overlay.hidden`.
 - **`home`** is the view Single view opens on.
 - **`Header`** sits above the tabs, and **`Rail`**, optional, is the list of items at the left. Both are your components. `Rail` gets `showItem(item)` to switch items. Leave it out when the page has nothing to list, such as a report reached by a link: the header, tabs and panes then take the whole width.
-- **`viewers`** names the two kinds of person who use the page (below).
 
 An item id is a number or a string, such as a UUID or a slug. A link carries it as text; when `firstItem` is a number, you get numbers back.
 
@@ -190,8 +188,6 @@ Choosing another item swaps every view in place and closes the opened panes, bec
 - The **mode** and the **split layout** belong to the person. They are kept on their device, through the [storage port](../get-started/key-concepts.md#ports), without the opened panes. Reset puts the layout back to the design.
 - A **link** carries content only: the item, the view in use and the opened panes. The same link opens in each reader's own layout. A link with opened panes opens in Split view, since Single view cannot show them.
 
-## Viewers and link mode
+## People who only look
 
-A page can be used by two kinds of person, named by `viewers`. The `full` viewer may switch to Split view and open links beside. The `limited` viewer works in Single view only and opens links as a peek. The sample names them "account manager" and "support agent".
-
-`createJali({ linkMode: "peek" })`, or later `jali.page.setLinkMode("peek")`, makes the person a limited viewer; `"open"` (the default) gives full access. In a product, your app sets it from the person's role.
+Some people should read a page without opening panes from it, such as a support agent beside an account manager. Turn `open` off for them with `allow` (see [Choose what people can do with panes](../guides/pane-controls.md)): `createJali({ allow: { open: false } })`. Their links open as a peek, in Single view and Split view alike, and they can still switch views and use Split view. Your app decides from the person's role; Jali never offers a way to change it.

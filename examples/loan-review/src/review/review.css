@@ -82,6 +82,18 @@
   background: color-mix(in oklab, var(--amber) 16%, transparent);
   color: var(--amber);
 }
+/* The demo's persona switch (role.tsx). */
+.item-role {
+  flex: none;
+  display: inline-flex;
+  gap: 8px;
+  align-items: baseline;
+  font-size: var(--type-meta);
+  color: var(--text-2);
+}
+.item-role a {
+  color: inherit;
+}
 .item-facts {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));

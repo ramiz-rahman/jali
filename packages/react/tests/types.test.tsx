@@ -151,7 +151,7 @@ const review = definePage({
   firstItem: 1,
   Header: () => null,
 });
-const reviewing = createJali({ panes: [borrower], page: review, linkMode: "peek" });
+const reviewing = createJali({ panes: [borrower], page: review });
 
 describe("a curated page", () => {
   it("has its actions, typed by its items", () => {
@@ -160,7 +160,6 @@ describe("a curated page", () => {
     reviewing.page.showItem(4);
     reviewing.page.open({ item: 2, tab: "borrower" });
     reviewing.page.setMode("split");
-    reviewing.page.setLinkMode("open");
     reviewing.page.back();
     reviewing.page.reset();
     reviewing.page.leave();

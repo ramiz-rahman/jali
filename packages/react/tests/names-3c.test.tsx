@@ -37,13 +37,9 @@ describe("a curated page's words", () => {
   it('say "Single view" in full', () => {
     const words = [
       en.announcements.modeSingle("Borrower"),
-      en.announcements.permission("loan officer", false),
-      en.announcements.singleOnly,
       en.announcements.singleNoLayout,
-      en.commands.viewAsLimited("loan officer"),
+      en.commands.pageSingle,
       en.page.single,
-      en.page.splitTipLimited,
-      en.settings.viewerLimited("loan officer"),
     ];
     for (const w of words) expect(w, w).toMatch(/Single view/);
     for (const w of words) expect(w.replace(/Single view/g, ""), w).not.toMatch(/Single/);

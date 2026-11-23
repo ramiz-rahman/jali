@@ -364,7 +364,6 @@ export const loanReview = definePage({
   id: "loan-review",
   name: "Loan review",
   itemNoun: "application",
-  viewers: { full: "credit reviewer", limited: "loan officer" },
   roles: [
     { id: "borrower", label: "Borrower", priority: "primary", icon: UserIcon },
     { id: "documents", label: "Documents", priority: "supporting", icon: FileTextIcon },
@@ -742,7 +741,7 @@ Chrome of your own goes inside `<JaliRoot>`, around `<JaliView />`: the root ren
 <PageBar />
 ```
 
-A curated page's controls, for your top bar: the Single / Split view switch (Split view disabled for a limited viewer), in Split view the "N opened panes" group with Back to the page, and Reset. Renders nothing while no page is open.
+A curated page's controls, for your top bar: the Single / Split view switch, in Split view the "N opened panes" group with Back to the page, and Reset. Renders nothing while no page is open.
 
 ### Shelf
 

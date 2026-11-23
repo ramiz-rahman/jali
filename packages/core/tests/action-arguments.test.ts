@@ -46,7 +46,6 @@ const bad = (f: unknown) => f as never;
 describe("a public action given what its type doesn't allow", () => {
   it.each<[string, Call]>([
     ["page.setMode", (j) => j.page.setMode(bad("invalid-mode"))],
-    ["page.setLinkMode", (j) => j.page.setLinkMode(bad("never"))],
     ["page.showView", (j) => j.page.showView(bad(3))],
     ["page.showItem", (j) => j.page.showItem(bad({ id: 1 }))],
     ["page.open", (j) => j.page.open(bad("t-1"))],

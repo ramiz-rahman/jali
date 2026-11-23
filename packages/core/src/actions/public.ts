@@ -150,16 +150,7 @@ export interface JaliPage<I extends ItemId = ItemId> {
   back(): ActionResult;
   /** Put Split view back to the page's design. */
   reset(): ActionResult;
-  /**
-   * What following a link on the page does for this person: `"open"` opens a pane beside the views (Split view is
-   * theirs to use), `"peek"` only peeks, in Single view. For a viewer who may look but not rearrange. Leaving the page
-   * and coming back never widens it. `createJali({ linkMode })` sets the first.
-   */
-  setLinkMode(mode: LinkMode): ActionResult;
 }
-
-/** What following a link on a curated page does: open a pane beside the views, or only peek. */
-export type LinkMode = "open" | "peek";
 
 /** Jali's dialogs: `jali.dialogs`. */
 export interface JaliDialogs {

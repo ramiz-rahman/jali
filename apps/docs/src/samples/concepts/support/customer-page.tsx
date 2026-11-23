@@ -60,7 +60,6 @@ export const customerPage = definePage({
   id: "customer",
   name: "Customer",
   itemNoun: "customer",
-  viewers: { full: "account manager", limited: "support agent" },
   roles,
   home: "overview",
   build,

@@ -2,7 +2,6 @@
  * The English each feature brings (features/): an instance has these words exactly when it has the feature, as it has
  * the curated page's words only with a page (page-messages.ts). `en` holds them all, for a translation to start from.
  */
-const cap = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
 
 /** `urlSync()`: what the address says. */
 export const urlSyncEn = {
@@ -74,9 +73,6 @@ const settings = {
   openedPanes: (page: string) => `${page}: opened panes`,
   boundaryTint: "Tinted header and “Opened” tag",
   boundaryNone: "No marking",
-  viewingAs: (page: string) => `${page}: viewing as`,
-  viewerFull: (viewer: string) => `${cap(viewer)}: links open beside`,
-  viewerLimited: (viewer: string) => `${cap(viewer)}: Single view only, links open as a peek`,
   keyboard: "Keyboard",
   keyboardLabel: "Keyboard shortcuts",
   paletteKey: "Command palette (then a second key for a chord)",

@@ -168,10 +168,6 @@ A view is one tab of a curated page, such as Orders. In code, a view is a **role
 
 In Split view, following a link opens a pane after the page's views, marked **Opened**. **Back to** the page closes the opened panes and returns the layout to how it was before the first link.
 
-<h3 id="viewers">Link mode</h3>
-
-What following a link on a curated page does: `"open"` opens a pane beside the views, and `"peek"` only peeks, in Single view, for a person who may look but not rearrange. Set it with `createJali({ linkMode })`, change it with `jali.page.setLinkMode`, and read it as `jali.get().linkMode`.
-
 ## The instance and its ports
 
 <h3 id="instance">Instance and actions</h3>

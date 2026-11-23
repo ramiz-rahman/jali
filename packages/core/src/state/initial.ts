@@ -88,7 +88,6 @@ export function initialState(o: {
     area: initialArea(env.spacing.inset),
     dir: o.dir ?? pageDirection(),
     announcement: { text: "", seq: 0 },
-    linkMode: "open",
     reshapes: 0,
     ghost: null,
     unsaved: {},

@@ -23,7 +23,6 @@ import type { CommandDef } from "./commands/registry";
 import type { MessageOverrides } from "./state/messages";
 import type { Outcome, Snapshot } from "./state/apply";
 import type { Placement } from "./layout/ops/open";
-import type { LinkMode } from "./actions/public";
 import type { UiState } from "./state/store";
 import type { PagePrefs } from "./state/page-prefs";
 import type { Env } from "./env";
@@ -72,9 +71,6 @@ export interface ProfileBase<R extends RoleBase = RoleBase, I extends ItemId = I
   name: string;
   /** Singular noun for the active item ("application"). */
   itemNoun: string;
-  /** Who works with full access (links open beside, Split view available) and who works in Single with links as a
-   *  peek, in the person's words: `{ full: "credit reviewer", limited: "loan officer" }`. */
-  viewers?: { full: string; limited: string };
   /** The views, in tab order. A role's node id equals its role id. */
   roles: R[];
   /** The view Single mode opens on. */
@@ -125,7 +121,6 @@ export interface PageEngine {
   back(x: Snapshot): Outcome;
   hideRole(x: Snapshot, id: NodeId): Outcome;
   reset(x: Snapshot): Outcome;
-  setLinkMode(x: Snapshot, mode: LinkMode): Outcome;
   /** How a link from `source` opens while the page is open: `openBeside` asks, and does what it says. */
   opening(x: Snapshot, source: NodeId, ref: ObjectRef, edge?: Edge): PageOpening;
   /** What leaving the page for a layout keeps (a preset, `setLayout`, a link to a free layout). */

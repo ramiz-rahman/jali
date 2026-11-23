@@ -27,11 +27,6 @@ const announcements = {
   nothingOpened: "Nothing opened beyond the page",
   backToPage: (page: string, count: number) =>
     `Back to ${page} · ${count} opened ${panes(count)} closed · Undo available`,
-  permission: (viewer: string, canInvestigate: boolean) =>
-    canInvestigate
-      ? `Viewing as ${viewer}: Split view available, links open beside`
-      : `Viewing as ${viewer}: Single view only, links open as a peek`,
-  singleOnly: "Your role works in Single view: one view at a time",
 };
 
 /** The page's commands, in ⌘K and the keyboard list. */
@@ -45,8 +40,6 @@ const commands = {
   /** `app` is the app's name for the free layout (`createJali({ name })`), when it gave one; `page` is the page's. */
   pageLeave: (app: string | undefined, page: string | undefined) =>
     app ? `Open ${app}` : `Leave ${page ?? "the page"}`,
-  viewAsLimited: (viewer: string) => `View as ${viewer} (Single view only, links peek)`,
-  viewAsFull: (viewer: string) => `View as ${viewer} (links open beside)`,
 };
 
 /** The page's toast. */
@@ -60,15 +53,11 @@ const toasts = {
 
 /** A curated page: its bar, its tabs and the ⌥ preview. */
 const page = {
-  /** Who may open links beside, and who only peeks, when the page names no `viewers`. */
-  viewerFull: "investigator",
-  viewerLimited: "viewer",
   viewMode: "View mode",
   single: "Single view",
   singleTip: "One view at a time",
   split: "Split view",
   splitTip: "Views side by side: drag tabs into the layout",
-  splitTipLimited: "Your role works in Single view",
   /** The page bar's group for the panes opened from links, and its count: "**2** opened panes". */
   openedLabel: "Opened panes",
   openedCount: <T>(count: number, bold: (text: string) => T): (string | T)[] => [

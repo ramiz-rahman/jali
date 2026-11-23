@@ -7,6 +7,7 @@ import { formatTimestamp } from "@jali-examples/shared/panes/format";
 import type { Row } from "@jali-examples/shared/data/types";
 import { applicationFacts } from "@jali-examples/shared/data/sample-sql";
 import "@jali-examples/shared/panes/panes.css";
+import { RoleSwitch } from "../role";
 import "./review.css";
 
 const STATUS_ORDER: Record<string, number> = { pending: 0, returned: 1, approved: 2 };
@@ -231,6 +232,7 @@ export function ApplicationHeader({ item }: { item: number }) {
           <h1>{name}</h1>
         </div>
         <QueueSheet item={item} />
+        <RoleSwitch />
         {status ? (
           <span className="item-status" data-status={status}>
             {status === "pending"

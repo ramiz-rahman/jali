@@ -48,17 +48,10 @@ describe("the view mode switch", () => {
     expect([single!.tabIndex, split!.tabIndex]).toEqual([0, -1]);
     single!.focus();
     act(() => void fireEvent.keyDown(single!, { key: "ArrowRight" }));
-    const can = jali.get().linkMode === "open";
-    if (can) {
-      expect(jali.get().page!.mode).toBe("split");
-      expect(document.activeElement).toBe(split);
-      expect([single!.tabIndex, split!.tabIndex]).toEqual([-1, 0]);
-      act(() => void fireEvent.keyDown(split!, { key: "ArrowUp" }));
-      expect(jali.get().page!.mode).toBe("single");
-    } else {
-      expect(document.activeElement).toBe(split);
-      expect(split!.getAttribute("aria-disabled")).toBe("true");
-      expect(jali.get().page!.mode).toBe("single");
-    }
+    expect(jali.get().page!.mode).toBe("split");
+    expect(document.activeElement).toBe(split);
+    expect([single!.tabIndex, split!.tabIndex]).toEqual([-1, 0]);
+    act(() => void fireEvent.keyDown(split!, { key: "ArrowUp" }));
+    expect(jali.get().page!.mode).toBe("single");
   });
 });

@@ -14,7 +14,7 @@ createJali({ panes, layout, keyboard: { keymap: { "pane.close": "Mod+K Mod+X", "
 
 When a command is refused, its key is still taken. If the refusal has a reason, it is announced in the live region; "silent" below means it is not. While the palette, Settings or the chooser is open, only the palette's key works.
 
-The titles below are for an instance with no curated page. With a curated page, "page" becomes the page's name and "viewer" its viewers' words; "Open …" uses `createJali({ name })`, and without a name the command reads "Leave" and the page's name.
+The titles below are for an instance with no curated page. With a curated page, "page" becomes the page's name; "Open …" uses `createJali({ name })`, and without a name the command reads "Leave" and the page's name.
 
 | Command | Title | Mac | Windows and Linux | Refused when |
 | --- | --- | --- | --- | --- |
@@ -44,9 +44,9 @@ The titles below are for an instance with no curated page. With a curated page, 
 | `pane.close` | Close pane | ⌘K ⌘⌫ | Ctrl+K Ctrl+Backspace | Silent when no pane is focused or only one pane is open (so always in a curated page's Single view). In Split view a view is never closed: it goes back to the page tabs, refused with "… is the only view on screen" for the last one. |
 | `pane.close_others` | Close other panes | none | none | Silent when no pane is focused or only one pane is open. In a curated page it means Back to the page, refused with "Nothing opened beyond the page" when nothing was opened. |
 | `pane.undo_close` | Undo last close or tuck | ⌘K ⌘Z | Ctrl+K Ctrl+Z | "Nothing to restore" when the undo stack is empty. Undoes the last close, close others or tuck. |
-| `pane.split.right` | Split right (new pane) | ⌘\ | Ctrl+\ | Silent when no pane is focused, or there is no launcher. |
-| `pane.split.down` | Split down (new pane) | ⌘K ⌘\ | Ctrl+K Ctrl+\ | Silent when no pane is focused, or there is no launcher. |
-| `pane.split.auto` | Split auto (new pane, by shape) | none | none | Silent when no pane is focused, or there is no launcher. |
+| `pane.split.right` | Split right (new pane) | ⌘\ | Ctrl+\ | Silent when no pane is focused, or there is no launcher. Where the pane doesn't allow `open`: "Panes can't be opened from … here". |
+| `pane.split.down` | Split down (new pane) | ⌘K ⌘\ | Ctrl+K Ctrl+\ | Silent when no pane is focused, or there is no launcher. Where the pane doesn't allow `open`: "Panes can't be opened from … here". |
+| `pane.split.auto` | Split auto (new pane, by shape) | none | none | Silent when no pane is focused, or there is no launcher. Where the pane doesn't allow `open`: "Panes can't be opened from … here". |
 | `pane.move.left` | Move pane left | ⌘K ⇧⌘← | Ctrl+K Ctrl+Shift+Left | Silent when no pane is focused or only one pane is open. With no pane to that side: "… can't move left". |
 | `pane.move.right` | Move pane right | ⌘K ⇧⌘→ | Ctrl+K Ctrl+Shift+Right | Silent when no pane is focused or only one pane is open. With no pane to that side: "… can't move right". |
 | `pane.move.up` | Move pane up | ⌘K ⇧⌘↑ | Ctrl+K Ctrl+Shift+Up | Silent when no pane is focused or only one pane is open. With no pane to that side: "… can't move up". |
@@ -58,7 +58,7 @@ The titles below are for an instance with no curated page. With a curated page, 
 | `tab.move.left` | Move tab left | ⌘K ⇧PageUp | Ctrl+K Shift+PageUp | Silent unless the focused pane is a tab in a group made by the person or the app. At the start of the strip: "… is already the first tab". |
 | `tab.move.right` | Move tab right | ⌘K ⇧PageDown | Ctrl+K Shift+PageDown | Silent unless the focused pane is a tab in a group made by the person or the app. At the end of the strip: "… is already the last tab". |
 | `pane.rename` | Rename pane | F2 | F2 | Only with the rename() feature (jali/rename). Silent unless its `can` allows the focused pane. Opens the rename field on its tab or title. |
-| `stack.new-tab` | New tab here | none | none | Silent when no pane is focused, or there is no launcher. |
+| `stack.new-tab` | New tab here | none | none | Silent when no pane is focused, or there is no launcher. Where the pane doesn't allow `open`: "Panes can't be opened from … here". |
 | `layout.preset.<id>` | Layout: Orders | none | none | Never. One command per preset, titled "Layout: <label>". |
 | `layout.reset` | Reset layout | none | none | Silent without presets. Rebuilds the preset last chosen. |
 | `layout.auto` | Arrange panes automatically | none | none | On a curated page, on a phone (one pane at a time), or with one pane. Arranges every pane from the room and the kinds' sizes; Back undoes it. |
@@ -66,13 +66,11 @@ The titles below are for an instance with no curated page. With a curated page, 
 | `page.back` | Back to page (close opened panes) | none | none | Silent unless a curated page is open and has panes opened from links. |
 | `page.reset` | Reset layout to its design | none | none | Silent unless a curated page is open in Split view. |
 | `page.single` | Single view: one view at a time | none | none | Silent unless a curated page is open in Split view. |
-| `page.split` | Split view: views side by side | none | none | Silent unless a curated page is open in Single and the viewer may investigate. |
+| `page.split` | Split view: views side by side | none | none | Silent unless a curated page is open in Single view. |
 | `page.open` | Open page | none | none | Silent while the page is open, or when there is no curated page. |
 | `page.leave` | Open Notes | none | none | Silent unless a curated page is open, and in a page-only app (no presets). |
-| `page.as_limited` | View as viewer (Single view only, links peek) | none | none | Silent unless a curated page is open and the viewer may investigate. |
-| `page.as_full` | View as investigator (links open beside) | none | none | Silent unless a curated page is open and the viewer may not investigate. |
 | `peek.close` | Close peek | none | none | Silent when no peek is open. |
-| `peek.open_beside` | Open peek beside | none | none | Silent when no peek is open. |
+| `peek.open_beside` | Open peek beside | none | none | Silent when no peek is open. Where the pane the peek came from doesn't allow `open`: "Panes can't be opened from … here". |
 | `settings.open` | Open settings | none | none | Only with the settings() feature (jali/settings). Never refused there. |
 | `settings.centre_drop.toggle` | Switch centre drop (swap ↔ tab) | none | none | Never. |
 

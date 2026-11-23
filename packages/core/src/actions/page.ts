@@ -34,14 +34,13 @@ import {
 } from "../profile";
 import { type Env } from "../env";
 import type { CommandDef } from "../commands/registry";
-import { isChange, refuse, type Change, type Outcome, type Snapshot } from "../state/apply";
-import { messagesOf, say, type Messages } from "../state/messages";
+import { isChange, refuse, type Outcome, type Snapshot } from "../state/apply";
+import { messagesOf, say } from "../state/messages";
 import { pageEn } from "../state/page-messages";
 import type { PagePrefs } from "../state/page-prefs";
 import type { PageState, UiState } from "../state/store";
 import { openPaneFor } from "./open";
 import { peekSheet } from "./peek";
-import type { LinkMode } from "./public";
 import { pushUndo } from "../state/undo";
 import { keepOwnRef } from "../pane-kinds";
 import { preset } from "./layout";
@@ -177,15 +176,6 @@ export const roleLabel = (p: ProfileBase | null, id: string) => (p ? label(p, id
 
 export type { BesidePreview, OpenPage };
 
-/** Who may open links beside (`full`) and who only peeks, in the page's words, else Jali's. */
-export const viewerLabel = (
-  profile: ProfileBase | null,
-  full: boolean,
-  words: Pick<Messages["page"], "viewerFull" | "viewerLimited">,
-) =>
-  (full ? profile?.viewers?.full : profile?.viewers?.limited) ??
-  (full ? words.viewerFull : words.viewerLimited);
-
 /** Open the curated page (or arrive at it from a link). A link with opened panes needs Split view to show them. */
 export function openPage(x: Snapshot, o: OpenPage = {}): Outcome {
   const p = x.env.profile;
@@ -194,25 +184,23 @@ export function openPage(x: Snapshot, o: OpenPage = {}): Outcome {
   // An item the page can't take: a link's falls back to the item before (or the first); an app's call is refused.
   const item = o.item === undefined ? undefined : readItem(o.item, p.firstItem);
   if (o.item !== undefined && item === undefined && !o.fromUrl) return refuse("invalid");
-  const opens = x.s.linkMode !== "peek";
-  // A limited viewer works in Single only, whatever the link or Back brings: its opened panes are left out. What the
-  // address doesn't hold (`appOnly` and `link: false` params) stays on an opened pane that is still on screen.
+  // What the address doesn't hold (`appOnly` and `link: false` params) stays on an opened pane still on screen.
   const kinds = x.env.kinds.registry();
   const onScreen = core.tree.panes(x.s.layout.root).map((n) => n.ref);
-  const opened = opens
-    ? (o.investigation ?? []).map((ref) => (o.fromUrl ? keepOwnRef(kinds, ref, onScreen) : ref))
-    : [];
+  const opened = (o.investigation ?? []).map((ref) =>
+    o.fromUrl ? keepOwnRef(kinds, ref, onScreen) : ref,
+  );
   const page: PageState = {
     profile: p.id,
     before: undefined,
     item: item ?? prev?.item ?? p.firstItem,
     tab: roleOf(p, o.tab)?.id ?? prev?.tab ?? p.home,
-    mode: !opens ? "single" : opened.length ? "split" : (prev?.mode ?? x.s.prefs.mode),
+    mode: opened.length ? "split" : (prev?.mode ?? x.s.prefs.mode),
   };
   // Opened panes need Split view, but that is the link's need, not the person's choice: their mode stays theirs.
   const prefs = {
     ...keep(x, page.mode),
-    mode: opened.length || !opens ? x.s.prefs.mode : page.mode,
+    mode: opened.length ? x.s.prefs.mode : page.mode,
   };
   const y = { ...x, s: { ...x.s, prefs } };
   const base =
@@ -257,7 +245,6 @@ export function setMode(x: Snapshot, mode: ViewMode): Outcome {
       undo: [],
     };
   }
-  if (x.s.linkMode === "peek") return refuse("not-allowed", say(x).singleOnly);
   const { layout, view } = split(x, p, r.item, r.tab, true);
   return {
     op: "mode",
@@ -419,7 +406,7 @@ function besideTarget(layout: Layout, view: ViewState, ctx: LayoutContext): Node
 function beside(x: Snapshot, role: string) {
   const p = x.env.profile,
     r = x.s.page;
-  if (!p || !r || x.s.linkMode === "peek" || !roleOf(p, role)) return undefined;
+  if (!p || !r || !roleOf(p, role)) return undefined;
   const base =
     r.mode === "single"
       ? split(x, p, r.item, r.tab, true)
@@ -487,11 +474,7 @@ export function placeTab(
         : said,
     };
   };
-  if (r.mode === "single")
-    return x.s.linkMode === "open"
-      ? [setMode(x, "split"), place]
-      : refuse("not-allowed", say(x).singleOnly);
-  return place(x);
+  return r.mode === "single" ? [setMode(x, "split"), place] : place(x);
 }
 
 /** ⌥-click a tab: that view beside the one you're in (the same placement besidePreview shows). */
@@ -501,9 +484,7 @@ export function openTabBeside(x: Snapshot, role: string): Outcome {
   const target = (y: Snapshot) =>
     besideTarget(y.s.layout, unzoomed(y.s.view), y.ctx) ?? y.s.page?.tab ?? r.tab;
   if (r.mode === "single")
-    return x.s.linkMode === "open"
-      ? [setMode(x, "split"), (y: Snapshot) => placeTab(y, role, target(y), endSide(y.ctx.dir))]
-      : refuse("not-allowed", say(x).singleOnly);
+    return [setMode(x, "split"), (y: Snapshot) => placeTab(y, role, target(y), endSide(y.ctx.dir))];
   return placeTab(x, role, target(x), endSide(x.ctx.dir));
 }
 
@@ -658,29 +639,11 @@ export function resetPage(x: Snapshot): Outcome {
   };
 }
 
-/** What following a link does for this person (`jali.page.setLinkMode`). A viewer who only peeks (a loan officer)
- *  works in Single only; one whose links open (a credit reviewer) may multiplex. The profile names both (`viewers`). */
-export function setLinkMode(x: Snapshot, linkMode: LinkMode): Outcome {
-  const { s } = x;
-  if (s.linkMode === linkMode) return null;
-  // No page open: the policy waits for the next one (leaving a page never widens what its viewer may do).
-  if (!s.page) return { op: "permission", patch: { linkMode } };
-  const opens = linkMode === "open";
-  const msg = say(x).permission(viewerLabel(x.env.profile, opens, messagesOf(x).page), opens);
-  if (opens || s.page.mode === "single") return { op: "permission", msg, patch: { linkMode } };
-  // From Split view: the switch to Single and the permission are one change, so a switch held for unsaved work
-  // holds the permission too, and Keep editing leaves both as they were.
-  const toSingle = setMode(x, "single") as Change;
-  return { ...toSingle, msg, patch: { ...toSingle.patch, linkMode } };
-}
-
 /** The page's commands, in the palette after the layout commands: back to the page, its modes, opening and leaving
- *  it, and the viewer it is seen as. */
+ *  it. */
 function pageCommands(env: Env): CommandDef[] {
   const profile = env.profile;
-  const { commands: t, commandGroups: g, page: words } = messagesOf(env);
-  const full = viewerLabel(profile, true, words);
-  const limited = viewerLabel(profile, false, words);
+  const { commands: t, commandGroups: g } = messagesOf(env);
   return [
     {
       id: "page.back",
@@ -708,8 +671,7 @@ function pageCommands(env: Env): CommandDef[] {
       id: "page.split",
       title: t.pageSplit,
       group: g.layout,
-      check: ({ s }) =>
-        s.page?.mode === "single" && s.linkMode === "open" ? undefined : refuse("unavailable"),
+      check: ({ s }) => (s.page?.mode === "single" ? undefined : refuse("unavailable")),
       run: (u) => u.run("page.setMode", "split"),
     },
     {
@@ -725,20 +687,6 @@ function pageCommands(env: Env): CommandDef[] {
       group: g.layout,
       check: ({ s }) => (s.page && env.presets.length ? undefined : refuse("unavailable")),
       run: (u) => u.run("page.leave"),
-    },
-    {
-      id: "page.as_limited",
-      title: t.viewAsLimited(limited),
-      group: g.settings,
-      check: ({ s }) => (s.page && s.linkMode === "open" ? undefined : refuse("unavailable")),
-      run: (u) => u.run("page.setLinkMode", "peek"),
-    },
-    {
-      id: "page.as_full",
-      title: t.viewAsFull(full),
-      group: g.settings,
-      check: ({ s }) => (s.page && s.linkMode === "peek" ? undefined : refuse("unavailable")),
-      run: (u) => u.run("page.setLinkMode", "open"),
     },
   ];
 }
@@ -757,7 +705,7 @@ function investigationPlace(layout: Layout, after: core.Placement, edge?: Edge):
 }
 
 /**
- * How a link from `source` opens while the page is open (`openBeside` asks): a limited viewer, or Single view, peeks;
+ * How a link from `source` opens while the page is open (`openBeside` asks): Single view peeks;
  * an object already on the page is shown where it is; otherwise the opened pane goes to the investigation, the first
  * one remembers the layout it started from, and short of room it opens as a tab of its source, sending views back to
  * the page tabs rather than folding them.
@@ -767,8 +715,6 @@ function opening(x: Snapshot, source: NodeId, ref: ObjectRef, edge?: Edge): Page
   const page = s.page;
   if (!page) return { instead: refuse("unavailable") };
   const title = m.env.kinds.title(ref);
-  if (s.linkMode === "peek")
-    return { instead: { ...peekSheet(x, ref, source), msg: say(x).peekOnly(title) } };
   if (page.mode === "single")
     return { instead: { ...peekSheet(x, ref, source), msg: say(x).peekSingle(title) } };
   // One object, one pane: a link to what is already on the page goes there (a view, whatever kind shows it).
@@ -844,7 +790,6 @@ export const pageEngine: PageEngine = {
   back: backToPage,
   hideRole,
   reset: resetPage,
-  setLinkMode,
   opening,
   leaving,
   prefsToSave,

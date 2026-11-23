@@ -29,7 +29,6 @@ import type { ProfileBase } from "./profile";
 import type { Preset } from "./env";
 import type { BeforeClose } from "./state/apply";
 import type { Jali, PageOf } from "./state/instance";
-import type { LinkMode } from "./actions/public";
 import { createJaliStore, type JaliConfig, type UrlWriter } from "./state/store";
 import type { Feature } from "./features/feature";
 import { warnUnknown } from "./dev-options";
@@ -68,10 +67,6 @@ export interface JaliOptions<
   launcher?: L;
   /** A curated page this instance can show (one item, with its views as tabs): `jali.page` then has its actions. */
   page?: P;
-  /** What following a link on the curated page does at first: `"open"` (the default) opens a pane beside the views,
-   *  `"peek"` only peeks, in Single view, for a viewer who may look but not rearrange. `jali.page.setLinkMode` changes
-   *  it later. */
-  linkMode?: LinkMode;
   /** The app's name for the free layout (where the person arranges panes), in commands such as "Open Data Studio"
    *  on a curated page. Default: none, and the command says "Leave Loan review" instead. */
   name?: string;
@@ -217,7 +212,6 @@ export function resolveOptions(options: JaliOptions): JaliConfig {
     moveFocus = true,
     storage: kept,
     beforeClose: _guard,
-    linkMode,
     landmark,
     label,
     confirmDiscard,
@@ -257,7 +251,6 @@ export function resolveOptions(options: JaliOptions): JaliConfig {
     initial: {
       ...(layout ? { layout: toLayout(layout) } : {}),
       ...(size ? { area: size } : {}),
-      ...(linkMode ? { linkMode } : {}),
     },
   };
 }

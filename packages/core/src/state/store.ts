@@ -73,7 +73,6 @@ import { createKeymap, PALETTE_ID, type Keymap, type KeyboardOptions } from "../
 import type { Command } from "../commands/registry";
 import { resolveMessages, type MessageOverrides, type Messages } from "./messages";
 import type { ChooseOptions } from "../actions/choose";
-import type { LinkMode } from "../actions/public";
 
 /** A drag in progress. `label` names a view dragged from a page's tabs, which may not be on screen. */
 export interface DndState {
@@ -128,10 +127,6 @@ export interface UiState {
   layout: Layout;
   /** Null in the free layout, where the person builds the layout. */
   page: PageState | null;
-  /** What following a link on the curated page does for this person (`jali.page.setLinkMode`, `createJali({
-   *  linkMode })`): opens a pane beside the views, or only peeks. The instance's policy, kept whether or not a page is
-   *  open, so leaving the page and coming back never widens it. */
-  linkMode: LinkMode;
   /** The person's mode and split layout (while Split view is on screen, the live layout is the truth). */
   prefs: PagePrefs;
   view: ViewState;

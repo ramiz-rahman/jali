@@ -452,7 +452,6 @@ A curated page about one item (a loan application), framework-free. In React, `d
 <Param name="id" type="string" required>What a link names: `?page=loan-review`.</Param>
 <Param name="name" type="string" required>The page's name, in titles and commands ("Back to Loan review").</Param>
 <Param name="itemNoun" type="string" required>The singular noun for an item ("application").</Param>
-<Param name="viewers" type="{ full: string; limited: string }">Who works with full access (links open beside, Split view available) and who works in Single view with links as a peek, in the person's words.</Param>
 <Param name="roles" type="R[]" required>The views, in tab order.</Param>
 <Param name="home" type="string" required>The view Single opens on.</Param>
 <Param name="build" type="(item: I) => LayoutInput" required>Split view's designed layout. Every role is in the tree, as a pane whose `id` and `role` are the role's id; those not shown at first are `hidden`.</Param>
@@ -640,7 +639,6 @@ What an instance holds that an app reads, read-only. Read it with `jali.get()` o
 <Param name="layout" type="Layout" required>The arrangement.</Param>
 <Param name="view" type="ViewState" required>Focus, maximise, peek.</Param>
 <Param name="page" type="PageState | null" required>The curated page in use, or `null` for the free layout.</Param>
-<Param name="linkMode" type={`"open" | "peek"`} required>What following a link on the curated page does for this person: open a pane beside the views, or only peek. The instance's policy, kept while no page is open, so leaving the page and coming back never widens it. See <Ref to="LinkMode" />.</Param>
 <Param name="presetId" type="string | undefined" required>The preset last chosen; "Reset layout" rebuilds it.</Param>
 <Param name="peekSource" type="NodeId">The pane the peek acts for.</Param>
 <Param name="resizeMode" type="NodeId | null" required>The pane in keyboard resize mode.</Param>
@@ -754,7 +752,7 @@ else void result.settled?.then((end) => end.ok && forgetSavedLayouts());
 <Param name="invalid" type="">What the action was given won't do. Every argument of every action is checked before anything happens, so JavaScript and an agent get the same answer TypeScript would give: a mode, edge, index or flag its type doesn't allow; a pane named by something that is neither an id nor a ref; a ref of a kind the instance doesn't have, or with params that aren't text, numbers or flags (these say why in `message`); or a layout that can't be shown. Nothing is stored as given, and it never throws.</Param>
 <Param name="unavailable" type="">The instance can't do this: no launcher (split, new tab), no curated page, no free layout to go back to.</Param>
 <Param name="single-view" type="">A curated page in Single view has no layout to change.</Param>
-<Param name="not-allowed" type="">Links only peek on this page for this person (`jali.page.setLinkMode("peek")`).</Param>
+<Param name="not-allowed" type="">The app's `allow` turns that control off for the pane: the kind's, the instance's, or its `when` (for a divider, a pane beside it). See [Choose what people can do with panes](/guides/pane-controls).</Param>
 <Param name="last-pane" type="">The last pane, or a page's last view on screen, stays.</Param>
 <Param name="blocked" type="">The pane can't go there: past the edge, tucking the only pane or a tab. Also a change whose link no instance could reopen: more panes than a link holds, or, with the layout kept in the address, layout text too long to read back (one very long param).</Param>
 <Param name="nothing-to-do" type="">Nothing to undo, put back, close, resize or unmerge.</Param>
@@ -1070,19 +1068,12 @@ What drags, keys and panes report (dividers, drops, focus keys, `useUnsaved`, `u
 <Members>
 <Member name="page.open" signature="open(options?: OpenPageOptions<I>)">Open the curated page.</Member>
 <Member name="page.leave" signature="leave()">Back to the free layout's preset. The page's mode and layout are kept. `"unavailable"` in a page-only app.</Member>
-<Member name="page.setMode" signature="setMode(mode: ViewMode)">Single view or Split view. Split view is refused while links only peek (`"not-allowed"`).</Member>
+<Member name="page.setMode" signature="setMode(mode: ViewMode)">Single view or Split view.</Member>
 <Member name="page.showView" signature="showView(view: string)">What a click on a page tab does. It never reshapes: Single view swaps the view; Split view focuses it, chooses its tab, or puts it in place of the view you're in.</Member>
 <Member name="page.showItem" signature="showItem(item: I)">Show another item; the previous item's opened panes close.</Member>
 <Member name="page.back" signature="back()">Close every opened pane, with Undo.</Member>
 <Member name="page.reset" signature="reset()">Split view back to the design; opened panes stay.</Member>
-<Member name="page.setLinkMode" signature={`setLinkMode(mode: "open" | "peek")`}>What following a link does for this person: open a pane beside the views, or only peek. `"peek"` in Split view switches to Single view in the same change: held whole when a view that would go has unsaved work, so Keep editing leaves both as they were. Leaving the page and coming back never widens it.</Member>
 </Members>
-
-</Entry>
-
-<Entry name="LinkMode" kind="type" from="jali" signature={`type LinkMode = "open" | "peek"`} compact>
-
-What following a link on a curated page does: `"open"` opens a pane beside the views; `"peek"` only peeks, in Single view. `createJali({ linkMode })` sets the first, `jali.page.setLinkMode` changes it.
 
 </Entry>
 

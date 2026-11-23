@@ -117,7 +117,6 @@ export type Op =
   | "activate"
   | "page"
   | "mode"
-  | "permission"
   | "follow"
   | "keep"
   | "setLayout"
@@ -153,7 +152,8 @@ export interface Change {
  *    kind this instance doesn't have, or a layout that can't be shown (a malformed tree).
  *  - "unavailable": this instance can't do it: no launcher (split, new tab), no curated page, no free layout.
  *  - "single-view": a curated page in Single view has no layout to change.
- *  - "not-allowed": the person's role on the curated page may only peek (`setCanInvestigate(false)`).
+ *  - "not-allowed": the app's `allow` turns that control off for the pane (a kind's, the instance's, or its `when`),
+ *    or for a pane beside a divider it would move.
  *  - "last-pane": the last pane, or a page's last view on screen, stays.
  *  - "blocked": the pane can't go there (move past the edge, tuck the only pane, tuck a tab), or the layout would
  *    hold more than a link can (256 nodes, 128 levels), so its address could never be reopened.
@@ -345,7 +345,6 @@ export const POLICY: Record<Op, Policy> = {
   scroll: view("replace"),
   peek: view("replace"),
   select: view("replace"),
-  permission: view("none"),
   // swap: content changes in place
   openHere: layout("push", "swap"),
   focusExisting: layout("push", "swap", "change"),

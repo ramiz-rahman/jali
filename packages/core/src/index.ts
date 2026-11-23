@@ -105,7 +105,6 @@ export type {
   JaliActions,
   JaliDialogs,
   JaliPage,
-  LinkMode,
   ActionName,
   PaneTarget,
   OpenPageOptions,

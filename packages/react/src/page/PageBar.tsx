@@ -26,7 +26,6 @@ export function PageBar() {
 function PageBarOf() {
   const icon = useJaliIcons();
   const page = useUi((s) => s.page);
-  const linkMode = useUi((s) => s.linkMode);
   const m = useGeometry();
   const store = useStore();
   const { messages } = store;
@@ -35,11 +34,9 @@ function PageBarOf() {
   if (!profile || !page) return null;
   const opened = investigation(m.panes).length;
   const multi = page.mode === "split";
-  const opens = linkMode === "open";
   return (
     <div className="jali-page-bar">
-      {/* APG radio group: one tab stop (the checked mode), and the arrow keys move to the other and check it. Split
-          view, when the page can't open one, stays focusable with its reason, and isn't checked. */}
+      {/* APG radio group: one tab stop (the checked mode), and the arrow keys move to the other and check it. */}
       <div
         className="jali-seg jali-mode-switch"
         role="radiogroup"
@@ -72,10 +69,8 @@ function PageBarOf() {
           aria-checked={multi}
           tabIndex={multi ? 0 : -1}
           className="jali-seg-btn"
-          onClick={() => opens && store.run("page.setMode", "split")}
-          aria-disabled={!opens || undefined}
-          aria-description={opens ? undefined : t.splitTipLimited}
-          title={opens ? t.splitTip : t.splitTipLimited}
+          onClick={() => store.run("page.setMode", "split")}
+          title={t.splitTip}
         >
           <icon.splitView size={14} aria-hidden /> {t.split}
         </button>

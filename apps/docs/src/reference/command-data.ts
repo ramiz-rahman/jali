@@ -26,7 +26,7 @@ const empty = (): Layout => ({
 
 /** An instance with one preset, and a curated page's engine and words so the table lists the page's commands too
  *  (an instance has them only with a page from `definePage`). With no profile, titles in "page" words read "Back to
- *  page" and "View as viewer"; a real page puts its name and viewers there. Every feature that brings a command is
+ *  page"; a real page puts its name there. Every feature that brings a command is
  *  on (the palette, Settings, the chooser, rename, pop out), so the table lists the commands an instance has only
  *  with them. */
 export const SAMPLE_ENV: Env = {
@@ -91,9 +91,12 @@ export const REFUSED: Record<string, string> = {
     'Silent when no pane is focused or only one pane is open. In a curated page it means Back to the page, refused with "Nothing opened beyond the page" when nothing was opened.',
   "pane.undo_close":
     '"Nothing to restore" when the undo stack is empty. Undoes the last close, close others or tuck.',
-  "pane.split.right": "Silent when no pane is focused, or there is no launcher.",
-  "pane.split.down": "Silent when no pane is focused, or there is no launcher.",
-  "pane.split.auto": "Silent when no pane is focused, or there is no launcher.",
+  "pane.split.right":
+    "Silent when no pane is focused, or there is no launcher. Where the pane doesn't allow `open`: \"Panes can't be opened from … here\".",
+  "pane.split.down":
+    "Silent when no pane is focused, or there is no launcher. Where the pane doesn't allow `open`: \"Panes can't be opened from … here\".",
+  "pane.split.auto":
+    "Silent when no pane is focused, or there is no launcher. Where the pane doesn't allow `open`: \"Panes can't be opened from … here\".",
   "pane.move.left":
     'Silent when no pane is focused or only one pane is open. With no pane to that side: "… can\'t move left".',
   "pane.move.right":
@@ -115,7 +118,8 @@ export const REFUSED: Record<string, string> = {
     'Silent unless the focused pane is a tab in a group made by the person or the app. At the end of the strip: "… is already the last tab".',
   "pane.rename":
     "Only with the rename() feature (jali/rename). Silent unless its `can` allows the focused pane. Opens the rename field on its tab or title.",
-  "stack.new-tab": "Silent when no pane is focused, or there is no launcher.",
+  "stack.new-tab":
+    "Silent when no pane is focused, or there is no launcher. Where the pane doesn't allow `open`: \"Panes can't be opened from … here\".",
   [PRESET_PATTERN]: 'Never. One command per preset, titled "Layout: <label>".',
   "pane.fullscreen":
     "On a curated page in Single view. Puts the focused pane on the whole screen, or takes it off.",
@@ -129,13 +133,12 @@ export const REFUSED: Record<string, string> = {
   "page.back": "Silent unless a curated page is open and has panes opened from links.",
   "page.reset": "Silent unless a curated page is open in Split view.",
   "page.single": "Silent unless a curated page is open in Split view.",
-  "page.split": "Silent unless a curated page is open in Single and the viewer may investigate.",
+  "page.split": "Silent unless a curated page is open in Single view.",
   "page.open": "Silent while the page is open, or when there is no curated page.",
   "page.leave": "Silent unless a curated page is open, and in a page-only app (no presets).",
-  "page.as_limited": "Silent unless a curated page is open and the viewer may investigate.",
-  "page.as_full": "Silent unless a curated page is open and the viewer may not investigate.",
   "peek.close": "Silent when no peek is open.",
-  "peek.open_beside": "Silent when no peek is open.",
+  "peek.open_beside":
+    "Silent when no peek is open. Where the pane the peek came from doesn't allow `open`: \"Panes can't be opened from … here\".",
   "settings.open": "Only with the settings() feature (jali/settings). Never refused there.",
   "settings.centre_drop.toggle": "Never.",
 };

@@ -90,7 +90,6 @@ export type PageSteps = Pick<
   | "showItem"
   | "back"
   | "hideRole"
-  | "setLinkMode"
 >;
 type Rest<F> = F extends (x: Snapshot, ...args: infer A) => Outcome ? A : never;
 
@@ -225,7 +224,6 @@ export const STEPS = /* @__PURE__ */ (() =>
     "page.showItem": checked([arg.item], pageStep("showItem")),
     "page.back": checked(NONE, pageStep("back")),
     "page.reset": checked(NONE, pageStep("reset")),
-    "page.setLinkMode": checked([arg.oneOf("open", "peek")], pageStep("setLinkMode")),
 
     // ---------- jali.dialogs ----------
     // The request's items and callback are read by `choose`, which refuses one it can't use.

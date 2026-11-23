@@ -123,13 +123,7 @@ export { restoreLayout, arrive } from "./actions/layout";
 export { mergeTargets, type MergeTarget } from "./actions/tabs";
 export { checkTuck, tuckHome } from "./actions/tuck";
 export { canRename } from "./actions/rename";
-export {
-  besidePreview,
-  definePageEngine,
-  investigation,
-  viewerLabel,
-  pageEngine,
-} from "./actions/page";
+export { besidePreview, definePageEngine, investigation, pageEngine } from "./actions/page";
 
 // ---------- pane kinds, profiles and pane chrome ----------
 export {

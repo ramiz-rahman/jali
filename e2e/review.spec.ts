@@ -264,16 +264,29 @@ test.describe("Loan review: Split view", () => {
 });
 
 test.describe("Loan review: roles and what a link carries", () => {
-  test("a loan officer works in Single view only, and links peek", async ({ app, page }) => {
-    await app.open({ path: at("application"), size: { width: 1440, height: 900 } });
+  test("a loan officer (`?role=officer`) may use Split view, but links peek and open nothing", async ({
+    app,
+    page,
+  }) => {
+    await app.open({
+      path: `${at("application")}&role=officer`,
+      size: { width: 1440, height: 900 },
+    });
     await mode(page, "Split view").click();
-    await app.setting(/Loan officer/);
-    await expect(mode(page, "Single")).toHaveAttribute("aria-checked", "true");
-    await expect(mode(page, "Split view")).toBeDisabled();
+    await expect(mode(page, "Split view")).toHaveAttribute("aria-checked", "true");
     await pageTab(page, "Borrower").click();
-    await groupLink(app, "borrower").click();
+    await openLink(app).click();
     await expect(app.peek()).toBeVisible();
     await expect(opened(page)).toHaveCount(0);
+    // The peek offers no way to keep it beside: that would open a pane.
+    await expect(app.peek().getByRole("button", { name: "Open beside" })).toHaveCount(0);
+    await page.keyboard.press("Escape");
+    // The demo's own switch goes to the reviewer's address, where the same link opens a pane.
+    await page.getByRole("link", { name: "View as credit reviewer" }).click();
+    await expect(page).toHaveURL(/role=reviewer/);
+    await expect(mode(page, "Split view")).toHaveAttribute("aria-checked", "true");
+    await openLink(app).click();
+    await expect(opened(page)).toHaveCount(1);
   });
 
   test("the mode and layout stay with the person; a link carries the item, the view and opened panes", async ({

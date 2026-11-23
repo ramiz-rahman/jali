@@ -78,7 +78,7 @@ const DIRS: [Edge, ScreenDirection][] = [
 ];
 
 /** Every command an instance has: the fixed set, its presets', its features' (each only with its feature, in its
- *  words) and the host's, with titles in its own words (its name, its viewers). */
+ *  words) and the host's, with titles in its own words (its name). */
 function buildCommands(env: Env): CommandDef[] {
   const { commands: t, commandGroups: g } = messagesOf(env);
   const has = (id: FeatureId) => !!env.features?.some((f) => f.id === id);

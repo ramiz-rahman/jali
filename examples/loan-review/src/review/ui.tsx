@@ -11,6 +11,7 @@ import type { ObjectRef } from "jali";
 import { useJaliState, type PaneProps } from "jali/react";
 import type { Row } from "@jali-examples/shared/data/types";
 import { Shell } from "@jali-examples/shared/panes/shared/states";
+import { role } from "../role";
 import { statusLabel } from "./data";
 import type { Tone } from "./signals";
 import "./views.css";
@@ -108,11 +109,10 @@ export function Facts({ rows, cols }: { rows: (Fact | null | false)[]; cols?: 1 
   );
 }
 
-/** How a link is followed here: a peek in Single (and for roles that only peek), beside in Split view. */
+/** How a link is followed here: a peek in Single view and for a loan officer (role.tsx), beside in Split view. */
 function useLinkVerb() {
-  return useJaliState((s) =>
-    s.page && (s.page.mode === "single" || s.linkMode === "peek") ? "peek" : "beside",
-  );
+  const peeks = role() === "officer";
+  return useJaliState((s) => (s.page && (s.page.mode === "single" || peeks) ? "peek" : "beside"));
 }
 
 /** A related record or list, opened with the pane's own link action. `data-ref` names the object for tests and tools. */

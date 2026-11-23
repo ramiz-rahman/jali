@@ -67,7 +67,6 @@ export type JaliState<R extends ObjectRef = ObjectRef> = DeepReadonly<
     UiState,
     | "layout"
     | "page"
-    | "linkMode"
     | "view"
     | "presetId"
     | "peekSource"

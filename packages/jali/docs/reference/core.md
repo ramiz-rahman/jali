@@ -81,8 +81,6 @@ Its listeners (keys, Back and Forward, theme and saving) start with `jali.start(
 
 - **`page`** (`Page | null`): A curated page this instance can show, from `definePage` (`jali/page`). A page made any other way is refused: `definePage` gives it the code that runs it, which an app without a page never ships. With one, `jali.page` has its actions.
 
-- **`linkMode`** (`"open" | "peek"`): What following a link on the curated page does at first: `"open"` opens a pane beside the views; `"peek"` only peeks, in Single view, for a viewer who may look but not rearrange. `jali.page.setLinkMode` changes it later.
-
 - **`name`** (`string`): Your app's name for the free layout, in command titles such as "Open Data Studio" on a curated page. Without one, the command reads "Leave" and the page's name.
 
 - **`features`** (`readonly Feature[]`): What the instance does beyond laying out panes, each a value from its own entry, so an app ships only what it uses: `[urlSync(), palette(), rename({ run })]`, or `defaultFeatures()` for the address, ⌘K, Settings, the chooser and `data-pressed` at once. A feature given again takes the earlier one's place. See [Features](features.md).

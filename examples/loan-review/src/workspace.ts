@@ -6,6 +6,7 @@ import { createJali, type Jali, type JaliOptions } from "jali";
 import { makerCommand } from "@jali-examples/shared/maker/maker";
 import { loanReview, loanReviewKinds } from "./review";
 import { defaultFeatures } from "jali/features";
+import { startRole } from "./role";
 
 /** What Loan review's workspace is made of. */
 export const loanReviewOptions = {
@@ -19,4 +20,6 @@ export const loanReviewOptions = {
   landmark: "main",
 } satisfies JaliOptions;
 
-export const createLoanReview = (): Jali => createJali(loanReviewOptions);
+/** The instance, for the persona the address names (role.tsx). */
+export const createLoanReview = (): Jali =>
+  createJali({ ...loanReviewOptions, allow: startRole() });

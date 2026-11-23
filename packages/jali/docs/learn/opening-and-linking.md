@@ -106,7 +106,7 @@ On a [curated page](../get-started/key-concepts.md#curated-page), each object ap
 
 A link to an opened pane that is already on screen focuses that pane.
 
-In Single view, and for a viewer who works in Single view only (link mode `"peek"`), a link opens as a peek instead. [Curated pages](curated-pages.md) explains why.
+In Single view, and from a pane whose `allow` turns `open` off, a link opens as a peek instead. [Curated pages](curated-pages.md) explains why.
 
 ## What a free layout does instead
 

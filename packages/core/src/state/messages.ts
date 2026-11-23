@@ -156,7 +156,6 @@ const announcements = {
   sentToTabs: (views: string[]) => `${views.join(", ")} went back to the tabs: not enough room`,
   singleNoLayout:
     "Single view shows one view: choose it from the tabs. Switch to Split view to arrange views",
-  peekOnly: (pane: string) => `Peek: ${pane} · your role opens links as a peek`,
   peekSingle: (pane: string) => `Peek: ${pane} · switch to Split view to open links beside`,
 
   // what Jali did on its own: one pane at a time on a narrow screen (a phone), and back

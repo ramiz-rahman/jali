@@ -58,7 +58,6 @@ const loanReview = definePage({
   id: "loan-review",
   name: "Loan review",
   itemNoun: "application",
-  viewers: { full: "credit reviewer", limited: "loan officer" },
   roles: [
     { id: "borrower", label: "Borrower", priority: "primary", icon: UserIcon },
     { id: "documents", label: "Documents", priority: "supporting", icon: FileTextIcon },

@@ -757,8 +757,6 @@ A curated page about one item (a loan application), framework-free. In React, `d
 
 - **`itemNoun`** (`string`, required): The singular noun for an item ("application").
 
-- **`viewers`** (`{ full: string; limited: string }`): Who works with full access (links open beside, Split view available) and who works in Single view with links as a peek, in the person's words.
-
 - **`roles`** (`R[]`, required): The views, in tab order.
 
 - **`home`** (`string`, required): The view Single opens on.
@@ -1053,8 +1051,6 @@ What an instance holds that an app reads, read-only. Read it with `jali.get()` o
 
 - **`page`** (`PageState | null`, required): The curated page in use, or `null` for the free layout.
 
-- **`linkMode`** (`"open" | "peek"`, required): What following a link on the curated page does for this person: open a pane beside the views, or only peek. The instance's policy, kept while no page is open, so leaving the page and coming back never widens it. See `LinkMode`.
-
 - **`presetId`** (`string | undefined`, required): The preset last chosen; "Reset layout" rebuilds it.
 
 - **`peekSource`** (`NodeId`): The pane the peek acts for.
@@ -1242,7 +1238,7 @@ type RefusalReason = "not-found" | "invalid" | "unavailable" | "single-view" | "
 
 - **`single-view`**: A curated page in Single view has no layout to change.
 
-- **`not-allowed`**: Links only peek on this page for this person (`jali.page.setLinkMode("peek")`).
+- **`not-allowed`**: The app's `allow` turns that control off for the pane: the kind's, the instance's, or its `when` (for a divider, a pane beside it). See [Choose what people can do with panes](../../guides/pane-controls.md).
 
 - **`last-pane`**: The last pane, or a page's last view on screen, stays.
 
@@ -1799,7 +1795,7 @@ interface JaliPage<I extends ItemId = ItemId>
 
 - **`page.leave`**, `leave()`: Back to the free layout's preset. The page's mode and layout are kept. `"unavailable"` in a page-only app.
 
-- **`page.setMode`**, `setMode(mode: ViewMode)`: Single view or Split view. Split view is refused while links only peek (`"not-allowed"`).
+- **`page.setMode`**, `setMode(mode: ViewMode)`: Single view or Split view.
 
 - **`page.showView`**, `showView(view: string)`: What a click on a page tab does. It never reshapes: Single view swaps the view; Split view focuses it, chooses its tab, or puts it in place of the view you're in.
 
@@ -1808,18 +1804,6 @@ interface JaliPage<I extends ItemId = ItemId>
 - **`page.back`**, `back()`: Close every opened pane, with Undo.
 
 - **`page.reset`**, `reset()`: Split view back to the design; opened panes stay.
-
-- **`page.setLinkMode`**, `setLinkMode(mode: "open" | "peek")`: What following a link does for this person: open a pane beside the views, or only peek. `"peek"` in Split view switches to Single view in the same change: held whole when a view that would go has unsaved work, so Keep editing leaves both as they were. Leaving the page and coming back never widens it.
-
-### LinkMode
-
-*type*, from `jali`
-
-```ts
-type LinkMode = "open" | "peek"
-```
-
-What following a link on a curated page does: `"open"` opens a pane beside the views; `"peek"` only peeks, in Single view. `createJali({ linkMode })` sets the first, `jali.page.setLinkMode` changes it.
 
 ### JaliDialogs
 
