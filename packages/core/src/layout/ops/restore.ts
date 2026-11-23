@@ -14,7 +14,7 @@ import type {
   UndoEntry,
   ViewState,
 } from "../types";
-import { clone, find, newId, panes, parent, replace, unzoom } from "../tree/tree";
+import { clone, find, newId, nodes, panes, parent, replace, unzoom } from "../tree/tree";
 import { sameSize, sizeFrom } from "../tree/size";
 import { intoStack } from "../tree/insert";
 import { sameRef } from "./ref";
@@ -38,20 +38,28 @@ export function restoreClosed(
 ): { layout: Layout; view: ViewState; ids: Record<NodeId, NodeId> } {
   const next = clone(layout);
   const at = (id: NodeId) => find(next.root, id);
-  // Every pane's id first: its own unless another pane took it meanwhile, so the batch's references to each other
-  // (neighbours, links, tucks) follow it, and never reach the pane that took it.
-  const ids: Record<NodeId, NodeId> = {};
-  const taken = new Set(panes(next.root).map((p) => p.id));
-  const fresh = entry.closed.filter((c) => taken.has(c.pane.id) || !taken.add(c.pane.id));
-  for (const c of entry.closed) if (!fresh.includes(c)) ids[c.pane.id] = c.pane.id;
+  // Every pane's id first: its own unless a node (a pane, or a container) took it meanwhile, so the batch's references
+  // to each other (neighbours, links, tucks) follow it, and never reach the node that took it. Keyed by pane id, so
+  // without a prototype ("toString" is a pane id like any other).
+  const ids: Record<NodeId, NodeId> = Object.create(null);
+  const taken = new Set(nodes(next.root).map((n) => n.id));
+  const fresh: typeof entry.closed = [];
+  for (const c of entry.closed) {
+    if (taken.has(c.pane.id)) fresh.push(c);
+    else {
+      taken.add(c.pane.id);
+      ids[c.pane.id] = c.pane.id;
+    }
+  }
   for (const c of fresh) {
     let i = 1;
     while (taken.has(`pane-${i}`)) i++;
-    taken.add((ids[c.pane.id] = `pane-${i}`));
+    ids[c.pane.id] = `pane-${i}`;
+    taken.add(`pane-${i}`);
   }
   const id = (n: NodeId) => ids[n] ?? n;
   // Each pane's own size in its own container, for when that container is made again around it.
-  const own: Record<NodeId, SlotLevel> = {};
+  const own = new Map<NodeId, SlotLevel>();
   // Nodes wrapped in a new split or tab group for a pane to go beside them: sized once the close's sizes are back.
   const wrapped: NodeId[] = [];
   /** `node` and `pane` in a new container in node's place, with node's size: `id` again unless that is taken. */
@@ -61,7 +69,7 @@ export function restoreClosed(
     const made = at(level.parent)
       ? newId(next.root, level.type === "stack" ? "stack" : "split")
       : level.parent;
-    const mine = own[node.id];
+    const mine = own.get(node.id);
     if (mine?.parent === level.parent) sizeFrom(node, mine);
     else wrapped.push(node.id);
     next.root = replace(
@@ -139,7 +147,7 @@ export function restoreClosed(
   for (const c of entry.closed) {
     const pane = { ...clone(c.pane), id: id(c.pane.id) };
     const first = c.slot[0];
-    if (first && first.type !== "stack") own[pane.id] = first;
+    if (first && first.type !== "stack") own.set(pane.id, first);
     place(pane, c.slot);
   }
   const back = Object.values(ids);
@@ -177,7 +185,8 @@ export function restoreClosed(
     const n = at(s.id);
     if (!n || back.includes(n.id) || !sameSize(n.size, s.after)) continue;
     sizeFrom(n, s);
-    wrapped.splice(wrapped.indexOf(n.id) >>> 0, 1);
+    const w = wrapped.indexOf(n.id);
+    if (w >= 0) wrapped.splice(w, 1);
   }
   // A node wrapped with no size to return to shares its new split as a new neighbour would.
   for (const id of wrapped) {

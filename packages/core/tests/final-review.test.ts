@@ -190,3 +190,25 @@ describe("3. a focus move queued for the next frame ends with its instance", () 
     vi.unstubAllGlobals();
   });
 });
+
+describe("6. a pane undo puts back under a new id never takes a container's", () => {
+  it("a row named pane-1: the restored pane gets an id no node has, and the layout stays valid", () => {
+    const { jali } = make({
+      page: undefined,
+      layout: row(
+        { id: "pane-1" },
+        pane(r(1), { id: "a" }),
+        pane(r(2), { id: "pane-2", linkedTo: "a" }),
+        pane(r(4), { id: "c" }),
+      ),
+    });
+    expect(jali.actions.close("pane-2").ok).toBe(true);
+    expect(jali.actions.openBeside("a", r(3)).ok).toBe(true);
+    expect(jali.model().pane("pane-2")?.ref.params.id).toBe(3);
+    expect(jali.actions.undo().ok).toBe(true);
+    const ids = jali.model().panes.map((p) => p.id);
+    expect(ids).not.toContain("pane-1");
+    expect(jali.getLayout().root.id).toBe("pane-1");
+    expect(jali.model().panes.find((p) => p.ref.params.id === 2)).toBeDefined();
+  });
+});
