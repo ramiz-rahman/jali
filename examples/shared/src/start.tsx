@@ -4,7 +4,7 @@ import type { Jali } from "jali";
 import { storeOf } from "jali/adapter";
 import { createDataLayer } from "./data";
 import type { DataLayer } from "./data/types";
-import { App } from "./shell/App";
+import { App, type AppChrome } from "./shell/App";
 // Jali's faces, which these apps use as their own (tokens.css), then the shell's styles and Jali's.
 import "@fontsource/atkinson-hyperlegible-next/latin-400.css";
 import "@fontsource/atkinson-hyperlegible-next/latin-500.css";
@@ -15,10 +15,11 @@ import "./shell/styles/index.css";
 import "jali/styles.css";
 
 /**
- * Mounts the app. `data` is the sample database, when the app made it first to read from it before its workspace
- * (Loan review's bindings); otherwise one is made here.
+ * Mounts the app. `chrome` is what its bar says (its name; on a curated page, what one item is called). `data` is the
+ * sample database, when the app made it first to read from it before its workspace (Loan review's bindings);
+ * otherwise one is made here.
  */
-export function start(jali: Jali, data: DataLayer = createDataLayer()) {
+export function start(jali: Jali, chrome: AppChrome, data: DataLayer = createDataLayer()) {
   // Right-to-left mode (`?dir=rtl`): the page reads right to left, as an Arabic or Hebrew app does. Jali follows the page.
   if (new URLSearchParams(location.search).get("dir") === "rtl")
     document.documentElement.dir = "rtl";
@@ -31,5 +32,5 @@ export function start(jali: Jali, data: DataLayer = createDataLayer()) {
 
   const root = document.getElementById("root");
   if (!root) throw new Error("The page has no #root to mount the app in");
-  createRoot(root).render(<App jali={jali} data={data} />);
+  createRoot(root).render(<App jali={jali} data={data} chrome={chrome} />);
 }

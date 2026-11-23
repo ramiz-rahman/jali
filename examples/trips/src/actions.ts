@@ -6,11 +6,11 @@
  * an Explore list reports its own selection as usual (Space, peek) and also hands it to the map with
  * `jali.actions.select`, so the place pane and the map's pins move whichever list the person used. See FINDINGS.md.
  */
-import type { Jali, NodeId, ObjectRef, PaneNode } from "jali";
+import type { Jali, NodeId, ObjectRef, PaneOf } from "jali";
 import { day } from "./panes/day";
 import { place } from "./panes/place";
 
-export const isMap = (p: PaneNode) => p.ref.kind === "map";
+export const isMap = (p: PaneOf) => p.ref.kind === "map";
 
 /** The map panes in the layout, the first one being the hub the place panes follow. */
 export const maps = (jali: Jali) => jali.model().panes.filter(isMap);
@@ -21,9 +21,6 @@ export function currentPlace(jali: Jali): string | null {
   const ref = hub ? jali.get().selection[hub.id]?.ref : undefined;
   return ref?.kind === "place" ? String(ref.params.id) : null;
 }
-
-const onScreen = (jali: Jali, id: NodeId) =>
-  jali.model().resolved.panes.some((b) => b.id === id && !b.hidden);
 
 /**
  * Select a place everywhere: in the list it came from (`from`), on every map, and so in the place pane that
@@ -49,7 +46,7 @@ export function selectPlace(
   const follower = panes.find((p) => p.linkedTo === hub.id && p.follows && p.ref.kind === "place");
   const comparing = panes.some((p) => p.linkedTo === hub.id && p.kept && p.ref.kind === "place");
   if (follower) {
-    if (open && !onScreen(jali, follower.id)) jali.actions.focus(follower.id);
+    if (open && follower.where !== "shown") jali.actions.focus(follower.id);
     return follower.id;
   }
   if (!open && !comparing) return undefined;
@@ -67,7 +64,7 @@ export function selectPlace(
  */
 export function show(jali: Jali, ref: ObjectRef): NodeId | undefined {
   const m = jali.model();
-  const open = m.panes.find((p) => jali.env.kinds.sameObject(p.ref, ref));
+  const open = m.paneOf(ref);
   if (open) return jali.actions.focus(open.id).pane;
   const source = jali.get().view.focused ?? m.panes[0]?.id;
   const id = source ? jali.actions.openBeside(source, ref).pane : undefined;

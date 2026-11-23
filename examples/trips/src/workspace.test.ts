@@ -38,6 +38,12 @@ const run = (jali: Jali, id: string) =>
     .find((c) => c.id === id)!
     .run();
 
+/** The panes folded for room, in tree order. */
+const folded = (jali: Jali) =>
+  jali
+    .model()
+    .panes.filter((p) => p.where === "folded")
+    .map((p) => p.id);
 const ids = (jali: Jali) => jali.model().panes.map((p) => p.id);
 const shows = (jali: Jali, id: string) => jali.model().pane(id)?.ref.params;
 
@@ -51,7 +57,7 @@ describe("the trips workspace", () => {
     expect(jali.model().pane("map")).toMatchObject({ linkedTo: "overview", follows: true });
     expect(jali.model().pane("day")).toMatchObject({ linkedTo: "overview", follows: true });
     expect(jali.model().pane("place")).toMatchObject({ linkedTo: "map", follows: true });
-    expect(jali.model().folded).toEqual([]);
+    expect(folded(jali)).toEqual([]);
   });
 
   it("gives the map honest widths: it wants the room, and the others fold before it squeezes", () => {
@@ -59,7 +65,7 @@ describe("the trips workspace", () => {
     expect(mapKind.width).toMatchObject({ min: 360, comfortable: 640 });
     for (const k of kinds) expect(k.width?.min, k.kind).toBeGreaterThanOrEqual(260);
     // At 1440 the four Plan panes fit; at 1024 the place folds behind the map it follows.
-    expect(testJali({ width: 1024 }).jali.model().folded).toEqual(["place"]);
+    expect(folded(testJali({ width: 1024 }).jali)).toEqual(["place"]);
   });
 
   it("moves the day plan and the map together when the overview selects a day", () => {
@@ -117,23 +123,23 @@ describe("the trips workspace", () => {
       const { jali } = testJali({ width });
       jali.actions.preset("days");
       const m = jali.model();
-      expect(m.folded).toEqual([]);
-      expect(m.visible).toEqual(
-        expect.arrayContaining(["overview", "day-1", "day-7", "map", "place"]),
-      );
-      const week = m.resolved.scrollers.find((s) => s.id === "week");
-      if (width < 3200) expect(week).toBeDefined();
-      for (let n = 1; n <= 7; n++)
-        expect(m.content.panes.find((b) => b.id === `day-${n}`)!.rect.width).toBeGreaterThanOrEqual(
-          360,
-        );
+      expect(folded(jali)).toEqual([]);
+      for (const id of ["overview", "day-1", "map", "place"])
+        expect(m.pane(id)?.where, `${width} ${id}`).toBe("shown");
+      // Every day is on screen or scrolled along the row (the browser test scrolls it), never folded or a tab.
+      for (let n = 1; n <= 7; n++) {
+        const day = m.pane(`day-${n}`)!;
+        expect(["shown", "hidden"], `${width} day-${n}`).toContain(day.where);
+        if (day.box) expect(day.box.width).toBeGreaterThanOrEqual(360);
+      }
+      if (width < 3200) expect(m.pane("day-7")?.where).toBe("hidden");
     }
   });
 
   it("showing a day out of view focuses its pane, which the week then scrolls to (e2e)", () => {
     const { jali } = testJali({ width: 1440 });
     jali.actions.preset("days");
-    expect(jali.model().outOfView.has("day-7")).toBe(true);
+    expect(jali.model().pane("day-7")?.where).toBe("hidden");
     showDay(jali, 7);
     expect(jali.get().view.focused).toBe("day-7");
   });

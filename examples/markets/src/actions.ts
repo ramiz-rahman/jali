@@ -18,10 +18,9 @@ export function show(
   { from, tabWith }: { from?: NodeId; tabWith?: NodeId } = {},
 ): NodeId | undefined {
   const m = jali.model();
-  const open = m.panes.find((p) => jali.env.kinds.sameObject(p.ref, ref));
+  const open = m.paneOf(ref);
   if (open) return jali.actions.focus(open.id).pane;
-  const onScreen = new Set(m.resolved.panes.filter((b) => !b.hidden).map((b) => b.id));
-  const sameKind = m.panes.find((p) => p.ref.kind === ref.kind && onScreen.has(p.id));
+  const sameKind = m.panes.find((p) => p.ref.kind === ref.kind && p.where === "shown");
   const into = sameKind?.id ?? (tabWith && m.pane(tabWith) ? tabWith : undefined);
   if (into) return jali.actions.addTab(into, ref).pane;
   const source = from ?? jali.get().view.focused ?? m.panes[0]?.id;
@@ -44,8 +43,7 @@ export function openFollowing(jali: Jali, list: NodeId, ref: ObjectRef): NodeId 
     .panes.find((p) => p.linkedTo === list && p.follows && p.ref.kind === ref.kind);
   if (follower) {
     // Folded behind a tab (a phone, a crowded desk): bring it to the front, since the person asked to open it.
-    const hidden = !jali.model().resolved.panes.some((b) => b.id === follower.id && !b.hidden);
-    if (hidden) jali.actions.focus(follower.id);
+    if (follower.where !== "shown") jali.actions.focus(follower.id);
     return follower.id;
   }
   return jali.actions.openBeside(list, ref).pane;

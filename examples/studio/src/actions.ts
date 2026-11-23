@@ -32,10 +32,9 @@ export function cue(engine: Engine, session: string, time: number, play = false)
  */
 export function show(jali: Jali, ref: ObjectRef, { from }: { from?: NodeId } = {}) {
   const m = jali.model();
-  const open = m.panes.find((p) => jali.env.kinds.sameObject(p.ref, ref));
+  const open = m.paneOf(ref);
   if (open) return jali.actions.focus(open.id).pane;
-  const onScreen = new Set(m.resolved.panes.filter((b) => !b.hidden).map((b) => b.id));
-  const sameKind = m.panes.find((p) => p.ref.kind === ref.kind && onScreen.has(p.id));
+  const sameKind = m.panes.find((p) => p.ref.kind === ref.kind && p.where === "shown");
   if (sameKind) return jali.actions.addTab(sameKind.id, ref).pane;
   const source = from ?? jali.get().view.focused ?? m.panes[0]?.id;
   const id = source ? jali.actions.openBeside(source, ref).pane : undefined;
@@ -53,8 +52,7 @@ export function openFollowing(jali: Jali, list: NodeId, ref: ObjectRef): NodeId 
     .model()
     .panes.find((p) => p.linkedTo === list && p.follows && p.ref.kind === ref.kind);
   if (follower) {
-    const hidden = !jali.model().resolved.panes.some((b) => b.id === follower.id && !b.hidden);
-    if (hidden) jali.actions.focus(follower.id);
+    if (follower.where !== "shown") jali.actions.focus(follower.id);
     return follower.id;
   }
   return jali.actions.openBeside(list, ref).pane;

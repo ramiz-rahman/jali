@@ -52,7 +52,13 @@ function Toasts() {
   );
 }
 
-export function App({ jali, data }: { jali: Jali; data: DataLayer }) {
+/** What the app's bar says: its name, and on a curated page what one item is called ("application"). */
+export interface AppChrome {
+  name: string;
+  itemNoun?: string;
+}
+
+export function App({ jali, data, chrome }: { jali: Jali; data: DataLayer; chrome: AppChrome }) {
   return (
     <QueryClientProvider client={data.queryClient}>
       <DataLayerProvider value={data}>
@@ -62,7 +68,7 @@ export function App({ jali, data }: { jali: Jali; data: DataLayer }) {
           overlays={<Toasts />}
           settingsExtra={<StatsSetting />}
         >
-          <TopBar />
+          <TopBar {...chrome} />
           <JaliView />
           <StatusLine />
         </JaliRoot>

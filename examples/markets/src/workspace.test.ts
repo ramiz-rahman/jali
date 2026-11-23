@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
-import { listCommands, type Jali } from "jali";
+import { listCommands, type DeepReadonly, type Jali, type LayoutNode } from "jali";
 import {
   answerDiscard,
   chooserRequest,
@@ -36,6 +36,20 @@ const choose = (jali: Jali, label: string, title: string) => {
   request.onChoose(request.items.find((i) => request.label(i) === label));
 };
 
+/** The tabs of the tab group holding pane `id`, in the layout. */
+const tabsOf = (node: DeepReadonly<LayoutNode>, id: string): string[] | undefined =>
+  node.type === "pane"
+    ? undefined
+    : node.type === "stack" && node.children.some((c) => c.id === id)
+      ? node.children.map((c) => c.id)
+      : node.children.reduce<string[] | undefined>((found, c) => found ?? tabsOf(c, id), undefined);
+
+/** The panes folded for room, in tree order. */
+const folded = (jali: Jali) =>
+  jali
+    .model()
+    .panes.filter((p) => p.where === "folded")
+    .map((p) => p.id);
 const ids = (jali: Jali) => jali.model().panes.map((p) => p.id);
 const shown = (jali: Jali, id: string) => jali.model().pane(id)?.ref.params.symbol;
 
@@ -53,8 +67,8 @@ describe("the markets workspace", () => {
 
   it("gives every kind a minimum width, so a crowded desk folds instead of squeezing", () => {
     for (const k of kinds) expect(k.width?.min, k.kind).toBeGreaterThanOrEqual(220);
-    expect(testJali({ width: 1440 }).jali.model().folded).toEqual([]);
-    expect(testJali({ width: 900 }).jali.model().folded.length).toBeGreaterThan(0);
+    expect(folded(testJali({ width: 1440 }).jali)).toEqual([]);
+    expect(folded(testJali({ width: 900 }).jali).length).toBeGreaterThan(0);
   });
 
   it("switches desks", () => {
@@ -130,7 +144,7 @@ describe("the markets workspace", () => {
       kept: true,
       ref: chart({ symbol: "LMNA" }),
     });
-    expect(jali.model().folded).toEqual([]);
+    expect(folded(jali)).toEqual([]);
   });
 
   it("lists the app's own commands in ⌘K, with their keys", () => {
@@ -168,14 +182,12 @@ describe("the markets workspace", () => {
     const entries = location.entries.length;
     const panes = ids(jali);
     const opened = show(jali, chart({ symbol: "ORBD" }))!;
-    expect(
-      jali
-        .model()
-        .stackOf(opened)
-        ?.children.map((c) => c.id),
-    ).toEqual(["chart", opened]);
+    // A tab of the chart: shown in front of it, in the chart's tab group.
+    expect(jali.model().pane(opened)?.where).toBe("shown");
+    expect(jali.model().pane("chart")?.where).toBe("tab");
+    expect(tabsOf(jali.getLayout().root, opened)).toEqual(["chart", opened]);
     expect(location.entries.length).toBe(entries + 1);
-    expect(jali.model().folded).toEqual([]);
+    expect(folded(jali)).toEqual([]);
     expect(ids(jali).filter((id) => id !== opened)).toEqual(panes);
     expect(jali.get().view.focused).toBe(opened);
     // Already open: shown, not opened twice.

@@ -5,7 +5,10 @@
 import { createDataLayer } from "@jali-examples/shared/data";
 import { start } from "@jali-examples/shared/start";
 import { loadFacts } from "./review/facts";
-import { createLoanReview } from "./workspace";
+import { loanReview } from "./review";
+import { createLoanReview, loanReviewOptions } from "./workspace";
 
 const data = createDataLayer();
-void loadFacts(data.api).then(() => start(createLoanReview(), data));
+void loadFacts(data.api).then(() =>
+  start(createLoanReview(), { name: loanReviewOptions.name, itemNoun: loanReview.itemNoun }, data),
+);

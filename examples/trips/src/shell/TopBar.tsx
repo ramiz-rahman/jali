@@ -26,7 +26,7 @@ export function TopBar() {
         <span className="brand-name">Trips</span> <span className="brand-sub">a Jali example</span>
       </a>
       <nav className="presets" aria-label="Layouts">
-        {jali.env.presets.map((p) => (
+        {jali.presets.map((p) => (
           <button
             key={p.id}
             type="button"
@@ -40,7 +40,7 @@ export function TopBar() {
       <label className="presets-select">
         <span className="sr-only">Layout</span>
         <select value={current} onChange={(e) => jali.actions.preset(e.target.value)}>
-          {jali.env.presets.map((p) => (
+          {jali.presets.map((p) => (
             <option key={p.id} value={p.id}>
               {p.label}
             </option>

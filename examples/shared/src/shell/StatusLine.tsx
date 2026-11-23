@@ -17,10 +17,16 @@ export function StatusLine() {
   const showStats = useShowStats() && !curated;
   const activity = useJaliState((s) => s.activity);
   // Every tucked pane, shown or not (the shelf lists them all); folded panes are counted separately.
-  const tucked = m.shelf.length;
+  const tucks = useJaliState((s) => s.layout.overlay?.tucks);
+  const tucked = tucks?.length ?? 0;
+  // Panes a curated page hides: no slot and no tab.
+  const off = useJaliState((s) => s.layout.overlay?.hidden?.length ?? 0);
   const busy = Object.entries(activity).filter(
-    ([id, a]) => (a === "needs-you" || a === "working" || a === "error") && m.tuckOf(id),
+    ([id, a]) =>
+      (a === "needs-you" || a === "working" || a === "error") && tucks?.some((t) => t.pane === id),
   );
+  const folded = m.panes.filter((p) => p.where === "folded").length;
+  const title = (id: string) => m.pane(id)?.title ?? "pane";
   const hint = resizeMode
     ? "Resize mode · arrows, ⇧ for 64px · Esc to leave"
     : view.zoomed
@@ -36,7 +42,7 @@ export function StatusLine() {
             ]
               .filter(Boolean)
               .join(" · ");
-  const n = m.onScreen.length;
+  const n = m.panes.length - off;
   return (
     <footer className="status" aria-label="Status" data-shelf-on={tucked ? "" : undefined}>
       <BuiltWithJali />
@@ -46,14 +52,14 @@ export function StatusLine() {
         {curated
           ? `${n} ${n === 1 ? "view" : "views"} on screen`
           : `${n} ${n === 1 ? "pane" : "panes"}`}
-        {!curated && m.off.length ? ` · ${m.off.length} hidden` : ""}
+        {!curated && off ? ` · ${off} hidden` : ""}
         {tucked ? ` · ${tucked} tucked` : ""}
-        {m.folded.length ? ` · ${m.folded.length} folded` : ""}
-        {" · "}Focus: {view.focused ? m.title(view.focused) : "none"}
+        {folded ? ` · ${folded} folded` : ""}
+        {" · "}Focus: {view.focused ? title(view.focused) : "none"}
       </span>
       {busy.length ? (
         <span className="status-busy">
-          {busy.map(([id, a]) => `${m.title(id)}: ${a}`).join(" · ")}
+          {busy.map(([id, a]) => `${title(id)}: ${a}`).join(" · ")}
         </span>
       ) : null}
       <span

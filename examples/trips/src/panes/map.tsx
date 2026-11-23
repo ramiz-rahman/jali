@@ -278,10 +278,7 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
   pausedRef.current = paused;
 
   // Explore's results count only while its pane is on screen; else, what is near the selected place.
-  const explored =
-    results && model.resolved.panes.some((b) => b.id === results.pane && !b.hidden)
-      ? results.ids
-      : null;
+  const explored = results && model.pane(results.pane)?.where === "shown" ? results.ids : null;
   const candidates = useMemo(() => {
     if (explored) return explored;
     const at = selected ? placeById(selected) : undefined;
@@ -646,8 +643,7 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
   const sel = selected ? placeById(selected) : undefined;
   // A place pane that follows this map and is on screen already says everything the card would: the map stays clear.
   const shownBeside = model.panes.some(
-    (p) =>
-      p.ref.kind === "place" && p.linkedTo === node.id && p.follows && model.visible.includes(p.id),
+    (p) => p.ref.kind === "place" && p.linkedTo === node.id && p.follows && p.where === "shown",
   );
   const day = params.day ? plan.days.find((d) => d.n === params.day) : undefined;
   const totals = day ? dayTotals(plan, day) : null;

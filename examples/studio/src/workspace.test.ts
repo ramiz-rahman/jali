@@ -38,6 +38,12 @@ const run = (jali: Jali, id: string) =>
     .find((c) => c.id === id)!
     .run();
 
+/** The panes folded for room, in tree order. */
+const folded = (jali: Jali) =>
+  jali
+    .model()
+    .panes.filter((p) => p.where === "folded")
+    .map((p) => p.id);
 const ids = (jali: Jali) => jali.model().panes.map((p) => p.id);
 const shown = (jali: Jali, id: string) => jali.model().pane(id)?.ref.params;
 // The sessions' data loads on demand in the app; here, all of it first.
@@ -82,14 +88,14 @@ describe("the studio workspace", () => {
       jali.actions.preset(preset);
       const kindsOf = jali.model().panes.map((p) => p.ref.kind);
       expect(kindsOf, preset).toContain("library");
-      expect(jali.model().folded, preset).toEqual([]);
+      expect(folded(jali), preset).toEqual([]);
     }
   });
 
   it("gives every kind an honest minimum width, so a narrow window folds instead of squeezing", () => {
     for (const k of kinds) expect(k.width?.min, k.kind).toBeGreaterThanOrEqual(240);
     const narrow = testJali({ width: 900 }).jali;
-    expect(narrow.model().folded.length).toBeGreaterThan(0);
+    expect(folded(narrow).length).toBeGreaterThan(0);
     // Folded panes stay mounted and in the layout: the shelf lists them.
     expect(ids(narrow)).toEqual(["library", "transcript", "timeline", "clip"]);
   });
@@ -372,20 +378,20 @@ describe("sessions of three, eight and four tracks", () => {
           if (p.linkedTo === "library" && p.follows)
             expect(p.ref.params.session, `${preset} ${p.id}`).toBe(id);
       }
-      expect(jali.model().folded, preset).toEqual([]);
+      expect(folded(jali), preset).toEqual([]);
     }
   });
 
   it("names the song's detail a line and its transcript Lyrics", () => {
     vi.useFakeTimers();
     const { jali } = testJali();
-    expect(jali.model().title("transcript")).toMatch(/^Transcript · /);
+    expect(jali.model().pane("transcript")?.title).toMatch(/^Transcript · /);
     jali.actions.select("library", transcript({ session: SONG }));
     vi.advanceTimersByTime(200);
     jali.actions.select("transcript", clip({ session: SONG, segment: "s03" }));
     vi.advanceTimersByTime(200);
-    expect(jali.model().title("transcript")).toMatch(/^Lyrics · /);
-    expect(jali.model().title("clip")).toBe("Line 3");
+    expect(jali.model().pane("transcript")?.title).toMatch(/^Lyrics · /);
+    expect(jali.model().pane("clip")?.title).toBe("Line 3");
   });
 });
 

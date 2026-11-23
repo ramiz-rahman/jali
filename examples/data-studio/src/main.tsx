@@ -1,4 +1,4 @@
 import { start } from "@jali-examples/shared/start";
-import { createDataStudio } from "./workspace";
+import { createDataStudio, dataStudioOptions } from "./workspace";
 
-start(createDataStudio());
+start(createDataStudio(), { name: dataStudioOptions.name });

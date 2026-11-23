@@ -9,8 +9,7 @@ import { useFeed } from "../services";
 
 export function StatusLine() {
   const { keymap } = useJali();
-  const m = useJaliModel();
-  const focused = useJaliState((s) => s.view.focused);
+  const focused = useJaliModel((m) => m.panes.find((p) => p.focused)?.title);
   const zoomed = useJaliState((s) => !!s.view.zoomed);
   const keys = (id: string, what: string) =>
     keymap.label(id) ? `${keymap.label(id)} ${what}` : "";
@@ -28,7 +27,7 @@ export function StatusLine() {
     <footer className="status" aria-label="Status">
       <BuiltWithJali />
       <Shelf />
-      <span className="status-focus">{focused ? m.title(focused) : ""}</span>
+      <span className="status-focus">{focused ?? ""}</span>
       <span className="status-hint">{hint}</span>
       <Source />
       <Maker />

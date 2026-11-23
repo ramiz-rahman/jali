@@ -37,7 +37,7 @@ export function TopBar() {
         <span>Markets</span>
       </a>
       <nav className="desks" aria-label="Desks">
-        {jali.env.presets.map((p) => (
+        {jali.presets.map((p) => (
           <button
             key={p.id}
             type="button"
@@ -54,7 +54,7 @@ export function TopBar() {
             <SelectValue placeholder="Desk" />
           </SelectTrigger>
           <SelectContent>
-            {jali.env.presets.map((p) => (
+            {jali.presets.map((p) => (
               <SelectItem key={p.id} value={p.id}>
                 {p.label}
               </SelectItem>

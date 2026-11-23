@@ -34,7 +34,7 @@ export function TopBar() {
   const palette = useJaliShortcut("palette.toggle");
   const services = useServices();
   const slab = useFit();
-  const currentLabel = jali.env.presets.find((p) => p.id === current)?.label ?? "";
+  const currentLabel = jali.presets.find((p) => p.id === current)?.label ?? "";
 
   // Four groups in one row of one height: identity, layouts, the player, tools. Inside a group the keys meet at
   // hairline seams in one bezel; between groups, a wider gutter. Every key has the same face: glyph in the middle,
@@ -53,7 +53,7 @@ export function TopBar() {
         </a>
         <div className="zone zone-layouts">
           <nav className="pocket group-layouts" aria-label="Layouts">
-            {jali.env.presets.map((p) => (
+            {jali.presets.map((p) => (
               <button
                 key={p.id}
                 type="button"
@@ -76,7 +76,7 @@ export function TopBar() {
               </span>
               <span className="sr-only">Layout</span>
               <select value={current} onChange={(e) => jali.actions.preset(e.target.value)}>
-                {jali.env.presets.map((p) => (
+                {jali.presets.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.label}
                   </option>

@@ -82,9 +82,7 @@ function PlaceBody({
   // A hotel kept in the pane beside: this one is read against it, figure by figure.
   const model = useJaliModel();
   const keptId = model.panes
-    .filter(
-      (n) => n.id !== from && n.kept && n.ref.kind === "place" && model.visible.includes(n.id),
-    )
+    .filter((n) => n.id !== from && n.kept && n.ref.kind === "place" && n.where === "shown")
     .map((n) => String(n.ref.params.id))
     .find(
       (id) => id !== p.id && placeById(id)?.category === "stay" && placeById(id)?.city === p.city,

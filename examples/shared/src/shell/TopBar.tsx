@@ -9,12 +9,13 @@ import {
 import { IconButton, useJaliShortcut, useJali, useJaliState, PageBar } from "jali/react";
 import { copyLink } from "jali";
 import { JaliLockup } from "./JaliLockup";
+import type { AppChrome } from "./App";
 
 /** The presets as toggle buttons: in the bar on desktop, in the Layouts menu below 768px. */
 function PresetButtons({ onChoose }: { onChoose?: () => void }) {
   const presetId = useJaliState((s) => s.presetId);
-  const { actions, env } = useJali();
-  return env.presets.map((p) => (
+  const { actions, presets } = useJali();
+  return presets.map((p) => (
     <button
       key={p.id}
       className={`preset${presetId === p.id ? " is-active" : ""}`}
@@ -78,7 +79,7 @@ function LayoutsMenu() {
   );
 }
 
-export function TopBar() {
+export function TopBar({ name, itemNoun = "item" }: AppChrome) {
   const store = useJali();
   const paletteKeys = useJaliShortcut("palette.toggle");
   const page = useJaliState((s) => !!s.page);
@@ -86,7 +87,7 @@ export function TopBar() {
     <header className="topbar" data-jali-chrome="">
       <div className="brand">
         <JaliLockup />
-        <span className="brand-name">{store.env.name}</span>
+        <span className="brand-name">{name}</span>
         {/* The people, shops and loans are generated: said at every width, so no one takes them for real. */}
         <span
           className="sample-note"
@@ -97,7 +98,7 @@ export function TopBar() {
       </div>
       {page ? (
         <PageBar />
-      ) : !store.env.presets.length ? null : (
+      ) : !store.presets.length ? null : (
         <>
           <nav className="presets" aria-label="Layout presets">
             <PresetButtons />
@@ -108,11 +109,7 @@ export function TopBar() {
       <div className="topbar-right">
         <IconButton
           onClick={() => copyLink(store)}
-          label={
-            page
-              ? `Copy link to this ${store.env.profile?.itemNoun ?? "item"}`
-              : "Copy link to this layout"
-          }
+          label={page ? `Copy link to this ${itemNoun}` : "Copy link to this layout"}
           title="Copy link"
         >
           <LinkSimpleHorizontalIcon size={16} aria-hidden />

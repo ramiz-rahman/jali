@@ -95,7 +95,7 @@ describe("relation links", () => {
       panes: [recordKind],
       layout: recordKind({ table: "customers", id: "69" }),
     });
-    expect(jali.model().title(jali.model().panes[0]!.id)).toBe("customer 69");
+    expect(jali.model().panes[0]!.title).toBe("customer 69");
   });
 });
 
