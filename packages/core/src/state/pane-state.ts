@@ -53,11 +53,13 @@ const clock = () => {
   return () => (last = Math.max(Date.now(), last + 1));
 };
 
-/** One pane's stored state: the object it belongs to, its values, and when it was written. */
+/** One pane's stored state: the object it belongs to, its values, when it was written, and by which instance (`by`, a
+ *  token of its own: what lets an instance remove only its own records). */
 interface PaneRecord {
   of: string;
   values: Record<string, unknown>;
   at: number;
+  by?: string;
 }
 type PaneRecords = Record<NodeId, PaneRecord>;
 
@@ -148,8 +150,9 @@ export interface PaneStateSync {
 export function paneStateSync(storage: StoragePort): PaneStateSync {
   /** The records this instance and storage agree on, as last read or written. */
   const synced = new Map<NodeId, PaneRecord>();
-  /** The records this instance wrote: the only ones it may remove (another tab's are never its to erase). */
-  const mine = new WeakSet<PaneRecord>();
+  /** This instance, in the records it writes: it removes only records that still say so (another tab's, or one read
+   *  from storage at the start, are never its to erase). */
+  const by = Math.random().toString(36).slice(2);
   let initial: PaneRecords = {};
   const now = clock();
   const inStep = (s: HeldPaneState, id: NodeId, r?: PaneRecord) =>
@@ -172,24 +175,16 @@ export function paneStateSync(storage: StoragePort): PaneStateSync {
       for (const [id, values] of Object.entries(s.paneState)) {
         const of = own(s.paneStateOf, id);
         if (of === undefined || inStep(s, id, synced.get(id))) continue;
-        const r = { of, values, at: now() };
+        const r = { of, values, at: now(), by };
         load()[id] = r;
         synced.set(id, r);
-        mine.add(r);
       }
       for (const [id, was] of synced)
         if (!Object.hasOwn(s.paneState, id)) {
           synced.delete(id);
-          // Gone here: removed from storage while it is still the record this instance wrote there (`at` alone is no
-          // revision: two tabs can write in one millisecond). One read from storage, or written over since by another
-          // tab, is that tab's.
+          // Gone here: removed from storage while it is still the record this instance wrote there.
           const stored = own(load(), id);
-          if (
-            mine.has(was) &&
-            stored?.at === was.at &&
-            JSON.stringify([stored.of, stored.values]) === JSON.stringify([was.of, was.values])
-          )
-            delete records![id];
+          if (stored?.by === by && stored.at === was.at) delete records![id];
         }
       if (records) writeRecords(storage, records);
       return !!records;

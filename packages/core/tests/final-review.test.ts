@@ -14,12 +14,13 @@ import {
 } from "@jali/core";
 import {
   definePageEngine as definePage,
+  layout as L,
   paneDomId,
   paneMenuOf,
   paneStateFor,
   storeOf,
 } from "@jali/core/adapter";
-import { answerDiscard, reportUnsaved } from "@jali/core/testing";
+import { answerDiscard, discardQuestion, reportUnsaved } from "@jali/core/testing";
 import { urlSync } from "../src/features/url-sync";
 import { withInput } from "../src/dom/input";
 
@@ -397,5 +398,38 @@ describe("14. the step table and undo's gate", () => {
     expect(jali.actions.tuck("a").ok).toBe(true);
     expect(jali.actions.undo().ok).toBe(true);
     expect(jali.model().pane("a")?.where).toBe("shown");
+  });
+});
+
+// ---------- Codex's confirming pass (at 23595a98): each rule, not only the case that broke it ----------
+
+describe("C1. a tab removes only records it wrote, whatever their content and time", () => {
+  it("A and B write the same draft in the same millisecond; A closes the pane for good; B's record stays", () => {
+    const now = vi.spyOn(Date, "now").mockReturnValue(1_000);
+    const storage = memoryStorage();
+    const layout = row(pane(r(1), { id: "a" }), pane(r(2), { id: "b" }));
+    const mk = () =>
+      createJali({
+        panes: [record],
+        layout,
+        storage,
+        size: { width: 1600, height: 900 },
+        moveFocus: false,
+      });
+    const flush = (j: ReturnType<typeof mk>) => storeOf(j).paneStates.flush(storeOf(j).get());
+    const A = mk(),
+      B = mk();
+    storeOf(A).actions.setPaneState("b", "draft", "same");
+    flush(A);
+    storeOf(B).actions.setPaneState("b", "draft", "same");
+    flush(B);
+    expect(A.actions.close("b").ok).toBe(true);
+    expect(A.actions.remove("b").ok).toBe(true);
+    flush(A);
+    now.mockRestore();
+    const fresh = mk();
+    expect(paneStateFor(storeOf(fresh).get(), storeOf(fresh).env.kinds, "b", r(2))?.draft).toBe(
+      "same",
+    );
   });
 });
