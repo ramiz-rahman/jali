@@ -2,7 +2,7 @@
  * Pane kinds: what an app says about each kind of pane (its params, title, sizes and identity), and the registry a
  * instance keeps of them. A framework adapter adds the view: @jali/react's `definePane` adds `Component` and `icon`.
  */
-import type { KindRegistry, Layout, NodeId, ObjectRef, PaneKind, ViewState } from "./layout/types";
+import type { KindRegistry, Layout, NodeId, ObjectRef, PaneKind } from "./layout/types";
 import { map } from "./layout/tree/tree";
 import { own } from "./own";
 import { isStandardSchema, type StandardSchemaV1 } from "./standard-schema";
@@ -226,12 +226,6 @@ export function keepOwnRef(
     return { ...ref, params };
   }
   return ref;
-}
-
-/** `view` as a link carries it: its peek without app-only params. */
-export function linkView(kinds: KindRegistry, view: ViewState): ViewState {
-  const peek = view.peek && linkRef(kinds, view.peek);
-  return peek === view.peek ? view : { ...view, peek };
 }
 
 /** A param that is one of a few values: `oneOf("open", "closed")` gives `"open" | "closed"`. */

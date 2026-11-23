@@ -21,8 +21,8 @@ import {
 import {
   buildSearch,
   createPaneKinds,
-  decodePeek,
-  encodePeek,
+  decodeRef,
+  encodeRef,
   loadPrefs,
   parseParams,
   readSearch,
@@ -364,19 +364,14 @@ describe("every new value goes through every link", () => {
     expect(again.env.kinds.params(off)).toEqual({ id: 5, draft: false });
   });
 
-  it("the peek (peek=)", () => {
-    for (const ref of [full, off]) expect(decodePeek(encodePeek(ref))).toEqual(ref);
-    expect(encodePeek(full)).toBe("order~id=#4~tab=lines~draft=!true~status=closed");
-    const read = readSearch(
-      `?l=${onePane({ id: 1 })}&peek=${encodeURIComponent(encodePeek(off))}`,
-      registry,
-    );
-    expect(read?.view.peek).toEqual(off);
+  it("a ref as text (what a page's open= holds)", () => {
+    for (const ref of [full, off]) expect(decodeRef(encodeRef(ref))).toEqual(ref);
+    expect(encodeRef(full)).toBe("order~id=#4~tab=lines~draft=!true~status=closed");
   });
 
   it("a curated page's opened panes (open=)", () => {
     const q = new URLSearchParams({ page: "p", item: "1" });
-    for (const ref of [full, off]) q.append("open", encodePeek(ref));
+    for (const ref of [full, off]) q.append("open", encodeRef(ref));
     const read = readSearch(`?${q}`, registry);
     expect(read && "page" in read && read.page.investigation).toEqual([full, off]);
   });
@@ -408,8 +403,8 @@ describe("links made before typed params still open as they did", () => {
 
   it("a peek written by the old encoder decodes to the same ref", () => {
     const old: ObjectRef = { kind: "order", params: { id: 42, tab: "lines" } };
-    expect(decodePeek("order~id=#42~tab=lines")).toEqual(old);
-    expect(encodePeek(old)).toBe("order~id=#42~tab=lines");
+    expect(decodeRef("order~id=#42~tab=lines")).toEqual(old);
+    expect(encodeRef(old)).toBe("order~id=#42~tab=lines");
   });
 
   it("a layout link with params as text, read back with their types", () => {

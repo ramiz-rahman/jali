@@ -23,8 +23,8 @@ import {
   buildSearch,
   createPaneKinds,
   createUrlSync,
-  decodePeek,
-  encodePeek,
+  decodeRef,
+  encodeRef,
   listCommands,
   readSearch,
   storeOf,
@@ -371,12 +371,12 @@ describe("C5: maximising a pane that is not on screen", () => {
 describe("C6: limits on what a link opens", () => {
   it("a page link's open= is capped and de-duplicated", () => {
     const q = new URLSearchParams({ page: "p", item: "1" });
-    for (let i = 0; i < 10_000; i++) q.append("open", encodePeek(note({ id: i % 50 })));
-    q.append("open", encodePeek(note({ id: 1 })));
+    for (let i = 0; i < 10_000; i++) q.append("open", encodeRef(note({ id: i % 50 })));
+    q.append("open", encodeRef(note({ id: 1 })));
     const read = readSearch(`?${q}`, registry);
     const opened = read && "page" in read ? read.page.investigation : [];
     expect(opened.length).toBeLessThanOrEqual(32);
-    expect(new Set(opened.map((r) => encodePeek(r))).size).toBe(opened.length);
+    expect(new Set(opened.map((r) => encodeRef(r))).size).toBe(opened.length);
     expect(opened[0]).toEqual(note({ id: 0 }));
   });
 
@@ -423,7 +423,7 @@ describe("P17: what a link carries reads back as written", () => {
     "a text value %j",
     (text) => {
       const ref = { kind: "note", params: { id: 1, text } };
-      expect(decodePeek(encodePeek(ref))).toEqual(ref);
+      expect(decodeRef(encodeRef(ref))).toEqual(ref);
     },
   );
   it("a key with ~ = # ! %", () => {
@@ -431,24 +431,24 @@ describe("P17: what a link carries reads back as written", () => {
       kind: "note",
       params: { "a~b": 1, "c=d": "e", "#f": true, "!g": "h", "%i": "j" },
     };
-    expect(decodePeek(encodePeek(ref))).toEqual(ref);
+    expect(decodeRef(encodeRef(ref))).toEqual(ref);
   });
   it("links from before still read the same", () => {
-    expect(decodePeek("order~id=#42~tab=lines~draft=!true")).toEqual({
+    expect(decodeRef("order~id=#42~tab=lines~draft=!true")).toEqual({
       kind: "order",
       params: { id: 42, tab: "lines", draft: true },
     });
-    expect(encodePeek({ kind: "order", params: { id: 4, tab: "lines", draft: true } })).toBe(
+    expect(encodeRef({ kind: "order", params: { id: 4, tab: "lines", draft: true } })).toBe(
       "order~id=#4~tab=lines~draft=!true",
     );
   });
-  it("a page link's open= and a peek= carry such text through the address", () => {
+  it("a page link's open= carries such text through the address; an older link's peek= is ignored", () => {
     const ref = { kind: "note", params: { id: 1, text: "#123~!true" } };
-    const q = new URLSearchParams({ page: "p", item: "1", peek: encodePeek(ref) });
-    q.append("open", encodePeek(ref));
+    const q = new URLSearchParams({ page: "p", item: "1", peek: encodeRef(ref) });
+    q.append("open", encodeRef(ref));
     const read = readSearch(`?${q}`, registry);
     expect(read && "page" in read && read.page.investigation).toEqual([ref]);
-    expect(read?.view.peek).toEqual(ref);
+    expect(read?.view.peek).toBeUndefined();
   });
 });
 

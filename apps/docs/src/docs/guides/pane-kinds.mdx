@@ -133,7 +133,7 @@ export const orderKind = definePane("order", {
 Links are written by people and by older versions of your app, so a ref can arrive without a required param, or with a value its type can't read (`"abc"` for a `Number`). Jali never passes such params to your component:
 
 - A layout link (`?l=`) or a saved layout holding one is treated as broken, like any link that can't be read.
-- A peek, or a pane opened on a curated page, is left out of the link it came in.
+- A pane opened on a curated page is left out of the link it came in.
 - A ref your own code opens shows a message in its pane, naming the param, instead of the component. Its title is the kind's name, and it stays out of Recent.
 
 Params a kind doesn't declare are a type error in your code, but a link that carries them still opens: they reach the component as plain values.

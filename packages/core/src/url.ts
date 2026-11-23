@@ -1,6 +1,6 @@
 /**
- * URL sync, through a location port (ports.ts). Structure goes in ?l= (layout/codec); zoom, peek and the preset the
- * layout came from ride along. Deliberate structural changes push a
+ * URL sync, through a location port (ports.ts). Structure goes in ?l= (layout/codec); zoom, scroll and the preset the
+ * layout came from ride along. The peek never does: a reload closes it. Deliberate structural changes push a
  * history entry; resizes replace it 120ms after the last move; view changes replace immediately.
  */
 import * as core from "./layout/engine";
@@ -32,19 +32,19 @@ const unescape = (text: string) =>
   text.replace(/%(25|7E|3D|23|21)/gi, (_, hex: string) => String.fromCharCode(parseInt(hex, 16)));
 
 /**
- * A ref as text, for `peek=` and a page's `open=`: `record~table=orders~id=#42~draft=!true`. A number is marked `#`
+ * A ref as text, for a page's `open=`: `record~table=orders~id=#42~draft=!true`. A number is marked `#`
  * and a flag `!`, so both come back as they went. In a kind, a key or a text value, `%`, `~`, `=`, `#` and `!` are
  * written `%25`, `%7E`, `%3D`, `%23` and `%21`, so any text comes back as it went (`"#123"` stays text). Text
  * without them is written as it is, so links from before read the same.
  */
-export function encodePeek(ref: ObjectRef): string {
+export function encodeRef(ref: ObjectRef): string {
   const params = Object.entries(ref.params).map(
     ([k, v]) =>
       `${escape(k)}=${typeof v === "number" ? `#${v}` : typeof v === "boolean" ? `!${v}` : escape(v)}`,
   );
   return [escape(ref.kind), ...params].join("~");
 }
-export function decodePeek(text: string): ObjectRef | null {
+export function decodeRef(text: string): ObjectRef | null {
   const [kind, ...rest] = text.split("~");
   if (!kind) return null;
   const params: [string, ObjectRef["params"][string]][] = [];
@@ -76,6 +76,7 @@ const readable = (kinds: KindRegistry, ref: ObjectRef) =>
 export interface UrlKeys {
   layout: string;
   zoom: string;
+  /** Only removed: an older link's peek is ignored, and gone from the address at the next write. */
   peek: string;
   page: string;
   item: string;
@@ -129,10 +130,10 @@ function setPage(q: URLSearchParams, k: UrlKeys, link: PageLink) {
   q.set(k.page, link.page);
   if (link.item !== undefined) q.set(k.item, String(link.item));
   if (link.tab !== undefined) q.set(k.tab, link.tab);
-  for (const ref of link.open ?? []) q.append(k.open, encodePeek(ref));
+  for (const ref of link.open ?? []) q.append(k.open, encodeRef(ref));
 }
 
-/** A link to a curated page: which page, its item, the view in use, panes opened from it and the peek. */
+/** A link to a curated page: which page, its item, the view in use and the panes opened from it. */
 interface PageLink {
   /** The page's id (its profile's `id`). */
   page: string;
@@ -142,8 +143,6 @@ interface PageLink {
   tab?: string;
   /** Panes opened from the page's views, in order. A link with any opens in Split view. */
   open?: readonly ObjectRef[];
-  /** The object in the peek sheet. */
-  peek?: ObjectRef;
 }
 /** The search string for `s`, keeping every param of `search` that is not the instance's. */
 export function buildSearch(search: string, s: UrlState, k: UrlKeys = urlKeys()): string {
@@ -154,8 +153,8 @@ export function buildSearch(search: string, s: UrlState, k: UrlKeys = urlKeys())
   if (!s.page && s.presetId) q.set(k.preset, s.presetId);
   if (s.view.zoomed) q.set(k.zoom, s.view.zoomed);
   else q.delete(k.zoom);
-  if (s.view.peek) q.set(k.peek, encodePeek(s.view.peek));
-  else q.delete(k.peek);
+  // A peek is never in the address; an older link's goes at the first write.
+  q.delete(k.peek);
   // Rows that scroll sideways, where each came to rest: `week:732`, comma-separated. None at their start.
   const scroll = Object.entries(s.view.scroll ?? {}).filter(([, v]) => Math.round(v) > 0);
   if (!s.page && scroll.length)
@@ -188,11 +187,8 @@ export function readSearch(
 ): UrlRead | null {
   const q = new URLSearchParams(search);
   const code = q.get(k.layout);
+  // An older link's `peek=` is ignored: a peek is never in the address.
   const view: Partial<ViewState> = {};
-  const peek = q.get(k.peek);
-  // A link never sets a param only the app sets (`appOnly`): every ref read from it is without them.
-  const ref = peek ? decodePeek(peek) : null;
-  if (ref && readable(kinds, ref)) view.peek = readRef(kinds, ref);
   // `?app=review` is the old combined lab app's form from before pages had ids (19 Nov 2026).
   if (q.get(k.page) || (legacyKeys(k) && q.get("app") === "review")) {
     const item = q.get(k.item) || undefined;
@@ -200,8 +196,9 @@ export function readSearch(
     const investigation: ObjectRef[] = [];
     for (const text of q.getAll(k.open)) {
       if (investigation.length >= OPEN_MAX) break;
-      const read = decodePeek(text);
+      const read = decodeRef(text);
       if (!read || !Object.hasOwn(kinds, read.kind) || !readable(kinds, read)) continue;
+      // A link never sets a param only the app sets (`appOnly`): every ref read from it is without them.
       const r = readRef(kinds, read);
       // Jali's one ref equality (`sameRef`): the same kind and params, in any key order.
       if (investigation.some((x) => sameRef(x, r))) continue;

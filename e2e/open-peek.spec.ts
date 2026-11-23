@@ -46,7 +46,8 @@ test.describe("Open and peek", () => {
     const peek = app.peek();
     await expect(peek).toBeVisible();
     await expect(peek).toContainText("order 3");
-    expect(page.url()).toContain("peek=");
+    // A peek is never in the address.
+    expect(page.url()).not.toContain("peek=");
     await app.shot("02-peek");
 
     // The list stays usable and the peek follows the selection.
@@ -68,13 +69,22 @@ test.describe("Open and peek", () => {
     ).toHaveText("order 4");
   });
 
-  test("a shared ?peek= link opens the peek", async ({ app, page }) => {
+  test("a reload or a shared link closes the peek; an older link's ?peek= is ignored", async ({
+    app,
+    page,
+  }) => {
     await app.open({ preset: "One table" });
     await app.row("orders", /^2\b/).click();
     await page.keyboard.press("Space");
     await expect(app.peek()).toBeVisible();
     const other = await app.fork(page.url());
-    await expect(other.peek()).toBeVisible();
-    await expect(other.peek()).toContainText("order 2");
+    await expect(other.pane("orders")).toBeVisible();
+    await expect(other.peek()).toBeHidden();
+    // An older link that still carries a peek opens without it.
+    const old = new URL(page.url());
+    old.searchParams.set("peek", "record~table=orders~id=#2");
+    const third = await app.fork(old.href);
+    await expect(third.pane("orders")).toBeVisible();
+    await expect(third.peek()).toBeHidden();
   });
 });

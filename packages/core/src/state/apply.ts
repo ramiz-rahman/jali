@@ -343,7 +343,8 @@ export const POLICY: Record<Op, Policy> = {
   zoom: view("replace", "reshape"),
   // Where a row that scrolls sideways came to rest: in the link, but Back doesn't step through every swipe.
   scroll: view("replace"),
-  peek: view("replace"),
+  // The peek is never in the address (a reload closes it): nothing to write.
+  peek: view("none"),
   select: view("replace"),
   // swap: content changes in place
   openHere: layout("push", "swap"),

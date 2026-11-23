@@ -189,7 +189,7 @@ What the person is looking at, apart from the layout.
 
 - **`scroll`** (`Record<NodeId, number>`): How far each row that scrolls has scrolled, by the row's id, in px along its content, set where the row comes to rest. In the URL as `scroll` (`week:732`); a strip at its start writes nothing, and scrolling replaces the history entry.
 
-- **`peek`** (`ObjectRef`): What the peek sheet shows. In the URL as `peek`.
+- **`peek`** (`ObjectRef`): What the peek sheet shows. Never in the address: a reload closes it.
 
 - **`focusHistory`** (`NodeId[]`, required): Panes most recently focused first.
 
@@ -659,7 +659,7 @@ What a kind's `follow` returns: its params, any of which may be missing. Jali ch
 interface ParamProblem { param: string; value?: ParamValue }
 ```
 
-A param a ref is missing (`value` is undefined), or holds a value its type can't read. A ref with one never reaches the component: a layout link or saved layout holding it opens as broken, a peek or a page's opened pane with it is left out of the link, and a pane your code opens with it shows a message naming the param. Listed by `PaneKinds.problems`.
+A param a ref is missing (`value` is undefined), or holds a value its type can't read. A ref with one never reaches the component: a layout link or saved layout holding it opens as broken, a page's opened pane with it is left out of the link, and a pane your code opens with it shows a message naming the param. Listed by `PaneKinds.problems`.
 
 ### PaneKinds
 
@@ -1125,7 +1125,7 @@ Where an instance writes its address. Pass one as `url` to write it somewhere of
 interface UrlState { layout: Layout; view: ViewState; presetId: string | undefined; page: PageState | null }
 ```
 
-What a `UrlWriter` reads: the layout on screen, the view (focus, the maximised pane, the peek, where rows that scroll came to rest), the preset the layout came from, and the curated page open, if any. Refs in it are as a link carries them: without `appOnly` params.
+What a `UrlWriter` reads: the layout on screen, the view (focus, the maximised pane, where rows that scroll came to rest; never the peek), the preset the layout came from, and the curated page open, if any. Refs in it are as a link carries them: without `appOnly` params.
 
 ### JaliModel
 

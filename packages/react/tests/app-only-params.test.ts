@@ -15,8 +15,8 @@ import {
   type ParamsOf,
   type UrlState,
 } from "@jali/core";
-import { definePageEngine as definePage, toLayout } from "@jali/core/adapter";
-import { encodePeek, storeOf } from "@jali/core/adapter";
+import { definePageEngine as definePage } from "@jali/core/adapter";
+import { encodeRef, storeOf } from "@jali/core/adapter";
 import { definePane } from "@jali/react";
 import { defaultFeatures, urlSync } from "./features";
 
@@ -50,7 +50,7 @@ describe("a param only the app sets", () => {
     }>();
   });
 
-  it("is never read from a link: the layout, a peek or a page's opened panes", () => {
+  it("is never read from a link: the layout or a page's opened panes", () => {
     const { jali: writer } = make();
     writer.actions.openBeside(
       writer.model().panes[0]!.id,
@@ -65,33 +65,12 @@ describe("a param only the app sets", () => {
           : n,
       ),
     });
-    const peek = encodeURIComponent(encodePeek(query({ sql: "peeked", autorun: true })));
+    const peek = encodeURIComponent(encodeRef(query({ sql: "peeked", autorun: true })));
     const { jali } = make(`?l=${crafted}&peek=${peek}`);
     for (const ref of refs(jali)) expect(ref.params).not.toHaveProperty("autorun");
     expect(refs(jali).some((r) => r.params.sql === "drop table")).toBe(true);
-    expect(jali.get().view.peek?.params).toEqual({ sql: "peeked" });
-  });
-
-  it("is dropped from a peek's ref once its kind is registered, if it wasn't when the link was read", () => {
-    const peek = encodeURIComponent(encodePeek(query({ sql: "peeked", autorun: true })));
-    const lists = layout.encode(toLayout(row(list())));
-    // A workspace whose query kind arrives later (a lazily loaded module): the link is read without it.
-    const jali = createJali({
-      panes: [list],
-      layout: row(list()),
-      features: [
-        ...defaultFeatures(),
-        urlSync({ location: memoryLocation(`?l=${lists}&peek=${peek}`) }),
-      ],
-      storage: memoryStorage(),
-      size: { width: 1600, height: 900 },
-      moveFocus: false,
-    });
-    // Kept whole meanwhile (the sheet says its kind is missing): which param only the app sets isn't known yet.
-    expect(jali.get().view.peek?.params).toEqual({ sql: "peeked", autorun: true });
-
-    storeOf(jali).env.kinds.register({ kind: "query", title: "Query", params: queryParams });
-    expect(jali.get().view.peek?.params).toEqual({ sql: "peeked" });
+    // An older link's peek is ignored: a peek is never in the address.
+    expect(jali.get().view.peek).toBeUndefined();
   });
 
   it("set by the app on a kind registered later is kept: only a link's refs are read again", () => {

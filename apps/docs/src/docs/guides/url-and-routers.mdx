@@ -31,11 +31,12 @@ Jali writes only its own search params. Your own params, the path and the hash a
 | `l` | The layout. |
 | `preset` | The preset the layout came from. A link opens with that preset marked, and Reset layout rebuilds it. |
 | `zoom` | The maximised pane, if any. |
-| `peek` | The object in the peek sheet, if any. |
 | `scroll` | Where each [row that scrolls sideways](/guides/scrolling-rows) came to rest, when it isn't at its start. |
 | `page`, `item`, `tab`, `open` | A curated page: which one, its item, the view in use, and the panes opened from it. |
 
-A page link writes each object (`open`, `peek`) as its kind and params: `call~slug=demra~t=#12` is a `call` with `slug: "demra"` and `t: 12`. You don't write this yourself: Jali writes it, and **Copy link** copies it.
+The peek is never in the address: a reload, or a link someone opens, shows no peek. A `peek` param from an older link is ignored, and gone from the address at the next change.
+
+A page link writes each opened pane's object (`open`) as its kind and params: `call~slug=demra~t=#12` is a `call` with `slug: "demra"` and `t: 12`. You don't write this yourself: Jali writes it, and **Copy link** copies it.
 
 Deliberate changes (opening, closing, moving, choosing a preset) add a history entry. A detail following a list replaces the entry, so Back skips the rows passed through. A divider drag replaces it once the drag settles.
 
@@ -46,7 +47,8 @@ A link reopens the same panes, showing the same objects, in the same arrangement
 | | Comes from the link | Stays the reader's |
 |---|---|---|
 | Panes, their objects and the tree | Yes | |
-| The maximised pane, the peek, the preset | Yes | |
+| The maximised pane, the preset | Yes | |
+| The peek | | Closed: never in a link |
 | Sizes the sender dragged | Only with `sizes: "link"` | With `"local"` (the default), the reader's own |
 | How the layout fits | | Refitted to the reader's window: panes may fold |
 | A curated page's mode (Single view, Split view) and split layout | | Yes: the reader's own, from their device |
@@ -141,7 +143,7 @@ const location = routerLocation({
 export const jali = createJali({ panes, presets, features: [urlSync({ location })] });
 ```
 
-If a route validates its search params, let unknown keys through: Jali's keys (`l`, `preset`, `zoom`, `peek`, and the page keys) are not in your schema.
+If a route validates its search params, let unknown keys through: Jali's keys (`l`, `preset`, `zoom`, `scroll`, and the page keys, with `peek` from older links) are not in your schema.
 
 ## In tests and dialogs
 

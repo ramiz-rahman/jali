@@ -26,7 +26,7 @@ Each `<JaliRoot>` fills the box it is given, so each box needs a definite height
 
 ## Its own params in the address
 
-`urlSync({ prefix: "n." })` writes the notes instance's params as `n.l`, `n.zoom` and `n.peek`. Orders keeps the plain names. Each reads and writes only its own, and every other param is left alone, so one link reopens both, and Back and Forward step each one through its own changes.
+`urlSync({ prefix: "n." })` writes the notes instance's params as `n.l`, `n.zoom` and `n.preset`. Orders keeps the plain names. Each reads and writes only its own, and every other param is left alone, so one link reopens both, and Back and Forward step each one through its own changes.
 
 An instance that must not touch the address at all, such as one in a dialog, leaves `urlSync()` out of its features.
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vite-plus/test";
 import { clampSize, snap, SNAP_IN, SNAP_OUT } from "../src/dividers/resize";
 import { zoneFor, EDGE_ZONE } from "../src/workspace/dnd";
-import { decodePeek, encodePeek } from "../src/url";
+import { decodeRef, encodeRef } from "../src/url";
 import { createKeyHandler } from "../src/commands/keyboard";
 import { commandDefsOf, runCommand } from "../src/commands/registry";
 import { formatChord, parseKeys } from "../src/commands/format";
@@ -53,8 +53,8 @@ describe("drop zones", () => {
 describe("peek param", () => {
   it("round-trips numbers and strings", () => {
     const ref = { kind: "record", params: { table: "orders", id: 42 } };
-    expect(encodePeek(ref)).toBe("record~table=orders~id=#42");
-    expect(decodePeek(encodePeek(ref))).toEqual(ref);
+    expect(encodeRef(ref)).toBe("record~table=orders~id=#42");
+    expect(decodeRef(encodeRef(ref))).toEqual(ref);
   });
 });
 

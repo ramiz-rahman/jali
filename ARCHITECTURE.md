@@ -73,7 +73,7 @@ A curated page works the same way without being a feature: `definePage` (from `j
 ## State and what is stored
 
 - **State** (`jali.get()`) is plain data: the layout, the view (focus, maximise, peek, scroll), selection, settings, the curated page's state, unsaved work and open questions. **The model** (`jali.model()`) is derived from it once per change: panes in order, what is visible and folded, every box on screen. Both are read-only (`DeepReadonly`), and frozen in development.
-- **The address** (`urlSync()`): `l` (the layout, as compact JSON of the tree), `preset`, `zoom`, `peek`, `scroll`, and for a curated page `page`, `item`, `tab` and `open`. A prefix keeps two instances' params apart. Only Jali's own params are written; the app's are left alone.
+- **The address** (`urlSync()`): `l` (the layout, as compact JSON of the tree), `preset`, `zoom`, `scroll`, and for a curated page `page`, `item`, `tab` and `open`. Never the peek: a reload closes it, and an older link's `peek` is ignored and removed at the next write. A prefix keeps two instances' params apart. Only Jali's own params are written; the app's are left alone.
 - **Storage**, under the instance's prefix: `settings` (theme, centre drop, pane cap, keys); `pane-state@2` (one record per pane: what `usePaneState` keeps, written 400ms after a change); with `sizes: "local"`, the sizes a person dragged, keyed by the layout's shape, for the last 12 layouts; a curated page's mode and split layout; and the last link that couldn't be read.
 - **Links refit.** A link carries content, never the sender's window: it is fitted again to the reader's room, and a curated page opens in the reader's own mode and layout.
 

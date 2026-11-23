@@ -19,7 +19,6 @@ import type {
 } from "../layout/types";
 import {
   linkLayout,
-  linkView,
   rereadLayout,
   rereadRef,
   type PaneActivity,
@@ -198,10 +197,17 @@ export interface UiState {
 
 /** The URL sink: writes the state (read when the write happens) to the address bar in a history mode. */
 /** The share of the instance's state an address holds: what a URL writer reads. */
+/** `view` without the peek, which no address holds. */
+function withoutPeek(view: ViewState): ViewState {
+  if (!view.peek) return view;
+  const { peek: _peek, ...rest } = view;
+  return rest;
+}
+
 export interface UrlState {
   /** The layout on screen. */
   layout: Layout;
-  /** Focus, the maximised pane, the peek and where rows that scroll came to rest. */
+  /** Focus, the maximised pane and where rows that scroll came to rest. Never the peek: a reload closes it. */
   view: ViewState;
   /** The preset the layout came from, if any. */
   presetId: string | undefined;
@@ -613,7 +619,7 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
       });
     },
     // The writer reads the address's share of the state only (UrlState), when it writes, and as a link carries it:
-    // without params only the app sets (`appOnly`).
+    // without params only the app sets (`appOnly`), and without the peek, which is never in the address.
     writeUrl: (mode) =>
       life.ended() ||
       url?.write(() => {
@@ -623,7 +629,7 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
         const before = page?.before && linkLayout(kinds, page.before);
         return {
           layout: linkLayout(kinds, layout),
-          view: linkView(kinds, view),
+          view: withoutPeek(view),
           presetId,
           page: page && before !== page.before ? { ...page, before } : page,
         };
