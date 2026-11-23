@@ -133,6 +133,10 @@
   .item-name {
     flex: 1 1 calc(100% - 52px);
   }
+  /* The demo's persona switch stays off a phone's header: the page tabs need the height. */
+  .item-role {
+    display: none;
+  }
   .item-name h1 {
     white-space: normal;
     overflow: visible;
