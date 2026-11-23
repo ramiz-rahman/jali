@@ -300,6 +300,27 @@ describe("an undone batch keeps what each pane was (Codex review of step 3)", ()
     expect(node(m, "c")?.size).toEqual({ weight: 3 });
   });
 
+  it("a tucked pane comes back tucked, and so does one tucked into a pane that comes back", () => {
+    const m = make(
+      row(
+        { id: "r" },
+        pane(rec(1), { id: "a" }),
+        pane(rec(2), { id: "b" }),
+        pane(rec(3), { id: "c" }),
+      ),
+    );
+    expect(m.a.tuck("b").ok).toBe(true);
+    const tucked = () => m.jali.getLayout().overlay?.tucks.map((t) => [t.pane, t.home]);
+    const home = tucked()![0]![1];
+    m.a.close("b");
+    m.a.undo();
+    expect(tucked()).toEqual([["b", home]]);
+    m.a.close(home);
+    expect(tucked() ?? []).toEqual([]);
+    m.a.undo();
+    expect(tucked()).toEqual([["b", home]]);
+  });
+
   it("a row that scrolls comes back scrolling", () => {
     const m = make(
       column(

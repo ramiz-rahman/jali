@@ -92,7 +92,10 @@ function record(
     if (now && !sameSize(now.size, n.size))
       sizes.push({ id: n.id, size: clone(n.size), userSized: n.userSized, after: clone(now.size) });
   }
-  return closed.length ? { kind, closed, sizes } : undefined;
+  const tucks = (before.overlay?.tucks ?? []).filter(
+    (t) => targets.includes(t.pane) || targets.includes(t.home),
+  );
+  return closed.length ? { kind, closed, sizes, tucks: clone(tucks) } : undefined;
 }
 
 /**

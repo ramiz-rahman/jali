@@ -18,6 +18,7 @@ import type {
 import { clone, find, newId, panes, parent, replace, unzoom } from "../tree/tree";
 import { sameSize } from "../tree/size";
 import { sameRef } from "./ref";
+import { overlayOf, withOverlay } from "../fit/overlay";
 import { fitLayout } from "../fit/refit";
 import { focus } from "./focus";
 
@@ -201,7 +202,22 @@ export function restoreClosed(
     const n = at(id);
     if (n && !n.userSized) n.size = { weight: 1 };
   }
+  // Tucks the close ended, while both panes are here and the pane can be tucked (not a tab, not tucked already).
+  const o = overlayOf(next);
+  const tucks = [...o.tucks];
+  for (const t of entry.tucks) {
+    const pane = id(t.pane),
+      home = id(t.home);
+    if (
+      paneAt(pane) &&
+      paneAt(home) &&
+      parent(next.root, pane)?.type !== "stack" &&
+      !tucks.some((u) => [u.pane, u.home].includes(pane) || u.pane === home)
+    )
+      tucks.push({ pane, home, seq: 1 + Math.max(0, ...tucks.map((u) => u.seq)) });
+  }
+  const restored = tucks.length > o.tucks.length ? withOverlay(next, { ...o, tucks }) : next;
   const first = back[0];
   const nextView = focusFirst && first ? focus(unzoom(view), first, ctx) : unzoom(view);
-  return { layout: fitLayout(next, nextView, ctx, { mode: "fold" }), view: nextView, ids };
+  return { layout: fitLayout(restored, nextView, ctx, { mode: "fold" }), view: nextView, ids };
 }

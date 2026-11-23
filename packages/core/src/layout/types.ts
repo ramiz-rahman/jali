@@ -258,6 +258,8 @@ export type UndoEntry =
       kind: "close" | "closeOthers";
       closed: ClosedPane[];
       sizes: SizeChange[];
+      /** Tucks the close ended, of a closed pane or into one: they come back with their panes. */
+      tucks: TuckRecord[];
     }
   | { kind: "tuck"; tucked: NodeId };
 export type TuckRefusal = "missing" | "tab" | "hidden" | "last";

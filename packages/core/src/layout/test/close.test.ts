@@ -42,6 +42,7 @@ describe("close", () => {
         },
       ],
       sizes: [{ id: "a", size: { weight: 1 }, after: { weight: 2 } }],
+      tucks: [],
     });
     expect(result.undo!.kind === "tuck" || result.undo!.closed[0]!.pane).not.toBe(
       find(tree.root, "b"),
