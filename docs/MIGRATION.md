@@ -1,3 +1,51 @@
+# Migrating to the stabilisation step 1b (23 Nov 2026)
+
+The viewer role becomes the host's `allow`, and the peek leaves the address. Loan review was the only example that used the viewer role; it now passes `allow: { open: false }` for its officer persona.
+
+## `jali`
+
+| Before                                                            | After                                                                                                                       |
+| ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `createJali({ linkMode: "peek" })`                                | `createJali({ allow: { open: false } })`, set from the person's role; or a kind's `allow`, or `when` with `action: "open"`  |
+| `createJali({ linkMode: "open" })`                                | nothing: `open` is allowed by default                                                                                       |
+| `jali.page.setLinkMode(mode)`                                     | none: what a person may do is the host's decision, made when it creates the instance (make the instance again to change it) |
+| `jali.get().linkMode`, `LinkMode`                                 | your app's own record of the person's role                                                                                  |
+| `definePage({ viewers })`                                         | removed: name your roles in your own UI                                                                                     |
+| ⌘K `page.as_limited`, `page.as_full`; Settings' "Viewing as"      | removed                                                                                                                     |
+| `"not-allowed"` from `page.setMode("split")` for a limited viewer | Split view is anyone's; `"not-allowed"` comes only from `allow`                                                             |
+| `JaliInput`'s `"agent"`                                           | removed: an agent acting through your code arrives as `"code"`                                                              |
+| the `peek` param in layout and page links                         | removed: a reload closes the peek; an older link's `peek=` is ignored and removed at the next write                         |
+
+## Messages
+
+| Before                                                                           | After                                                                                              |
+| -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `announcements.permission`, `announcements.singleOnly`, `announcements.peekOnly` | removed; a link from a pane without `open` says `announcements.peek` ("Peek: … · Escape to close") |
+| `commands.viewAsLimited`, `commands.viewAsFull`                                  | removed                                                                                            |
+| `page.viewerFull`, `page.viewerLimited`, `page.splitTipLimited`                  | removed                                                                                            |
+| `settings.viewingAs`, `settings.viewerFull`, `settings.viewerLimited`            | removed                                                                                            |
+| `announcements.notAllowed(action, pane)`                                         | also takes `"open"`: "Panes can't be opened from … here"                                           |
+
+## `jali/adapter`
+
+| Before                     | After                                                          |
+| -------------------------- | -------------------------------------------------------------- |
+| `encodePeek`, `decodePeek` | `encodeRef`, `decodeRef` (the same text, for a page's `open=`) |
+| `linkView`                 | removed: a writer gets the view without the peek               |
+| `viewerLabel`              | removed                                                        |
+| `withInput`                | removed (internal)                                             |
+| `PageEngine.setLinkMode`   | removed                                                        |
+
+## Behaviour
+
+| Before                                                                            | After                                                                                   |
+| --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| opening, moving or closing the peek replaced the history entry                    | the address doesn't change                                                              |
+| a shared link reopened the sender's peek                                          | it opens without one                                                                    |
+| a limited viewer's link with opened panes opened in Single view without them      | a link opens its panes for everyone; `allow.open` governs links followed from a pane    |
+| `openBeside` from any pane could open a pane                                      | where `allow` turns `open` off for the source, it peeks and returns what `peek` returns |
+| `split`, `newTab`, `addTab`, the peek's Open beside were never refused by `allow` | `"not-allowed"` where `open` is off for their source                                    |
+
 # Migrating to the stabilisation cuts (23 Nov 2026, step 1a)
 
 Names and behaviours that go. Each row says what to use instead. The examples used none of them, except that `examples/own-icons` dropped its `openFull` icon.
