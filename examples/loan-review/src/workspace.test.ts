@@ -1,20 +1,23 @@
 /** Loan review's workspace: the page's views are the objects a reviewer's links name, whatever the link calls them. */
 import { describe, expect, it } from "vite-plus/test";
 import { createTestJali } from "jali/testing";
-import { reviewRelatedKind } from "./review/kinds";
+import { reviewListKind } from "./kinds";
+import type { Parties } from "./parties";
 import { loanReviewOptions } from "./workspace";
 
+const parties: Parties = (id) => ({ id, borrower: 1, property: 1, officer: 1 });
+
 describe("Loan review's workspace", () => {
-  it("goes to the open Loan history for a link that names the member's loans another way", () => {
-    const { jali } = createTestJali(loanReviewOptions);
+  it("goes to the open Mortgages view for a link that names the borrower's mortgages another way", () => {
+    const { jali } = createTestJali(loanReviewOptions(parties));
     jali.page.setMode("split");
-    const history = jali.model().panes.find((p) => p.ref.kind === "review-related");
-    expect(history?.title).toBe("Loan history");
+    const mortgages = jali.model().pane("mortgages");
+    expect(mortgages?.ref.kind).toBe("review-related");
     // A link that calls them what Data Studio does: a related list is its rows, not its name.
-    const link = reviewRelatedKind({ ...history!.ref.params, label: "Loans by this member" });
-    expect(jali.model().paneOf(link)?.id).toBe(history!.id);
-    expect(
-      jali.model().paneOf(reviewRelatedKind({ ...history!.ref.params, value: -1 }))?.id,
-    ).toBeUndefined();
+    const link = reviewListKind({ ...mortgages!.ref.params, label: "Mortgages of this borrower" });
+    expect(jali.model().paneOf(link)?.id).toBe("mortgages");
+    expect(jali.model().paneOf(reviewListKind({ ...mortgages!.ref.params, value: -1 }))?.id).toBe(
+      undefined,
+    );
   });
 });

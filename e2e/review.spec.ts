@@ -12,13 +12,13 @@ const mode = (page: Page, name: "Single" | "Split view") =>
   page.getByRole("radiogroup", { name: "View mode" }).getByRole("radio", { name });
 const investigation = (page: Page) => page.getByRole("group", { name: "Opened panes" });
 const opened = (page: Page) => page.locator('section[data-origin="opened"]');
-const groupLink = (app: App, from: string) =>
-  app.pane(from).locator('button[data-ref="lending_groups 5"]');
-/** A link from one view to another view's object (Group is a view on this page). */
+const propertyLink = (app: App, from: string) =>
+  app.pane(from).locator('button[data-ref="properties 4"]');
+/** A link from one view to another view's object (Property is a view on this page). */
 const link = (app: App, from: string, ref: string) =>
   app.pane(from).locator(`button[data-ref="${ref}"]`);
 /** A link to an object that is no view on this page: following it opens a pane. */
-const openLink = (app: App) => link(app, "borrower", "loan_applications member_id=149");
+const openLink = (app: App) => link(app, "borrower", "loan_applications borrower_id=4");
 
 async function dragTab(page: Page, name: string, to: { x: number; y: number }) {
   const b = (await pageTab(page, name).boundingBox())!;
@@ -47,17 +47,17 @@ test.describe("Loan review: Single (default)", () => {
     await pageTab(page, "Borrower").click();
     expect(await app.visibleIds()).toEqual(["borrower"]);
     await expect(page).toHaveURL(/tab=borrower/);
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Fatema Khatun");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("David & Priya Patel");
   });
 
   test("Overview is the designed page: each section leads to its tab", async ({ app, page }) => {
     await app.open({ path: at("application"), size: { width: 1440, height: 900 } });
     await pageTab(page, "Overview").click();
-    const loans = app.pane("overview").getByRole("region", { name: "Loan history" });
-    await expect(loans).toContainText("3 loans");
-    await loans.getByRole("button", { name: "Open Loan history" }).click();
-    expect(await app.visibleIds()).toEqual(["history"]);
-    await expect(pageTab(page, "Loan history")).toHaveAttribute("aria-selected", "true");
+    const loans = app.pane("overview").getByRole("region", { name: "Mortgages with us" });
+    await expect(loans).toContainText("No payment history with us");
+    await loans.getByRole("button", { name: "Open Mortgages with us" }).click();
+    expect(await app.visibleIds()).toEqual(["mortgages"]);
+    await expect(pageTab(page, "Mortgages")).toHaveAttribute("aria-selected", "true");
   });
 
   test("a link peeks instead of opening beside, and the peek offers no Open beside", async ({
@@ -65,7 +65,7 @@ test.describe("Loan review: Single (default)", () => {
     page,
   }) => {
     await app.open({ path: at("borrower"), size: { width: 1440, height: 900 } });
-    await groupLink(app, "borrower").click();
+    await propertyLink(app, "borrower").click();
     await expect(app.peek()).toBeVisible();
     await expect(opened(page)).toHaveCount(0);
     await expect(app.peek().getByRole("button", { name: "Open beside" })).toHaveCount(0);
@@ -77,9 +77,9 @@ test.describe("Loan review: Single (default)", () => {
   }) => {
     await app.open({ path: at("borrower"), size: { width: 1440, height: 900 } });
     const queue = page.getByRole("listbox", { name: "Loan applications" });
-    await queue.getByRole("option", { name: /#7/ }).click();
+    await queue.getByRole("option", { name: /Kevin O.Brien/ }).click();
     await expect(page).toHaveURL(/item=7&tab=borrower/);
-    await expect(app.pane("borrower")).toContainText("Member #260");
+    await expect(app.pane("borrower")).toContainText("Borrower #7");
     await queue.getByRole("option", { selected: true }).press("j");
     await expect(page).toHaveURL(/item=8/);
   });
@@ -93,10 +93,10 @@ test.describe("Loan review: Split view", () => {
     await app.open({ path: at("application"), size: { width: 1440, height: 900 } });
     await pageTab(page, "Overview").click();
     await mode(page, "Split view").click();
-    expect(await app.visibleIds()).toEqual(["application", "borrower", "history"]);
+    expect(await app.visibleIds()).toEqual(["application", "borrower", "mortgages"]);
     await expect(pageTab(page, "Application")).toHaveAttribute("data-state", "focused");
     await expect(pageTab(page, "Borrower")).toHaveAttribute("data-state", "shown");
-    await expect(pageTab(page, "Group")).toHaveAttribute("data-state", "off");
+    await expect(pageTab(page, "Property")).toHaveAttribute("data-state", "off");
     await expect(app.heading("borrower")).toHaveText("Borrower");
     const rects = await app.snap();
     await mode(page, "Single").click();
@@ -131,9 +131,9 @@ test.describe("Loan review: Split view", () => {
     const borrower = await app.pane("borrower").boundingBox();
     await pageTab(page, "Borrower").click();
     await expect(pageTab(page, "Borrower")).toHaveAttribute("data-state", "focused");
-    await pageTab(page, "Group").click();
-    await expect(app.pane("group")).toBeVisible();
-    expect(await app.pane("group").boundingBox()).toEqual(borrower);
+    await pageTab(page, "Property").click();
+    await expect(app.pane("property")).toBeVisible();
+    expect(await app.pane("property").boundingBox()).toEqual(borrower);
     await expect(pageTab(page, "Borrower")).toHaveAttribute("data-state", "off");
     await pageTab(page, "Overview").click();
     await pageTab(page, "Application").click();
@@ -148,16 +148,16 @@ test.describe("Loan review: Split view", () => {
   }) => {
     await app.open({ path: at("application"), size: { width: 1440, height: 900 } });
     await mode(page, "Split view").click();
-    await dragTab(page, "Group", await rightEdge(app, "application"));
-    expect(await app.visibleIds()).toEqual(["application", "group", "borrower", "history"]);
-    await expect(pageTab(page, "Group")).toHaveAttribute("data-state", "focused");
-    await app.pane("group").getByRole("button", { name: "Close Group" }).click();
-    await expect(app.pane("group")).toBeHidden();
-    await expect(pageTab(page, "Group")).toHaveAttribute("data-state", "off");
-    await expect(app.announcer()).toContainText("Group closed · it's still in the tabs");
+    await dragTab(page, "Property", await rightEdge(app, "application"));
+    expect(await app.visibleIds()).toEqual(["application", "property", "borrower", "mortgages"]);
+    await expect(pageTab(page, "Property")).toHaveAttribute("data-state", "focused");
+    await app.pane("property").getByRole("button", { name: "Close Property" }).click();
+    await expect(app.pane("property")).toBeHidden();
+    await expect(pageTab(page, "Property")).toHaveAttribute("data-state", "off");
+    await expect(app.announcer()).toContainText("Property closed · it's still in the tabs");
     // ⌥-click: beside the view in use.
     await app.header("application").click({ position: { x: 300, y: 20 } });
-    await pageTab(page, "Field officer").click({ modifiers: ["Alt"] });
+    await pageTab(page, "Loan officer").click({ modifiers: ["Alt"] });
     const ids = await app.visibleIds();
     expect(ids.indexOf("officer")).toBe(ids.indexOf("application") + 1);
   });
@@ -169,19 +169,19 @@ test.describe("Loan review: Split view", () => {
     await app.open({ path: at("application"), size: { width: 1440, height: 900 } });
     await mode(page, "Split view").click();
     const to = (await app.pane("application").boundingBox())!;
-    await dragTab(page, "Field officer", { x: to.x + to.width / 2, y: to.y + to.height / 2 });
+    await dragTab(page, "Loan officer", { x: to.x + to.width / 2, y: to.y + to.height / 2 });
     const strip = app.pane("officer").getByRole("tablist");
-    await expect(strip.getByRole("tab")).toHaveText(["Application", "Field officer"]);
+    await expect(strip.getByRole("tab")).toHaveText(["Application", "Loan officer"]);
     await strip.getByRole("tab", { name: "Application" }).click();
     await expect(app.pane("application")).toBeVisible();
-    await expect(pageTab(page, "Field officer")).toHaveAttribute("data-state", "behind");
+    await expect(pageTab(page, "Loan officer")).toHaveAttribute("data-state", "behind");
   });
 
   test("dragging a tab across the panes selects no text in them", async ({ app, page }) => {
     await app.open({ path: at("application"), size: { width: 1440, height: 900 } });
     await mode(page, "Split view").click();
     const selected = () => page.evaluate(() => window.getSelection()?.toString() ?? "");
-    const b = (await pageTab(page, "Field officer").boundingBox())!;
+    const b = (await pageTab(page, "Loan officer").boundingBox())!;
     const to = (await app.pane("application").boundingBox())!;
     await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
     await page.mouse.down();
@@ -200,7 +200,7 @@ test.describe("Loan review: Split view", () => {
     await mode(page, "Split view").click();
     await app.pane("application").click();
     await expect(app.pane("application")).toHaveClass(/is-focused/);
-    const b = (await pageTab(page, "Group").boundingBox())!;
+    const b = (await pageTab(page, "Property").boundingBox())!;
     const to = (await app.pane("application").boundingBox())!;
     await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
     await page.mouse.down();
@@ -218,11 +218,11 @@ test.describe("Loan review: Split view", () => {
     page,
   }) => {
     await app.open({ path: at("application"), size: { width: 1440, height: 900 } });
-    await dragTab(page, "Loan history", await rightEdge(app, "application"));
+    await dragTab(page, "Mortgages", await rightEdge(app, "application"));
     await expect(mode(page, "Split view")).toHaveAttribute("aria-checked", "true");
     const ids = await app.visibleIds();
     expect(ids).toContain("application");
-    expect(ids).toContain("history");
+    expect(ids).toContain("mortgages");
   });
 
   test("a link opens beside the layout, marked as opened; Back to review restores every rect; ⌘K ⌘Z reopens", async ({
@@ -255,21 +255,21 @@ test.describe("Loan review: Split view", () => {
     await expect(investigation(page)).toBeVisible();
     await page
       .getByRole("listbox", { name: "Loan applications" })
-      .getByRole("option", { name: /#7/ })
+      .getByRole("option", { name: /Kevin O.Brien/ })
       .click();
     await expect(app.pane("application").locator(".jali-pane-sub")).toHaveText("Application #7");
-    await expect(app.pane("borrower").locator(".jali-pane-sub")).toHaveText("Member #260");
+    await expect(app.pane("borrower").locator(".jali-pane-sub")).toHaveText("Borrower #7");
     await expect(opened(page)).toHaveCount(0);
   });
 });
 
 test.describe("Loan review: roles and what a link carries", () => {
-  test("a loan officer (`?role=officer`) may use Split view, but links peek and open nothing", async ({
+  test("a processor (`?role=processor`) may use Split view, but links peek and open nothing", async ({
     app,
     page,
   }) => {
     await app.open({
-      path: `${at("application")}&role=officer`,
+      path: `${at("application")}&role=processor`,
       size: { width: 1440, height: 900 },
     });
     await mode(page, "Split view").click();
@@ -281,9 +281,9 @@ test.describe("Loan review: roles and what a link carries", () => {
     // The peek offers no way to keep it beside: that would open a pane.
     await expect(app.peek().getByRole("button", { name: "Open beside" })).toHaveCount(0);
     await page.keyboard.press("Escape");
-    // The demo's own switch goes to the reviewer's address, where the same link opens a pane.
-    await page.getByRole("link", { name: "View as credit reviewer" }).click();
-    await expect(page).toHaveURL(/role=reviewer/);
+    // The demo's own switch goes to the underwriter's address, where the same link opens a pane.
+    await page.getByRole("link", { name: "View as underwriter" }).click();
+    await expect(page).toHaveURL(/role=underwriter/);
     await expect(mode(page, "Split view")).toHaveAttribute("aria-checked", "true");
     await openLink(app).click();
     await expect(opened(page)).toHaveCount(1);
@@ -296,10 +296,10 @@ test.describe("Loan review: roles and what a link carries", () => {
   }) => {
     await app.open({ path: at("application"), size: { width: 1920, height: 1000 } });
     await mode(page, "Split view").click();
-    await dragTab(page, "Group", await rightEdge(app, "application"));
+    await dragTab(page, "Property", await rightEdge(app, "application"));
     await page.reload();
     await expect(mode(page, "Split view")).toHaveAttribute("aria-checked", "true");
-    await expect(app.pane("group")).toBeVisible();
+    await expect(app.pane("property")).toBeVisible();
 
     await openLink(app).click();
     const url = page.url();
@@ -311,21 +311,21 @@ test.describe("Loan review: roles and what a link carries", () => {
     const p2 = await other.newPage();
     await p2.goto(url);
     await expect(p2.locator('section[data-origin="opened"]')).toHaveCount(1);
-    await expect(p2.locator('section[data-pane="group"]')).toBeHidden();
+    await expect(p2.locator('section[data-pane="property"]')).toBeHidden();
     await expect(p2.locator('section[data-pane="application"] .jali-pane-sub')).toHaveText(
       "Application #4",
     );
     // Without opened panes, a link opens in the reader's own mode (Single by default).
-    await p2.goto(at("history"));
+    await p2.goto(at("mortgages"));
     await expect(
       p2.getByRole("radiogroup", { name: "View mode" }).getByRole("radio", { name: "Single" }),
     ).toHaveAttribute("aria-checked", "true");
-    await expect(p2.locator('section[data-pane="history"]')).toBeVisible();
+    await expect(p2.locator('section[data-pane="mortgages"]')).toBeVisible();
     await other.close();
 
     // Reset drops this person's layout; the investigation stays.
     await page.getByRole("button", { name: "Reset layout to its design" }).click();
-    await expect(app.pane("group")).toBeHidden();
+    await expect(app.pane("property")).toBeHidden();
     await expect(opened(page)).toHaveCount(1);
   });
 });
@@ -394,18 +394,18 @@ test.describe("Loan review: following links and placing views at 1440", () => {
     await app.open({ path: at("application"), size: { width: 1440, height: 900 } });
     await mode(page, "Split view").click();
     const rects = await app.snap();
-    await link(app, "application", "members 149").click();
+    await link(app, "application", "borrowers 4").click();
     await expect(pageTab(page, "Borrower")).toHaveAttribute("data-state", "focused");
     await expect(app.announcer()).toContainText("Already open: focused Borrower");
     await expect(opened(page)).toHaveCount(0);
     expect(await app.snap()).toEqual(rects);
-    // The reviewer's path: Overview and Field officer ⌥-clicked in, so Borrower went back to the tabs.
+    // The reviewer's path: Overview and Loan officer ⌥-clicked in, so Borrower went back to the tabs.
     await pageTab(page, "Application").click();
     await pageTab(page, "Overview").click({ modifiers: ["Alt"] });
-    await pageTab(page, "Field officer").click({ modifiers: ["Alt"] });
+    await pageTab(page, "Loan officer").click({ modifiers: ["Alt"] });
     expect(await app.visibleIds()).toEqual(["application", "overview", "officer"]);
     await expect(pageTab(page, "Borrower")).toHaveAttribute("data-state", "off");
-    await link(app, "application", "members 149").click();
+    await link(app, "application", "borrowers 4").click();
     await expect(opened(page)).toHaveCount(0);
     await expect(app.announcer()).toContainText("Borrower is already a view on this page");
     // It opens beside the pane the link is in; that pane stays, nothing folds into a tab group.
@@ -422,10 +422,10 @@ test.describe("Loan review: following links and placing views at 1440", () => {
   }) => {
     await app.open({ path: at("application"), size: { width: 1440, height: 900 } });
     await mode(page, "Split view").click();
-    await pageTab(page, "Group").click({ modifiers: ["Alt"] });
-    expect(await app.visibleIds()).toEqual(["application", "group", "borrower", "history"]);
+    await pageTab(page, "Property").click({ modifiers: ["Alt"] });
+    expect(await app.visibleIds()).toEqual(["application", "property", "borrower", "mortgages"]);
     const keep = async () =>
-      Promise.all(["application", "group", "history"].map((id) => app.pane(id).boundingBox()));
+      Promise.all(["application", "property", "mortgages"].map((id) => app.pane(id).boundingBox()));
     const before = await keep();
     await openLink(app).click();
     await expect(opened(page)).toHaveCount(1);
@@ -433,9 +433,9 @@ test.describe("Loan review: following links and placing views at 1440", () => {
     // Every view the person placed stays, at its rect; the opened pane is Borrower's shown tab, in Borrower's slot.
     expect(await app.visibleIds()).toEqual([
       "application",
-      "group",
+      "property",
       (await opened(page).getAttribute("data-pane"))!,
-      "history",
+      "mortgages",
     ]);
     expect(await keep()).toEqual(before);
     await expect(app.announcer()).toContainText("opened as a tab: not enough room beside Borrower");
@@ -454,7 +454,7 @@ test.describe("Loan review: following links and placing views at 1440", () => {
     await app.open({ path: at("application"), size: { width: 1440, height: 900 } });
     await mode(page, "Split view").click();
     await pageTab(page, "Overview").click({ modifiers: ["Alt"] });
-    for (const name of ["Field officer", "Group"]) {
+    for (const name of ["Loan officer", "Property"]) {
       const role = (await pageTab(page, name).getAttribute("data-role"))!;
       await pageTab(page, name).hover();
       await page.keyboard.down("Alt");

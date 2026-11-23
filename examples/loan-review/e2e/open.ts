@@ -1,15 +1,11 @@
 /** Opening Loan review in the tests: an application on one view, or in Split view, once its panes have their data. */
 import { expect, type Page } from "@playwright/test";
+import { ROLES, type Role } from "../src/nav/roles";
 
 /** The page's views, as its tabs name them, by the `tab` a link carries. */
-export const VIEWS = {
-  overview: "Overview",
-  application: "Application",
-  borrower: "Borrower",
-  history: "Loan history",
-  group: "Group",
-  officer: "Field officer",
-} as const;
+export const VIEWS = Object.fromEntries(
+  Object.entries(ROLES).map(([tab, { label }]) => [tab, label]),
+) as Record<Role, string>;
 
 export const mode = (page: Page, name: "Single" | "Split view") =>
   page.getByRole("radiogroup", { name: "View mode" }).getByRole("radio", { name });
