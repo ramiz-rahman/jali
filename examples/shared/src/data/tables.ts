@@ -9,13 +9,13 @@ export const TABLES = [
   "categories",
   "audit_log",
   "sample_orders",
-  // A small fictional microfinance loan book, for the curated loan-review workspace.
+  // A fictional US home-lending book, for the curated loan-review workspace.
   "loan_applications",
-  "members",
-  "loans",
-  "repayments",
-  "lending_groups",
-  "field_officers",
+  "borrowers",
+  "properties",
+  "mortgages",
+  "payments",
+  "loan_officers",
 ] as const;
 export type TableName = (typeof TABLES)[number];
 

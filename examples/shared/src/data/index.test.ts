@@ -29,15 +29,17 @@ describe("data layer", () => {
       const app = await api.record("loan_applications", String(id));
       const f = applicationFacts(id);
       expect(app).toMatchObject({
-        member_id: f.member,
-        group_id: f.group,
-        field_officer_id: f.officer,
+        borrower_id: f.borrower,
+        property_id: f.property,
+        loan_officer_id: f.officer,
       });
-      expect(await api.record("members", String(f.member))).toMatchObject({ group_id: f.group });
+      expect(await api.record("borrowers", String(f.borrower))).toMatchObject({
+        loan_officer_id: f.officer,
+      });
     }
-    const member = await api.record("members", "9");
-    expect(await api.relations("members", member!)).toContainEqual(
-      expect.objectContaining({ table: "loans", where: { member_id: 9 } }),
+    const borrower = await api.record("borrowers", "9");
+    expect(await api.relations("borrowers", borrower!)).toContainEqual(
+      expect.objectContaining({ table: "mortgages", where: { borrower_id: 9 } }),
     );
   });
   it("describes outgoing and incoming relations", async () => {

@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQueries, useQuery } from "@tanstack/react-query";
 import type { Row, TableName, RowsQuery } from "./types";
 import { useDataLayer } from "./react";
 
@@ -19,6 +19,20 @@ export function useRows(table: TableName, opts: RowsOpts = {}, options?: Pause) 
       queryKey: layer.keys.rows(table, opts),
       queryFn: () => layer.api.rows(table, opts),
       ...activity(options),
+    },
+    layer.queryClient,
+  );
+}
+/** Several reads of one table at once, one per query, in order; each its own cache entry. */
+export function useRowsMany(table: TableName, queries: RowsOpts[], options?: Pause) {
+  const layer = useDataLayer();
+  return useQueries(
+    {
+      queries: queries.map((opts) => ({
+        queryKey: layer.keys.rows(table, opts),
+        queryFn: () => layer.api.rows(table, opts),
+        ...activity(options),
+      })),
     },
     layer.queryClient,
   );
