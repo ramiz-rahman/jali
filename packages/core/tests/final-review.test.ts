@@ -15,6 +15,7 @@ import {
 import {
   definePageEngine as definePage,
   paneDomId,
+  paneMenuOf,
   paneStateFor,
   storeOf,
 } from "@jali/core/adapter";
@@ -309,5 +310,39 @@ describe("9. a tab never erases a draft another tab saved", () => {
     flush(A);
     A.destroy();
     expect(draftOf(mk(storage))).toBeUndefined();
+  });
+});
+
+describe("10. a menu's Maximise and Full screen set what the menu showed", () => {
+  const two = () =>
+    make({ page: undefined, layout: row(pane(r(1), { id: "a" }), pane(r(2), { id: "b" })) }).jali;
+  const item = (j: ReturnType<typeof two>, id: string) =>
+    paneMenuOf(storeOf(j), "a")
+      .flat()
+      .find((i) => i.id === id)!;
+
+  it("Maximise chosen after a key maximised the pane leaves it maximised", () => {
+    const jali = two();
+    const zoom = item(jali, "zoom");
+    expect(jali.actions.toggleZoom("a").ok).toBe(true);
+    zoom.run({ id: "a", ref: r(1) });
+    expect(jali.get().view.zoomed).toBe("a");
+  });
+
+  it("Restore chosen after the pane was restored leaves it restored", () => {
+    const jali = two();
+    expect(jali.actions.toggleZoom("a").ok).toBe(true);
+    const zoom = item(jali, "zoom");
+    expect(jali.actions.toggleZoom("a").ok).toBe(true);
+    zoom.run({ id: "a", ref: r(1) });
+    expect(jali.get().view.zoomed).toBeUndefined();
+  });
+
+  it("Full screen chosen after the pane went full screen leaves it there", () => {
+    const jali = two();
+    const full = item(jali, "full-screen");
+    expect(jali.actions.toggleFullScreen("a").ok).toBe(true);
+    full.run({ id: "a", ref: r(1) });
+    expect(storeOf(jali).get().fullScreen).toBe("a");
   });
 });

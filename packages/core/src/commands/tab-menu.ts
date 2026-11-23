@@ -96,6 +96,9 @@ export function paneMenuOf(store: JaliStore, id: NodeId): PaneMenuItem[][] {
   };
   const group = () => items.splice(0);
   const always = () => false;
+  /** A toggle as the value the menu showed it sets: chosen once that is true already, it changes nothing. */
+  const toSet = (want: boolean, now: () => boolean, toggle: () => unknown) => () =>
+    void (now() !== want && toggle());
 
   offer(can(store, "close", id), { id: "close", title: t.closeTab, run: () => void a.close(id) });
   // Closing other tabs needs tabs: a pane on its own (its header's menu) has none.
@@ -174,7 +177,11 @@ export function paneMenuOf(store: JaliStore, id: NodeId): PaneMenuItem[][] {
       id: "zoom",
       title: zoomed ? t.restore : t.maximise,
       keys: keys("pane.zoom"),
-      run: () => void a.toggleZoom(id),
+      run: toSet(
+        !zoomed,
+        () => store.get().view.zoomed === id,
+        () => a.toggleZoom(id),
+      ),
     },
     () => true,
   );
@@ -184,7 +191,11 @@ export function paneMenuOf(store: JaliStore, id: NodeId): PaneMenuItem[][] {
       id: "full-screen",
       title: s.fullScreen === id ? t.exitFullScreen : t.fullScreen,
       keys: keys("pane.fullscreen"),
-      run: () => void a.toggleFullScreen(id),
+      run: toSet(
+        s.fullScreen !== id,
+        () => store.get().fullScreen === id,
+        () => a.toggleFullScreen(id),
+      ),
     },
     () => true,
   );
