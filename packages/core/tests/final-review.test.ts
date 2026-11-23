@@ -364,3 +364,23 @@ describe("12. a pane id that names something on every object", () => {
     expect(where.toString).not.toBe("shown");
   });
 });
+
+describe("14. the step table and undo's gate", () => {
+  it("a step name the instance doesn't have is refused as invalid, never thrown", () => {
+    const { jali } = make({ page: undefined, layout: row(pane(r(1), { id: "a" })) });
+    for (const name of ["nope", "toString", "constructor"])
+      expect((storeOf(jali).run as (n: string) => { reason?: string })(name).reason).toBe(
+        "invalid",
+      );
+  });
+
+  it("undo of a tuck goes through put back's gate", () => {
+    const { jali } = make({
+      page: undefined,
+      layout: row(pane(r(1), { id: "a" }), pane(r(2), { id: "b" }), pane(r(3), { id: "c" })),
+    });
+    expect(jali.actions.tuck("a").ok).toBe(true);
+    expect(jali.actions.undo().ok).toBe(true);
+    expect(jali.model().pane("a")?.where).toBe("shown");
+  });
+});

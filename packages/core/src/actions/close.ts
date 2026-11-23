@@ -1,5 +1,5 @@
 import { allows } from "./allow";
-import { uses, type Step } from "./step";
+import { through, uses, type Step } from "./step";
 import * as core from "../layout/engine";
 import type { NodeId, ObjectRef, PaneNode } from "../layout/types";
 import { closeMany } from "../layout/ops/close";
@@ -208,7 +208,8 @@ export const undo: Step<[]> = {
 function undoLast(x: Snapshot): Outcome {
   const { s, ctx, env } = x;
   const e = s.undoStack.at(-1)!;
-  if (e.kind === "tuck") return putBack.run(x, e.tucked);
+  // Through put back's own gate, as every step that is part of another is.
+  if (e.kind === "tuck") return through(x, putBack, e.tucked);
   const r = restoreClosed(s.layout, unzoomed(s.view), e, ctx, e.kind === "close");
   // On a curated page, views never fold for the panes put back: they go back to the page tabs, as for a link.
   const { layout, view } =

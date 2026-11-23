@@ -22,6 +22,7 @@ import {
 import type { Settings } from "../state/settings";
 import type { JaliStore } from "../state/store";
 import { serviceOf } from "../features/feature";
+import { own } from "../own";
 import {
   paneFor,
   type ActionName,
@@ -403,8 +404,15 @@ export function bindSteps(
 export const isPublicStep = (name: StepName): boolean => !Array.isArray(STEPS[name]);
 
 /** The step `name`, and the public action it is a form of (undefined: none). */
+/** What a step name the table doesn't have runs (a caller past the types, or a name on every object). */
+const UNKNOWN: Step = { run: () => refuse("invalid") };
+
 export function stepOf(name: StepName): [Step, ActionName | undefined] {
-  const e = STEPS[name] as Step | readonly [Step | Run<unknown[]>, ActionName | null];
+  const e = own(STEPS, name) as
+    | Step
+    | readonly [Step | Run<unknown[]>, ActionName | null]
+    | undefined;
+  if (!e) return [UNKNOWN, undefined];
   return Array.isArray(e)
     ? [asStep(e[0] as Step | Run<unknown[]>), e[1] ?? undefined]
     : [e as Step, name as ActionName];
