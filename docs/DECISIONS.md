@@ -2305,6 +2305,8 @@ follows the action to its next consequence (packages/core/tests/final-review.tes
       its own field (`zoomOpened`), so every value reads back to its pane.
     - A resuming close is judged by its postcondition wherever it resumes (`resumed`), replacing the evidence carried
       through answers.
+  - Last pass (Codex, at 2493a1b2): Jali touches the browser's full screen only while it is its own (none, or one of
+    its panes, read from the document then); a request refused during a switch exits, so browser and Jali agree.
 - **Size** (gzipped KB, before → after the round's fixes and both confirming passes): minimal core 60.7 → 61.3, full
   67.1 → 67.8 and React 30.3 → 30.4, `+page` 62.6 → 63.3, headless 53.0 → 53.5. Every scenario stays inside the
   budgets set at the end of the round.
