@@ -26,5 +26,6 @@ The borrowers, groups, officers and loans are made up, and the top bar says so.
 
 ## Tests
 
+- `src/workspace.test.ts`: a link that names the Loan history by another name (Data Studio's "Loans by this member") goes to the view already showing it: a related list is its rows (`identity`), not its label.
 - `e2e/`: Loan review's own browser tests, on their own server: the shared quality checks on every view and in Split view, in both themes (axe, a 360–2200px width sweep, nothing in the console; `examples/shared/e2e/quality.ts`). Run them from the repository's root with `pnpm exec playwright test -c examples/loan-review`.
 - Jali's own browser tests (`e2e/` at the repository's root) also run against this app.

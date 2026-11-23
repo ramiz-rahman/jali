@@ -5,6 +5,7 @@ import { OverviewPane } from "./overview";
 import { ReviewRecordPane } from "./records";
 import { recordParams } from "@jali-examples/shared/panes/kinds/record";
 import { ReviewRelatedPane } from "./lists";
+import { relatedIdentity } from "@jali-examples/shared/panes/kinds/related";
 
 export const overviewKind = definePane("review-overview", {
   params: { item: Number },
@@ -49,5 +50,6 @@ export const reviewRelatedKind = definePane("review-related", {
   width: { min: 360 },
   height: { min: 240 },
   shows: "related",
+  identity: relatedIdentity,
   Component: ReviewRelatedPane,
 });
