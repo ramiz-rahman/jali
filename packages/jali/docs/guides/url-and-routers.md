@@ -55,6 +55,8 @@ The peek is never in the address: a reload, or a link someone opens, shows no pe
 
 A page link writes each opened pane's object (`open`) as its kind and params: `call~slug=demra~t=#12` is a `call` with `slug: "demra"` and `t: 12`. You don't write this yourself: Jali writes it, and **Copy link** copies it.
 
+Jali never writes an address it couldn't read back. A link holds at most 256 nodes of layout, 128 levels deep, and a curated page's link at most 32 opened panes; Jali's own params are at most a million characters. An action that would pass one of these is refused (`"blocked"`) and nothing changes. A layout your app starts with that is already larger still opens, but its address isn't written until it fits (development says so once). These limits are the reader's and the writer's alike: every address Jali writes reopens as it was.
+
 Deliberate changes (opening, closing, moving, choosing a preset) add a history entry. A detail following a list replaces the entry, so Back skips the rows passed through. A divider drag replaces it once the drag settles.
 
 Each action makes one history write, after it lands: an action held for an answer (`beforeClose`, "Discard unsaved changes?") writes nothing until it does, and nothing if it doesn't. During a drag, edge scrolling included, nothing is written; the address is written once when it ends. Replaces are written at most every 250 ms, the latest winning, because browsers refuse more than about 100 history writes in 10 seconds (Safari throws). A write the browser refuses anyway is dropped: the address lags until the next one, and the action still happens.

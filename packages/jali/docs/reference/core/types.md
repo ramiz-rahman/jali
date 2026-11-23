@@ -1240,7 +1240,7 @@ type RefusalReason = "not-found" | "invalid" | "unavailable" | "single-view" | "
 
 - **`last-pane`**: The last pane, or a page's last view on screen, stays.
 
-- **`blocked`**: The pane can't go there: past the edge, tucking the only pane or a tab. Also a change whose link no instance could reopen: more panes than a link holds, or, with the layout kept in the address, layout text too long to read back (one very long param).
+- **`blocked`**: The pane can't go there: past the edge, tucking the only pane or a tab. Also a change whose link no instance could reopen: more than a link holds (256 nodes, 128 levels, a curated page's 32 opened panes), or, where the instance writes an address, more text than a reader reads (one very long param). A layout already larger (an app's own, at start-up) still opens and may shrink, but its address is left unwritten until it fits.
 
 - **`nothing-to-do`**: Nothing to undo, put back, close, resize or unmerge.
 
@@ -1506,12 +1506,12 @@ Your items for a tab's menu, from `createJali({ tabMenu })`. Called each time a 
 
 ```ts
 interface TabMenuItem {
-  id: string; title: string; run(): void;
+  id: string; title: string; run(pane: { id: NodeId; ref: ObjectRef }): void;
   disabled?: boolean | string; checked?: boolean; keys?: string;
 }
 ```
 
-One item in a tab's menu. `disabled` greys it out but keeps it reachable from the keyboard; give a reason as text and screen readers read it. `checked` makes it a checkbox item, ticked when true. `keys` is a hint shown beside the title, such as `keyHint("Mod+D")`; the key itself is yours to handle. The menu closes, and focus returns to the tab, before `run` runs.
+One item in a tab's menu. `disabled` greys it out but keeps it reachable from the keyboard; give a reason as text and screen readers read it. `checked` makes it a checkbox item, ticked when true. `keys` is a hint shown beside the title, such as `keyHint("Mod+D")`; the key itself is yours to handle. The menu closes, and focus returns to the tab, before `run` runs. `run` gets the pane as it is when the item is chosen, which may show another object than when the menu opened; once the pane has closed, it isn't called. Act on that pane, not on what the menu was built from: Jali's own items do (Move right moves the tab one place from where it is now; Pin pins, never toggles).
 
 ### Command
 
@@ -1717,7 +1717,7 @@ A pane that is not there gives `reason: "not-found"`. What a refusal reads out t
 
 - **`actions.focus`**, `focus(pane: PaneTarget)`: Focus a pane and show it. A pane that is folded, tucked or behind another tab has its tab chosen; nothing else on screen moves. While another pane is maximised, this one is maximised instead.
 
-- **`actions.toggleZoom`**, `toggleZoom(pane?: PaneTarget)`: Maximise or restore. Refused with `"single-view"` in a curated page's Single view, and with `"blocked"` for a pane the layout hides (it has no place on screen to fill); nothing with one pane.
+- **`actions.toggleZoom`**, `toggleZoom(pane?: PaneTarget)`: Maximise or restore. Refused with `"single-view"` in a curated page's Single view, with `"blocked"` for a pane the layout hides (it has no place on screen to fill), and with `"nothing-to-do"` with one pane.
 
 - **`actions.openBeside`**, `openBeside(pane: PaneTarget, ref: ObjectRef, options?: OpenBesideOptions)`: Open `ref` beside `pane`; focus stays in `pane`. `{ edge: "bottom" }` opens it below `pane` (see `OpenBesideOptions`); by default it opens after `pane`. `pane`'s selected item opens a following detail (kept if one already follows). A link never copies a pane of its own chain: when `ref`'s object is `pane` itself, a pane `pane` was opened from (up the chain), or one it opened, that pane is shown instead (`pane` in the result), focus stays, and it is announced "Already open". Outside a curated page, another chain may still show the same object. In a curated page: a peek in Single view, and an object already on the page is focused instead. `pane` in the result is the pane that shows `ref`. Where `allow` turns `open` off for `pane` (in the free layout or on a curated page), no pane opens: `ref` shows in the peek sheet instead, and the result is what `peek` returns.
 
@@ -1725,7 +1725,7 @@ A pane that is not there gives `reason: "not-found"`. What a refusal reads out t
 
 - **`actions.peek`**, `peek(pane: PaneTarget, ref: ObjectRef)`: Show `ref` in the peek sheet, for `pane`. When `pane`'s following detail of that kind is on screen, the detail shows `ref` instead.
 
-- **`actions.closePeek`**, `closePeek()`: Close the peek sheet.
+- **`actions.closePeek`**, `closePeek()`: Close the peek sheet. `"nothing-to-do"` when none is open.
 
 - **`actions.select`**, `select(pane: PaneTarget, ref: ObjectRef | null, options?: { inResults?: boolean })`: Report a list's selection (`null`: none). An open peek from it follows at once; its following detail after 150 ms of rest. `inResults: false`: the list's filter no longer shows it.
 
@@ -1757,7 +1757,7 @@ A pane that is not there gives `reason: "not-found"`. What a refusal reads out t
 
 - **`actions.unmerge`**, `unmerge(pane?: PaneTarget)`: Move a tab out of its group, to the right of it.
 
-- **`actions.moveOutOfRow`**, `moveOutOfRow(pane?: PaneTarget)`: Take a pane (default: the focused one) out of the row that scrolls sideways holding it, beside the row on the side the pane is nearer on screen. Also in the pane's menu and ⌘K ("Move out of the row"). Nothing happens for a pane in no such row.
+- **`actions.moveOutOfRow`**, `moveOutOfRow(pane?: PaneTarget)`: Take a pane (default: the focused one) out of the row that scrolls sideways holding it, beside the row on the side the pane is nearer on screen. Also in the pane's menu and ⌘K ("Move out of the row"). `"unavailable"` for a pane in no such row.
 
 - **`actions.closeTabs`**, `closeTabs(pane: PaneTarget, which: "others" | "after")`: Close the other tabs of `pane`'s group, or the tabs after it in reading order (to its right, or its left right to left). One change: `beforeClose` is asked once, listing them all, and one Undo brings them back. Refused with `"nothing-to-do"` when there are none. The tab menu's Close other tabs and Close tabs to the right.
 
@@ -1789,11 +1789,11 @@ interface JaliPage<I extends ItemId = ItemId>
 
 `jali.page`: the curated page's actions, there (and typed) only when `createJali({ page })` was given one. `I` is the page's item type, its `firstItem`'s.
 
-- **`page.open`**, `open(options?: OpenPageOptions<I>)`: Open the curated page.
+- **`page.open`**, `open(options?: OpenPageOptions<I>)`: Open the curated page. `"nothing-to-do"` when it is open already and no item or view is asked for.
 
-- **`page.leave`**, `leave()`: Back to the free layout's preset. The page's mode and layout are kept. `"unavailable"` in a page-only app.
+- **`page.leave`**, `leave()`: Back to the free layout's preset. The page's mode and layout are kept. `"unavailable"` in a page-only app; `"nothing-to-do"` with no page open.
 
-- **`page.setMode`**, `setMode(mode: ViewMode)`: Single view or Split view.
+- **`page.setMode`**, `setMode(mode: ViewMode)`: Single view or Split view. `"nothing-to-do"` in that mode already.
 
 - **`page.showView`**, `showView(view: string)`: What a click on a page tab does. It never reshapes: Single view swaps the view; Split view focuses it, chooses its tab, or puts it in place of the view you're in.
 

@@ -1,3 +1,42 @@
+# Migrating to the stabilisation step 4 (23 Nov 2026): a step owns its check; one link encoder
+
+What an action needs is checked in one place, and everything that offers it asks the same check. Every address Jali
+writes reads back whole.
+
+## Behaviour
+
+| Before                                                                                                       | After                                                                                                                          |
+| ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| `toggleZoom()` with one pane, `closePeek()` with no peek, `page.setMode` to the mode in use: `{ ok: true }`  | `"nothing-to-do"`, and their ⌘K commands greyed out                                                                            |
+| `page.open()` with the page open, `page.leave()` with none                                                   | `"nothing-to-do"` (an item or view asked for still opens it)                                                                   |
+| `moveOutOfRow` for a pane in no row: `{ ok: true }`                                                          | `"unavailable"`                                                                                                                |
+| Move tab left/right at the end of its group: offered, then said so                                           | greyed out in ⌘K and the menu, with the reason; the key says it                                                                |
+| Close on the last pane from a key: silent                                                                    | says "The last pane stays open", as the action does                                                                            |
+| `runCommand` of a command that can't run: silent                                                             | says why, when Jali has words for it                                                                                           |
+| a tab menu's Move right moved to the index after where the tab was when the menu opened                      | one place right of where it is now; Pin and Unpin set the value shown                                                          |
+| a curated page's 33rd opened pane opened, and its link dropped it                                            | refused `"blocked"`, nothing written                                                                                           |
+| a starting layout larger than a link failed validation, or wrote an address no instance reads                | it opens; its address is left unwritten until it fits (development warns once); `setLayout` of one is `"blocked"`, not invalid |
+| from Single view with `allow: { open: false }`, a drag or ⌥-click of a view Split view's design shows worked | refused `"not-allowed"`, with no drop target, preview or hint                                                                  |
+
+## `jali`
+
+| Before                                                                    | After                                                                                         |
+| ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `TabMenuItem.run(): void`                                                 | `run(pane: { id; ref }): void`: the pane as it is when chosen; not called once it has closed  |
+| `UrlWriter.linkText?(layout)`                                             | removed: a writer of your own writes its own text, which no limit of Jali's measures          |
+| `layout.validate(layout, kinds, { params })`                              | also `limits` (default `true`): `false` checks a layout of your own without what a link holds |
+| `messages.page.tabTipOff(view, altClick)`, `tabTipSingle(view, altClick)` | `altClick` is undefined where the view can't be placed beside: say only what a click does     |
+
+## `jali/adapter`
+
+| Before                                                                                | After                                                                                                                                  |
+| ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `allows`, `notAllowed`, `dividerAllowed`, `canRename`, `checkTuck`, `checkPeekBeside` | `can(store, name, ...args)`: the step's own gate (`{ ok: true }` or its refusal), without running it                                   |
+| a step: `(x, ...args) => Outcome`; `STEPS[name]` a function or `[fn, action]`         | `Step { control?, check?, run }` (`StepArgs` unchanged); `stepOf(name)` returns `[Step, action]`; `PageEngine`'s steps are `Step`s too |
+| `CommandDef { check?, run }`                                                          | `CommandDef { step?, args?, run? }`: available exactly when `can(store, step, ...args(store))` is                                      |
+| —                                                                                     | `chooseMenuItem(store, pane, item)`: runs a menu item with the pane as it is now                                                       |
+| `UrlSync` without `measure`                                                           | `UrlSync.measure(state)`: the length of its own params for that state, as it would write them                                          |
+
 # Migrating to the stabilisation step 3 (23 Nov 2026): undo reverses the operation
 
 Undo puts closed panes back into the layout as it is now, instead of putting back the layout from before the close.
@@ -58,6 +97,7 @@ but tests that read the address straight after a replace.
 | `ApplyIO` with `set`, `restore`, `snapshot`, `host`, `later` and an optional `signal` | `ApplyIO` with `snapshotOf(s)`, `reduce(s, patch)`, `publish(state, effects)` and a required `signal`: `apply` works an action out on its own copy, then publishes it |
 | `Change` without `history`                                                            | `Change.history`: the history mode the change writes when it commits, in place of its op's                                                                            |
 | `store.apply` from inside `beforeClose` returned `"pending"`                          | it commits at once                                                                                                                                                    |
+| —                                                                                     | `UrlSync.hold(on)`: a gesture holds the address (`true`); released (`false`), the write waiting is dropped and the answer says whether there was one                  |
 
 # Migrating to the stabilisation step 1b (23 Nov 2026)
 

@@ -547,10 +547,10 @@ Reads `encode`'s text back. `null` for anything malformed, over 1,000,000 charac
 *function*, from `jali`
 
 ```ts
-layout.validate(layout: Layout, kinds: KindRegistry): { ok: true } | { ok: false; errors: string[] }
+layout.validate(layout: Layout, kinds: KindRegistry, options?: { params?: boolean; limits?: boolean }): { ok: true } | { ok: false; errors: string[] }
 ```
 
-Checks a layout from outside: version 1; unique ids of 1 to 128 letters, digits, `_`, `.`, `:` or `-`; exactly one positive `px` or `weight` per size; known kinds and string or finite number params; stacks of panes only, with an `active` child; at most 256 nodes and 128 levels; a well-formed overlay. Each error is `path: message`.
+Checks a layout from outside: version 1; unique ids of 1 to 128 letters, digits, `_`, `.`, `:` or `-`; exactly one positive `px` or `weight` per size; known kinds and string or finite number params; stacks of panes only, with an `active` child; at most 256 nodes and 128 levels, what a link holds; a well-formed overlay. Each error is `path: message`. `params: false` leaves each kind's own param types unchecked; `limits: false` leaves out the link's 256 nodes and 128 levels, for a layout of your own (one larger opens, and actions that would grow it are refused `"blocked"`).
 
 **Returns** `{ ok: true } | { ok: false; errors: string[] }`:
 

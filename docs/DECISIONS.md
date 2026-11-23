@@ -1898,3 +1898,70 @@ React-side items of docs/reviews/2026-11-23/PLAN.md (SAFARI-1, SAFARI-2, A1-4, A
 - **Boundaries reset with the instance.**
   - **What:** `Guard`, the one boundary around the host's code in Jali's chrome (the root's children, the dialog layer, Settings' extra fieldsets, icons, a page's rail and header), clears its failure when the instance it is in is replaced, without remounting the host's healthy children. Each dialog sits in a Guard of its own (keyed by dialog): one that throws closes through its close step (`keepEditing`, `closeChooser`, `dialogs.closePalette`, `dialogs.closeSettings`) and reports to `onError`, so it no longer stays open in state, drawing nothing over the dialogs after it. Panes are unchanged.
   - **Why:** the boundaries sat outside the instance's scope, so `<JaliRoot jali={b}>` kept showing a's failure until Retry (A1-5).
+
+## 23 Nov 2026 · Stabilisation step 4: a step owns its check; one link encoder (23 Nov 2026)
+
+Step 4 of docs/reviews/2026-11-23/PLAN.md, with the menus item (A1-3) brought forward from step 5 and the step 1b
+review's two page findings, on branch `stabilise`.
+
+- **A step owns its check.**
+  - **What:** a step is `{ control?, check?, run }` (actions/step.ts). `control` names the `allow` controls it uses and
+    on which panes (both panes of a swap, every pane beside a divider, every pane auto layout moves, every opened pane
+    "Back to …" closes); `check` is everything else it needs first. The store asks `allow` for each control, then the
+    check, then runs it, every time, a held action again when its question is answered. `can(store, name, ...args)`
+    (jali/adapter) runs the same gate without running the step or asking a close guard. Commands name a step and its
+    arguments (`args` supply the pane and the way, never a rule); ⌘K, keys, the tab menu, header buttons, page tabs,
+    drop targets and the divider layer ask `can`. The checkX helpers, the commands' own checks, `also()`,
+    `needFocus`/`needLauncher`/`needOthers`/`inStrip`, `dividerAllowed`, `canRename` and `checkPeekBeside` are gone into
+    the steps. A curated page's engine steps are descriptors too, delegated field by field (`pageStep`).
+  - **Why:** each rule was written once for the action and again for each surface that offered it, and they drifted.
+  - **Controls before the check:** a control the app turned off is the answer before any other reason, so "hide it
+    where the app says no" is one comparison (`reason === "not-allowed"`). A control on a pane that isn't there asks
+    nothing; the check says it isn't there.
+  - **Checks that need steps of their own:** Pop out (`popOut`: the window is the adapter's, the step says whether it may
+    open), the merge chooser (`openMergeChooser`), the shelf (`revealShelf`), the centre-drop setting
+    (`toggleCentreDrop`) and a drag's start (`startDrag`: the pane allows `move`; what the drop does is `drop`'s).
+  - **Refused, where an offer greys out:** an action that would change nothing because there is nothing to act on is
+    refused `"nothing-to-do"` where a command offers it, so the command greys out: `closePeek` with no peek,
+    `page.setMode` to the mode in use, `page.open` with the page open and nothing asked, `page.leave` with no page,
+    `toggleZoom` with one pane (it was `ok`, doing nothing). `moveOutOfRow` for a pane in no row is `"unavailable"`.
+    A tab at its group's end refuses Move left/right in the check, with the reason, so ⌘K and the menu grey it out.
+  - **Kept:** `openBeside` still routes a link to the peek where `open` is off (a routing step, not a refusal).
+    `runCommand` now says a refusal's reason, as a key does.
+- **Menus run intents.** Every Jali menu item is worked out when chosen: Move left/right is `moveTabToward(side, id)`
+  from where the tab is now, Pin and Unpin set the value the menu showed, Close, Split, Maximise and the rest name the
+  pane. A stale intent is refused by its step, typed. An app's `tabMenu` item's `run` gets `{ id, ref }` as the pane is
+  when chosen, and isn't called once the pane has closed (`chooseMenuItem`). The menu decides only hiding (refused
+  `"not-allowed"` or `"unavailable"`, or per item) versus greying out with the step's reason.
+- **The step 1b review's page findings.** Placing a view (a drag, ⌥-click) is checked against the page as it is,
+  before `setMode("split")` would put the view on screen: from Single view every view comes in beside the one shown,
+  so `open` is asked of that pane; from Split view, of the pane it goes beside, when the view is off screen. Choosing
+  Split view itself stays anyone's. `besidePreview` returns nothing where `showViewBeside` is refused, the drop targets
+  ask `placeTab` (or `drop`, for a pane), and the page tabs' tips mention ⌥-click only where it would work
+  (`tabTipOff`/`tabTipSingle` take `altClick` as optional).
+- **One set of link limits, one encoder.**
+  - **What:** layout/codec/limits.ts holds `MAX_NODES` (256), `MAX_DEPTH` (128), `MAX_LINK_TEXT` (1,000,000) and
+    `OPEN_MAX` (32), with `linkUsage` and `pastLimits`. The codec stops unpacking past them (its own 2048 guard goes),
+    validation, the reader, urlSync's writer and the action budget use them. The budget replaces `pastLinks`: it
+    measures the whole state a change proposes (its page and preset included), refuses a change past a limit as
+    `"blocked"` (a curated page's 33rd opened pane, by every route), and lets what is already past one stay or shrink.
+    Text is measured as urlSync writes it (`UrlSync.measure`: the instance's own params as `buildSearch` encodes them,
+    the host's left out) and the reader measures an incoming address the same way; only an instance that writes an
+    address has a text limit.
+  - **An app's own layout** is validated without the link limits (`validate(..., { limits: false })`): one larger than
+    a link opens at start-up, its address left unwritten, with one development warning; `setLayout` refuses it as
+    `"blocked"`, never as malformed. urlSync never writes an address past a limit.
+  - **`UrlWriter.linkText` goes:** a router writer of the host's own writes its own text, which no limit of Jali's can
+    measure; the shape is otherwise unchanged.
+  - **The reader:** an address whose own params are past `MAX_LINK_TEXT` is read as unreadable (a layout link opens
+    the fallback, a page link opens without its panes). A hand-made page link naming more than 32 panes still opens
+    the first 32.
+- **The fuzz invariant.** Every address the fuzz writes is reopened by a fresh instance with the same kinds, storage
+  and room, which writes it back unchanged (the link's state: the layout read back, without the folds and shown tabs
+  the reader's fit works out again; zoom, scroll, preset). Seeds alternate "link" and "local" sizes and a prefix. The
+  known reload gap after tucks and folds combine stays named for what those seeds show (1347 joins it: it failed at
+  2,000 seeds before this step too); their addresses are checked like every other.
+- **Size:** the gate costs core about 0.6 KB gzipped where an instance is made (bare 55.1 → 55.7 KB, minimal 58.1 →
+  58.9, full 64.0 → 64.9, headless 49.7 → 50.2, `+page` 59.9 → 60.6; the layout tree alone unchanged at 10.7). Deleting
+  the commands' checks saved 1.2 KB minified in the registry, but the descriptors, `can` and the limits cost more. Not
+  raised: over every core budget, as after step 3.

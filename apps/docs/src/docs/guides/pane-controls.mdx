@@ -51,9 +51,9 @@ Because the levels only take away, `createJali({ allow })`'s `true` can't turn b
 
 ## What people see
 
-Jali's actions check `allow` themselves, so every way of asking gets the same answer: a button, a key, ⌘K, a tab's menu, a drag, or an [agent](/guides/agents).
+Jali's actions check `allow` themselves, so every way of asking gets the same answer: a button, a key, ⌘K, a tab's menu, a drag, or an [agent](/guides/agents). Each action names the controls it uses and on which panes (a swap, both panes; a divider, every pane beside it; Back to the page, every opened pane), and Jali asks them before anything else. Whatever offers an action asks the action's own check first, so nothing offers what the action would refuse.
 
-- **Buttons and menu items** for a control that isn't allowed aren't drawn: no ×, no grip, no divider handle, no Pin tab.
+- **Buttons and menu items** for a control that isn't allowed aren't drawn: no ×, no grip, no divider handle, no Pin tab. On a curated page, no drop target, ⌥ preview or ⌥-click hint for a view that can't be placed there.
 - **⌘K** lists the command greyed out, with the reason ("Board can't be closed here").
 - **Keys** are refused, and screen readers hear the same reason.
 - **Agents** see what isn't allowed for each pane in their snapshot (`notAllowed`), and are refused if they ask.

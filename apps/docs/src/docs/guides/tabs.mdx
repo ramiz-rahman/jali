@@ -56,7 +56,7 @@ const jali = createJali({
   tabMenu: (pane) =>
     pane.ref.kind === "report"
       ? [
-          { id: "report.export", title: "Export as CSV", run: () => exportCsv(pane.ref) },
+          { id: "report.export", title: "Export as CSV", run: (now) => exportCsv(now.ref) },
           { id: "report.share", title: "Share", run: share, disabled: "Save the report first" },
         ]
       : undefined,
@@ -68,6 +68,8 @@ const jali = createJali({
 - **`keys`** shows a shortcut beside the item, when a command of yours does the same thing.
 
 Return `undefined` or `[]` for a pane with no items of its own. Choosing an item closes the menu and puts focus back on the tab before `run` is called, so an item that moves focus somewhere else wins. Esc closes the menu and returns focus to the tab.
+
+`run` gets the pane as it is when the item is chosen: a menu can stay open while the pane changes (a detail follows its list), so act on what `run` is given, not on what the menu was built from. Once the pane has closed, `run` isn't called. Jali's own items work the same way: **Move tab right** moves the tab one place right of where it is now, and **Pin tab** pins it (chosen after it was pinned elsewhere, it stays pinned), never toggles.
 
 The function is for every tab, not one per kind, because kinds often share their items. Branch on `pane.ref.kind` when they don't.
 

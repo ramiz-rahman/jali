@@ -167,7 +167,7 @@ In Split view, the tabs become a palette of views that the person lays out with 
 
 **Why a click never reshapes:** a click is the lightest thing a person does. If it added a pane and pushed the others aside, every click would rearrange the screen. Adding a view is always a deliberate gesture: a drag or ⌥-click.
 
-The first switch to Split view starts from the page's design. Switching back to Single view keeps the split layout exactly, and switching again restores it. Dragging a tab out of Single view switches to Split view for you. In code, `jali.page.setMode("single" | "split")`.
+The first switch to Split view starts from the page's design. Switching back to Single view keeps the split layout exactly, and switching again restores it. Dragging a tab out of Single view switches to Split view for you, when the view may be placed beside the one on screen: where your `allow` turns `open` off for it, the drag and ⌥-click are refused, and no drop target, preview or hint offers them. Choosing Split view itself is always allowed. In code, `jali.page.setMode("single" | "split")`.
 
 ## Views never fold into each other's tabs
 

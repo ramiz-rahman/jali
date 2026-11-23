@@ -753,7 +753,7 @@ else void result.settled?.then((end) => end.ok && forgetSavedLayouts());
 <Param name="single-view" type="">A curated page in Single view has no layout to change.</Param>
 <Param name="not-allowed" type="">The app's `allow` turns that control off for the pane: the kind's, the instance's, or its `when` (for a divider, a pane beside it). See [Choose what people can do with panes](/guides/pane-controls).</Param>
 <Param name="last-pane" type="">The last pane, or a page's last view on screen, stays.</Param>
-<Param name="blocked" type="">The pane can't go there: past the edge, tucking the only pane or a tab. Also a change whose link no instance could reopen: more panes than a link holds, or, with the layout kept in the address, layout text too long to read back (one very long param).</Param>
+<Param name="blocked" type="">The pane can't go there: past the edge, tucking the only pane or a tab. Also a change whose link no instance could reopen: more than a link holds (256 nodes, 128 levels, a curated page's 32 opened panes), or, where the instance writes an address, more text than a reader reads (one very long param). A layout already larger (an app's own, at start-up) still opens and may shrink, but its address is left unwritten until it fits.</Param>
 <Param name="nothing-to-do" type="">Nothing to undo, put back, close, resize or unmerge.</Param>
 <Param name="unsaved" type="">A pane that would go has unsaved work. Jali asks the person ("Discard unsaved changes?") and makes the change if they discard. See `settled`. (A linked detail that keeps its object because of its unsaved work doesn't ask, and has no `settled`.)</Param>
 <Param name="kept" type="">`beforeClose` kept the panes, or the person chose Keep editing, or what a held action was made from is gone by the time it is answered (a newer Back or Forward).</Param>
@@ -900,9 +900,9 @@ Your items for a tab's menu, from `createJali({ tabMenu })`. Called each time a 
 
 </Entry>
 
-<Entry name="TabMenuItem" kind="type" from="jali" signature={`interface TabMenuItem {\n  id: string; title: string; run(): void;\n  disabled?: boolean | string; checked?: boolean; keys?: string;\n}`} compact>
+<Entry name="TabMenuItem" kind="type" from="jali" signature={`interface TabMenuItem {\n  id: string; title: string; run(pane: { id: NodeId; ref: ObjectRef }): void;\n  disabled?: boolean | string; checked?: boolean; keys?: string;\n}`} compact>
 
-One item in a tab's menu. `disabled` greys it out but keeps it reachable from the keyboard; give a reason as text and screen readers read it. `checked` makes it a checkbox item, ticked when true. `keys` is a hint shown beside the title, such as `keyHint("Mod+D")`; the key itself is yours to handle. The menu closes, and focus returns to the tab, before `run` runs.
+One item in a tab's menu. `disabled` greys it out but keeps it reachable from the keyboard; give a reason as text and screen readers read it. `checked` makes it a checkbox item, ticked when true. `keys` is a hint shown beside the title, such as `keyHint("Mod+D")`; the key itself is yours to handle. The menu closes, and focus returns to the tab, before `run` runs. `run` gets the pane as it is when the item is chosen, which may show another object than when the menu opened; once the pane has closed, it isn't called. Act on that pane, not on what the menu was built from: Jali's own items do (Move right moves the tab one place from where it is now; Pin pins, never toggles).
 
 </Entry>
 
@@ -1009,14 +1009,14 @@ A pane that is not there gives `reason: "not-found"`. What a refusal reads out t
 
 <Members title="Focus">
 <Member name="actions.focus" signature="focus(pane: PaneTarget)">Focus a pane and show it. A pane that is folded, tucked or behind another tab has its tab chosen; nothing else on screen moves. While another pane is maximised, this one is maximised instead.</Member>
-<Member name="actions.toggleZoom" signature="toggleZoom(pane?: PaneTarget)">Maximise or restore. Refused with `"single-view"` in a curated page's Single view, and with `"blocked"` for a pane the layout hides (it has no place on screen to fill); nothing with one pane.</Member>
+<Member name="actions.toggleZoom" signature="toggleZoom(pane?: PaneTarget)">Maximise or restore. Refused with `"single-view"` in a curated page's Single view, with `"blocked"` for a pane the layout hides (it has no place on screen to fill), and with `"nothing-to-do"` with one pane.</Member>
 </Members>
 
 <Members title="Open">
 <Member name="actions.openBeside" signature="openBeside(pane: PaneTarget, ref: ObjectRef, options?: OpenBesideOptions)">Open `ref` beside `pane`; focus stays in `pane`. `{ edge: "bottom" }` opens it below `pane` (see <Ref to="OpenBesideOptions" />); by default it opens after `pane`. `pane`'s selected item opens a following detail (kept if one already follows). A link never copies a pane of its own chain: when `ref`'s object is `pane` itself, a pane `pane` was opened from (up the chain), or one it opened, that pane is shown instead (`pane` in the result), focus stays, and it is announced "Already open". Outside a curated page, another chain may still show the same object. In a curated page: a peek in Single view, and an object already on the page is focused instead. `pane` in the result is the pane that shows `ref`. Where `allow` turns `open` off for `pane` (in the free layout or on a curated page), no pane opens: `ref` shows in the peek sheet instead, and the result is what `peek` returns.</Member>
 <Member name="actions.openHere" signature="openHere(pane: PaneTarget, ref: ObjectRef)">Show `ref` in `pane`. If it is open elsewhere, focus that pane (and close `pane` when it is a launcher).</Member>
 <Member name="actions.peek" signature="peek(pane: PaneTarget, ref: ObjectRef)">Show `ref` in the peek sheet, for `pane`. When `pane`'s following detail of that kind is on screen, the detail shows `ref` instead.</Member>
-<Member name="actions.closePeek" signature="closePeek()">Close the peek sheet.</Member>
+<Member name="actions.closePeek" signature="closePeek()">Close the peek sheet. `"nothing-to-do"` when none is open.</Member>
 <Member name="actions.select" signature="select(pane: PaneTarget, ref: ObjectRef | null, options?: { inResults?: boolean })">Report a list's selection (`null`: none). An open peek from it follows at once; its following detail after 150 ms of rest. `inResults: false`: the list's filter no longer shows it.</Member>
 <Member name="actions.setKept" signature="setKept(pane: PaneTarget, kept: boolean)">Keep a linked pane on what it shows, or let it go. A kept follower stops following its list; a kept plain link is no longer replaced by the next link from its source, which opens beside it instead. Let go, a detail of a list (its source reports a selection) follows the selection again and catches up; a plain link goes back to being replaced. `"nothing-to-do"` for a pane with no link.</Member>
 <Member name="actions.split" signature={`split(pane?: PaneTarget, direction?: "right" | "bottom")`}>Open the launcher beside `pane` and focus it. Without `direction`: right of a wide pane, below a tall one. `"unavailable"` without a launcher, or on a curated page (its layout is its design; links open panes there). `"not-allowed"` where `allow` turns `open` off for `pane`.</Member>
@@ -1038,7 +1038,7 @@ A pane that is not there gives `reason: "not-found"`. What a refusal reads out t
 <Member name="actions.swapWithNext" signature="swapWithNext(pane?: PaneTarget)">Swap with the next pane on screen (or the previous, for the last).</Member>
 <Member name="actions.mergeInto" signature="mergeInto(pane: PaneTarget, target: PaneTarget)">`pane` joins `target`'s tab group.</Member>
 <Member name="actions.unmerge" signature="unmerge(pane?: PaneTarget)">Move a tab out of its group, to the right of it.</Member>
-<Member name="actions.moveOutOfRow" signature="moveOutOfRow(pane?: PaneTarget)">Take a pane (default: the focused one) out of the row that scrolls sideways holding it, beside the row on the side the pane is nearer on screen. Also in the pane's menu and ⌘K ("Move out of the row"). Nothing happens for a pane in no such row.</Member>
+<Member name="actions.moveOutOfRow" signature="moveOutOfRow(pane?: PaneTarget)">Take a pane (default: the focused one) out of the row that scrolls sideways holding it, beside the row on the side the pane is nearer on screen. Also in the pane's menu and ⌘K ("Move out of the row"). `"unavailable"` for a pane in no such row.</Member>
 <Member name="actions.closeTabs" signature={`closeTabs(pane: PaneTarget, which: "others" | "after")`}>Close the other tabs of `pane`'s group, or the tabs after it in reading order (to its right, or its left right to left). One change: `beforeClose` is asked once, listing them all, and one Undo brings them back. Refused with `"nothing-to-do"` when there are none. The tab menu's Close other tabs and Close tabs to the right.</Member>
 <Member name="actions.setPinned" signature="setPinned(pane: PaneTarget, pinned: boolean)">Pin a pane's tab, or unpin it. A pinned tab goes to the end of its group's pinned tabs, at the start of the group; unpinned, it goes to the start of the rest. Close other tabs and Close tabs to the right leave it open; Close, middle-click and ⌘W still close it. Already as asked: nothing happens, with no `pin` event and no history entry. Each change fires `pin`.</Member>
 <Member name="actions.startRename" signature="startRename(pane?: PaneTarget)">Open the rename field on `pane`'s tab, or its title when it is alone (default: the focused pane). For an app that owns its own rename key or menu item. `"unavailable"` without `createJali({ rename })`, or when `rename.can` says no.</Member>
@@ -1065,9 +1065,9 @@ What drags, keys and panes report (dividers, drops, focus keys, `useUnsaved`, `u
 `jali.page`: the curated page's actions, there (and typed) only when `createJali({ page })` was given one. `I` is the page's item type, its `firstItem`'s.
 
 <Members>
-<Member name="page.open" signature="open(options?: OpenPageOptions<I>)">Open the curated page.</Member>
-<Member name="page.leave" signature="leave()">Back to the free layout's preset. The page's mode and layout are kept. `"unavailable"` in a page-only app.</Member>
-<Member name="page.setMode" signature="setMode(mode: ViewMode)">Single view or Split view.</Member>
+<Member name="page.open" signature="open(options?: OpenPageOptions<I>)">Open the curated page. `"nothing-to-do"` when it is open already and no item or view is asked for.</Member>
+<Member name="page.leave" signature="leave()">Back to the free layout's preset. The page's mode and layout are kept. `"unavailable"` in a page-only app; `"nothing-to-do"` with no page open.</Member>
+<Member name="page.setMode" signature="setMode(mode: ViewMode)">Single view or Split view. `"nothing-to-do"` in that mode already.</Member>
 <Member name="page.showView" signature="showView(view: string)">What a click on a page tab does. It never reshapes: Single view swaps the view; Split view focuses it, chooses its tab, or puts it in place of the view you're in.</Member>
 <Member name="page.showItem" signature="showItem(item: I)">Show another item; the previous item's opened panes close.</Member>
 <Member name="page.back" signature="back()">Close every opened pane, with Undo. The views keep their sizes and what was done to them meanwhile; Undo reopens only the opened panes.</Member>
