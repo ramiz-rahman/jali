@@ -42,6 +42,7 @@ The repo is a pnpm workspace:
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `typecheck`      | The packages, the examples, the docs site and its samples, and the type tests                                                                                                               |
 | `lint`, `fmt`    | `vp lint`, and `vp fmt --check` (MDX and the generated Markdown are left as written)                                                                                                        |
+| `case`           | Every tracked path is spelt in git as on disk, and every relative import in its file's own case: names that only work where case is ignored (`tooling/case-check.mjs`)                      |
 | `unit`           | Every package's and example's unit tests                                                                                                                                                    |
 | `docs-reference` | The reference covers every export, command, key and token; the Markdown export; the tests the guides show (the testing guide's, the router adapter's, the Quickstart's walkthrough)         |
 | `docs-check`     | Every code block on the site typechecks, and every reference table matches the type it documents (`tooling/docs-check.mjs`)                                                                 |
@@ -56,6 +57,8 @@ The repo is a pnpm workspace:
 - `pnpm verify --quick` skips the browser suites and the React 18 check. Enough while you work; run the full one before a change to `packages/`, or to anything a browser suite covers, is committed.
 - `pnpm verify lint fmt` runs only the gates named.
 - The browser suites start their own servers on free ports, so `pnpm verify` runs beside your dev servers. A suite run on its own uses the port its URL variable names (`DATA_STUDIO_URL`, `DOCS_URL`, …), stops if something else holds it, and reuses your server only with `REUSE_SERVER=1`.
+
+CI (`.github/workflows/ci.yml`) runs the gates that need no browser on Linux, where case matters, on every push and pull request. It starts once the repository is on GitHub.
 
 On their own: `pnpm test`, `pnpm e2e`, `pnpm exec playwright test -c examples/<name>` or `-c apps/docs`, `pnpm typecheck`, `pnpm size`, `pnpm docs-check`, `pnpm test:react18`, `pnpm pack-check`.
 

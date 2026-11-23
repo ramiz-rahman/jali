@@ -102,6 +102,12 @@ const GATES = [
         "$1 files unformatted",
       ),
   },
+  // Names that only work on a disk that ignores case: a Linux checkout or CI would fail on them first.
+  {
+    name: "case",
+    cmd: ["node", "tooling/case-check.mjs"],
+    detail: (log) => lastMatch(log, /^case-check:/)?.replace(/^case-check: /, ""),
+  },
   {
     name: "unit",
     cmd: ["pnpm", "exec", "vp", "test", "run"],
