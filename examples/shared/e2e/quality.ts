@@ -276,7 +276,7 @@ export async function sweep(
     // machine takes more of them than a quiet one: read it again until it fits or the time is up, so a problem that
     // is only the layout on its way is not reported, and one that stays is.
     let problems: Awaited<ReturnType<typeof fitProblems>> = [];
-    for (const end = Date.now() + SETTLE_MS; ; ) {
+    for (const end = Date.now() + SETTLE_MS; ;) {
       await settle(page);
       await settle(page);
       problems = await fitProblems(page, ignore);

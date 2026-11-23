@@ -155,7 +155,10 @@ export interface KeyboardScope {
 
 /** Whether an event's target is a DOM node (a keydown on `window` is not), in the page's realm or the target window's. */
 function isNode(t: EventTarget | null, target: Window): t is Node {
-  return !!t && (t instanceof Node || t instanceof ((target as unknown as { Node?: typeof Node }).Node ?? Node));
+  return (
+    !!t &&
+    (t instanceof Node || t instanceof ((target as unknown as { Node?: typeof Node }).Node ?? Node))
+  );
 }
 
 export function installKeyboard(
