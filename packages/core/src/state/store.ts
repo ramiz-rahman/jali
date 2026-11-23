@@ -485,6 +485,8 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
   /** The state's, read when the writer writes. */
   const urlState = () => urlStateOf(state);
   const measure = url && "measure" in url ? (url as UrlSync).measure : undefined;
+  // urlSync writes only what its reader reads back, with these kinds.
+  if (url && "readWith" in url) (url as UrlSync).readWith(() => env.kinds.registry());
   const models = modelCache();
   const defer = (d: Deferred) => {
     const run = d.run;

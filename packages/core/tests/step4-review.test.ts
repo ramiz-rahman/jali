@@ -54,6 +54,26 @@ const settle = () => {
   vi.useRealTimers();
 };
 
+describe("1. start-up writes only an address the reader reads", () => {
+  it("a pane whose params its kind can't read opens, and its address isn't written", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const { jali, location } = make({
+      layout: row(
+        pane({ kind: "card", params: { id: "bad" } }, { id: "a" }),
+        pane(c(2), { id: "b" }),
+      ),
+    });
+    expect(jali.model().panes).toHaveLength(2);
+    expect(location.search()).toBe("");
+    expect(warn).toHaveBeenCalledTimes(1);
+    // Once the pane shows an object its kind reads, the address is written, and reads back.
+    expect(jali.actions.openHere("a", c(1)).ok).toBe(true);
+    const read = readSearch(location.search(), jali.env.kinds.registry());
+    expect(read && "layout" in read).toBe(true);
+    warn.mockRestore();
+  });
+});
+
 describe("2. a page link keeps each scratch pane it opened", () => {
   it("two scratch panes opened reopen as two", () => {
     const { jali, location } = make({ page });
@@ -119,9 +139,14 @@ describe("4. placing the view on screen beside itself", () => {
     jali.page!.open();
     expect(jali.get().page?.mode).toBe("single");
     const store = storeOf(jali);
-    expect(can(store, "showViewBeside", "main")).toMatchObject({ ok: false, reason: "nothing-to-do" });
+    expect(can(store, "showViewBeside", "main")).toMatchObject({
+      ok: false,
+      reason: "nothing-to-do",
+    });
     expect(store.actions.showViewBeside("main")).toMatchObject({ reason: "nothing-to-do" });
-    expect(store.actions.placeTab("main", "main", "right")).toMatchObject({ reason: "nothing-to-do" });
+    expect(store.actions.placeTab("main", "main", "right")).toMatchObject({
+      reason: "nothing-to-do",
+    });
     expect(jali.get().page?.mode).toBe("single");
   });
 });

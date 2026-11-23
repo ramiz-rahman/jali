@@ -1966,6 +1966,19 @@ review's two page findings, on branch `stabilise`.
   the commands' checks saved 1.2 KB minified in the registry, but the descriptors, `can` and the limits cost more. Not
   raised: over every core budget, as after step 3.
 
+- **Review fixes (Codex, after the step):**
+  - urlSync writes only an address its reader reads back whole with the instance's kinds (`UrlSync.readWith`): a
+    start-up layout with a param its kind can't read opens, its address left unwritten, as an oversized one is.
+  - A page link brings back each scratch pane it opened: the reader keeps repeats of a scratch kind (the registry
+    carries `scratch`), still each other object once.
+  - A view change the address holds (maximise, scroll) meets the link budget too, and is refused `"blocked"` past it.
+  - Placing a view by itself (⌥-click on the view in Single view, a drop on itself) is `"nothing-to-do"`, before any
+    mode switch.
+  - The last view on screen is refused in hideRole's check (so in Close's): menus and headers no longer offer it.
+  - The page bar's "Back to …" takes `can(store, "page.back")`, greyed out with the reason, as ⌘K.
+  - A pane named but not there is `"not-found"` before any control: the control no longer falls back to the focused
+    pane.
+
 ## 23 Nov 2026 · Stabilisation step 3, after Codex's review: what an undone close keeps
 
 Six problems Codex reproduced in step 3's undo, each fixed with its test on branch `stabilise-undo`.

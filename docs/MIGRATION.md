@@ -29,13 +29,14 @@ writes reads back whole.
 
 ## `jali/adapter`
 
-| Before                                                                                | After                                                                                                                                  |
-| ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `allows`, `notAllowed`, `dividerAllowed`, `canRename`, `checkTuck`, `checkPeekBeside` | `can(store, name, ...args)`: the step's own gate (`{ ok: true }` or its refusal), without running it                                   |
-| a step: `(x, ...args) => Outcome`; `STEPS[name]` a function or `[fn, action]`         | `Step { control?, check?, run }` (`StepArgs` unchanged); `stepOf(name)` returns `[Step, action]`; `PageEngine`'s steps are `Step`s too |
-| `CommandDef { check?, run }`                                                          | `CommandDef { step?, args?, run? }`: available exactly when `can(store, step, ...args(store))` is                                      |
-| —                                                                                     | `chooseMenuItem(store, pane, item)`: runs a menu item with the pane as it is now                                                       |
-| `UrlSync` without `measure`                                                           | `UrlSync.measure(state)`: the length of its own params for that state, as it would write them                                          |
+| Before                                                                                | After                                                                                                                                     |
+| ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `allows`, `notAllowed`, `dividerAllowed`, `canRename`, `checkTuck`, `checkPeekBeside` | `can(store, name, ...args)`: the step's own gate (`{ ok: true }` or its refusal), without running it                                      |
+| a step: `(x, ...args) => Outcome`; `STEPS[name]` a function or `[fn, action]`         | `Step { control?, check?, run }` (`StepArgs` unchanged); `stepOf(name)` returns `[Step, action]`; `PageEngine`'s steps are `Step`s too    |
+| `CommandDef { check?, run }`                                                          | `CommandDef { step?, args?, run? }`: available exactly when `can(store, step, ...args(store))` is                                         |
+| —                                                                                     | `chooseMenuItem(store, pane, item)`: runs a menu item with the pane as it is now                                                          |
+| `UrlSync` without `measure`                                                           | `UrlSync.measure(state)`: the length of its own params for that state, as it would write them                                             |
+| —                                                                                     | `UrlSync.readWith(kinds)`: the instance gives its kinds once, and the writer writes only an address its reader reads back whole with them |
 
 # Migrating to the stabilisation step 3 (23 Nov 2026): undo reverses the operation
 

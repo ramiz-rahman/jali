@@ -369,6 +369,9 @@ export interface UrlSync extends UrlWriter {
   /** How long this writer's own params would be in the address for `s`, as it writes them (its sizes setting
    *  included): the instance refuses an action past `MAX_LINK_TEXT` by it. */
   measure(s: UrlState): number;
+  /** The instance's kinds, read when it writes: an address is written only once the reader would read it back whole
+   *  with them (a param its kind can't read makes a layout link unreadable). The instance calls this once. */
+  readWith(kinds: () => KindRegistry): void;
 }
 
 export interface UrlSyncOptions {
@@ -425,14 +428,25 @@ export function createUrlSync({
     return [{ ...s, layout: split.layout }, split.sizes];
   };
   let warned = false;
+  let kindsNow: (() => KindRegistry) | undefined;
+  /** Whether the reader, with the instance's kinds, reads the address for `s` back whole: a layout link as a layout, a
+   *  page link with every pane it opens. Without the kinds (a writer no instance told them), only the limits count. */
+  const readsBack = (s: UrlState) => {
+    if (!kindsNow) return true;
+    const r = readSearch(buildSearch("", s, keys), kindsNow(), keys);
+    if (!s.page) return !!r && "layout" in r;
+    const opened = core.tree.panes(s.layout.root).filter((p) => !p.role).length;
+    return !!r && "page" in r && r.page.investigation.length === opened;
+  };
   /** The same, keeping the sizes on the device; undefined (nothing written, nothing kept) when the address would be
    *  one no instance reads back whole. It never is from an action (they are refused first): only from a start-up
-   *  layout larger than a link, which opens all the same, its address left as it was. */
+   *  layout the app gave (larger than a link, or with a param its kind can't read), which opens all the same, its
+   *  address left as it was. */
   const linked = (s: UrlState): UrlState | undefined => {
     const [out, own] = project(s);
-    if (!fitsAddress(out, keys)) {
+    if (!fitsAddress(out, keys) || !readsBack(out)) {
       if (!warned && isDev())
-        console.warn("Jali: the layout is larger than a link holds; the address is left as it was");
+        console.warn("Jali: the layout is one a link can't reopen; the address is left as it was");
       warned = true;
       return undefined;
     }
@@ -489,6 +503,7 @@ export function createUrlSync({
     },
     // The address as `write` puts it: sizes kept on the device ("local") are left out of it.
     measure: (s) => linkText(project(s)[0], keys),
+    readWith: (kinds) => void (kindsNow = kinds),
     cancel() {
       closed = true;
       clearTimeout(timer);
