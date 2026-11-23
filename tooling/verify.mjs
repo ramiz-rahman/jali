@@ -122,6 +122,15 @@ const GATES = [
   },
   { name: "agent-docs", cmd: ["node", "tooling/agent-docs.mjs", "--check"] },
   {
+    name: "consumers",
+    cmd: ["node", "tooling/consumers.mjs"],
+    detail: (log) =>
+      lastMatch(log, /^consumers: \d+ public names? without/)?.replace(
+        /^consumers: | \(of .*/g,
+        "",
+      ),
+  },
+  {
     name: "react18",
     full: true,
     cmd: ["bash", "tooling/test-react18.sh"],
