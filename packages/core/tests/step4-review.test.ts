@@ -54,6 +54,19 @@ const settle = () => {
   vi.useRealTimers();
 };
 
+describe("4. placing the view on screen beside itself", () => {
+  it("from Single view, ⌥-click on the view shown is nothing to do, and stays in Single view", () => {
+    const { jali } = make({ page, allow: { open: false } });
+    jali.page!.open();
+    expect(jali.get().page?.mode).toBe("single");
+    const store = storeOf(jali);
+    expect(can(store, "showViewBeside", "main")).toMatchObject({ ok: false, reason: "nothing-to-do" });
+    expect(store.actions.showViewBeside("main")).toMatchObject({ reason: "nothing-to-do" });
+    expect(store.actions.placeTab("main", "main", "right")).toMatchObject({ reason: "nothing-to-do" });
+    expect(jali.get().page?.mode).toBe("single");
+  });
+});
+
 describe("7. a target that isn't there", () => {
   it("is not-found, whatever the focused pane allows", () => {
     const { jali } = make({

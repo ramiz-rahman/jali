@@ -487,11 +487,15 @@ function placing(
 const viewCheck = (x: Snapshot, role: string) =>
   needPage(x) ?? (roleOf(x.env.profile!, role) ? undefined : refuse("not-found"));
 
+/** A view of this page placed by `target`: never by itself, which places nothing (and switches no mode). */
+const placeCheck = (x: Snapshot, role: string, target: NodeId | undefined) =>
+  viewCheck(x, role) ?? (role === target ? refuse("nothing-to-do") : undefined);
+
 /** Drop a view from the tabs onto a pane's edge, a side of the screen (or centre: as a tab of its group). From Single,
  *  this switches to Split view first: dragging a tab out is asking for two views at once. Room is made by sending the
  *  least recently used views back to the tabs (settleRoles), never by folding views into tab groups. */
 const placeTab: Step<[string, NodeId, Edge | "centre"]> = {
-  check: viewCheck,
+  check: (x, role, target) => placeCheck(x, role, target),
   control: (x, role, target) => placing(x, role, target),
   run: (x, role, target, zone) => place(x, role, target, zone),
 };
@@ -530,7 +534,7 @@ const besideFrom = (x: Snapshot): NodeId | undefined =>
 
 /** ⌥-click a tab: that view beside the one you're in (the same placement besidePreview shows). */
 const showViewBeside: Step<[string]> = {
-  check: viewCheck,
+  check: (x, role) => placeCheck(x, role, besideFrom(x)),
   control: (x, role) => placing(x, role, besideFrom(x)),
   run(x, role) {
     const r = x.s.page!;
