@@ -18,7 +18,7 @@ import { clone, find, newId, nodes, panes, parent, replace, unzoom } from "../tr
 import { sameSize, sizeFrom } from "../tree/size";
 import { intoStack } from "../tree/insert";
 import { sameRef } from "./ref";
-import { overlayOf, withOverlay, withTuck } from "../fit/overlay";
+import { hiddenOf, overlayOf, withOverlay, withTuck } from "../fit/overlay";
 import { fitLayout } from "../fit/refit";
 import { focus } from "./focus";
 
@@ -110,7 +110,13 @@ export function restoreClosed(
       ]) {
         // A tab joins its neighbour pane; anything else goes beside the neighbour, or the pane nearest it in there.
         let target = level.type === "stack" ? at(id(a.pane)) : (at(id(a.id)) ?? at(id(a.pane)));
-        if (!target || (level.type === "stack" && target.type !== "pane")) continue;
+        // Never beside a pane hidden since (a curated page's view, back in its tabs): it has no slot to share.
+        if (
+          !target ||
+          hiddenOf(next).includes(target.id) ||
+          (level.type === "stack" && target.type !== "pane")
+        )
+          continue;
         const group = parent(next.root, target.id);
         if (group?.type === "stack") {
           if (level.type === "stack") {

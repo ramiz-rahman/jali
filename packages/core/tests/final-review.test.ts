@@ -102,6 +102,21 @@ describe("1. a view closed with others is sent back to the page tabs, never dele
   });
 });
 
+describe("1, after: Undo never puts a pane back beside a view the page hid since", () => {
+  it("close the opened tab, then its neighbour view: Undo brings the opened pane back, the view stays hidden", () => {
+    const { jali } = split();
+    expect(jali.actions.openBeside("application", r(9)).ok).toBe(true);
+    const opened = jali.model().panes.find((p) => p.ref.params.id === 9)!.id;
+    expect(jali.actions.mergeInto("borrower", "application").ok).toBe(true);
+    expect(jali.actions.mergeInto(opened, "borrower").ok).toBe(true);
+    expect(jali.actions.close(opened).ok).toBe(true);
+    expect(jali.actions.close("borrower").ok).toBe(true);
+    expect(jali.actions.undo().ok).toBe(true);
+    expect(where(jali, opened)).not.toBe("hidden");
+    expect(where(jali, "borrower")).toBe("hidden");
+  });
+});
+
 describe("2. the last view on screen stays, whatever opened panes are beside it", () => {
   it("closing every view one by one stops at the last, and a tab click then still works", () => {
     const { jali } = split();

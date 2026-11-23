@@ -662,7 +662,7 @@ export function apply(io: ApplyIO, o: Outcome, action?: ActionName): ActionResul
     const { state, effects } = c.p;
     // Each effect may run host code (a URL writer, a focus callback) that ends the instance.
     const publish = () => io.publish(state, () => effects.forEach((e) => io.signal.aborted || e()));
-    if (state !== base || effects.length) top.input ? withInput(top.input, publish) : publish();
+    if (state !== base || effects.length) withInput(top.input ?? currentInput(), publish);
     return res.r;
   }
 }
