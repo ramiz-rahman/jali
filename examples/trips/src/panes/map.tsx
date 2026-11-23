@@ -24,8 +24,10 @@ import {
   setWorkerUrl,
 } from "maplibre-gl";
 // MapLibre runs its tile work in a Web Worker, a file of its own. Bundled, it can't find it beside itself, so the
-// bundler copies the file and gives its URL.
-import mapWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
+// bundler builds the file as a worker (`?worker&url`) and gives its URL. As a plain asset (`?url`) the dev server
+// handed WebKit the file's raw modules, which it would not start ("Worker failed to load"); built as a worker it is
+// one self-contained file in dev and in the build.
+import mapWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 import { MapTrifoldIcon, WarningCircleIcon, XIcon } from "@phosphor-icons/react";
 import type { ObjectRef } from "jali";
 import {
