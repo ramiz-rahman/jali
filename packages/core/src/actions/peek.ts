@@ -5,8 +5,13 @@ import { say } from "../state/messages";
 import { openBeside } from "./open";
 import { follow, followerOnScreen, followLater, sameRef } from "./follow";
 import { own } from "../own";
+import { notAllowed } from "./allow";
 
 export const checkPeek = ({ s }: Snapshot) => (s.view.peek ? undefined : refuse("nothing-to-do"));
+
+/** Whether the peek's Open beside can run: a peek is open, and the pane it came from allows `open`. */
+export const checkPeekBeside = (x: Snapshot) =>
+  checkPeek(x) ?? notAllowed(x, x.s.peekSource ?? x.s.view.focused, "open");
 
 /**
  * Open (or move) the peek sheet; `null` closes it. It acts for the pane it came from. When that pane's following
@@ -40,6 +45,8 @@ export function openPeekBeside(x: Snapshot): Outcome {
   const ref = x.s.view.peek,
     source = x.s.peekSource ?? x.s.view.focused;
   if (!ref || !source) return null;
+  const denied = notAllowed(x, source, "open");
+  if (denied) return denied;
   return [peek(x, null), (y: Snapshot) => openBeside(y, source, ref)];
 }
 

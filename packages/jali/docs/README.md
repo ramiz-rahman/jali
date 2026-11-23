@@ -32,7 +32,7 @@ Written from the docs site by tooling/agent-docs.mjs; don't edit these files.
 - [Unsaved work and pane state](guides/unsaved-work-and-pane-state.md): Ask before a pane's unsaved work is lost, keep what a person expects back, and add a pane's commands to ⌘K.
 - [Tabs](guides/tabs.md): Let people reorder, pin, rename and close tabs, and add your own items to a tab's menu.
 - [Rows that scroll sideways](guides/scrolling-rows.md): Keep a sequence of panes at a width you can read, a board's stages or a week of days, in a row that scrolls instead of folding.
-- [Choose what people can do with panes](guides/pane-controls.md): Turn a pane's controls on or off, close, tuck, maximise, full screen, move, resize, pin and pop out, for a kind, for every pane, or for one layout.
+- [Choose what people can do with panes](guides/pane-controls.md): Turn a pane's controls on or off, open, close, tuck, maximise, full screen, move, resize, pin and pop out, for a kind, for every pane, or for one layout.
 - [Commands and keys](guides/commands-and-keys.md): Rebind Jali's keys, share ⌘K and the keyboard with your app, let your content keep the keys it needs, and show the right shortcut.
 - [Build your own chrome](guides/custom-chrome.md): Put a top bar, a status line, the shelf and toasts around Jali's panes, inside one JaliRoot, so the panes take the room your chrome leaves.
 - [Theming](guides/theming.md): Make Jali match your app by setting a few tokens, mapping them from your Tailwind theme, or styling its parts.

@@ -1,8 +1,8 @@
 # Choose what people can do with panes
 
-Turn a pane's controls on or off, close, tuck, maximise, full screen, move, resize, pin and pop out, for a kind, for every pane, or for one layout.
+Turn a pane's controls on or off, open, close, tuck, maximise, full screen, move, resize, pin and pop out, for a kind, for every pane, or for one layout.
 
-A pane can be closed, tucked, maximised, put full screen, moved, resized and pinned, and popped out into its own window. Not every app wants every one of these everywhere. With `allow`, your app decides, for a kind of pane, for every pane, or depending on the layout:
+A pane can open others, and be closed, tucked, maximised, put full screen, moved, resized and pinned, and popped out into its own window. Not every app wants every one of these everywhere. With `allow`, your app decides, for a kind of pane, for every pane, or depending on the layout:
 
 `src/jali.tsx`
 
@@ -42,6 +42,7 @@ export const jali = createJali({
 
 | Control | What it covers |
 |---|---|
+| `open` | Opening new panes from it: a link (`openBeside`) shows its object in the peek sheet instead, and Split, New tab here, `addTab` and the peek's Open beside are refused. Showing another object in the same pane (`openHere`) isn't covered |
 | `close` | Closing the pane: its ×, a tab's ×, middle-click, Delete on a tab, ⌘K, Close other tabs (which then leaves it open) |
 | `tuck` | Tucking it into its neighbour |
 | `maximise` | Maximising it (restoring is always allowed) |
@@ -50,6 +51,18 @@ export const jali = createJali({
 | `resize` | The dividers beside it |
 | `pin` | Pinning its tab |
 | `popOut` | Popping it out into a floating window (with the `popOut()` feature) |
+
+With every control that rearranges off, people can look without changing the layout. Links open as a peek, and nothing can be closed, moved, resized or tucked:
+
+```tsx
+import { createJali } from "jali";
+
+const viewer = createJali({
+  panes,
+  layout,
+  allow: { open: false, move: false, resize: false, tuck: false, close: false },
+});
+```
 
 Folding isn't a control: it is how a layout fits the room it has, so it always happens. Renaming has its own switch: the `rename({ can, run })` feature.
 

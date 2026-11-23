@@ -2,7 +2,7 @@
  * What may happen to a pane (`allow`): the kind's, then the workspace's, and its `when`. The actions refuse, whatever
  * asks; the header, the tab's × and its menu, and ⌘K offer only what is allowed.
  */
-import { cleanup, render } from "@testing-library/react";
+import { act, cleanup, render } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, pane, row, tabs, type Allow } from "@jali/core";
 import type { Feature } from "@jali/core";
@@ -142,5 +142,40 @@ describe("allow, drawn", () => {
     );
     expect(notes.container.querySelector(".jali-tab-close")).toBeNull();
     expect(notes.container.querySelector(".jali-grip")).toBeNull();
+  });
+
+  it("draws no Open beside in the peek, nor a tab strip's +, where `open` is off", () => {
+    const launcher = definePane("new", { title: () => "New pane", Component: () => null });
+    const withLauncher = (allow?: Allow) =>
+      createJali({
+        panes: [note, board],
+        launcher,
+        layout: row(
+          pane(board(), { id: "board" }),
+          tabs(pane(note({ id: 1 }), { id: "a" }), pane(note({ id: 2 }), { id: "b" })),
+        ),
+        storage: memoryStorage(),
+        size: { width: 1200, height: 800 },
+        moveFocus: false,
+        ...(allow ? { allow } : {}),
+      });
+    const openBeside = (root: HTMLElement) =>
+      root.querySelector('[data-testid="peek"] button[title="Open beside"]');
+    const on = withLauncher();
+    const shown = render(<JaliRoot jali={on} />);
+    act(() => void on.actions.peek("a", note({ id: 3 })));
+    expect(shown.container.querySelector(".jali-tab-add")).not.toBeNull();
+    expect(openBeside(shown.container)).not.toBeNull();
+    cleanup();
+    const off = withLauncher({ open: false });
+    const hidden = render(<JaliRoot jali={off} />);
+    act(() => void off.actions.peek("a", note({ id: 3 })));
+    expect(hidden.container.querySelector('[data-testid="peek"]')).not.toBeNull();
+    expect(hidden.container.querySelector(".jali-tab-add")).toBeNull();
+    expect(openBeside(hidden.container)).toBeNull();
+    const items = tabMenuOf(storeOf(off), "a")
+      .flat()
+      .map((i) => i.id);
+    expect(items).not.toContain("split-right");
   });
 });

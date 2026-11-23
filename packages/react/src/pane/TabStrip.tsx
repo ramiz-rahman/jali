@@ -3,7 +3,7 @@ import type { NodeId } from "@jali/core";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useJaliIcons } from "../icons/context";
 import type { Frame, Tab } from "@jali/core/adapter";
-import { scrolledFromStart, observeResize } from "@jali/core/adapter";
+import { allows, scrolledFromStart, observeResize } from "@jali/core/adapter";
 import { useStore, useUi } from "../state/react";
 import { useCanRename } from "./rename";
 import { TabIndicator } from "./TabIndicator";
@@ -183,8 +183,8 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
           onChoose={(id) => actions.setActiveTab(group.id, id)}
         />
       ) : null}
-      {/* No launcher kind, no "+": there is nothing to open in the new tab. */}
-      {page || !env.launcher ? null : (
+      {/* No launcher kind, no "+": there is nothing to open in the new tab. Nor where the tab doesn't allow `open`. */}
+      {page || !env.launcher || !allows(store.snapshot(), group.active, "open") ? null : (
         <button
           type="button"
           className="jali-tab-add"

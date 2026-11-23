@@ -7,6 +7,8 @@ import type { Model } from "../state/model";
 import { say } from "../state/messages";
 import { follow, followLater, sameRef, setKept } from "./follow";
 import { own } from "../own";
+import { notAllowed } from "./allow";
+import { peekSheet } from "./peek";
 
 /** What a new split or a stack's "+" shows until the person chooses an object: the instance's launcher. */
 const launcherOf = (x: Snapshot): ObjectRef | undefined =>
@@ -57,7 +59,8 @@ export interface OpenBesideOptions {
  * comparison (layout/ops/follow.ts). The selected item is the selected object itself or, for another kind, what that
  * kind's `follow` shows for it (a chart for a watchlist's selected quote). Any other link opens a plain linked pane.
  * `edge` only says where a new pane goes: a link that replaces the source's earlier one, or shows a pane already open,
- * leaves that pane where it is.
+ * leaves that pane where it is. Where `allow` turns `open` off for the source, the link opens in the peek sheet instead,
+ * in the free layout and on a curated page alike.
  */
 export function openBeside(
   x: Snapshot,
@@ -66,6 +69,7 @@ export function openBeside(
   opts: OpenBesideOptions = {},
 ): Outcome {
   const { s, m, ctx } = x;
+  if (notAllowed(x, source, "open")) return peekSheet(x, ref, source);
   // `edge` is a screen side, as for move and split; the tree's own sides swap right to left. Default: after the source.
   const edge = opts.edge ? treeSide(opts.edge, ctx.dir) : "right";
   // A curated page decides how its links open (actions/page.ts `opening`): a peek, the pane already showing the
@@ -141,11 +145,11 @@ export function openBeside(
 /**
  * Whether Split can act on pane `id` (default: the focused one): what `split` refuses, and what every surface that
  * offers it (the tab menu, ⌘K, keys) asks. It needs a launcher to put beside the pane, and the free layout: a curated
- * page's layout is its design, and links open panes there.
+ * page's layout is its design, and links open panes there. The pane must allow `open`.
  */
 export function checkSplit(x: Snapshot, id = x.s.view.focused): RefusalStep | undefined {
   if (!x.env.launcher || x.s.page) return refuse("unavailable");
-  return id && x.m.pane(id) ? undefined : refuse("not-found");
+  return id && x.m.pane(id) ? notAllowed(x, id, "open") : refuse("not-found");
 }
 
 /** Split opens a launcher beside the pane, not a copy of it; focus moves in, because the person is about to choose. */
@@ -241,6 +245,8 @@ export function newTab(x: Snapshot, id = x.s.view.focused): Outcome {
   const launcher = launcherOf(x);
   if (!p) return refuse("not-found");
   if (!launcher) return refuse("unavailable");
+  const denied = notAllowed(x, p.id, "open");
+  if (denied) return denied;
   const r = core.addTab(s.layout, unzoomed(s.view), p.id, launcher, ctx);
   return {
     op: "newTab",
@@ -257,6 +263,8 @@ export function addTab(x: Snapshot, id: NodeId, ref: ObjectRef): Outcome {
   if (s.page?.mode === "single") return refuse("single-view", say(m).singleNoLayout);
   if (!m.pane(id)) return refuse("not-found");
   if (!Object.hasOwn(ctx.fit.kinds, ref.kind)) return refuse("invalid");
+  const denied = notAllowed(x, id, "open");
+  if (denied) return denied;
   const dup = openPaneFor(m, ref);
   if (dup)
     return {

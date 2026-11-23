@@ -117,6 +117,7 @@ export {
 } from "./actions";
 export { PANE_CONTROLS, allows, dividerAllowed, notAllowed } from "./actions/allow";
 export { openPaneFor } from "./actions/open";
+export { checkPeekBeside } from "./actions/peek";
 export { paneFor } from "./actions/public";
 export { restoreLayout, arrive } from "./actions/layout";
 export { mergeTargets, type MergeTarget } from "./actions/tabs";

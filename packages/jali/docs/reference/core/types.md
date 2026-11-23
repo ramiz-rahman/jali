@@ -794,10 +794,10 @@ How a curated page is shown: one view at a time (Single) or side by side (Split 
 *type*, from `jali`
 
 ```ts
-type PaneControl = "close" | "tuck" | "maximise" | "fullScreen" | "move" | "resize" | "pin" | "popOut"
+type PaneControl = "open" | "close" | "tuck" | "maximise" | "fullScreen" | "move" | "resize" | "pin" | "popOut"
 ```
 
-Something that can happen to a pane. `move` covers dragging it, the move keys, swapping, merging into tabs, pulling a tab out and reordering tabs; `resize` the dividers beside it. Restoring a maximised pane and leaving full screen are always allowed.
+Something that can happen to a pane. `open` covers opening new panes from it (off, a link opens in the peek sheet instead); `move` covers dragging it, the move keys, swapping, merging into tabs, pulling a tab out and reordering tabs; `resize` the dividers beside it. Restoring a maximised pane and leaving full screen are always allowed.
 
 ### PaneAllow
 
@@ -1725,7 +1725,7 @@ A pane that is not there gives `reason: "not-found"`. What a refusal reads out t
 
 - **`actions.toggleZoom`**, `toggleZoom(pane?: PaneTarget)`: Maximise or restore. Refused with `"single-view"` in a curated page's Single view, and with `"blocked"` for a pane the layout hides (it has no place on screen to fill); nothing with one pane.
 
-- **`actions.openBeside`**, `openBeside(pane: PaneTarget, ref: ObjectRef, options?: OpenBesideOptions)`: Open `ref` beside `pane`; focus stays in `pane`. `{ edge: "bottom" }` opens it below `pane` (see `OpenBesideOptions`); by default it opens after `pane`. `pane`'s selected item opens a following detail (kept if one already follows). A link never copies a pane of its own chain: when `ref`'s object is `pane` itself, a pane `pane` was opened from (up the chain), or one it opened, that pane is shown instead (`pane` in the result), focus stays, and it is announced "Already open". Outside a curated page, another chain may still show the same object. In a curated page: a peek in Single view or for a limited viewer, and an object already on the page is focused instead. `pane` in the result is the pane that shows `ref`.
+- **`actions.openBeside`**, `openBeside(pane: PaneTarget, ref: ObjectRef, options?: OpenBesideOptions)`: Open `ref` beside `pane`; focus stays in `pane`. `{ edge: "bottom" }` opens it below `pane` (see `OpenBesideOptions`); by default it opens after `pane`. `pane`'s selected item opens a following detail (kept if one already follows). A link never copies a pane of its own chain: when `ref`'s object is `pane` itself, a pane `pane` was opened from (up the chain), or one it opened, that pane is shown instead (`pane` in the result), focus stays, and it is announced "Already open". Outside a curated page, another chain may still show the same object. In a curated page: a peek in Single view, and an object already on the page is focused instead. `pane` in the result is the pane that shows `ref`. Where `allow` turns `open` off for `pane` (in the free layout or on a curated page), no pane opens: `ref` shows in the peek sheet instead, and the result is what `peek` returns.
 
 - **`actions.openHere`**, `openHere(pane: PaneTarget, ref: ObjectRef)`: Show `ref` in `pane`. If it is open elsewhere, focus that pane (and close `pane` when it is a launcher).
 
@@ -1737,11 +1737,11 @@ A pane that is not there gives `reason: "not-found"`. What a refusal reads out t
 
 - **`actions.setKept`**, `setKept(pane: PaneTarget, kept: boolean)`: Keep a linked pane on what it shows, or let it go. A kept follower stops following its list; a kept plain link is no longer replaced by the next link from its source, which opens beside it instead. Let go, a detail of a list (its source reports a selection) follows the selection again and catches up; a plain link goes back to being replaced. `"nothing-to-do"` for a pane with no link.
 
-- **`actions.split`**, `split(pane?: PaneTarget, direction?: "right" | "bottom")`: Open the launcher beside `pane` and focus it. Without `direction`: right of a wide pane, below a tall one. `"unavailable"` without a launcher, or on a curated page (its layout is its design; links open panes there).
+- **`actions.split`**, `split(pane?: PaneTarget, direction?: "right" | "bottom")`: Open the launcher beside `pane` and focus it. Without `direction`: right of a wide pane, below a tall one. `"unavailable"` without a launcher, or on a curated page (its layout is its design; links open panes there). `"not-allowed"` where `allow` turns `open` off for `pane`.
 
-- **`actions.newTab`**, `newTab(pane?: PaneTarget)`: The launcher as a new tab of the pane's group. `"unavailable"` without a launcher.
+- **`actions.newTab`**, `newTab(pane?: PaneTarget)`: The launcher as a new tab of the pane's group. `"unavailable"` without a launcher, `"not-allowed"` where `allow` turns `open` off for the pane.
 
-- **`actions.addTab`**, `addTab(pane: PaneTarget, ref: ObjectRef)`: Show `ref` as a new tab of `pane`'s group (or a new group), and focus it. It is one step: one entry in the history, and the tab takes `pane`'s slot, so nothing else folds or moves. Use it rather than `openBeside` then `mergeInto`, which is two entries and can fold other panes in between. If `ref` is already open, that pane is shown instead. `"invalid"` for a kind the instance doesn't have, as for every action that takes a ref.
+- **`actions.addTab`**, `addTab(pane: PaneTarget, ref: ObjectRef)`: Show `ref` as a new tab of `pane`'s group (or a new group), and focus it. It is one step: one entry in the history, and the tab takes `pane`'s slot, so nothing else folds or moves. Use it rather than `openBeside` then `mergeInto`, which is two entries and can fold other panes in between. If `ref` is already open, that pane is shown instead. `"invalid"` for a kind the instance doesn't have, as for every action that takes a ref. `"not-allowed"` where `allow` turns `open` off for `pane`.
 
 - **`actions.close`**, `close(pane?: PaneTarget)`: Close a pane, with an Undo toast. The last pane stays (`"last-pane"`). A curated page's view goes back to the tabs.
 

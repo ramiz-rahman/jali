@@ -13,8 +13,10 @@ import { refuse, type RefusalStep, type Snapshot } from "../state/apply";
 import { say } from "../state/messages";
 
 /** Things that can happen to a pane. `move` covers dragging it, the move keys, merging into tabs, pulling a tab out
- *  and reordering tabs; `resize` the dividers beside it. */
+ *  and reordering tabs; `resize` the dividers beside it; `open` opening new panes from it (a link opens in the peek
+ *  sheet instead, and Split, New tab and Open beside are refused). */
 export type PaneControl =
+  | "open"
   | "close"
   | "tuck"
   | "maximise"
@@ -25,6 +27,7 @@ export type PaneControl =
   | "popOut";
 
 export const PANE_CONTROLS: readonly PaneControl[] = [
+  "open",
   "close",
   "tuck",
   "maximise",

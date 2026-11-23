@@ -38,18 +38,20 @@ const announcements = {
   fullScreen: (pane: string) => `${pane} full screen · Escape to exit`,
   /** An action the app doesn't allow for this pane (`allow`). */
   notAllowed: (action: string, pane: string) =>
-    `${pane} can't be ${
-      {
-        close: "closed",
-        tuck: "tucked",
-        maximise: "maximised",
-        fullScreen: "shown full screen",
-        move: "moved",
-        resize: "resized",
-        pin: "pinned",
-        popOut: "popped out",
-      }[action] ?? "changed"
-    } here`,
+    action === "open"
+      ? `Panes can't be opened from ${pane} here`
+      : `${pane} can't be ${
+          {
+            close: "closed",
+            tuck: "tucked",
+            maximise: "maximised",
+            fullScreen: "shown full screen",
+            move: "moved",
+            resize: "resized",
+            pin: "pinned",
+            popOut: "popped out",
+          }[action] ?? "changed"
+        } here`,
   fullScreenOff: (pane: string) => `${pane} left full screen`,
   restored: (pane: string) => `${pane} restored`,
   noFocus: "No pane focused",

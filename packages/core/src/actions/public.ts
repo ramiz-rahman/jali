@@ -51,7 +51,9 @@ export interface JaliActions<R extends ObjectRef = ObjectRef> {
 
   // ---------- open ----------
   /** Open `ref` beside `pane`. Focus stays in `pane`. If `ref` is already open, that pane is shown instead.
-   *  `edge`: the side of `pane` it opens on, as on screen (`"bottom"`: below it). Default: after `pane`. */
+   *  `edge`: the side of `pane` it opens on, as on screen (`"bottom"`: below it). Default: after `pane`. Where `allow`
+   *  turns `open` off for `pane`, no pane opens: `ref` shows in the peek sheet instead, and it returns what `peek`
+   *  returns. */
   openBeside(pane: PaneTarget<R>, ref: R, options?: OpenBesideOptions): ActionResult;
   /** Show `ref` in `pane`, in place. If `ref` is open elsewhere, that pane is focused instead. */
   openHere(pane: PaneTarget<R>, ref: R): ActionResult;
@@ -64,11 +66,13 @@ export interface JaliActions<R extends ObjectRef = ObjectRef> {
   /** Keep a linked detail on what it shows (`true`), or make it follow its list again (`false`). */
   setKept(pane: PaneTarget<R>, kept: boolean): ActionResult;
   /** A new pane beside `pane` (default: the focused one) with the launcher in it. `direction` default: right for a
-   *  wide pane, below for a tall one. `"unavailable"` without a launcher, or on a curated page. */
+   *  wide pane, below for a tall one. `"unavailable"` without a launcher, or on a curated page; `"not-allowed"` where
+   *  `allow` turns `open` off for `pane`. */
   split(pane?: PaneTarget<R>, direction?: "right" | "bottom"): ActionResult;
-  /** The launcher as a new tab of `pane` (default: the focused one). */
+  /** The launcher as a new tab of `pane` (default: the focused one). `"not-allowed"` where `open` is off for it. */
   newTab(pane?: PaneTarget<R>): ActionResult;
-  /** `ref` as a new tab of `pane`'s tabs, shown and focused. If `ref` is already open, that pane is shown instead. */
+  /** `ref` as a new tab of `pane`'s tabs, shown and focused. If `ref` is already open, that pane is shown instead.
+   *  `"not-allowed"` where `allow` turns `open` off for `pane`. */
   addTab(pane: PaneTarget<R>, ref: R): ActionResult;
 
   // ---------- close ----------

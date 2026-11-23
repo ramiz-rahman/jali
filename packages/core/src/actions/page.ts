@@ -467,6 +467,9 @@ export function placeTab(
   if (!p || !r || !roleOf(p, role)) return null;
   const place = (y: Snapshot): Outcome => {
     if (role === target || !y.m.pane(target)) return openTab(y, role);
+    // A view off screen comes in as a new pane: the pane it goes beside must allow `open`.
+    const denied = (y.m.off.includes(role) || !y.m.pane(role)) && notAllowed(y, target, "open");
+    if (denied) return denied;
     const d = placeRole(y.s.layout, y.s.view, role, target, treeSide(zone, y.ctx.dir), y.ctx);
     if (!d) return openTab(y, role);
     const said =

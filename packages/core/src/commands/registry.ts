@@ -11,7 +11,7 @@ import { checkCloseOthers, checkUndo } from "../actions/close";
 import { changeSettings } from "../actions/layout";
 import { checkFullScreen, checkZoom } from "../actions/focus";
 import { checkSplit } from "../actions/open";
-import { checkPeek } from "../actions/peek";
+import { checkPeek, checkPeekBeside } from "../actions/peek";
 import { checkPutBack, checkTuck } from "../actions/tuck";
 import { checkMerge, checkMoveTab, checkUnmerge } from "../actions/tabs";
 import { checkRename } from "../actions/rename";
@@ -281,7 +281,7 @@ function buildCommands(env: Env): CommandDef[] {
       id: "stack.new-tab",
       title: t.newTab,
       group: g.tabs,
-      check: needLauncher,
+      check: also(needLauncher, "open"),
       run: (u) => u.actions.newTab(),
     },
 
@@ -320,7 +320,7 @@ function buildCommands(env: Env): CommandDef[] {
       id: "peek.open_beside",
       title: t.peekOpenBeside,
       group: g.peek,
-      check: checkPeek,
+      check: checkPeekBeside,
       run: (u) => u.actions.openPeekBeside(),
     },
 

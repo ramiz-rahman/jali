@@ -2,7 +2,12 @@ import { own } from "@jali/core/adapter";
 import type { NodeId, ObjectRef, PaneNode } from "@jali/core";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useJaliIcons } from "../icons/context";
-import { sameRef, type PaneReportPatch, type Presentation } from "@jali/core/adapter";
+import {
+  checkPeekBeside,
+  sameRef,
+  type PaneReportPatch,
+  type Presentation,
+} from "@jali/core/adapter";
 import { KindIcon } from "../pane/icons";
 import { PaneBody, peekHost } from "../pane/PaneBody";
 import { UnsavedMark } from "../pane/Unsaved";
@@ -40,8 +45,9 @@ export function Peek({ presentation }: { presentation: Presentation }) {
   const ref = useUi((s) => s.view.peek);
   const areaW = useUi((s) => s.area.width);
   const page = useUi((s) => s.page);
-  const linkMode = useUi((s) => s.linkMode);
-  const canPin = !page || (linkMode === "open" && page.mode === "split");
+  // Re-rendered when the peek moves to another pane's object, so the answer is the current source's.
+  useUi((s) => s.peekSource);
+  const canPin = (!page || page.mode === "split") && !checkPeekBeside(store.snapshot());
   // The sheet's own content may name its object (useTitle), for this object only: a new object starts unnamed.
   const shows = useShown(ref);
   const [ownTitle, setOwnTitle] = useState<{ shows: number; title: string | null }>();
@@ -125,7 +131,7 @@ export function Peek({ presentation }: { presentation: Presentation }) {
           <span className="jali-peek-label">{t.badge}</span>
         </div>
         <div className="jali-pane-actions">
-          {/* A role that only peeks can't keep it, and a curated page never replaces its arrangement. */}
+          {/* Not where the pane it came from doesn't allow `open`, nor in a curated page's Single view. */}
           {canPin ? (
             <button
               type="button"
