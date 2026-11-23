@@ -2245,3 +2245,40 @@ its budget since step 3; a budget everything is over guards nothing.
   | react-resizable-panels | 4.21.0  | 14.6        | 0.0  | 14.6          |
 
 - **Next:** the next round sets a hard size target from these numbers, with these budgets as its ceiling.
+
+## 23 Nov 2026 · Stabilisation: the final review's findings
+
+The round's final review, by Codex and by Opus, read `stabilise` at 65043990. Each finding was reproduced by a test that
+follows the action to its next consequence (packages/core/tests/final-review.test.ts unless named), then fixed.
+
+- **One close planner on a curated page** (Codex, P1 ×2). Close other tabs closed views for good (a view merged into
+  another's tabs was gone, and `page.showView` then reported success focusing nothing); and hiding a view counted
+  opened panes as on screen, so every view could be closed. Every close on a page (`close`, Close other tabs, Back)
+  now goes through the page engine's `closing`: views are hidden through the page's rules, never closed; other panes
+  close in one change with one undo entry; one view always stays on screen; Single view takes none out. Views are
+  hidden before the rest close, and Undo passes over a neighbour hidden since (found while fixing this), so a pane is
+  never put back beside a hidden view. A tab click never succeeds
+  without doing something: a view the layout doesn't hold is `not-found`, no slot is `blocked`. The engine's
+  `hideRole` step goes (it was only `close`'s); allow-open's test page now holds every view in its design.
+- **A focus queued for the next frame ends with its instance** (Codex, P1): `focusPane` takes the lifetime's signal
+  and checks it in the frame, so a replacement with the same id keeps the host's focus.
+- **A page link keeps its zoom** (Codex, P1): the reader passes it on and the page keeps it once its layout is built,
+  for a pane that layout shows (`zoomable`, shared with the layout link's check). The fuzz invariant still covers
+  layout links only: covering pages needs a page in its kinds and steps, more than a fix round should add.
+- **New tab here in Single view is refused** (Codex, P1), by the check `addTab` shares.
+- **Undo reserves every node's id** (Codex, P2): a restored pane never takes a container's id.
+- **A Discard answer keeps the asker's input** (Codex, P2): the question stores it, and the answer's commit is
+  published under it, as a host's held yes was already.
+- **Fuzz runs as six tests of fifty seeds** (Opus, P1): the same seeds and checks, each test inside its own limit.
+- **A tab removes only the pane-state records it wrote** (Opus, P1), still as it wrote them (`at` and contents: `at`
+  alone is no revision). Records adopted from storage or written over by another tab stay.
+- **Menus set what they showed** (Opus, P2): Maximise and Full screen change nothing once that is true already.
+- **A close the host's `beforeClose` made itself is done** (Opus, P2): a retry that finds nothing left to do, with
+  every pane the host let go already gone, returns ok instead of `not-found`.
+- **Reads by pane id never reach `Object.prototype`** (Opus, P2): stacked view's pair, the reports, undo's sizes.
+- **Header controls are chosen as a title is** (Opus, P2): each `useHeaderActions` call is named by render order, so
+  of calls mounted together the innermost shows; after that the latest mounted. The reference says so.
+- **Code quality** (Opus, P2): an unknown step name is refused `invalid`; undo puts a tuck back through put back's
+  gate; restore's side effects are plain statements; the store's stale comments are fixed.
+- **Size** (gzipped KB, before → after): minimal core 60.7 → 61.0, full 67.1 → 67.4 and React 30.3 → 30.4, `+page`
+  62.6 → 63.0, headless 53.0 → 53.2. Every scenario stays inside the budgets set at the end of the round.
