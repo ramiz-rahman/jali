@@ -1,0 +1,125 @@
+/**
+ * History writes (docs/reviews/2026-11-23/PLAN.md, step 2). One history decision per action, written once after it
+ * commits, from the final state; a held action writes nothing until it commits. Nothing is written while a gesture
+ * holds the instance; once the last one ends, one write. Replaces are at most one per 250 ms, the latest winning; a
+ * push writes at once, after the replace still waiting. A write the browser refuses is caught: the address lags, the
+ * action still happens.
+ *
+ * Findings URL-1 (peek, Open beside, Back), URL-2 (a broken link's fallback wrote before its approval) and SAFARI-3 (a
+ * long drag made more than 100 history writes in 10 s, and Safari threw mid-commit).
+ */
+import { afterEach, describe, expect, it, vi } from "vite-plus/test";
+import {
+  createJali,
+  memoryStorage,
+  pane,
+  row,
+  type JaliOptions,
+  type LocationPort,
+} from "@jali/core";
+import { storeOf } from "@jali/core/adapter";
+import { urlSync } from "../src/features/url-sync";
+
+afterEach(() => vi.useRealTimers());
+
+/** An address with Back, that notes each history write. */
+function history(initial = "") {
+  const entries = [initial];
+  let at = 0;
+  const fns = new Set<() => void>();
+  const writes: string[] = [];
+  const port: LocationPort & {
+    back(): void;
+    visit(search: string): void;
+    entries: () => string[];
+  } = {
+    search: () => entries[at]!,
+    href: () => `memory:${entries[at]!}`,
+    navigate(search, mode) {
+      writes.push(mode);
+      if (mode === "push") {
+        entries.splice(at + 1, Infinity, search);
+        at++;
+      } else entries[at] = search;
+    },
+    subscribe(fn) {
+      fns.add(fn);
+      return () => fns.delete(fn);
+    },
+    back() {
+      at--;
+      for (const fn of fns) fn();
+    },
+    /** Navigation the instance did not make (a router link): a new entry, and subscribers hear it. */
+    visit(search) {
+      entries.splice(at + 1, Infinity, search);
+      at++;
+      for (const fn of fns) fn();
+    },
+    entries: () => entries.slice(0, at + 1),
+  };
+  return { port, writes };
+}
+
+const list = { kind: "list", title: "List", width: { min: 300 } };
+const card = { kind: "card", title: "Card", params: { id: Number }, width: { min: 300 } };
+const c = (id: number) => ({ kind: "card", params: { id } });
+const make = (location: LocationPort, o: Partial<JaliOptions> = {}) => {
+  const jali = createJali({
+    panes: [list, card],
+    layout: row(pane({ kind: "list", params: {} }, { id: "a" })),
+    features: [urlSync({ location })],
+    storage: memoryStorage(),
+    size: { width: 1600, height: 800 },
+    moveFocus: false,
+    ...o,
+  });
+  jali.start();
+  return jali;
+};
+
+describe("one history decision per action", () => {
+  it("peek, Open beside, then Back returns to the layout and address from before the peek (URL-1)", () => {
+    const { port } = history();
+    const jali = make(port);
+    const before = port.search();
+    jali.actions.peek("a", c(2));
+    storeOf(jali).actions.openPeekBeside();
+    expect(jali.model().panes).toHaveLength(2);
+    expect(jali.get().view.peek).toBeUndefined();
+    port.back();
+    expect(port.search()).toBe(before);
+    expect(jali.model().panes.map((p) => p.id)).toEqual(["a"]);
+    expect(jali.get().view.peek).toBeUndefined();
+  });
+
+  it("a broken link's fallback held for the host writes nothing until it is allowed, then once (URL-2)", async () => {
+    vi.useFakeTimers();
+    const { port, writes } = history();
+    let answer!: (yes: boolean) => void;
+    const two = () => row(pane(c(1), { id: "x" }), pane(c(2), { id: "y" }));
+    const jali = make(port, {
+      presets: [{ id: "two", label: "Two", layout: two }],
+      layout: two(),
+      beforeClose: () => new Promise<boolean>((r) => (answer = r)),
+    });
+    jali.actions.openBeside("x", c(3));
+    vi.advanceTimersByTime(1000);
+    writes.length = 0;
+    const toasts = vi.fn();
+    jali.on("toast", toasts);
+    // A link that can't be read arrives (a router link, Back): the preset opens instead, which would close the pane
+    // opened since; the host holds it.
+    port.visit("?l=not-a-layout&preset=two");
+    vi.advanceTimersByTime(1000);
+    expect(writes).toEqual([]);
+    expect(toasts).not.toHaveBeenCalled();
+    expect(jali.model().panes).toHaveLength(3);
+    answer(true);
+    await vi.runAllTimersAsync();
+    expect(jali.model().panes.map((p) => p.id)).toEqual(["x", "y"]);
+    expect(writes).toEqual(["replace"]);
+    expect(port.search()).not.toContain("not-a-layout");
+    expect(toasts).toHaveBeenCalledTimes(1);
+  });
+});

@@ -63,6 +63,9 @@ import { developmentChecks, firstLayout, freezeTree, initialState } from "./init
 
 declare const process: { env: { NODE_ENV?: string } };
 
+const RANK: Record<HistoryMode, number> = { none: 0, debounce: 1, replace: 2, push: 3 };
+/** Of two history modes, the one that does more: push > replace > debounce > none. */
+const stronger = (a: HistoryMode, b: HistoryMode) => (RANK[b] > RANK[a] ? b : a);
 import { startUi } from "../boot";
 import { createKeymap, PALETTE_ID, type Keymap, type KeyboardOptions } from "../commands/keymap";
 import type { Command } from "../commands/registry";
@@ -429,7 +432,13 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
   // ends, whatever changed it.
   const events = createEvents(
     () => state,
-    () => settleOnePane(),
+    () => {
+      settleOnePane();
+      // One history decision per batch, written once, from the state it ends with.
+      const mode = batchMode;
+      batchMode = "none";
+      submitUrl(mode);
+    },
   );
   const batch = events.batch;
   const offKinds = env.kinds.onChange(() =>
@@ -442,6 +451,11 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
   // The instance's lifetime (state/lifetime.ts): `destroy()` ends it, and whatever still waits on it (a host's
   // answer, a deferred step, a drag in progress) ends with it.
   const life = createLifetime();
+  /** What the batch running asked of the address: the strongest wins. */
+  let batchMode: HistoryMode = "none";
+  const submitUrl = (mode: HistoryMode) => {
+    if (mode !== "none" && url && !life.ended()) url.write(urlState, mode);
+  };
   /** The share of the state an address holds, as a link carries it: without params only the app sets (`appOnly`),
    *  and without the peek. Read when the writer writes. */
   const urlState = (): UrlState => {
@@ -620,7 +634,9 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
         },
       });
     },
-    writeUrl: (mode) => life.ended() || url?.write(urlState, mode),
+    // Inside a batch, kept for its end: an action's parts, its refit and one pane at a time make one decision.
+    writeUrl: (mode) =>
+      events.batchStart() ? (batchMode = stronger(batchMode, mode)) : submitUrl(mode),
     toast: events.toast,
     run: (name, ...args) => {
       const [step, as] = stepOf(name);

@@ -1312,7 +1312,7 @@ A toast for the host to render (`jali.on("toast")`, `useJaliEvent("toast")`). `u
 type HistoryMode = "push" | "replace" | "debounce" | "none"
 ```
 
-How a change reaches the address: a new entry, in place, in place 120 ms after the last call, or not at all.
+How a change reaches the address: a new entry, in place, in place 120 ms after the last call, or not at all. An action's parts make one write, the strongest of their modes (push, then replace, then debounce).
 
 ### Settings
 
