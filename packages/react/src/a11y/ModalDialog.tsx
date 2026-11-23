@@ -1,5 +1,5 @@
 import { useEffect, useRef, type HTMLAttributes, type RefObject } from "react";
-import { cssString } from "@jali/core/adapter";
+import { cssString, lastPressedControl } from "@jali/core/adapter";
 import { useStore } from "../state/react";
 
 const TABBABLE =
@@ -72,8 +72,14 @@ export function ModalDialog({
 }: ModalDialogProps) {
   const store = useStore();
   const ref = useRef<HTMLDivElement>(null);
-  // Where focus was as the dialog opened: read while rendering, before anything moves it.
-  const back = useRef(typeof document === "undefined" ? null : document.activeElement);
+  // Where focus was as the dialog opened: read while rendering, before anything moves it. Safari doesn't focus a button
+  // it is clicked, so focus is on the page or on what had it before: the control last pressed (and no key since) is what
+  // opened it, as it is in a browser that does focus it.
+  const back = useRef(
+    typeof document === "undefined"
+      ? null
+      : (lastPressedControl(document) ?? document.activeElement),
+  );
   useEffect(() => {
     const el = ref.current!;
     if (store.focusHeld) return undefined;
@@ -89,8 +95,35 @@ export function ModalDialog({
       store.dom.root() as Element | null,
       el.ownerDocument.getElementById(overlaysDomId(store.dom.id)),
     );
+    // Focus never leaves the dialog under Tab. The keydown handler below wraps at the ends, but where the browser's Tab
+    // skips buttons (Safari's default), the last stop it would wrap from is one Tab never reaches, so Tab would go on
+    // out. Whenever focus leaves while Tab is being pressed, it comes back in at the other end. The browser still
+    // decides where Tab goes inside; nothing here moves it.
+    let shift: boolean | undefined;
+    const doc = el.ownerDocument;
+    const note = (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return;
+      shift = e.shiftKey;
+      setTimeout(() => (shift = undefined));
+    };
+    const keep = (to: EventTarget | null) => {
+      if (shift === undefined || (to instanceof Node && el.contains(to))) return;
+      const back = shift;
+      queueMicrotask(() => {
+        if (el.contains(doc.activeElement)) return;
+        const stops = tabStops(el);
+        (back ? stops.at(-1) : stops[0])?.focus({ preventScroll: true });
+      });
+    };
+    const out = (e: FocusEvent) => keep(e.type === "focusin" ? e.target : e.relatedTarget);
+    doc.addEventListener("keydown", note, true);
+    el.addEventListener("focusout", out);
+    doc.addEventListener("focusin", out);
     const was = back.current as HTMLElement | null;
     return () => {
+      doc.removeEventListener("keydown", note, true);
+      el.removeEventListener("focusout", out);
+      doc.removeEventListener("focusin", out);
       undo();
       // Back where it was, unless the change the dialog made moved focus on purpose (or removed where it was).
       const now = document.activeElement;

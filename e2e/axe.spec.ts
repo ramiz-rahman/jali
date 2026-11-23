@@ -3,7 +3,7 @@
  * Scoped to the workspace root and its dialog layer, so the app's own panes and chrome are not what is judged.
  */
 import AxeBuilder from "@axe-core/playwright";
-import type { Page } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
 import { test, expect, review } from "./fixtures/app";
 
 /** What Jali renders: the panes (or a curated page's tabs and panes), the shelf and the dialog layer. The app's top bar
@@ -32,6 +32,45 @@ async function axe(page: Page) {
     impact: v.impact,
     nodes: v.nodes.map((n) => n.target.join(" ")).slice(0, 4),
   }));
+}
+
+/**
+ * Focus never leaves an open dialog. Chrome's Tab wraps inside it. Safari's Tab (WebKit's default) skips buttons and
+ * links, so Jali's guard has to send focus back in whenever it would leave: Tab and Shift+Tab never leave, and
+ * Option+Tab, which does reach buttons, reaches every one of the dialog's.
+ */
+async function focusStaysIn(page: Page, dialog: Locator, webkit: boolean, tabs: number) {
+  const inside = () => dialog.evaluate((d) => d.contains(document.activeElement));
+  const name = () =>
+    page.evaluate(() => {
+      const el = document.activeElement as HTMLElement;
+      return el?.tagName === "BUTTON"
+        ? (el.getAttribute("aria-label") ?? el.textContent!.trim())
+        : null;
+    });
+  for (let n = 0; n < tabs; n++) {
+    await page.keyboard.press(n % 3 ? "Tab" : "Shift+Tab");
+    // The guard puts focus back as the Tab lands: allow the task it runs in.
+    await expect.poll(inside).toBe(true);
+  }
+  if (!webkit) return;
+  const buttons = await dialog.evaluate((d) =>
+    [...d.querySelectorAll("button:not(:disabled)")].map(
+      (b) => b.getAttribute("aria-label") ?? b.textContent!.trim(),
+    ),
+  );
+  const reached = new Set<string>();
+  for (let n = 0; n < buttons.length * 3 + 6; n++) {
+    await page.keyboard.press("Alt+Tab");
+    await expect.poll(inside).toBe(true);
+    const at = await name();
+    if (at) reached.add(at);
+  }
+  expect([...reached].sort()).toEqual([...new Set(buttons)].sort());
+  for (let n = 0; n < buttons.length * 3 + 6; n++) {
+    await page.keyboard.press("Alt+Shift+Tab");
+    await expect.poll(inside).toBe(true);
+  }
 }
 
 test.describe("axe", () => {
@@ -84,18 +123,17 @@ test.describe("axe", () => {
   test("Settings: Tab stays inside, and Esc gives focus back to what opened it", async ({
     app,
     page,
+    browserName,
   }) => {
     await app.open();
     const opener = page.getByRole("button", { name: "Settings" });
+    // The host's own Settings button opens it: Safari gives that button no focus on a click, so what Esc returns focus
+    // to is the element the press landed on.
     await opener.click();
     const dialog = page.getByRole("dialog", { name: "Settings" });
     await expect(dialog).toBeVisible();
     expect(await axe(page)).toEqual([]);
-    const inside = () => dialog.evaluate((d) => d.contains(document.activeElement));
-    for (let n = 0; n < 12; n++) {
-      await page.keyboard.press(n % 3 ? "Tab" : "Shift+Tab");
-      expect(await inside()).toBe(true);
-    }
+    await focusStaysIn(page, dialog, browserName === "webkit", 12);
     // Behind it, the workspace is inert.
     expect(await page.locator("[data-jali]").evaluate((r) => (r as HTMLElement).inert)).toBe(true);
     await page.keyboard.press("Escape");
@@ -106,6 +144,7 @@ test.describe("axe", () => {
   test("the discard question: Tab stays inside, and Keep editing gives focus back", async ({
     app,
     page,
+    browserName,
   }) => {
     await app.open();
     await app.preset("Query + chart + inspector");
@@ -116,10 +155,7 @@ test.describe("axe", () => {
     const dialog = page.getByRole("alertdialog", { name: "Discard unsaved changes?" });
     await expect(dialog).toBeVisible();
     expect(await axe(page)).toEqual([]);
-    for (let n = 0; n < 5; n++) {
-      await page.keyboard.press("Tab");
-      expect(await dialog.evaluate((d) => d.contains(document.activeElement))).toBe(true);
-    }
+    await focusStaysIn(page, dialog, browserName === "webkit", 6);
     await page.keyboard.press("Escape");
     await expect(dialog).toBeHidden();
     await expect(close).toBeFocused();
