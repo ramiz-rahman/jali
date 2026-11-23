@@ -13,7 +13,8 @@ import type { Messages } from "./messages";
 import type { ActionName, JaliActions, JaliDialogs, JaliPage } from "../actions/public";
 import { bindSteps, isPublicStep } from "../actions";
 import { restoreLayout } from "../actions/layout";
-import type { ActionResult, Toast } from "./apply";
+import { refuse, type ActionResult, type Toast } from "./apply";
+import { copyIn } from "./ingress";
 import type { JaliModel } from "./model";
 import type { JaliInput } from "../dom/input";
 import type { ProfileBase } from "../profile";
@@ -192,7 +193,15 @@ export function createInstance(store: JaliStore): Jali {
     model: store.model,
     on: store.on,
     getLayout: () => store.get().layout,
-    setLayout: (layout) => store.apply((x) => restoreLayout(x, layout), "setLayout"),
+    setLayout: (layout) => {
+      let given: typeof layout;
+      try {
+        given = copyIn(layout);
+      } catch {
+        return store.apply(() => refuse("invalid"), "setLayout");
+      }
+      return store.apply((x) => restoreLayout(x, given), "setLayout");
+    },
     keymap: store.keymap,
     env: store.env,
     messages: store.messages,

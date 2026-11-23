@@ -15,6 +15,7 @@ import type { TabMenu } from "./commands/tab-menu";
 import { boot } from "./boot";
 import type { KeyboardOptions } from "./commands/keymap";
 import type { Command } from "./commands/registry";
+import { copyIn } from "./state/ingress";
 import { toLayout, type LayoutInput } from "./layout/build";
 import type { Direction } from "./layout/types";
 import {
@@ -188,12 +189,16 @@ export interface JaliOptions<
 const inBrowser = typeof window !== "undefined";
 declare const process: { env: { NODE_ENV?: string } };
 
-const presetOf = ({ id, label, layout, saved }: PresetOptions): Preset => ({
-  id,
-  label,
-  ...(saved ? { saved } : {}),
-  build: () => toLayout(typeof layout === "function" ? layout() : structuredClone(layout)),
-});
+const presetOf = ({ id, label, layout, saved }: PresetOptions): Preset => {
+  // Copied now: the app editing its layout later changes no preset.
+  const mine = typeof layout === "function" ? layout : copyIn(layout);
+  return {
+    id,
+    label,
+    ...(saved ? { saved: copyIn(saved) } : {}),
+    build: () => toLayout(typeof mine === "function" ? mine() : structuredClone(mine)),
+  };
+};
 
 /**
  * `JaliOptions` resolved once into the shape the store reads (`JaliConfig`): kinds registered, presets built, the
@@ -250,7 +255,7 @@ export function resolveOptions(options: JaliOptions): JaliConfig {
     ...(pageTheme === false ? { pageTheme } : {}),
     ...(moveFocus ? {} : { focusPane: null }),
     initial: {
-      ...(layout ? { layout: toLayout(layout) } : {}),
+      ...(layout ? { layout: toLayout(copyIn(layout)) } : {}),
       ...(size ? { area: size } : {}),
     },
   };

@@ -58,6 +58,7 @@ import { browserStorage, type StoragePort } from "../ports";
 import { focusPane } from "../dom/focus";
 import { createDom, type JaliDom } from "../dom/scope";
 export type { JaliDom } from "../dom/scope";
+import { copyIn } from "./ingress";
 import { objectKey, paneStateSync, type HeldStates, type PaneStateSync } from "./pane-state";
 import { createLifetime } from "./lifetime";
 import type { UrlSync } from "../url";
@@ -661,9 +662,16 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
     toast: events.toast,
     run: (name, ...args) => {
       const [step, as] = stepOf(name);
+      // What the caller gave is copied here, once: a later edit of a ref or a layout changes nothing, held or not.
+      let given: typeof args;
+      try {
+        given = copyIn(args);
+      } catch {
+        return commit(() => refuse("invalid"), as);
+      }
       // Its check and controls, then its run, as one step: a change held for an answer is the action itself, checked
       // and run again when the answer comes.
-      return commit((x: Snapshot) => refusalOf(x, step, args) ?? step.run(x, ...args), as);
+      return commit((x: Snapshot) => refusalOf(x, step, given) ?? step.run(x, ...given), as);
     },
     actions: undefined as unknown as Actions,
     keymap: createKeymap(

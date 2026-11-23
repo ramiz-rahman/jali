@@ -108,12 +108,12 @@ export function initialState(o: {
 /**
  * In development, the layout and view an instance commits are frozen, so an app that edits what `get()`,
  * `getLayout()` or an event gave it fails at once, instead of changing the instance behind its back (no history, no
- * event, a model cache that no longer matches). Refs are left as they are: they may be the app's own objects. What is
- * frozen already (shared with the last commit) is not walked again.
+ * event, a model cache that no longer matches). Refs and the peek are frozen too: every one was copied where it entered
+ * (state/ingress.ts), so none is the app's own. What is frozen already (shared with the last commit) is not walked again.
  */
 export function freezeTree(value: unknown): void {
   if (!value || typeof value !== "object" || Object.isFrozen(value)) return;
-  for (const [k, v] of Object.entries(value)) if (k !== "ref" && k !== "peek") freezeTree(v);
+  for (const v of Object.values(value)) freezeTree(v);
   Object.freeze(value);
 }
 
