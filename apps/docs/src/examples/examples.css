@@ -1,0 +1,107 @@
+/* The Examples page's apps (src/examples/ExampleApp.tsx). */
+@layer docs {
+  .example {
+    margin: 20px 0 56px;
+  }
+  .example-shot {
+    display: block;
+    overflow: hidden;
+    border: 1px solid var(--jali-border);
+    border-radius: var(--d-radius);
+    background: var(--jali-canvas);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
+    transition:
+      border-color 0.15s,
+      box-shadow 0.2s var(--d-ease),
+      transform 0.2s var(--d-ease);
+  }
+  .example-shot:hover {
+    border-color: var(--jali-border-strong);
+    box-shadow: 0 6px 24px rgb(0 0 0 / 0.08);
+    transform: translateY(-1px);
+  }
+  .example-shot img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1440 / 900;
+  }
+  /* A pair follows the site's theme; an app that opens dark has one. */
+  :root[data-theme="dark"] .example-shot img[data-shot="light"],
+  :root:not([data-theme="dark"]) .example-shot img[data-shot="dark"] {
+    display: none;
+  }
+  .example-summary {
+    margin: 18px 0 0;
+    font-size: 17px;
+    line-height: 27px;
+    color: var(--jali-text);
+  }
+  .example-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 18px 0 8px;
+  }
+  .example .example-shows {
+    display: grid;
+    gap: 14px;
+    margin: 22px 0 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: show;
+  }
+  .example .example-shows li {
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 26px minmax(0, 1fr);
+    column-gap: 10px;
+    counter-increment: show;
+  }
+  .example-shows li::before {
+    content: counter(show);
+    grid-row: span 2;
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    margin-top: 1px;
+    border-radius: 50%;
+    background: var(--jali-accent-soft);
+    color: var(--jali-accent);
+    font: 600 12px/1 var(--d-font);
+  }
+  .example-show-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    width: fit-content;
+    font-weight: 600;
+    color: var(--jali-text);
+    text-decoration: none;
+  }
+  .example-show-title:hover {
+    color: var(--jali-accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .example-show-title svg {
+    color: var(--jali-text-faint);
+  }
+  .example-show-text {
+    font-size: 15px;
+    line-height: 24px;
+    color: var(--jali-text-muted);
+  }
+  .example-data,
+  .example-run {
+    margin: 18px 0 0;
+    font-size: 14.5px;
+    line-height: 22px;
+    color: var(--jali-text-subtle);
+  }
+  .example-run {
+    margin-top: 6px;
+  }
+}

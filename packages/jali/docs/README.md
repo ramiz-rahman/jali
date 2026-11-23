@@ -56,4 +56,4 @@ Written from the docs site by tooling/agent-docs.mjs; don't edit these files.
 
 ## Examples
 
-- [Examples](examples.md): Five working apps built on Jali: a database browser, a loan review, a market terminal, an audio editor and a trip planner.
+- [Examples](examples.md): Six real apps built on Jali, each running here: a database browser, a loan review, a market terminal, an audio editor, a trip planner and a network lab.

@@ -1,108 +1,93 @@
 # Examples
 
-Five working apps built on Jali: a database browser, a loan review, a market terminal, an audio editor and a trip planner.
+Six real apps built on Jali, each running here: a database browser, a loan review, a market terminal, an audio editor, a trip planner and a network lab.
 
-Each example is a real app in [Jali's repository](https://github.com/ramiz-rahman/jali/tree/master/examples), running on the package's source. Clone the repository, run `pnpm install` at its root, then start the one you want. Each has its own port; if something already holds it, the server takes the next free one and prints the address.
+Each one is a whole app, not a demo of one feature, and each runs here in your browser with nothing to install. Under each app are three things it shows about Jali. Each opens the app in the state that shows it, so you can try it at once. The source of every app is in [Jali's repository](https://github.com/ramiz-rahman/jali/tree/master/examples), built on the public API alone.
 
 ## Data Studio
 
-A database browser where the person builds the layout, on a sample database of shop orders and microloans that runs in the browser (PGlite), with no backend: `examples/data-studio`.
+A database browser where the person builds the layout: tables, records, related records, SQL queries and charts, each in a pane.
 
-```sh
-pnpm data-studio
-```
+[Open Data Studio](https://jali.ramizrahman.com/apps/data-studio/?preset=order-chain) · [Source](https://github.com/ramiz-rahman/jali/tree/master/examples/data-studio)
 
-It serves on [localhost:5300](http://localhost:5300). It shows:
+- **[A list and the detail that follows it](https://jali.ramizrahman.com/apps/data-studio/?preset=order-chain)**: Move through the orders with J and K. The order beside the list follows, and its customer follows the order. ([how it works](https://jali.ramizrahman.com/learn/following))
+- **[Unsaved work in a pane](https://jali.ramizrahman.com/apps/data-studio/?preset=query-chart)**: Edit the SQL. The draft is pane state, an edit that hasn't run is unsaved work, and ⌘K gains Run query and Chart this result. ([how it works](https://jali.ramizrahman.com/guides/unsaved-work-and-pane-state))
+- **[Ten panes on one screen](https://jali.ramizrahman.com/apps/data-studio/?preset=stress-10)**: Narrow the window. Panes fold into tabs one at a time rather than squeeze, and come back as it widens. ([how it works](https://jali.ramizrahman.com/learn/fitting))
 
-- ten pane kinds: a catalog of tables, a table, a record, related records, an audit log, a table's structure, an entity diagram, a SQL query, a chart of a query's result, and a launcher for new panes;
-- presets: "One table", "Order → customer chain", "Query + chart + inspector" and a ten-pane stress test;
-- a list and its following detail: move through orders with J and K, and the order beside the list follows;
-- following relations to build long chains (an order, its customer, their orders), and panes folding into tabs when they don't fit;
-- the pane contract in the query pane: its draft SQL is pane state, an edit that has not run is unsaved work, and it adds "Run query" and "Chart this result" to ⌘K;
-- the address keeping every size (`sizes: "link"`), so a link reopens exactly;
-- the app's own chrome around `<JaliRoot>`: a top bar, a status line, and toasts from the `toast` event, shown with Sonner.
+A sample database of shop orders and a home-lending book, running in the browser (PGlite), with no backend.
+
+Run it yourself: `pnpm data-studio` at the repository's root, then http://localhost:5300.
 
 ## Loan review
 
-A curated page on the same sample database: `examples/loan-review`.
+An underwriter works through a queue of mortgage applications, one curated page per application.
 
-```sh
-pnpm loan-review
-```
+[Open Loan review](https://jali.ramizrahman.com/apps/loan-review/?page=loan-review&item=4&tab=overview) · [Source](https://github.com/ramiz-rahman/jali/tree/master/examples/loan-review)
 
-It serves on [localhost:5350](http://localhost:5350). An underwriter works through a queue of mortgage applications, one page per application. It shows:
+- **[A curated page](https://jali.ramizrahman.com/apps/loan-review/?page=loan-review&item=4&tab=overview)**: The queue, the application's header and its views as tabs. Switch to Split view to see the views side by side, then rearrange them. ([how it works](https://jali.ramizrahman.com/learn/curated-pages))
+- **[A link carries the content only](https://jali.ramizrahman.com/apps/loan-review/?page=loan-review&item=7&tab=borrower)**: This link names the application and the view. Single or Split view, and how the panes are arranged, stay the reader's own. ([how it works](https://jali.ramizrahman.com/learn/opening-and-linking))
+- **[What a persona may do](https://jali.ramizrahman.com/apps/loan-review/?page=loan-review&item=4&tab=borrower&role=processor)**: The processor's links open as a peek, never beside: `allow: { open: false }`. Switch persona in the header. ([how it works](https://jali.ramizrahman.com/guides/pane-controls))
 
-- a profile: the queue at the left, the application's header, and tabs for its views (Overview, Application, Borrower, Mortgages, Property, Loan officer);
-- Single view, one view at a time with links opening as a peek, and Split view, the views side by side in a designed layout the person can rearrange;
-- following a link from a view, which opens a pane after the layout, and "Back to Loan review" to return;
-- two personas, switched from the header (`?role=processor`): an underwriter who opens links beside, and a processor whose links open as a peek (`allow: { open: false }`);
-- a link that carries only the content (`?page=loan-review&item=4&tab=application`), while the mode and arrangement stay the person's own.
+The same in-browser database: a fictional US home lender's borrowers, properties, mortgages and applications.
 
-The app has the page and nothing else (`page`, with no layout or presets), so it opens on the page and stays in it.
-
-Data Studio and Loan review share `examples/shared`: the sample database and its React hooks, the record, related and table panes, and the top bar and status line around `<JaliRoot>`.
+Run it yourself: `pnpm loan-review` at the repository's root, then http://localhost:5350.
 
 ## Markets
 
-A market terminal for shares, bonds, currencies, indices and crypto, on the public API alone: `examples/markets`. The crypto prices are real, from Kraken's public API; everything else runs on a simulated market, so it needs no keys or licences. Every company, ticker and price outside crypto is made up.
+A market terminal for shares, bonds, currencies, indices and crypto, laid out as desks.
 
-```sh
-pnpm markets
-```
+[Open Markets](https://jali.ramizrahman.com/apps/markets/?preset=equities) · [Source](https://github.com/ramiz-rahman/jali/tree/master/examples/markets)
 
-It serves on [localhost:5320](http://localhost:5320). It shows:
+- **[Followers of many kinds](https://jali.ramizrahman.com/apps/markets/?preset=equities)**: Move through the watchlist with J and K. The chart, quote, order book, trades and news all follow it, each in its own way. ([how it works](https://jali.ramizrahman.com/learn/following))
+- **[Keep one, compare with another](https://jali.ramizrahman.com/apps/markets/?preset=compare)**: One chart is kept, the other follows the watchlist. Press Following on any pane to keep what it shows. ([how it works](https://jali.ramizrahman.com/learn/following))
+- **[Live data that pauses out of sight](https://jali.ramizrahman.com/apps/markets/?preset=crypto)**: The Crypto desk's panes are live. Fold one into a tab and it stops its subscription; show it again and it picks up. ([how it works](https://jali.ramizrahman.com/guides/pane-kinds))
 
-- eight pane kinds, each defined with `definePane` and a realistic `width.min`: a watchlist, a chart, a quote, an order book, time and sales, news, a yield curve, and a blotter with an order ticket;
-- one list driving details of several kinds: move through the watchlist with J and K, and the chart, quote, book, trades and news beside it follow (each kind's `follow` says what it shows for the selected quote), until you keep one;
-- comparing two instruments: keep a chart or quote by clicking **Following** in its header (it says **Kept**), then open another row with Enter, or choose the Compare desk;
-- five presets, the desks (Equities, Crypto, Rates, FX and Compare), switched from the top bar or ⌘K; each comes back as the person left it (a preset's `saved`), and Reset in the top bar puts every desk back;
-- the layout kept in the address, so a desk is a link you can send, and a reload or Back brings it back;
-- the app's own commands in ⌘K ("Open chart for…", "Add to watchlist…", "Buy…"), which ask for an instrument in Jali's chooser with `jali.dialogs.choose`, and each pane's own with `useCommands`;
-- the order ticket's draft in `usePaneState`, and a typed order reported with `useUnsaved`, so a desk that would lose it asks first;
-- panes that pause their market subscriptions while they are folded, tucked or behind a tab, using the `paused` prop;
-- a dark theme set on Jali's `--jali-*` tokens, light mode, and layouts that fold from a wide screen down to a phone.
+Crypto prices stream live from Kraken's public API. Everything else runs on a simulated market: every company, ticker and price outside crypto is made up.
 
-The market sits behind a small `MarketData` interface (`snapshot` and `subscribe`), so a real feed plugs in without changing a pane. The crypto pairs show one: Kraken's websocket sits in front of the simulator, and the panes can't tell the difference. To publish it as a static site, run `pnpm exec vp build` in `examples/markets` and serve `dist` from any path. The README in that folder walks through the code.
+Run it yourself: `pnpm markets` at the repository's root, then http://localhost:5320.
 
 ## Studio
 
-An audio session editor for a short podcast episode: `examples/studio`. A library of sessions, a transcript that lights up word by word, a timeline, a mixer on the real audio graph, segment details and markers, all following one playhead.
+An audio session editor: a transcript that lights up word by word, a timeline, a mixer and markers, all following one playhead.
 
-```sh
-pnpm studio
-```
+[Open Studio](https://jali.ramizrahman.com/apps/studio/?preset=edit) · [Source](https://github.com/ramiz-rahman/jali/tree/master/examples/studio)
 
-It serves on [localhost:5330](http://localhost:5330). The README in that folder lists what to try.
+- **[Every pane follows one playhead](https://jali.ramizrahman.com/apps/studio/?preset=edit)**: Press Space to play. The transcript lights each word as it is spoken; the timeline, library and markers follow the same playhead. ([how it works](https://jali.ramizrahman.com/learn/following))
+- **[Unsaved work that travels](https://jali.ramizrahman.com/apps/studio/?preset=review)**: Press E on a segment to correct it. Mix has no transcript, so choosing it asks first; Review takes the transcript and its draft along. ([how it works](https://jali.ramizrahman.com/guides/unsaved-work-and-pane-state))
+- **[Kept and following, side by side](https://jali.ramizrahman.com/apps/studio/?preset=compare)**: One segment is kept, the other follows the transcript's selection: two moments of the landing, read against each other. ([how it works](https://jali.ramizrahman.com/learn/following))
+
+Three real recordings: radio traffic from the Apollo 11 landing, a song from its multitrack masters, and a dinner-party conversation from a research corpus.
+
+Run it yourself: `pnpm studio` at the repository's root, then http://localhost:5330.
 
 ## Trips
 
-A map-first trip planner for a week in Thailand: `examples/trips`. A big map in the middle, with the days, each day's stops and travel, the place you picked, hotels to compare and the budget around it.
+A map-first planner for a week in Thailand: the days, each day's stops and travel, hotels to compare, and the budget, around a big map.
 
-```sh
-pnpm trips
-```
+[Open Trips](https://jali.ramizrahman.com/apps/trips/?preset=plan) · [Source](https://github.com/ramiz-rahman/jali/tree/master/examples/trips)
 
-It serves on [localhost:5340](http://localhost:5340). The README in that folder lists what to try.
+- **[The map is the hub](https://jali.ramizrahman.com/apps/trips/?preset=plan)**: Pick a pin: the place pane and the day both show it. Move through the days with J and K, and the map frames each one. ([how it works](https://jali.ramizrahman.com/learn/following))
+- **[A row that scrolls sideways](https://jali.ramizrahman.com/apps/trips/?preset=days)**: The whole week, every day at a comfortable width, in a row that scrolls instead of folding. Drag a stop from one day to another. ([how it works](https://jali.ramizrahman.com/guides/scrolling-rows))
+- **[Compare against a kept pane](https://jali.ramizrahman.com/apps/trips/?preset=stay)**: Two hotels side by side. The left one is kept; pick another and the right one shows it, read against the kept one. ([how it works](https://jali.ramizrahman.com/learn/following))
 
-## Smaller: the quickstart app
+Real sights, beaches and airports at their real places. Every hotel, restaurant and price is made up, and says so.
 
-The smallest Jali app, on the public API alone, is not one of the example apps above but a small app the [quickstart](get-started/quickstart.md) builds and the bundle-size checks use: `examples/minimal`.
+Run it yourself: `pnpm trips` at the repository's root, then http://localhost:5340.
 
-```sh
-pnpm minimal
-```
+## Handshake
 
-It serves on [localhost:5310](http://localhost:5310). It shows:
+A network lab with the course beside the tools: read packets layer by layer, measure your connection, and learn how it all works.
 
-- one pane kind, a note, defined with `definePane`, with typed params, a title and a component;
-- a starting layout of two notes side by side, built with `row`;
-- a button in each note that opens the next note beside it, with `openBeside`;
-- a launcher, so Split (⌘\\) and a stack's "+" open a pane to choose a note in;
-- the layout kept in the address, the default, so reloading and Back and Forward work;
-- the default theme from `jali/styles.css`, with the layer order declared in `index.html` before any stylesheet, and the panes filling the window.
+[Open Handshake](https://jali.ramizrahman.com/apps/handshake/?preset=course) · [Source](https://github.com/ramiz-rahman/jali/tree/master/examples/handshake)
 
-The app is one file, `examples/minimal/src/main.tsx`, with a few lines of CSS. Start here, then read [Define a pane kind](guides/pane-kinds.md) to add your own.
+- **[A lesson drives the tools](https://jali.ramizrahman.com/apps/handshake/?preset=course)**: Step through a lesson: each step selects a packet, a probe or a scan, and the tools beside it follow. Following, two deep. ([how it works](https://jali.ramizrahman.com/learn/following))
+- **[Four followers of one packet](https://jali.ramizrahman.com/apps/handshake/?preset=lab)**: Pick a packet: the dissection, the bytes, the layers and the sequence diagram each show it their own way. ([how it works](https://jali.ramizrahman.com/learn/following))
+- **[Another component system](https://jali.ramizrahman.com/apps/handshake/?preset=connection)**: Built with CyberSpec's components, with Jali's frames, tabs and ⌘K set from CyberSpec's tokens. ([how it works](https://jali.ramizrahman.com/guides/theming))
 
-## Coming
+Bundled captures are generated, and say so. Your own .pcap files are read in the tab and never uploaded. Live measurements come from public endpoints, each named.
 
-More example apps are planned, including one with a router and one with Chakni. Until then, the guides show the pieces: [Keep the layout in the URL](guides/url-and-routers.md) has router adapters, and [Use Jali with Chakni](guides/chakni.md) the shared theme.
+Run it yourself: `pnpm handshake` at the repository's root, then http://localhost:5360.
+
+## The smallest app
+
+`examples/minimal` is the app the [Quickstart](get-started/quickstart.md) builds: one kind of pane, a note, two of them side by side, and a button that opens the next note beside it. It is one file, `src/main.tsx`, with a few lines of CSS. Run it with `pnpm minimal` at the repository's root, then [localhost:5310](http://localhost:5310). Start there, then read [Define a pane kind](guides/pane-kinds.md) to add your own.
