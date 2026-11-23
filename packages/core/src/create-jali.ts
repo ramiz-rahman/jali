@@ -89,8 +89,9 @@ export interface JaliOptions<
   /** Set the page's theme (`data-theme` on `<html>`) from the person's setting. Default true; false when the
    *  instance sits inside a page that has its own theme. */
   pageTheme?: boolean;
-  /** Your own commands: listed in ⌘K after Jali's, and bindable in `keymap` like Jali's
-   *  (`{ id: "app.refresh", title: "Refresh data", group: "App", run: () => refetch() }`). A Jali id wins. */
+  /** Your own commands: listed in ⌘K after Jali's, each with its own `keys` and a `disabled` check if it needs one
+   *  (`{ id: "app.refresh", title: "Refresh data", group: "App", keys: "Mod+K Mod+U", run: () => refetch() }`).
+   *  `keyboard.keymap` rebinds or unbinds them like Jali's. A Jali id wins. */
   commands?: readonly Command[];
   /**
    * Jali's keys: which it takes, what they are bound to, and which the app keeps.

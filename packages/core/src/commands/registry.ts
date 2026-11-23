@@ -16,6 +16,7 @@ import type { JaliStore } from "../state/store";
 import { storeOf, type AnyJali, type Jali } from "../state/instance";
 import { cycleRegions } from "./regions";
 import { own as ownOf } from "../own";
+import type { KeymapOverrides, KeyString } from "./keymap";
 
 /** A command: one of Jali's (`listCommands`), or the app's own (`createJali({ commands })`). */
 export interface Command {
@@ -24,17 +25,31 @@ export interface Command {
   /** Jali's groups, or a host command's own. */
   group: "Focus" | "Pane" | "Move" | "Tabs" | "Layout" | "Peek" | "Settings" | (string & {});
   run: (jali: Jali) => void;
+  /**
+   * An app command's keys, written as `keyboard.keymap` writes them (`"Mod+B"`, or several). The palette prints the
+   * first, and `keyboard.keymap` can still rebind or unbind them (`{ "app.queue": null }`). Bound as written: the
+   * keymap's `prefix` doesn't move them.
+   */
+  keys?: KeyString | readonly KeyString[];
+  /**
+   * An app command's check: `true` while it can't run, or why it can't (`"Only on a wider window"`). The palette
+   * lists it greyed out, with the reason, and its key does nothing but say the reason. Asked each time the palette
+   * lists commands and each time its key is pressed.
+   */
+  disabled?: (jali: Jali) => boolean | string;
 }
 
 /** A command as the registry holds it (adapters): the step it runs, with the arguments worked out as it is listed and
  *  again as it runs. It can run exactly when the step can (`can`). Without a step (a host's command, F6) it always
  *  can. */
-export interface CommandDef extends Omit<Command, "run"> {
+export interface CommandDef extends Omit<Command, "run" | "disabled"> {
   step?: StepName;
   /** The step's arguments: which pane, which way. Never a rule: whether it can run is the step's to say. */
   args?: (store: JaliStore) => readonly unknown[];
   /** What it does in place of running its step, once its step says it can (a dialog, a window, DOM focus). */
   run?: (store: JaliStore) => ActionResult | void;
+  /** A command without a step: its own check (an app command's `disabled`). */
+  disabled?: (store: JaliStore) => boolean | string;
 }
 
 const DIRS: [Edge, ScreenDirection][] = [
@@ -192,12 +207,17 @@ function buildCommands(env: Env): CommandDef[] {
     },
 
     // The host's own, last (a Jali id wins if a host repeats one).
-    ...(env.commands ?? []).map((c): CommandDef => ({
-      id: c.id,
-      title: c.title,
-      group: c.group,
-      run: (u) => c.run(u.jali),
-    })),
+    ...(env.commands ?? []).map((c): CommandDef => {
+      const { disabled } = c;
+      return {
+        id: c.id,
+        title: c.title,
+        group: c.group,
+        run: (u) => c.run(u.jali),
+        ...(c.keys !== undefined ? { keys: c.keys } : {}),
+        ...(disabled ? { disabled: (u: JaliStore) => disabled(u.jali) } : {}),
+      };
+    }),
   ];
 }
 
@@ -219,6 +239,15 @@ const forEnv = (env: Env) => {
   return b;
 };
 
+/**
+ * The app's commands' own keys, as keymap overrides the app's `keyboard.keymap` goes over. Only the commands the
+ * registry kept: an app command that repeats a Jali id is dropped, keys and all.
+ */
+export const commandKeys = (store: Pick<JaliStore, "env">): KeymapOverrides =>
+  Object.fromEntries(
+    commandDefsOf(store).flatMap((c) => (c.keys === undefined ? [] : [[c.id, c.keys]])),
+  );
+
 /** The registry's commands, with their checks (adapters). */
 export const commandDefsOf = (store: Pick<JaliStore, "env">): readonly CommandDef[] =>
   forEnv(store.env).defs;
@@ -230,7 +259,14 @@ const ran = (r: ActionResult | void) =>
 
 /** Whether command `c` can run now: what its step's gate says (`can`), with the arguments as they are now. */
 export function commandAvailable(store: JaliStore, c: CommandDef): ActionResult {
-  if (!c.step) return store.ended() ? { ok: false, reason: "unavailable" } : DONE;
+  if (!c.step) {
+    if (store.ended()) return { ok: false, reason: "unavailable" };
+    const no = c.disabled?.(store);
+    if (!no) return DONE;
+    return typeof no === "string"
+      ? { ok: false, reason: "unavailable", message: no }
+      : { ok: false, reason: "unavailable" };
+  }
   const args = (c.args?.(store) ?? []) as StepArgs<StepName>;
   return can(store, c.step, ...args);
 }

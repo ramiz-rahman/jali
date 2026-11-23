@@ -73,7 +73,7 @@ const RANK: Record<HistoryMode, number> = { none: 0, debounce: 1, replace: 2, pu
 const stronger = (a: HistoryMode, b: HistoryMode) => (RANK[b] > RANK[a] ? b : a);
 import { startUi } from "../boot";
 import { createKeymap, PALETTE_ID, type Keymap, type KeyboardOptions } from "../commands/keymap";
-import type { Command } from "../commands/registry";
+import { commandKeys, type Command } from "../commands/registry";
 import { resolveMessages, type MessageOverrides, type Messages } from "./messages";
 import type { ChooseOptions } from "../actions/choose";
 
@@ -687,10 +687,13 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
     },
     actions: undefined as unknown as Actions,
     keymap: createKeymap(
-      // Without Jali's palette, its key is the host's, unless the host binds it on purpose.
-      !hasPalette && !(PALETTE_ID in (keyboard.keymap ?? {}))
-        ? { ...keyboard.keymap, [PALETTE_ID]: null }
-        : keyboard.keymap,
+      // The app's commands' own keys, under its keymap. Without Jali's palette, its key is the host's, unless the
+      // host binds it on purpose.
+      {
+        ...commandKeys({ env }),
+        ...(!hasPalette && !(PALETTE_ID in (keyboard.keymap ?? {})) ? { [PALETTE_ID]: null } : {}),
+        ...keyboard.keymap,
+      },
       { ...keyboard, words: keyboard.words ?? messages.keys },
     ),
     env,
