@@ -36,6 +36,8 @@ describe("close", () => {
               active: false,
             },
           ],
+          // Linked to A then: the link comes back only to a pane still showing A's object.
+          source: (find(tree.root, "a") as PaneNode).ref,
           followers: [],
         },
       ],

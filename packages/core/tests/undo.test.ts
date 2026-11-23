@@ -244,6 +244,43 @@ describe("an undone close puts the pane back in its slot, and keeps what happene
   });
 });
 
+describe("an undone batch keeps what each pane was (Codex review of step 3)", () => {
+  it("a batch whose ids were taken meanwhile comes back in its own tab group", () => {
+    const m = make(
+      row(
+        { id: "r" },
+        pane(rec(1), { id: "a" }),
+        tabs({ id: "t" }, pane(rec(2), { id: "pane-1" }), pane(rec(3), { id: "pane-2" })),
+      ),
+    );
+    m.a.closeOthers("a");
+    expect(m.a.openBeside("a", rec(9)).pane).toBe("pane-1");
+    m.a.undo();
+    const at = (id: number) => L.tree.panes(tree(m) as never).find((p) => p.ref.params.id === id)!;
+    const group = parentOf(m, at(2).id)!;
+    expect(group.type).toBe("stack");
+    expect(group.children.map((c) => (c as { ref: ObjectRef }).ref)).toEqual([rec(2), rec(3)]);
+    expect(parentOf(m, "pane-1")?.type).not.toBe("stack");
+  });
+
+  it("a restored link never attaches to an unrelated pane under its old source's id", () => {
+    const m = make(
+      row(
+        { id: "r" },
+        pane(rec(1), { id: "a" }),
+        pane(rec(2), { id: "pane-1" }),
+        pane(rec(3), { id: "b", linkedTo: "pane-1", follows: true }),
+      ),
+    );
+    m.a.close("b");
+    m.a.remove("pane-1");
+    expect(m.a.openBeside("a", rec(9)).pane).toBe("pane-1");
+    m.a.undo();
+    expect(node(m, "b")).not.toHaveProperty("linkedTo");
+    expect(node(m, "b")).not.toHaveProperty("follows");
+  });
+});
+
 describe("entries for what is gone or open again are dropped", () => {
   it("close B, remove C, undo: only B comes back", () => {
     const m = make(
