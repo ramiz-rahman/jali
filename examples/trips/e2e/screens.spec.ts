@@ -25,10 +25,10 @@ async function stage(page: Page, name: string, dark: boolean) {
   const key = page.getByRole("navigation", { name: "Layouts" }).getByRole("button", { name });
   // A phone picks the layout from a menu instead.
   if (await key.isVisible()) await key.click();
-  else
-    await page
-      .getByRole("combobox", { name: "Layout", exact: true })
-      .selectOption(name.toLowerCase());
+  else {
+    await page.getByRole("combobox", { name: "Layout", exact: true }).click();
+    await page.getByRole("option", { name, exact: true }).click();
+  }
   await expect(page.locator("html")).toHaveAttribute("data-theme", dark ? "dark" : "light");
   // Every map on screen has drawn its tiles (it is busy until then).
   for (const map of await page.getByRole("region", { name: /^Map\. / }).all())

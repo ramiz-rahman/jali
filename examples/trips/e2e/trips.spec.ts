@@ -50,7 +50,9 @@ test("the map renders, and a pin selects its place everywhere", async ({ page })
 test("pins that would cover each other make one pile, which names them and opens when pressed", async ({
   page,
 }) => {
-  // Budget's small map frames Day 7, which spans the north of Phuket: its stops crowd at that zoom.
+  // At 1024, Budget's map is narrow beside the budget and the day, and frames Day 7, which spans the north of Phuket:
+  // its stops crowd at that zoom.
+  await page.setViewportSize({ width: 1024, height: 768 });
   await layout(page, "Budget").click();
   const map = pane(page, "map");
   // A pile of the day's own stops says their numbers; the hotel's, with other days' stops in it, how many.
