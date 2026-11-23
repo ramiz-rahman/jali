@@ -73,7 +73,10 @@ export function readLayout(
 ): Layout | undefined {
   try {
     const layout = structuredClone(toLayout(typeof input === "function" ? input() : input));
-    return core.validate(layout, env.kinds.registry(), { params }).ok ? layout : undefined;
+    // The app's own layout: one larger than a link opens, and grows no further (layout/codec/limits.ts).
+    return core.validate(layout, env.kinds.registry(), { params, limits: false }).ok
+      ? layout
+      : undefined;
   } catch {
     return undefined;
   }
@@ -136,7 +139,8 @@ export function restoreLayout(x: Snapshot, input: LayoutInput): Outcome {
   } catch {
     return refuse("invalid");
   }
-  if (!core.validate(layout, env.kinds.registry()).ok) return refuse("invalid");
+  // Malformed is "invalid"; larger than a link holds is "blocked", by the budget every change meets (state/apply.ts).
+  if (!core.validate(layout, env.kinds.registry(), { limits: false }).ok) return refuse("invalid");
   const panes = core.tree.panes(layout.root);
   const ids = new Set(panes.map((p) => p.id));
   const history = s.view.focusHistory.filter((id) => ids.has(id));

@@ -40,21 +40,21 @@ import type { PaneKinds } from "../pane-kinds";
 import { ownedPaneState, ownedSelection } from "./pane-state";
 import { sameRef } from "../layout/ops/ref";
 import { currentInput, withInput } from "../dom/input";
-import { MAX_NODES } from "../layout/codec/validate";
-import { MAX_LINK_TEXT } from "../layout/codec/codec";
+import { linkUsage, MAX_LINK_TEXT, pastLimits } from "../layout/codec/limits";
+
+/** The share of a state a link holds, as the budget measures it (`ApplyIO.linkText`). */
+export type LinkState = Pick<UiState, "layout" | "view" | "presetId" | "page">;
 
 /**
- * A change whose address would be one no instance reopens: a layout with more nodes than a link holds (`MAX_NODES`,
- * a cheap count), or, where the instance keeps its layout in the address, layout text longer than the codec reads
- * (`MAX_LINK_TEXT`; one long param in a small layout). A layout already that big may still shrink. (Ops never nest a
- * split in a split of one, so a layout within the node limit is within the depth limit too.)
+ * A change whose address no instance would reopen (layout/codec/limits.ts): more nodes or levels than a link holds,
+ * more panes opened on a curated page than its link opens, or, where the instance writes an address, more text than a
+ * reader reads. Measured on the whole state the change proposes. What was already past a limit may stay or shrink.
  */
-function pastLinks(from: Layout, to: Layout, linkText?: (layout: Layout) => number): boolean {
-  const next = core.tree.nodes(to.root).length;
-  if (next > MAX_NODES && next > core.tree.nodes(from.root).length) return true;
-  if (!linkText) return false;
-  const text = linkText(to);
-  return text > MAX_LINK_TEXT && text > linkText(from);
+function pastLinks(io: ApplyIO, from: LinkState, to: LinkState): boolean {
+  if (pastLimits(linkUsage(from.layout, !!from.page), linkUsage(to.layout, !!to.page))) return true;
+  if (!io.linkText) return false;
+  const text = io.linkText(to);
+  return text > MAX_LINK_TEXT && text > io.linkText(from);
 }
 
 /** What an action reads: the state, the model derived from it, and the core's context. */
@@ -158,8 +158,9 @@ export interface Change {
  *  - "not-allowed": the app's `allow` turns that control off for the pane (a kind's, the instance's, or its `when`),
  *    or for a pane beside a divider it would move.
  *  - "last-pane": the last pane, or a page's last view on screen, stays.
- *  - "blocked": the pane can't go there (move past the edge, tuck the only pane, tuck a tab), or the layout would
- *    hold more than a link can (256 nodes, 128 levels), so its address could never be reopened.
+ *  - "blocked": the pane can't go there (move past the edge, tuck the only pane, tuck a tab), or the result would be
+ *    more than a link holds (256 nodes, 128 levels, a curated page's 32 opened panes, or, where the instance writes an
+ *    address, more text than a reader reads), so its address could never be reopened.
  *  - "nothing-to-do": nothing to undo, put back, close, resize or unmerge.
  *  - "unsaved": it would lose unsaved work, so Jali asks the person ("Discard unsaved changes?") and holds it;
  *    `settled` says how the question ended. (A following detail with unsaved work doesn't ask: it keeps its object,
@@ -434,8 +435,9 @@ export interface ApplyIO {
   /** A layout change was committed by `op`, for `action` when one is named. */
   committed?(op: Op, action?: ActionName): void;
   beforeClose?: BeforeClose;
-  /** How long `layout`'s text is in the address the instance writes; absent when it writes none (no URL sync). */
-  linkText?(layout: Layout): number;
+  /** How long the instance's own params would be in the address it writes, for `s`; absent when it writes none (no URL
+   *  sync), so text is then no limit. */
+  linkText?(s: LinkState): number;
   /** Aborted by `destroy()`: nothing is committed after, and every held answer settles as `"unavailable"`. */
   signal: AbortSignal;
 }
@@ -750,10 +752,15 @@ function step(c: Run, o: Outcome): Res {
   } else {
     const layoutChanged = next.layout !== s.layout,
       viewChanged = !sameView(next.view, s.view);
-    // A curated page's address holds no layout: only the free layout's text counts.
-    const page = o.patch && "page" in o.patch ? o.patch.page : s.page;
-    if (layoutChanged && pastLinks(s.layout, next.layout, page ? undefined : io.linkText))
-      return ok(refused("blocked"));
+    // The state the change proposes, as far as a link holds it: its page and preset may come with it.
+    const has = <K extends keyof UiState>(k: K) => !!o.patch && k in o.patch;
+    const proposed: LinkState = {
+      layout: next.layout,
+      view: next.view,
+      page: has("page") ? (o.patch!.page ?? null) : s.page,
+      presetId: has("presetId") ? o.patch!.presetId : s.presetId,
+    };
+    if (layoutChanged && pastLinks(io, s, proposed)) return ok(refused("blocked"));
     // Unsaved work is never lost without asking. A following detail keeps its object instead (it moves on its own
     // while the person browses the list: a question each time would be worse).
     // The host is asked first (beforeClose); its yes still meets Jali's own question about unsaved work.

@@ -19,14 +19,15 @@ import type { UrlState, UrlWriter } from "./state/store";
 import { readLayout, readRef } from "./pane-kinds";
 import { browserLocation, browserStorage, type LocationPort, type StoragePort } from "./ports";
 import { own as ownOf } from "./own";
+import { isDev } from "./dev";
 import { sameRef } from "./layout/ops/ref";
+import { fitsLink, linkUsage, MAX_LINK_TEXT, OPEN_MAX } from "./layout/codec/limits";
 
 export const PERSIST_MS = 120;
 /** The least time between two replaces: more in between wait, and only the latest is written. */
 export const REPLACE_MS = 250;
 const BROKEN_KEY = "broken-layout";
-/** The most panes a page link opens (`open=`); the rest are left out. docs/DECISIONS.md, 20 Nov 2026. */
-export const OPEN_MAX = 32;
+export { OPEN_MAX };
 
 /** The characters the ref text gives a meaning to, written `%XX` inside a kind, a key or a text value. */
 const escape = (text: string) =>
@@ -167,6 +168,15 @@ export function buildSearch(search: string, s: UrlState, k: UrlKeys = urlKeys())
   return text ? `?${text}` : "";
 }
 
+/** How long the instance's own params are for `s`, as `buildSearch` writes them (its encoder: the layout's code, the
+ *  page's params, zoom, scroll and the preset), the host's left out: what `MAX_LINK_TEXT` limits. */
+export const linkText = (s: UrlState, k: UrlKeys = urlKeys()): number =>
+  ownText(new URLSearchParams(buildSearch("", s, k)), k);
+
+/** Whether an address for `s` could be read back whole: within every limit a link has (layout/codec/limits.ts). */
+export const fitsAddress = (s: UrlState, k: UrlKeys = urlKeys()): boolean =>
+  fitsLink(linkUsage(s.layout, !!s.page)) && linkText(s, k) <= MAX_LINK_TEXT;
+
 /** A page link: its view, its item as the link wrote it (text; the page converts it to its profile's type), and the
  *  panes opened while investigating. `item` is undefined when the link names none. */
 export interface PageRead {
@@ -183,6 +193,15 @@ export type UrlRead =
   | { broken: string; view: Partial<ViewState>; preset?: string }
   | { page: PageRead; view: Partial<ViewState> };
 
+/** The instance's own params in `q` (never the host's, nor an older link's peek), as the address has them: what a link's
+ *  text limit measures, the same way for the writer and the reader. */
+function ownText(q: URLSearchParams, k: UrlKeys): number {
+  const own = new Set([k.layout, k.zoom, k.page, k.item, k.tab, k.open, k.preset, k.scroll]);
+  const out = new URLSearchParams();
+  for (const [key, value] of q) if (own.has(key)) out.append(key, value);
+  return out.toString().length;
+}
+
 export function readSearch(
   search: string,
   kinds: KindRegistry,
@@ -190,6 +209,9 @@ export function readSearch(
 ): UrlRead | null {
   const q = new URLSearchParams(search);
   const code = q.get(k.layout);
+  // Longer than any address an instance writes: none of it is read (a layout link opens the fallback, a page link
+  // opens the page without the panes it names).
+  const tooLong = ownText(q, k) > MAX_LINK_TEXT;
   // An older link's `peek=` is ignored: a peek is never in the address.
   const view: Partial<ViewState> = {};
   // `?app=review` is the old combined lab app's form from before pages had ids (19 Nov 2026).
@@ -197,7 +219,8 @@ export function readSearch(
     const item = q.get(k.item) || undefined;
     // Each object once, in the link's order, and at most OPEN_MAX: every one is a full open and fit.
     const investigation: ObjectRef[] = [];
-    for (const text of q.getAll(k.open)) {
+    for (const text of tooLong ? [] : q.getAll(k.open)) {
+      // A hand-made link may name more than an instance writes: the first OPEN_MAX are read.
       if (investigation.length >= OPEN_MAX) break;
       const read = decodeRef(text);
       if (!read || !Object.hasOwn(kinds, read.kind) || !readable(kinds, read)) continue;
@@ -216,7 +239,7 @@ export function readSearch(
   if (!code) return null;
   const preset = q.get(k.preset) || undefined;
   const named = preset ? { preset } : {};
-  const decoded = core.decode(code, kinds);
+  const decoded = tooLong ? null : core.decode(code, kinds);
   if (!decoded) return { broken: code, view: {}, ...named };
   const layout = readLayout(kinds, decoded);
   const zoom = q.get(k.zoom);
@@ -342,6 +365,9 @@ export interface UrlSync extends UrlWriter {
   /** A gesture holds the instance (`true`): a write waiting stays unwritten. Released (`false`): the write waiting is
    *  dropped, and the answer says whether there was one, so the instance writes its final state instead. */
   hold(on: boolean): boolean;
+  /** How long this writer's own params would be in the address for `s`, as it writes them (its sizes setting
+   *  included): the instance refuses an action past `MAX_LINK_TEXT` by it. */
+  measure(s: UrlState): number;
 }
 
 export interface UrlSyncOptions {
@@ -391,12 +417,26 @@ export function createUrlSync({
     const next = Object.keys(own).length ? [[key, own] as [string, PersonalSizes], ...rest] : rest;
     storage.set(sizesKey, JSON.stringify(next.slice(0, 12)));
   };
-  /** What of `s` the address holds (in "local", without the sizes kept on the device). */
-  const linked = (s: UrlState): UrlState => {
-    if (sizes !== "local" || s.page) return s;
+  /** What of `s` the address holds (in "local", without the sizes kept on the device), and those sizes. */
+  const project = (s: UrlState): [UrlState, PersonalSizes | undefined] => {
+    if (sizes !== "local" || s.page) return [s, undefined];
     const split = splitPersonalSizes(s.layout);
-    keepSizes(split.layout, split.sizes);
-    return { ...s, layout: split.layout };
+    return [{ ...s, layout: split.layout }, split.sizes];
+  };
+  let warned = false;
+  /** The same, keeping the sizes on the device; undefined (nothing written, nothing kept) when the address would be
+   *  one no instance reads back whole. It never is from an action (they are refused first): only from a start-up
+   *  layout larger than a link, which opens all the same, its address left as it was. */
+  const linked = (s: UrlState): UrlState | undefined => {
+    const [out, own] = project(s);
+    if (!fitsAddress(out, keys)) {
+      if (!warned && isDev())
+        console.warn("Jali: the layout is larger than a link holds; the address is left as it was");
+      warned = true;
+      return undefined;
+    }
+    if (own) keepSizes(out.layout, own);
+    return out;
   };
   /** The address with this instance's params from `s`, keeping everyone else's. */
   const search = (s: UrlState) => buildSearch(location.search(), s, keys);
@@ -421,13 +461,15 @@ export function createUrlSync({
     write(state: () => UrlState, mode: HistoryMode) {
       if (mode === "none" || closed) return;
       // A push is written at once, after the replace still waiting, so the entry it leaves says what it should.
+      const s = linked(state());
+      if (!s) return;
       if (mode === "push") {
         flush();
-        return go(search(linked(state())), "push");
+        return go(search(s), "push");
       }
       // Each write is the state as it was asked for: a push after it can't slip its own state into the entry it
       // leaves. A debounced one (each move of a resize asks again) waits for the moves to rest, and for its slot.
-      waiting = linked(state());
+      waiting = s;
       if (mode === "debounce")
         return schedule(Math.max(PERSIST_MS, replaced + REPLACE_MS - Date.now()));
       // A replace is written in its slot: a later one takes its place without moving the slot.
@@ -444,9 +486,8 @@ export function createUrlSync({
       const joined = joinPersonalSizes(r.layout, own);
       return core.validate(joined, kinds).ok ? { ...r, layout: joined } : r;
     },
-    // The layout as `write` puts it in the address: sizes kept on the device ("local") are left out of it.
-    linkText: (layout) =>
-      core.encode(sizes === "local" ? splitPersonalSizes(layout).layout : layout).length,
+    // The address as `write` puts it: sizes kept on the device ("local") are left out of it.
+    measure: (s) => linkText(project(s)[0], keys),
     cancel() {
       closed = true;
       clearTimeout(timer);

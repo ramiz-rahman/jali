@@ -41,6 +41,7 @@ import {
   type Deferred,
   type Intent,
   type HistoryMode,
+  type LinkState,
   type Outcome,
   UNAVAILABLE,
   type Snapshot,
@@ -223,9 +224,6 @@ export interface UrlWriter {
   /** The instance is going away (`jali.destroy()`): drop a write still waiting (a debounced one), and every later
    *  one. */
   cancel?(): void;
-  /** How long `layout`'s text would be in the address this writer writes (after its own filtering). With it, a change
-   *  whose link would be too long to read back is refused; without it, only the node count is checked. */
-  linkText?(layout: Layout): number;
 }
 
 /**
@@ -476,17 +474,17 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
     if (life.gesturing()) gestureMode = stronger(gestureMode, mode);
     else url.write(urlState, mode);
   };
-  /** The share of the state an address holds, as a link carries it: without params only the app sets (`appOnly`),
-   *  and without the peek. Read when the writer writes. */
-  const urlState = (): UrlState => {
-    const { layout, view, presetId, page } = state;
-    return {
-      layout: linkLayout(env.kinds.registry(), layout),
-      view: withoutPeek(view),
-      presetId,
-      page,
-    };
-  };
+  /** The share of a state an address holds, as a link carries it: without params only the app sets (`appOnly`), and
+   *  without the peek. */
+  const urlStateOf = ({ layout, view, presetId, page }: LinkState): UrlState => ({
+    layout: linkLayout(env.kinds.registry(), layout),
+    view: withoutPeek(view),
+    presetId,
+    page,
+  });
+  /** The state's, read when the writer writes. */
+  const urlState = () => urlStateOf(state);
+  const measure = url && "measure" in url ? (url as UrlSync).measure : undefined;
   const models = modelCache();
   const defer = (d: Deferred) => {
     const run = d.run;
@@ -746,8 +744,9 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
     get beforeClose() {
       return store.guard;
     },
-    // As a link carries it: without params only the app sets.
-    linkText: url?.linkText && ((l: Layout) => url.linkText!(linkLayout(env.kinds.registry(), l))),
+    // As the address would carry it, through the writer's own encoder (`urlSync()`'s): a writer of the host's own
+    // writes its own text, which no limit of Jali's measures.
+    linkText: measure && ((l: LinkState) => measure(urlStateOf(l))),
     signal: life.signal,
     url: store.writeUrl,
     announce: store.announce,

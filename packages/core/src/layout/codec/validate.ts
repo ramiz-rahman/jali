@@ -1,5 +1,6 @@
 import type { KindRegistry, Layout, ObjectRef } from "../types";
 import { AUTO_PREFIX } from "../fit/overlay";
+import { MAX_DEPTH, MAX_NODES } from "./limits";
 
 const record = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -8,10 +9,6 @@ const record = (value: unknown): value is Record<string, unknown> =>
  * builder's `orders-2`) fits, and so does any id written into a DOM attribute or a CSS selector without escaping.
  */
 export const NODE_ID = /^[\w.:-]{1,128}$/;
-/** The most nodes a layout from outside may hold (panes, rows, columns and tab groups). docs/DECISIONS.md, 20 Nov 2026. */
-export const MAX_NODES = 256;
-/** The deepest a layout from outside may nest. */
-export const MAX_DEPTH = 128;
 const nodeId = (value: unknown): value is string =>
   typeof value === "string" && NODE_ID.test(value);
 const positive = (value: unknown): value is number =>
@@ -19,20 +16,23 @@ const positive = (value: unknown): value is number =>
 /**
  * What is wrong with `layout` for an instance of `kinds`, or `{ ok: true }`. `params: false` leaves a kind's own param
  * types unchecked: a ref they can't read still opens, in the kind's `Missing` (an app's own layout; a link is read
- * with them).
+ * with them). `limits: false` leaves out what a link holds (layout/codec/limits.ts): a layout of the app's own may be
+ * larger than a link, and is then refused by size where it would grow (`"blocked"`), never as malformed.
  */
 export function validate(
   layout: Layout,
   kinds: KindRegistry,
-  { params = true }: { params?: boolean } = {},
+  { params = true, limits = true }: { params?: boolean; limits?: boolean } = {},
 ): { ok: true } | { ok: false; errors: string[] } {
   const errors: string[] = [];
+  // An overlay lists nodes of the tree: no more of them than the tree may hold.
+  const cap = limits ? MAX_NODES : Infinity;
   const ids = new Set<string>(),
     seen = new Set<object>();
   let count = 0;
   const error = (path: string, message: string) => errors.push(`${path}: ${message}`);
   function visit(value: unknown, path: string, depth: number, inStack = false): void {
-    if (++count > MAX_NODES || depth > MAX_DEPTH) {
+    if (limits && (++count > MAX_NODES || depth > MAX_DEPTH)) {
       error(path, "tree is too large or deep");
       return;
     }
@@ -151,24 +151,24 @@ export function validate(
       (typeof v === "string" && v.startsWith(AUTO_PREFIX) && nodeId(v.slice(AUTO_PREFIX.length)));
     if (!record(o)) error("overlay", "expected overlay");
     else {
-      if (!Array.isArray(o.folds) || o.folds.length > MAX_NODES || !o.folds.every(text))
+      if (!Array.isArray(o.folds) || o.folds.length > cap || !o.folds.every(text))
         error("overlay", "folds must be ids");
       if (
         !record(o.shown) ||
-        Object.keys(o.shown).length > MAX_NODES ||
+        Object.keys(o.shown).length > cap ||
         !Object.entries(o.shown).every(([k, v]) => text(k) && text(v))
       )
         error("overlay", "shown must map ids to ids");
       if (
         o.hidden !== undefined &&
         (!Array.isArray(o.hidden) ||
-          o.hidden.length > MAX_NODES ||
+          o.hidden.length > cap ||
           !o.hidden.every(text) ||
           new Set(o.hidden).size !== o.hidden.length)
       )
         error("overlay", "hidden must be distinct ids");
       const tucked = new Set<string>();
-      if (!Array.isArray(o.tucks) || o.tucks.length > MAX_NODES)
+      if (!Array.isArray(o.tucks) || o.tucks.length > cap)
         error("overlay", "tucks must be records");
       else
         for (const t of o.tucks) {

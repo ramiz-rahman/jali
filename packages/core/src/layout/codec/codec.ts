@@ -1,5 +1,6 @@
 import type { KindRegistry, Layout, LayoutNode, Size } from "../types";
 import { validate } from "./validate";
+import { MAX_DEPTH, MAX_LINK_TEXT, MAX_NODES } from "./limits";
 type Packed = Record<string, unknown>;
 const packSize = (size: Size) => ("px" in size ? [0, size.px] : [1, size.weight]);
 /** Reshaping only: malformed wire values remain malformed for the single schema in validate. */
@@ -34,8 +35,10 @@ function pack(node: LayoutNode): Packed {
   }
   return n;
 }
-function unpack(value: unknown, depth = 0): unknown {
-  if (depth > 128) throw new Error("Tree too deep");
+/** A packed tree as the layout `validate` checks. A link past what one holds (limits.ts) stops here, before more of it is
+ *  unpacked: `seen` counts the nodes so far. */
+function unpack(value: unknown, depth = 0, seen = { nodes: 0 }): unknown {
+  if (depth > MAX_DEPTH || ++seen.nodes > MAX_NODES) throw new Error("Past what a link holds");
   if (!value || typeof value !== "object" || Array.isArray(value)) return value;
   const n = value as Packed;
   const type = ({ p: "pane", s: "stack", r: "row", c: "column" } as Record<string, string>)[
@@ -56,8 +59,7 @@ function unpack(value: unknown, depth = 0): unknown {
     if (n.e !== undefined) out.role = n.e;
     if (n.y !== undefined) out.priority = n.y;
   } else {
-    if (Array.isArray(n.n) && n.n.length > 2048) throw new Error("Tree too large");
-    out.children = Array.isArray(n.n) ? n.n.map((c) => unpack(c, depth + 1)) : n.n;
+    out.children = Array.isArray(n.n) ? n.n.map((c) => unpack(c, depth + 1, seen)) : n.n;
     if (n.x !== undefined) out.scroll = n.x;
     if (type === "stack") {
       out.active = n.a;
@@ -78,8 +80,6 @@ export function encode(layout: Layout): string {
   for (const byte of bytes) binary += String.fromCharCode(byte);
   return `1.${btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "")}`;
 }
-/** The longest layout text `decode` reads: a link whose layout is longer is one no instance reopens. */
-export const MAX_LINK_TEXT = 1_000_000;
 
 export function decode(text: string, kinds: KindRegistry): Layout | null {
   try {
