@@ -28,18 +28,12 @@ import {
   type PaneKinds,
 } from "../pane-kinds";
 import { spacingOf } from "../tokens";
-import {
-  bindSteps,
-  REPORT_STEPS,
-  stepOf,
-  type Actions,
-  type StepArgs,
-  type StepName,
-} from "../actions";
+import { bindSteps, stepOf, type Actions, type StepArgs, type StepName } from "../actions";
 import type { ActionName } from "../actions/public";
 import {
   apply,
   type ActionResult,
+  type ApplyIO,
   type Agreed,
   type Asked,
   type BeforeClose,
@@ -47,11 +41,12 @@ import {
   type Intent,
   type HistoryMode,
   type Outcome,
+  UNAVAILABLE,
   type Snapshot,
   type Toast,
 } from "./apply";
 import { createInstance, type Jali, type JaliEvent, type JaliEvents } from "./instance";
-import { currentInput, trackInput, withInput } from "../dom/input";
+import { trackInput } from "../dom/input";
 import { modelCache, type Model } from "./model";
 import type { Settings } from "./settings";
 import type { PagePrefs } from "./page-prefs";
@@ -67,6 +62,7 @@ import { createEvents } from "./events";
 import { developmentChecks, firstLayout, freezeTree, initialState } from "./initial";
 
 declare const process: { env: { NODE_ENV?: string } };
+
 import { startUi } from "../boot";
 import { createKeymap, PALETTE_ID, type Keymap, type KeyboardOptions } from "../commands/keymap";
 import type { Command } from "../commands/registry";
@@ -304,9 +300,8 @@ export interface JaliStore {
   ctx(): LayoutContext;
   snapshot(): Snapshot;
   /** Commit an outcome (or a step of the snapshot), and say what happened. Events go out once it is done; `action`
-   *  is the public action it makes, which the `layout` event names. Made from host code a commit is running (its
-   *  `beforeClose` answering at once), it waits for that commit to end, then runs against the state then: it returns
-   *  `"pending"`, and `settled` says what happened. */
+   *  is the public action it makes, which the `layout` event names. Made from host code an action calls (its
+   *  `beforeClose`), it commits at once, as its own action: the action asking is worked out again afterwards. */
   apply(o: Outcome, action?: ActionName): ActionResult;
   /** The app's events (instance.ts). */
   on<E extends JaliEvent>(event: E, handler: (event: JaliEvents[E]) => void): () => void;
@@ -354,10 +349,10 @@ export interface JaliStore {
    *  its own. */
   gesture(cancel: () => void): () => void;
   /** Stop for good (`jali.destroy()`): the listeners stop, a gesture in progress is cancelled, pane state waiting to
-   *  be saved is saved, deferred steps
-   *  (a follow waiting for the selection to rest) and a debounced address write are dropped, and the kind registry
-   *  is no longer listened to. A question still open (the host's `beforeClose`, or "Discard unsaved changes?")
-   *  settles as `"kept"`, every later commit is refused as `"unavailable"` and every raw write is dropped, so nothing
+   *  be saved is saved, deferred steps (a follow waiting for the selection to rest) and an address write still
+   *  waiting are dropped, and the kind registry is no longer listened to. Nothing more is told: batches not yet told
+   *  are dropped. A question still open (the host's `beforeClose`, or "Discard unsaved changes?") settles as
+   *  `"unavailable"`, every later commit is refused as `"unavailable"` and every raw write is dropped, so nothing
    *  lands on the next route. Calling it again does nothing. */
   destroy(): void;
   /** Whether `destroy()` has run: nothing it is asked to do lands any more. */
@@ -447,6 +442,20 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
   // The instance's lifetime (state/lifetime.ts): `destroy()` ends it, and whatever still waits on it (a host's
   // answer, a deferred step, a drag in progress) ends with it.
   const life = createLifetime();
+  /** The share of the state an address holds, as a link carries it: without params only the app sets (`appOnly`),
+   *  and without the peek. Read when the writer writes. */
+  const urlState = (): UrlState => {
+    const { layout, view, presetId, page } = state;
+    const kinds = env.kinds.registry();
+    // The page's way back holds refs too: a writer of the host's own sees it as a link carries it.
+    const before = page?.before && linkLayout(kinds, page.before);
+    return {
+      layout: linkLayout(kinds, layout),
+      view: withoutPeek(view),
+      presetId,
+      page: page && before !== page.before ? { ...page, before } : page,
+    };
+  };
   const models = modelCache();
   const defer = (d: Deferred) => {
     const run = d.run;
@@ -474,12 +483,10 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
       ...(s.hinge ? { hinge: s.hinge } : {}),
     });
 
-  /** A raw write. Size and cap changes come from outside the layout, so they refit it. Link arrivals refit where
-   *  they land. The next state is computed whole before it is put in place, so a refit that throws leaves the
-   *  state as it was. */
-  const write = (patch: Partial<UiState>) => {
-    const prev = state;
-    let next = { ...state, ...patch };
+  /** `prev` with `patch` over it. Size and cap changes come from outside the layout, so they refit it. Link arrivals
+   *  refit where they land. Computed whole, changing nothing, so a refit that throws leaves the state as it was. */
+  const reduce = (prev: UiState, patch: Partial<UiState>) => {
+    let next = { ...prev, ...patch };
     const resized = prev.area.width !== next.area.width || prev.area.height !== next.area.height;
     const recapped = prev.settings.paneCap !== next.settings.paneCap;
     const known = env.kinds.registry();
@@ -490,23 +497,31 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
       const layout = core.refit(next.layout, next.view, ctxOf(next));
       if (layout !== next.layout) next = { ...next, layout };
     }
-    if (DEV && process.env.NODE_ENV !== "production") {
-      if (next.layout !== prev.layout) freezeTree(next.layout);
-      if (next.view !== prev.view) freezeTree(next.view);
-    }
-    state = next;
-    // A refit's folds are part of what is on screen, so the address follows (a replace, once the size rests): a
-    // link copied, or a reload at this size, reopens it. No history entry and no `layout` event: it is no change
-    // the person made.
+    // A refit's folds are part of what is on screen, so the address follows (once the size rests): a link copied, or
+    // a reload at this size, reopens it. No history entry and no `layout` event: it is no change the person made.
     // On a phone (Single view) the address stays as it was: widen, and the arrangement comes back (19 Nov 2026).
-    if (
+    const refit =
       next.layout !== patch.layout &&
       next.layout !== prev.layout &&
       (resized || recapped) &&
-      next.area.width >= (env.phone?.below ?? PHONE_BELOW)
-    )
-      store.writeUrl("debounce");
+      next.area.width >= (env.phone?.below ?? PHONE_BELOW);
+    return { state: next, refit };
+  };
+  /** Put `next` in place: what changed is frozen in development, and subscribers hear it once the batch ends. */
+  const put = (next: UiState) => {
+    if (next === state) return;
+    if (DEV && process.env.NODE_ENV !== "production") {
+      if (next.layout !== state.layout) freezeTree(next.layout);
+      if (next.view !== state.view) freezeTree(next.view);
+    }
+    state = next;
     events.changed();
+  };
+  /** A raw write. */
+  const write = (patch: Partial<UiState>) => {
+    const r = reduce(state, patch);
+    put(r.state);
+    if (r.refit) store.writeUrl("debounce");
   };
 
   /**
@@ -589,21 +604,8 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
       onePane ??= modelOf(state).onePane;
     },
     ctx,
-    // The model is built when a step reads it, for the state the snapshot was taken of: `apply` takes snapshots to
-    // read the kinds or the words, and resolving the layout it just wrote was work nobody used.
-    snapshot: () => {
-      const s = state;
-      let m: Model | undefined;
-      return {
-        s,
-        get m() {
-          return (m ??= modelOf(s));
-        },
-        ctx: ctxOf(s),
-        env,
-      };
-    },
-    apply: (o, action) => (hosting ? wait(o, action) : commit(o, action)),
+    snapshot: () => snapshotOf(state),
+    apply: (o, action) => commit(o, action),
     // Two things said in one action ("1 change discarded", then "Order 1 closed") are one announcement: subscribers
     // hear an action once it is done, so the live region reads both.
     announce: (text) => {
@@ -618,30 +620,12 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
         },
       });
     },
-    // The writer reads the address's share of the state only (UrlState), when it writes, and as a link carries it:
-    // without params only the app sets (`appOnly`), and without the peek, which is never in the address.
-    writeUrl: (mode) =>
-      life.ended() ||
-      url?.write(() => {
-        const { layout, view, presetId, page } = store.get();
-        const kinds = env.kinds.registry();
-        // The page's way back holds refs too: a writer of the host's own sees it as a link carries it.
-        const before = page?.before && linkLayout(kinds, page.before);
-        return {
-          layout: linkLayout(kinds, layout),
-          view: withoutPeek(view),
-          presetId,
-          page: page && before !== page.before ? { ...page, before } : page,
-        };
-      }, mode),
+    writeUrl: (mode) => life.ended() || url?.write(urlState, mode),
     toast: events.toast,
     run: (name, ...args) => {
       const [step, as] = stepOf(name);
-      // As a step, so a change held for an answer is the action itself, run again when the answer comes. A pane's
-      // report lands at once even while host code decides: the commit asking reads it again (unsaved work is asked
-      // about), and it never changes the layout that commit was made from.
-      const o = (x: Snapshot) => step(x, ...args);
-      return REPORT_STEPS.has(name) ? commit(o, as) : store.apply(o, as);
+      // As a step, so a change held for an answer is the action itself, run again when the answer comes.
+      return commit((x: Snapshot) => step(x, ...args), as);
     },
     actions: undefined as unknown as Actions,
     keymap: createKeymap(
@@ -688,68 +672,48 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
       stop?.();
       // A gesture in progress puts back what it previewed while the instance can still be written to.
       life.cancelGestures();
-      // A question still open can never be answered now: the action it held ends as kept, so `settled` resolves.
+      // A question still open can never be answered now: the action it held is unavailable, so `settled` resolves.
       const asking = state.confirm;
       if (asking) store.set({ confirm: null });
+      // From here nothing is told, even from inside a batch or a listener; then everything waiting on the lifetime
+      // (a host's answer, a deferred step) ends.
+      events.end();
       life.end();
-      // Commits host code made that still wait are refused now, so their `settled` resolves.
-      for (const w of waiting.splice(0)) w();
       url?.cancel?.();
       offKinds();
-      asking?.settle({ ok: false, reason: "kept" });
+      asking?.settle(UNAVAILABLE);
     },
   };
   let stop: (() => void) | null = null;
-  /**
-   * Host code a commit is running now (`beforeClose` answering at once). A commit it makes can't land in the middle:
-   * the commit asking has read the state, and would write over it. So it waits, and runs once that commit ends,
-   * against the state then, as a held action does (state/apply.ts, "Held questions").
-   */
-  let hosting = 0;
-  const waiting: (() => void)[] = [];
-  function wait(o: Outcome, action?: ActionName): ActionResult {
-    let settle!: (r: ActionResult | Promise<ActionResult>) => void;
-    const settled = new Promise<ActionResult>((r) => (settle = r));
-    const input = currentInput();
-    waiting.push(() => {
-      const r = withInput(input, () => commit(o, action));
-      settle(r.reason === "pending" && r.settled ? r.settled : r);
-    });
-    return { ok: false, reason: "pending", settled };
+  /** What a step reads of `s`. The model is built when a step reads it: `apply` takes snapshots to read the kinds or
+   *  the words, and resolving a layout nobody reads is work wasted. */
+  function snapshotOf(s: UiState): Snapshot {
+    let m: Model | undefined;
+    return {
+      s,
+      get m() {
+        return (m ??= modelOf(s));
+      },
+      ctx: ctxOf(s),
+      env,
+    };
   }
   // A destroyed instance changes nothing more: a late answer, a timer or a caller that kept a handle is refused.
   function commit(o: Outcome, action?: ActionName): ActionResult {
-    if (life.ended()) return { ok: false, reason: "unavailable" };
-    const r = batch(() => apply(io, o, action));
-    // Commits host code made while this one asked it, in the order it made them: each its own batch, after this.
-    while (!hosting && waiting.length) waiting.shift()!();
-    return r;
+    return life.ended() ? UNAVAILABLE : apply(io, o, action);
   }
-  const io = {
+  const io: ApplyIO = {
     get: store.get,
-    set: write,
-    // An action refused or held part way puts back the state it read: subscribers then hear no change at all.
-    restore: (previous: UiState) => {
-      state = previous;
-      events.changed();
-    },
+    snapshotOf,
+    reduce,
+    publish: (next, effects) => batch(() => (put(next), effects())),
     committed: events.committed,
     get beforeClose() {
       return store.guard;
     },
-    host<T>(call: () => T): T {
-      hosting++;
-      try {
-        return call();
-      } finally {
-        hosting--;
-      }
-    },
-    later: (o: Outcome) => store.apply(o),
     // As a link carries it: without params only the app sets.
     linkText: url?.linkText && ((l: Layout) => url.linkText!(linkLayout(env.kinds.registry(), l))),
     signal: life.signal,
-    snapshot: store.snapshot,
     url: store.writeUrl,
     announce: store.announce,
     toast: store.toast,

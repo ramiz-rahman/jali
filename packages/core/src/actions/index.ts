@@ -279,17 +279,6 @@ export const STEPS = /* @__PURE__ */ (() =>
     keepEditing: [keepEditing, null],
   }) as const satisfies Record<string, Step | readonly [Step, ActionName | null]>)();
 
-/** A pane's reports of itself (actions/content.ts): they write its own records, never the layout. */
-export const REPORT_STEPS: ReadonlySet<StepName> = /* @__PURE__ */ new Set<StepName>([
-  "reportPane",
-  "setUnsaved",
-  "setPaneCommands",
-  "setPaneState",
-  "setTitle",
-  "setPaneAttributes",
-  "setActivity",
-]);
-
 export type Steps = typeof STEPS;
 export type StepName = keyof Steps;
 type StepOf<E> = E extends readonly [infer S, unknown] ? S : E;

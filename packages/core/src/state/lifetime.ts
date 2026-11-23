@@ -20,7 +20,8 @@ export interface Lifetime {
   gesture(cancel: () => void): () => void;
   /** Cancel every gesture in progress. */
   cancelGestures(): void;
-  /** End the lifetime: cancel the gestures, drop the deferred steps, abort the signal. Again does nothing. */
+  /** End the lifetime: abort the signal first, so whatever ends with it finds it ended, then cancel the gestures and
+   *  drop the deferred steps. Again does nothing. */
   end(): void;
 }
 
@@ -68,10 +69,10 @@ export function createLifetime(): Lifetime {
     cancelGestures,
     end() {
       if (life.signal.aborted) return;
+      life.abort();
       cancelGestures();
       for (const t of timers.values()) clearTimeout(t);
       timers.clear();
-      life.abort();
     },
   };
 }

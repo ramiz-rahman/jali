@@ -170,7 +170,8 @@ const jali = createJali({
 - Return `true` to let the change happen, `false` to keep the panes. A promise holds the change until it answers. A yes makes it against the layout as it is then, so a resize or another pane changing meanwhile does not undo the yes. If the panes it would now remove or replace are not the ones you were asked about (one shows another object by then), you are asked again.
 - The action returns `{ ok: false, reason: "kept" }`, or `reason: "pending"` with `settled`, a promise of what happened once you answer. After a yes that meets Jali's own question, it resolves with that `"unsaved"` refusal, and its `settled` says how the person answered.
 - Your answer comes first. After a yes, a pane that still reports unsaved work gets Jali's own "Discard unsaved changes?".
-- If it throws or rejects, the panes stay.
+- Nothing of the change is written while you decide. An action your guard runs meanwhile (saving a draft, pinning a pane) happens at once and returns its real result; the change is then worked out again against the layout that leaves. Work a pane reports meanwhile is asked about, and Keep editing leaves it as it was.
+- If it throws or rejects, the panes stay. If it destroys the instance, the change is `"unavailable"`, and a `settled` resolves the same way.
 
 ### When your app asks instead
 

@@ -1,11 +1,12 @@
 /**
- * Host code inside a commit (core review 22 Nov 2026, #1). The host's `beforeClose` that answers at once runs in the
- * middle of a commit that has read the state. What it does meanwhile must neither be lost nor slip past Jali's own
- * question about unsaved work.
+ * Host code inside an action (core review 22 Nov 2026, #1; the commit model, stabilisation step 2). The host's
+ * `beforeClose` runs while an action is worked out, before anything of it is written. What the host does meanwhile is
+ * its own commit, made at once with its real result; the action asking is then worked out again from the state then.
+ * Nothing the host did is lost, and nothing slips past Jali's own question about unsaved work.
  *
- * Before: a guard that pinned pane A while B closed saw both succeed, and A ended unpinned (the close wrote the
+ * Before 22 Nov: a guard that pinned pane A while B closed saw both succeed, and A ended unpinned (the close wrote the
  * layout it had read before the guard ran). A guard that reported unsaved work on B, then said yes, closed B without
- * asking "Discard unsaved changes?".
+ * asking "Discard unsaved changes?". From 22 Nov to step 2, the guard's own actions waited and returned "pending".
  */
 import { describe, expect, it } from "vite-plus/test";
 import {
@@ -38,14 +39,13 @@ const ids = (jali: Jali) => jali.model().panes.map((p) => p.id);
 const pinned = (jali: Jali, id: string) => !!jali.model().pane(id)?.pinned;
 
 describe("an action the guard makes while it decides", () => {
-  it("waits for the change being decided, then lands: both changes stand", async () => {
+  it("lands at once, with its real result, and the change being decided lands after: both stand", () => {
     let inner: ActionResult | undefined;
     const jali = make((j) => ((inner = j.actions.setPinned("a", true)), true));
     expect(jali.actions.close("b")).toMatchObject({ ok: true });
     expect(ids(jali)).toEqual(["a", "c"]);
     expect(pinned(jali, "a")).toBe(true);
-    expect(inner).toMatchObject({ ok: false, reason: "pending" });
-    await expect(inner!.settled).resolves.toMatchObject({ ok: true });
+    expect(inner).toMatchObject({ ok: true });
   });
 
   it("lands even when the guard says no", () => {
@@ -55,27 +55,29 @@ describe("an action the guard makes while it decides", () => {
     expect(pinned(jali, "a")).toBe(true);
   });
 
-  it("runs against the state after the change: one aimed at the closed pane finds nothing", async () => {
+  it("runs against the state before the change: one aimed at the pane being closed lands, then the pane closes", () => {
     let inner: ActionResult | undefined;
     const jali = make((j) => ((inner = j.actions.setPinned("b", true)), true));
-    jali.actions.close("b");
+    expect(jali.actions.close("b")).toMatchObject({ ok: true });
+    expect(inner).toMatchObject({ ok: true });
     expect(ids(jali)).toEqual(["a", "c"]);
-    expect((await inner!.settled)?.ok).toBe(false);
   });
 
-  it("is told after the change it waited for, each as its own layout event", () => {
+  it("is told before the change being decided, each as its own layout event", () => {
     const jali = make((j) => (j.actions.setPinned("a", true), true));
     const heard: string[] = [];
     jali.on("layout", (e) => heard.push(e.action ?? e.source));
     jali.actions.close("b");
-    expect(heard).toEqual(["close", "setPinned"]);
+    expect(heard).toEqual(["setPinned", "close"]);
   });
 
-  it("is refused when the instance is destroyed before it runs", async () => {
+  it("stands when the guard then destroys the instance, and the change being decided is unavailable", () => {
     let inner: ActionResult | undefined;
     const jali = make((j) => ((inner = j.actions.setPinned("a", true)), j.destroy(), true));
-    jali.actions.close("b");
-    expect((await inner!.settled)?.ok).toBe(false);
+    expect(jali.actions.close("b")).toEqual({ ok: false, reason: "unavailable" });
+    expect(inner).toMatchObject({ ok: true });
+    expect(pinned(jali, "a")).toBe(true);
+    expect(ids(jali)).toEqual(["a", "b", "c"]);
   });
 });
 

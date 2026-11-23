@@ -31,6 +31,8 @@ export interface CommitEvents {
   /** A toast, for whoever listens to `on("toast")`; kept until someone does. Sent in a batch, it is told with the
    *  batch's other events, after them. */
   toast(t: Omit<JaliEvents["toast"], "input">): void;
+  /** Tell nothing more (`destroy()`): batches and toasts not yet told are dropped, even mid-batch or mid-listener. */
+  end(): void;
 }
 
 /** The events of an instance whose state `read` gives. `settle` runs as each outermost batch ends, inside it, before
@@ -48,13 +50,14 @@ export function createEvents(read: () => UiState, settle?: () => void): CommitEv
       console.error(err);
     }
   };
+  let ended = false;
   const emit = <E extends JaliEvent>(event: E, e: JaliEvents[E]) => {
     for (const fn of handlers.get(event) ?? [])
-      isolated(() => (fn as (e: JaliEvents[E]) => void)(e));
+      if (!ended) isolated(() => (fn as (e: JaliEvents[E]) => void)(e));
   };
   /** A toast now, or kept for the first `on("toast")`. */
   const tellToast = (e: JaliEvents["toast"]) =>
-    handlers.has("toast") ? emit("toast", e) : void pendingToasts.push(e);
+    ended ? undefined : handlers.has("toast") ? emit("toast", e) : void pendingToasts.push(e);
 
   let depth = 0;
   /** The state changed in this batch: subscribers hear it once, when the batch ends. */
@@ -152,11 +155,11 @@ export function createEvents(read: () => UiState, settle?: () => void): CommitEv
           // Everything the batch did is in place (state, address, announcement) before anyone hears of it:
           // subscribers once, then the events, in the order batches ended.
           const state = read();
-          if ((handlers.size && from !== state) || toasts.length)
+          if (!ended && ((handlers.size && from !== state) || toasts.length))
             queue.push({ before: from, after: state, ops, named, input, toasts });
           if (changed) {
             changed = false;
-            for (const fn of subs) isolated(fn);
+            for (const fn of subs) if (!ended) isolated(fn);
           }
           if (!telling) {
             telling = true;
@@ -178,6 +181,11 @@ export function createEvents(read: () => UiState, settle?: () => void): CommitEv
       named ??= action;
     },
     batchStart: () => (depth ? from : undefined),
+    end() {
+      ended = true;
+      queue.length = 0;
+      pendingToasts.length = 0;
+    },
     toast(t) {
       if (depth) toasts.push({ ...t, input });
       else tellToast({ ...t, input: currentInput() });

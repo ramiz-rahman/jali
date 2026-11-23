@@ -134,9 +134,11 @@ export interface Jali<
   start(): () => void;
   /** Stop for good, when the instance goes away (a route change, a test's end): its listeners stop, pane state
    *  waiting to be saved is saved, a drag in progress ends without a drop, a follow waiting for the selection to rest
-   *  and a pending address write are dropped, and nothing is scheduled after. A question still open (`beforeClose`, or "Discard unsaved changes?")
-   *  settles as `"kept"`, every action after it is refused as `"unavailable"`, and `start()` does nothing. Its state
-   *  can still be read. Calling it again does nothing. */
+   *  and a pending address write are dropped, nothing more is told (`on`, `subscribe`), and nothing is scheduled
+   *  after. A question still open (`beforeClose`, or "Discard unsaved changes?") settles as `"unavailable"`, every
+   *  action after it is refused as `"unavailable"`, and `start()` does nothing. Its state can still be read. Calling
+   *  it again does nothing. Called from host code an action runs (its `beforeClose`, a listener), that action commits
+   *  nothing. */
   destroy(): void;
 }
 

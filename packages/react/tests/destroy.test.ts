@@ -123,7 +123,7 @@ describe("jali.destroy()", () => {
     stop();
   });
 
-  it("ends a discard question still open: the action it held settles as kept", async () => {
+  it("ends a discard question still open: the action it held settles as unavailable", async () => {
     const jali = make();
     storeOf(jali).actions.setUnsaved("detail", "a reply");
     const r = jali.actions.close("detail");
@@ -131,7 +131,7 @@ describe("jali.destroy()", () => {
     expect(storeOf(jali).get().confirm).not.toBeNull();
     jali.destroy();
     expect(storeOf(jali).get().confirm).toBeNull();
-    await expect(r.settled).resolves.toEqual({ ok: false, reason: "kept" });
+    await expect(r.settled).resolves.toEqual({ ok: false, reason: "unavailable" });
     expect(jali.model().pane("detail")).toBeDefined();
   });
 });

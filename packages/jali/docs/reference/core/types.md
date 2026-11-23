@@ -957,7 +957,7 @@ An instance, from [`createJali`](../core.md#createjali). It is frozen: these mem
 
 - **`Jali.start`**, `start(): () => void`: Starts its listeners (keys, Back and Forward, theme, saving) and returns their stop; after the stop, `start()` starts them again. `<JaliRoot>` starts it while mounted and stops it on unmount; calling it while started does nothing. The stop saves pane state still waiting to be saved. After `destroy()` it does nothing.
 
-- **`Jali.destroy`**, `destroy(): void`: Stops the instance for good, when it goes away (a route change, a test's end): its listeners stop, a drag in progress ends without a drop, pane state still waiting to be saved is saved, a follow waiting for the selection to rest and a debounced address write are dropped (so nothing lands on the next route's address), and the kind registry stops being listened to. Nothing is scheduled after it, and `start()` does nothing. Its state can still be read. Calling it again does nothing. `<JaliRoot>` doesn't call it: the instance is yours, and may outlive one mount.
+- **`Jali.destroy`**, `destroy(): void`: Stops the instance for good, when it goes away (a route change, a test's end): its listeners stop, a drag in progress ends without a drop, pane state still waiting to be saved is saved, a follow waiting for the selection to rest and an address write still waiting are dropped (so nothing lands on the next route's address), and the kind registry stops being listened to. Nothing more is told to `on` or `subscribe`, even an action's events not yet told. A question still open settles as `"unavailable"`, and so does an action whose `beforeClose` destroyed the instance. Nothing is scheduled after it, and `start()` does nothing. Its state can still be read. Calling it again does nothing. `<JaliRoot>` doesn't call it: the instance is yours, and may outlive one mount.
 
 To save a person's layout, listen for `"layout"` and store `getLayout()`. To restore it, pass it as `createJali({ layout })`: a link in the address still wins, so shared links keep working. A layout that arrives later goes through `setLayout`.
 
@@ -1234,7 +1234,7 @@ type RefusalReason = "not-found" | "invalid" | "unavailable" | "single-view" | "
 
 - **`invalid`**: What the action was given won't do. Every argument of every action is checked before anything happens, so JavaScript and an agent get the same answer TypeScript would give: a mode, edge, index or flag its type doesn't allow; a pane named by something that is neither an id nor a ref; a ref of a kind the instance doesn't have, or with params that aren't text, numbers or flags (these say why in `message`); or a layout that can't be shown. Nothing is stored as given, and it never throws.
 
-- **`unavailable`**: The instance can't do this: no launcher (split, new tab), no curated page, no free layout to go back to.
+- **`unavailable`**: The instance can't do this: no launcher (split, new tab), no curated page, no free layout to go back to, or it was destroyed.
 
 - **`single-view`**: A curated page in Single view has no layout to change.
 
@@ -1248,7 +1248,7 @@ type RefusalReason = "not-found" | "invalid" | "unavailable" | "single-view" | "
 
 - **`unsaved`**: A pane that would go has unsaved work. Jali asks the person ("Discard unsaved changes?") and makes the change if they discard. See `settled`. (A linked detail that keeps its object because of its unsaved work doesn't ask, and has no `settled`.)
 
-- **`kept`**: `beforeClose` kept the panes, or the person chose Keep editing.
+- **`kept`**: `beforeClose` kept the panes, or the person chose Keep editing, or what a held action was made from is gone by the time it is answered (a newer Back or Forward).
 
 - **`pending`**: `beforeClose` has not answered yet. See `settled`.
 
@@ -1260,7 +1260,7 @@ type RefusalReason = "not-found" | "invalid" | "unavailable" | "single-view" | "
 type BeforeClose = (request: CloseRequest) => boolean | Promise<boolean>
 ```
 
-The host's close guard, `createJali({ beforeClose })`. Jali asks it before a change removes panes or makes a pane show another object. `true` lets the change happen; `false` keeps the panes (`reason: "kept"`). A promise holds the change (`reason: "pending"`) until it answers. If the layout changed in the meantime, the held change is dropped. A guard that throws or rejects keeps the panes.
+The host's close guard, `createJali({ beforeClose })`. Jali asks it before a change removes panes or makes a pane show another object. `true` lets the change happen; `false` keeps the panes (`reason: "kept"`). A promise holds the change (`reason: "pending"`) until it answers; a yes makes it against the state then, and asks again if it would now remove or replace other panes. Nothing of the change is written while the guard decides, so an action the guard runs meanwhile happens at once, with its real result. A guard that throws or rejects keeps the panes.
 
 It is asked first. If it says yes and a pane still reports unsaved work (`useUnsaved`), Jali's own "Discard unsaved changes?" follows; Discard does not ask the guard again. It is not asked while the instance is made, or for changes that remove nothing (focus, tuck, open beside). A later yes makes the change against the instance as it is then; if the panes it would remove or replace are no longer the ones asked about, the guard is asked again. When Back or Forward is not made in the end (the guard keeps the panes, or the person keeps editing), the address goes back to what is on screen.
 

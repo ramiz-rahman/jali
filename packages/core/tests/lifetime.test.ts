@@ -38,14 +38,14 @@ describe("destroy() ends everything pending", () => {
     jali.destroy();
     location.navigate("?route=next", "push");
     held.answer(true);
-    await expect(r.settled).resolves.toEqual({ ok: false, reason: "kept" });
+    await expect(r.settled).resolves.toEqual({ ok: false, reason: "unavailable" });
     await Promise.resolve();
     expect(jali.model().resolved.panes.map((p) => p.id)).toEqual(panes);
     expect(location.entries.length).toBe(entries + 1);
     expect(location.search()).toBe("?route=next");
   });
 
-  it("settles a held host answer as kept at once, before the host answers", async () => {
+  it("settles a held host answer as unavailable at once, before the host answers", async () => {
     const held = deferred();
     const jali = make({ beforeClose: () => held.promise });
     const r = jali.actions.close(jali.model().resolved.panes[1]!.id);
@@ -54,7 +54,7 @@ describe("destroy() ends everything pending", () => {
     jali.destroy();
     await Promise.resolve();
     await Promise.resolve();
-    expect(end).toEqual({ ok: false, reason: "kept" });
+    expect(end).toEqual({ ok: false, reason: "unavailable" });
   });
 
   it("refuses every action after destroy()", () => {
