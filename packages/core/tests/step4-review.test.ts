@@ -67,6 +67,21 @@ describe("4. placing the view on screen beside itself", () => {
   });
 });
 
+describe("5. the last view on screen", () => {
+  it("is offered no Close: its step refuses, and the menu greys it out", () => {
+    const { jali } = make({ page });
+    jali.page!.open();
+    jali.page!.setMode("split");
+    expect(jali.actions.close("side").ok).toBe(true);
+    const store = storeOf(jali);
+    expect(can(store, "close", "main")).toMatchObject({ ok: false, reason: "last-pane" });
+    const close = tabMenuOf(store, "main")
+      .flat()
+      .find((i) => i.id === "close");
+    expect(close?.disabled).toBeTruthy();
+  });
+});
+
 describe("7. a target that isn't there", () => {
   it("is not-found, whatever the focused pane allows", () => {
     const { jali } = make({

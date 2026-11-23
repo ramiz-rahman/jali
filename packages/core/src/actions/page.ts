@@ -663,26 +663,42 @@ const back: Step<[]> = {
 
 /** Close a view in Split view: it leaves the screen and waits in the tabs. Never the last one on screen. */
 const hideRole: Step<[NodeId]> = {
-  // In Single view there is no layout to take a view out of.
-  check: (x) =>
-    x.s.page?.mode === "single" ? refuse("single-view", say(x).singleNoLayout) : undefined,
+  // In Single view there is no layout to take a view out of; in Split view the last view on screen stays. Both are the
+  // check's, so a menu or header offers no Close it would refuse.
+  check(x, id) {
+    if (x.s.page?.mode === "single") return refuse("single-view", say(x).singleNoLayout);
+    const r = hiding(x, id);
+    return r && !r.ok ? r.no : undefined;
+  },
   run: (x, id) => hide(x, id),
 };
 
-function hide(x: Snapshot, id: NodeId): Outcome {
+/** Taking view `id` off screen in Split view, or undefined where there is none to take (not a view, no page). */
+function hiding(x: Snapshot, id: NodeId) {
   const p = x.env.profile,
     node = x.m.pane(id);
-  if (!p || x.s.page?.mode !== "split" || !node?.role) return null;
+  if (!p || x.s.page?.mode !== "split" || !node?.role) return undefined;
   const r = core.hide(x.s.layout, unzoomed(x.s.view), id, x.ctx);
-  if (!r.ok)
-    return r.reason === "last"
-      ? refuse("last-pane", say(x).lastView(label(p, node.role)))
-      : refuse("blocked");
+  return r.ok
+    ? { ...r, name: label(p, node.role) }
+    : {
+        ok: false as const,
+        no:
+          r.reason === "last"
+            ? refuse("last-pane", say(x).lastView(label(p, node.role)))
+            : refuse("blocked"),
+      };
+}
+
+function hide(x: Snapshot, id: NodeId): Outcome {
+  const r = hiding(x, id);
+  if (!r) return null;
+  if (!r.ok) return r.no;
   return {
     op: "hide",
     layout: r.layout,
     view: r.view,
-    msg: say(x).roleHidden(label(p, node.role)),
+    msg: say(x).roleHidden(r.name),
     focusDom: r.view.focused,
   };
 }
