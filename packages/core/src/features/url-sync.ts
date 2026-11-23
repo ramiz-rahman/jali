@@ -48,7 +48,7 @@ function arriveFromUrl(
   // entries. Part of the arrival, so one held for an answer writes nothing until it lands, and nothing if it doesn't.
   const settling = (o: Outcome): Outcome => (isChange(o) ? { ...o, history: "replace" } : o);
   if ("page" in r) {
-    const { tab, item, investigation } = r.page;
+    const { tab, item, investigation, zoomOpened } = r.page;
     const page = store.env.page;
     // A link to another page than this instance's is not one it can open.
     if (!page || (r.page.page !== undefined && r.page.page !== store.env.profile?.id))
@@ -59,6 +59,7 @@ function arriveFromUrl(
           tab: tab || undefined,
           item: item || undefined,
           investigation,
+          zoomOpened,
           fromUrl: true,
           view: r.view,
         }),

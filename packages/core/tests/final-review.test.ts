@@ -673,3 +673,36 @@ describe("D1. every close on a page leaves a view shown", () => {
     expect(problems.join("\n")).toBe("");
   });
 });
+
+describe("D3. a page link's zoom reads back to the same pane, whatever a view is called", () => {
+  it("a view named like an opened pane's place (~1), maximised, is the one a reload maximises", () => {
+    vi.useFakeTimers();
+    const odd = definePage({
+      id: "odd",
+      name: "Odd",
+      itemNoun: "item",
+      home: "~1",
+      roles: [
+        { id: "~1", label: "First", priority: "primary" as const },
+        { id: "side", label: "Side", priority: "supporting" as const },
+      ],
+      firstItem: 1,
+      bind: (item: number) => ({ "~1": r(item), side: r(100 + item) }),
+      build: (item: number) =>
+        row(
+          pane(r(item), { id: "~1", role: "~1" }),
+          pane(r(100 + item), { id: "side", role: "side" }),
+        ),
+    });
+    const storage = memoryStorage();
+    const { jali, location } = make({ page: odd, storage });
+    if (jali.get().page!.mode !== "split") expect(jali.page!.setMode("split").ok).toBe(true);
+    expect(jali.actions.openBeside("~1", r(9)).ok).toBe(true);
+    expect(jali.actions.toggleZoom("~1").ok).toBe(true);
+    vi.advanceTimersByTime(1000);
+    jali.destroy();
+    const fresh = make({ page: odd, storage }, location.search()).jali;
+    vi.useRealTimers();
+    expect(fresh.get().view.zoomed).toBe("~1");
+  });
+});

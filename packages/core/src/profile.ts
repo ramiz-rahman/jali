@@ -92,6 +92,8 @@ export interface OpenPage {
   item?: ItemId;
   tab?: string;
   investigation?: ObjectRef[];
+  /** The opened pane a link maximised, by its place among `investigation` (from 1). */
+  zoomOpened?: number;
   fromUrl?: boolean;
   view?: Partial<ViewState>;
 }

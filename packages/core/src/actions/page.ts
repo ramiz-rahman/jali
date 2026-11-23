@@ -228,10 +228,10 @@ function openPage(x: Snapshot, o: OpenPage = {}): Outcome {
       : split(y, p, page.item, page.tab, false);
   const { layout, view } = reopen(base, opened, base.view.focused ?? page.tab, x.ctx);
   // A link's maximised pane, if the page's layout shows it (in Single view, only the view on screen). An opened pane is
-  // named by its place among those the link opened (`~2`), which are opened in that order after the views.
+  // named by its place among those the link opened (`zoomOpened`), which are opened in that order after the views.
   const { zoomed: named, ...given } = o.view ?? {};
-  const zoomed = named?.startsWith("~")
-    ? investigation(core.tree.panes(layout.root))[Number(named.slice(1)) - 1]?.id
+  const zoomed = o.zoomOpened
+    ? investigation(core.tree.panes(layout.root))[o.zoomOpened - 1]?.id
     : named;
   return {
     op: o.fromUrl ? "arrive" : "mode",
