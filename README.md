@@ -1,6 +1,6 @@
 # Jali
 
-Split views for React. Panes fold into tabs instead of squeezing, follow each other, and come back from a link as they were.
+A new layout primitive for React apps. Split any part of your app into adaptive tiling panes, from two side by side to over a dozen in rows, columns and tabs. You describe each pane once; your users arrange them the way they work, on any screen.
 
 Jali lays out an app's panes (lists, records, editors) in rows, columns and tabs, and keeps the layout usable on every screen: when there isn't room, panes fold into tabs of their neighbours and come back when there is. Its core has no framework and no dependencies; React renders it.
 
