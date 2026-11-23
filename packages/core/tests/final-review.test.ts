@@ -504,3 +504,42 @@ describe("C4. a page link's zoom on an opened pane maximises the same object whe
     }
   });
 });
+
+describe("C5. only a close is done by the host's own close, and only when its panes are gone", () => {
+  it("openHere whose pane beforeClose closed itself: ok only if the object is open", () => {
+    let jali!: ReturnType<typeof make>["jali"];
+    let asked = 0;
+    ({ jali } = make({
+      page: undefined,
+      layout: row(pane(r(1), { id: "a" }), pane(r(2), { id: "b" })),
+      beforeClose: ({ panes }) => {
+        if (panes[0]?.pane === "b" && !asked++) jali.actions.close("b");
+        return true;
+      },
+    }));
+    const res = jali.actions.openHere("b", r(9));
+    expect(res.ok).toBe(!!jali.model().paneOf(r(9)));
+  });
+});
+
+describe("C7. a host's own close, answered later, is done", () => {
+  it("beforeClose closes b, then answers yes by a promise: the close settles ok", async () => {
+    let jali!: ReturnType<typeof make>["jali"];
+    let asked = 0;
+    ({ jali } = make({
+      page: undefined,
+      layout: row(pane(r(1), { id: "a" }), pane(r(2), { id: "b" }), pane(r(3), { id: "c" })),
+      beforeClose: ({ panes }) => {
+        if (panes[0]?.pane === "b" && !asked++) {
+          jali.actions.close("b");
+          return Promise.resolve(true);
+        }
+        return true;
+      },
+    }));
+    const res = jali.actions.close("b");
+    const end = res.reason === "pending" ? await res.settled! : res;
+    expect(end.ok).toBe(true);
+    expect(jali.model().pane("b")).toBeUndefined();
+  });
+});

@@ -622,6 +622,36 @@ function heldAnswer(
   });
 }
 
+/** The closes: what a host's `beforeClose` can do for them, by closing their panes itself. */
+const CLOSES: ReadonlySet<ActionName | undefined> = /* @__PURE__ */ new Set<ActionName>([
+  "close",
+  "closeOthers",
+  "closeTabs",
+  "page.back",
+]);
+
+/**
+ * A close the host made itself: worked out again after its `beforeClose` (at once, or once its promised yes came), it
+ * found nothing left to do, and every pane the host let go (`host`, or what an answer carries) is gone. Its goal holds,
+ * so it is done, not refused. Never another action: a replace whose pane the host closed did not happen.
+ */
+function closedByHost(
+  o: Outcome,
+  action: ActionName | undefined,
+  r: ActionResult,
+  host: Asked,
+  layout: Layout,
+): boolean {
+  const answer = o && !Array.isArray(o) && typeof o === "object" && o.op === "answer" ? o : null;
+  const gone = [...host, ...(answer?.agreed.host ?? [])];
+  return (
+    CLOSES.has(action ?? answer?.action) &&
+    (r.reason === "not-found" || r.reason === "nothing-to-do") &&
+    gone.length > 0 &&
+    gone.every((p) => !core.tree.find(layout.root, p.pane))
+  );
+}
+
 /**
  * Commit an outcome: worked out first, then committed in one go. Returns the last step's `result` as `pane`, or the
  * refusal that stopped it, or the question that holds it (`"pending"`, `"unsaved"`, with `settled`). Host code it calls
@@ -638,16 +668,7 @@ export function apply(io: ApplyIO, o: Outcome, action?: ActionName): ActionResul
     top.stop = false;
     const res = whole(c, intent);
     if (io.signal.aborted) return UNAVAILABLE;
-    // Worked out again after the host wrote, and nothing left to do: what it let go is gone already (its
-    // `beforeClose` made the close itself). The action's goal is reached, so it is done, not refused.
-    const why = res.r.reason;
-    if (
-      tries &&
-      (why === "not-found" || why === "nothing-to-do") &&
-      top.host.length &&
-      top.host.every((p) => !core.tree.find(base.layout.root, p.pane))
-    )
-      return DONE;
+    if (closedByHost(o, action, res.r, top.host, base.layout)) return DONE;
     if (io.get() !== base) {
       // Held by the host: its answer is awaited already, and runs the whole action again against the state then.
       if (c.hold?.host) {
