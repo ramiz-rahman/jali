@@ -1,0 +1,174 @@
+/* The top bar (shell/top-bar.tsx): the mark, the layouts, search, the link, the theme and ⌘K. */
+@layer app {
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    height: 56px;
+    padding: 0 12px 0 16px;
+    min-width: 0;
+  }
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    color: var(--jali-text);
+    text-decoration: none;
+    flex: none;
+    min-height: 44px;
+  }
+  .brand-mark {
+    color: var(--t-ink);
+  }
+  .brand-mark-end {
+    fill: var(--t-coral-500);
+  }
+  .brand-name {
+    font-family: var(--t-font-display);
+    font-size: var(--type-title);
+    font-weight: 700;
+    letter-spacing: var(--track-title);
+  }
+  .presets {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    border-radius: var(--t-radius-pill);
+    background: var(--jali-surface);
+    border: 1px solid var(--jali-border);
+    flex: none;
+  }
+  .presets button {
+    height: 34px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: var(--t-radius-pill);
+    background: none;
+    color: var(--jali-text-subtle);
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .presets button:hover {
+    color: var(--jali-text);
+    background: var(--jali-hover);
+  }
+  .presets button[aria-pressed="true"] {
+    background: var(--t-ink);
+    color: var(--jali-surface);
+  }
+  .presets-select {
+    display: none;
+  }
+  /* The layout menu on a narrow window: the select, as a pill like the search's. */
+  .presets-select .select-trigger {
+    min-height: 40px;
+    gap: 6px;
+    padding: 0 10px 0 14px;
+    border-radius: var(--t-radius-pill);
+    font-size: var(--type-body);
+    font-weight: 600;
+  }
+  .topbar-end {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: none;
+  }
+  .search,
+  .icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 40px;
+    min-width: 40px;
+    padding: 0 10px;
+    border: 1px solid transparent;
+    border-radius: var(--t-radius-pill);
+    background: none;
+    color: var(--jali-text-muted);
+    cursor: pointer;
+  }
+  .search {
+    padding: 0 14px 0 12px;
+    border-color: var(--jali-border-strong);
+    background: var(--jali-surface);
+    min-width: 200px;
+    justify-content: flex-start;
+  }
+  .search kbd {
+    margin-left: auto;
+    border: 1px solid var(--jali-border);
+    border-radius: 6px;
+    padding: 0 6px;
+  }
+  .search:hover,
+  .icon-btn:hover {
+    color: var(--jali-text);
+    background: var(--jali-hover);
+  }
+  /* Commands: its keys where there is room (a pill like the search's), the ⌘ icon where there isn't. */
+  .commands-btn {
+    padding: 0 12px;
+    border-color: var(--jali-border-strong);
+    background: var(--jali-surface);
+  }
+  .commands-btn kbd {
+    font-size: var(--type-meta);
+    font-weight: 600;
+    color: var(--jali-text-muted);
+  }
+  .commands-btn .commands-icon {
+    display: none;
+  }
+  .icon-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  @media (max-width: 1100px) {
+    .search {
+      min-width: 0;
+    }
+  }
+  @media (max-width: 860px) {
+    .presets {
+      display: none;
+    }
+    .presets-select {
+      display: block;
+    }
+    .search-text,
+    .search kbd,
+    .commands-btn kbd {
+      display: none;
+    }
+    .commands-btn .commands-icon {
+      display: block;
+    }
+    .commands-btn {
+      padding: 0 10px;
+      border-color: transparent;
+      background: none;
+    }
+    .search {
+      border-color: transparent;
+      background: none;
+      padding: 0 10px;
+    }
+  }
+  @media (max-width: 480px) {
+    .topbar {
+      gap: 8px;
+      padding: 0 6px 0 10px;
+    }
+    .brand-name {
+      font-size: var(--type-title);
+    }
+    .topbar-end {
+      gap: 0;
+    }
+  }
+}

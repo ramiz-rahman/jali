@@ -3,14 +3,18 @@
  * weight is one of three, so the type stays one system as it grows. tokens.css is where values are defined, so it is
  * not checked; its scale is checked for its floor.
  */
-import { readFileSync } from "node:fs";
+import { globSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vite-plus/test";
 
-const FILES = ["shell.css", "panes.css", "photos.css", "map.css"];
+// Every stylesheet in src: these in styles/, and each one beside the module that draws it.
+const src = join(import.meta.dirname, "..");
+const FILES = globSync("**/*.css", { cwd: src }).filter(
+  (f) => f !== join("styles", "tokens.css") && f !== join("styles", "app.css"),
+);
 
 const lines = FILES.flatMap((file) =>
-  readFileSync(join(import.meta.dirname, file), "utf8")
+  readFileSync(join(src, file), "utf8")
     .split("\n")
     .map((text, i) => ({ at: `${file}:${i + 1}`, text: text.trim() })),
 ).filter((l) => l.text && !l.text.startsWith("/*") && !l.text.startsWith("*"));
@@ -19,6 +23,10 @@ const offenders = (test: (text: string) => boolean) =>
   lines.filter((l) => test(l.text)).map((l) => `${l.at}  ${l.text}`);
 
 describe("the stylesheets use the type scale", () => {
+  it("finds the stylesheets", () => {
+    expect(FILES.length).toBeGreaterThanOrEqual(10);
+  });
+
   it("every size is a --type-* token", () => {
     expect(offenders((t) => /^font-size: (?!var\(--type-[a-z]+\);|inherit;)/.test(t))).toEqual([]);
   });

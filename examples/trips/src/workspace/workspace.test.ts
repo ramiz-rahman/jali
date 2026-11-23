@@ -1,12 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { listCommands, type Jali } from "jali";
 import { chooserRequest, testJaliOptions } from "jali/testing";
-import { currentPlace, selectPlace, showDay } from "./actions";
-import { day } from "./panes/day";
-import { place } from "./panes/place";
-import { addToDay } from "./planning";
-import { createServices } from "./services";
-import { DEFAULT_PLAN, dayOf } from "./trip/plan";
+import { createServices } from "../state/services";
+import { DEFAULT_PLAN, dayOf } from "../trip/plan";
+import { currentPlace, selectPlace, showDay } from "./hub";
+import { dayRef, placeRef, WHOLE_TRIP } from "./refs";
 import { createTripsJali, kinds } from "./workspace";
 
 /** The app's workspace with nothing shared: a memory address and storage, a fixed size, no DOM focus. */
@@ -71,7 +69,7 @@ describe("the trips workspace", () => {
   it("moves the day plan and the map together when the overview selects a day", () => {
     vi.useFakeTimers();
     const { jali } = testJali();
-    jali.actions.select("overview", day({ n: 3 }));
+    jali.actions.select("overview", dayRef(3));
     vi.advanceTimersByTime(200);
     expect(shows(jali, "day")).toEqual({ n: 3 });
     // The map is another kind: its `follow` turns a day into { day }.
@@ -80,9 +78,9 @@ describe("the trips workspace", () => {
 
   it("selects a place everywhere: the list, the map, and the place pane that follows the map", () => {
     vi.useFakeTimers();
-    const { jali } = testJali();
-    selectPlace(jali, "wat-pho", { from: "day" });
-    expect(jali.get().selection.day?.ref).toEqual(place({ id: "wat-pho" }));
+    const { jali, services } = testJali();
+    selectPlace(jali, services, "wat-pho", { from: "day" });
+    expect(jali.get().selection.day?.ref).toEqual(placeRef("wat-pho"));
     expect(currentPlace(jali)).toBe("wat-pho");
     vi.advanceTimersByTime(200);
     expect(shows(jali, "place")).toEqual({ id: "wat-pho" });
@@ -90,21 +88,21 @@ describe("the trips workspace", () => {
 
   it("compares two places: keep one, select another, and a second place pane opens beside it", () => {
     vi.useFakeTimers();
-    const { jali } = testJali();
+    const { jali, services } = testJali();
     jali.actions.setKept("place", true);
-    const opened = selectPlace(jali, "h-silom");
+    const opened = selectPlace(jali, services, "h-silom");
     expect(opened).toBeTruthy();
     expect(jali.model().pane(opened)).toMatchObject({
       linkedTo: "map",
       follows: true,
-      ref: place({ id: "h-silom" }),
+      ref: placeRef("h-silom"),
     });
     expect(jali.model().pane("place")).toMatchObject({
       kept: true,
-      ref: place({ id: "grand-palace" }),
+      ref: placeRef("grand-palace"),
     });
     // The next one goes to the following pane; the kept one stays.
-    selectPlace(jali, "h-kata");
+    selectPlace(jali, services, "h-kata");
     vi.advanceTimersByTime(200);
     expect(shows(jali, opened!)).toEqual({ id: "h-kata" });
     expect(shows(jali, "place")).toEqual({ id: "grand-palace" });
@@ -124,7 +122,7 @@ describe("the trips workspace", () => {
       jali.actions.preset("days");
       const m = jali.model();
       expect(folded(jali)).toEqual([]);
-      for (const id of ["overview", "day-1", "map", "place"])
+      for (const id of ["overview", "day-1", "map"])
         expect(m.pane(id)?.where, `${width} ${id}`).toBe("shown");
       // Every day is on screen or scrolled along the row (the browser test scrolls it), never folded or a tab.
       for (let n = 1; n <= 7; n++) {
@@ -146,9 +144,9 @@ describe("the trips workspace", () => {
 
   it("keeps the layout, the day and the place in the address: a link reopens them", () => {
     vi.useFakeTimers();
-    const { jali, location } = testJali();
-    jali.actions.select("overview", day({ n: 6 }));
-    selectPlace(jali, "nai-harn", { from: "day" });
+    const { jali, location, services } = testJali();
+    jali.actions.select("overview", dayRef(6));
+    selectPlace(jali, services, "nai-harn", { from: "day" });
     // The follow, then the address: a replace is written at most every 250 ms.
     vi.advanceTimersByTime(250);
     const link = location.search();
@@ -162,8 +160,7 @@ describe("the trips workspace", () => {
   });
 
   it("doesn't open a link to a place this trip doesn't have (an old Lisbon link): it opens the layout instead", () => {
-    const { jali, location } = testJali();
-    jali.actions.preset("days");
+    const { location } = testJali();
     const params = new URLSearchParams(location.search());
     const [version, body] = params.get("l")!.split(".");
     const json = Buffer.from(body!, "base64").toString("utf8");
@@ -174,7 +171,7 @@ describe("the trips workspace", () => {
     params.set("l", `${version}.${lisbon}`);
     const { jali: reader } = testJali({ search: `?${params}` });
     expect(shows(reader, "place")).toEqual({ id: "grand-palace" });
-    expect(reader.get().presetId).toBe("days");
+    expect(reader.get().presetId).toBe("plan");
   });
 
   it("names its preset in the link", () => {
@@ -188,10 +185,26 @@ describe("the trips workspace", () => {
 
   it("keeps the shared panes mounted across a preset switch where they are the same object", () => {
     const { jali } = testJali();
-    jali.actions.preset("budget");
-    // The overview is the same pane (same id, same object); the day differs (Day 7), so it starts afresh.
+    jali.actions.preset("days");
+    // The overview is the same pane (same id, same object); the map differs (the whole trip), so it starts afresh.
     expect(jali.model().pane("overview")?.ref.kind).toBe("trip");
+    expect(shows(jali, "map")).toEqual({ day: WHOLE_TRIP });
+  });
+
+  it("leads the map and the day plan from the budget's days in Budget, opening on Day 7", () => {
+    vi.useFakeTimers();
+    const { jali } = testJali();
+    jali.actions.preset("budget");
+    expect(jali.model().pane("overview")).toBeUndefined();
+    expect(jali.model().pane("map")).toMatchObject({ linkedTo: "budget", follows: true });
     expect(shows(jali, "day")).toEqual({ n: 7 });
+    jali.actions.select("budget", dayRef(5));
+    vi.advanceTimersByTime(200);
+    expect(shows(jali, "day")).toEqual({ n: 5 });
+    expect(shows(jali, "map")).toEqual({ day: 5 });
+    // Showing a day there goes through the budget too.
+    showDay(jali, 2);
+    expect(shows(jali, "day")).toEqual({ n: 2 });
   });
 
   it("lists the app's commands in ⌘K, with their keys", () => {
@@ -220,14 +233,12 @@ describe("the trips workspace", () => {
     const { jali, services, notes } = testJali();
     run(jali, "trips.add");
     choose(jali, "Golden Mount", "Add to day…");
-    // Only the days in its city are offered.
+    // The Golden Mount is on Day 3 already, so it moves: only the other days in its city are offered.
     expect(chooser(jali).items.map(chooser(jali).label)).toEqual([
       "Day 1: Temples of the old city",
       "Day 2: Chinatown, silk and the park",
-      "Day 3: Markets and the Golden Mount",
     ]);
-    // The Golden Mount is on Day 3 already, so it moves.
-    choose(jali, /^Day 2/, "Add Golden Mount to…");
+    choose(jali, /^Day 2/, "Move Golden Mount to…");
     expect(dayOf(services.plan.get(), 2)!.stops.at(-1)).toBe("golden-mount");
     expect(dayOf(services.plan.get(), 3)!.stops).not.toContain("golden-mount");
     expect(notes.at(-1)).toBe("Moved Golden Mount to Day 2");
@@ -245,7 +256,7 @@ describe("the trips workspace", () => {
 
   it("refuses a place on a day in the other city, and says why", () => {
     const { services, notes } = testJali();
-    addToDay(services, "wat-pho", 6);
+    services.changes.addToDay("wat-pho", 6);
     expect(dayOf(services.plan.get(), 6)!.stops).not.toContain("wat-pho");
     expect(notes.at(-1)).toBe("Wat Pho is in Bangkok, and Day 6 is in Phuket");
   });

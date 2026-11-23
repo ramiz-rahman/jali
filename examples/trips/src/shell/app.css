@@ -1,0 +1,43 @@
+/* The app's frame (shell/app.tsx): the grid of the top bar, the panes and the status line; the toasts; the stop in hand. */
+@layer app {
+  .app {
+    height: 100dvh;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  /* ---------- toasts ---------- */
+  .toast {
+    font-family: var(--jali-font) !important;
+    border-radius: 14px !important;
+  }
+
+  /* ---------- a stop in hand ---------- */
+  .drag-ghost {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 8px 14px;
+    border-radius: 12px;
+    background: var(--t-ink);
+    color: var(--jali-surface);
+    font-weight: 600;
+    box-shadow: var(--t-shadow-float);
+    max-width: 260px;
+  }
+  .drag-ghost-to {
+    font-weight: 500;
+    font-size: var(--type-caption);
+    opacity: 0.75;
+  }
+  body.is-dragging-stop,
+  body.is-dragging-stop * {
+    cursor: grabbing !important;
+    user-select: none;
+  }
+}

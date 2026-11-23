@@ -11,19 +11,22 @@ import {
 } from "@phosphor-icons/react";
 import { copyLink, keyHint, runCommand } from "jali";
 import { useJali, useJaliState, useJaliShortcut, useJaliTheme } from "jali/react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { toggleTheme } from "../workspace/theme";
+import "./top-bar.css";
 
 export function TopBar() {
   const jali = useJali();
   const current = useJaliState((s) => s.presetId);
   const theme = useJaliTheme();
-  const palette = useJaliShortcut("palette.toggle");
+  const palette = useJaliShortcut("palette.toggle") || keyHint("Mod+K");
 
   return (
     <header className="topbar" data-jali-chrome="">
       <a className="brand" href="./" aria-label="Trips, a Jali example: back to the plan">
         <TripsMark />
-        {/* The space between keeps the two words apart in the text a screen reader matches the name against. */}
-        <span className="brand-name">Trips</span> <span className="brand-sub">a Jali example</span>
+        {/* What it is ("a Jali example") is said once on screen, by the status line; the name says it to a reader. */}
+        <span className="brand-name">Trips</span>
       </a>
       <nav className="presets" aria-label="Layouts">
         {jali.presets.map((p) => (
@@ -37,16 +40,20 @@ export function TopBar() {
           </button>
         ))}
       </nav>
-      <label className="presets-select">
-        <span className="sr-only">Layout</span>
-        <select value={current} onChange={(e) => jali.actions.preset(e.target.value)}>
-          {jali.presets.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.label}
-            </option>
-          ))}
-        </select>
-      </label>
+      <div className="presets-select">
+        <Select value={current ?? ""} onValueChange={(id) => jali.actions.preset(id)}>
+          <SelectTrigger aria-label="Layout">
+            <SelectValue placeholder="Layout" />
+          </SelectTrigger>
+          <SelectContent>
+            {jali.presets.map((p) => (
+              <SelectItem key={p.id} value={p.id}>
+                {p.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
       <div className="topbar-end">
         <button
           type="button"
@@ -72,9 +79,7 @@ export function TopBar() {
           className="icon-btn"
           aria-label={theme === "dark" ? "Use the light theme" : "Use the dark theme"}
           title={theme === "dark" ? "Light theme" : "Dark theme"}
-          onClick={() =>
-            jali.actions.changeSettings({ theme: theme === "dark" ? "light" : "dark" })
-          }
+          onClick={() => toggleTheme(jali)}
         >
           {theme === "dark" ? (
             <SunIcon size={18} aria-hidden />
@@ -86,12 +91,12 @@ export function TopBar() {
           type="button"
           className="icon-btn commands-btn"
           // The name says the key it shows (WCAG 2.5.3: what is seen is part of what is said).
-          aria-label={`Commands ${palette || keyHint("Mod+K")}`}
+          aria-label={`Commands ${palette}`}
           title="Commands"
           onClick={() => jali.dialogs.openPalette()}
         >
           <CommandIcon size={18} className="commands-icon" aria-hidden />
-          <kbd>{palette || keyHint("Mod+K")}</kbd>
+          <kbd>{palette}</kbd>
         </button>
       </div>
     </header>

@@ -1,0 +1,49 @@
+/* Jali's own parts, tuned to the app: pane headers, tabs, and the Following and Keep toggles. */
+@layer app {
+  .jali-pane-header {
+    height: 44px;
+    border-bottom-color: transparent;
+  }
+  .jali-pane-title h2 {
+    font-family: var(--t-font-display);
+    font-size: var(--type-item);
+    font-weight: 600;
+    letter-spacing: var(--track-heading);
+  }
+  .jali-pane[data-kind="map"] .jali-pane-header {
+    border-bottom-color: var(--jali-border);
+  }
+  .jali-tab {
+    font-weight: 600;
+  }
+  /*
+   * Following: the link icon alone, in a small round chip, so three followers don't put the same word in three
+   * headers and squeeze their titles. The word comes back while the header is hovered or focused. Kept says its word
+   * always: a pane that won't change is worth reading.
+   */
+  .jali-follow-toggle {
+    height: 22px;
+    font-weight: 600;
+    border-radius: var(--t-radius-pill);
+  }
+  .jali-follow-toggle[data-follow="following"] {
+    width: 22px;
+    padding: 0;
+    justify-content: center;
+    border-color: transparent;
+    background: var(--jali-hover);
+  }
+  .jali-follow-toggle[data-follow="following"] span {
+    display: none;
+  }
+  .jali-pane-header:is(:hover, :focus-within) .jali-follow-toggle[data-follow="following"] {
+    width: auto;
+    padding: 0 8px;
+  }
+  .jali-pane-header:is(:hover, :focus-within) .jali-follow-toggle[data-follow="following"] span {
+    display: inline;
+  }
+  .jali-follow-toggle[data-follow="kept"] {
+    padding: 0 8px;
+  }
+}

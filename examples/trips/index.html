@@ -10,9 +10,10 @@
     <meta name="color-scheme" content="light dark" />
     <title>Trips · a Jali example</title>
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-    <!-- The layer order, before any stylesheet: resets (base) below Jali's styles (jali), the app's (app) above. -->
+    <!-- The layer order, before any stylesheet: resets (base) below Jali's styles (jali), the app's (app) above,
+         and the touch sizes (touch) above every pane's own. -->
     <style>
-      @layer base, jali, app;
+      @layer base, jali, app, touch;
     </style>
   </head>
   <body>

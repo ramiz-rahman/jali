@@ -1,13 +1,16 @@
 /*
- * The app's styles. The cascade layer order (base, jali, app) is declared in index.html, before any stylesheet
- * loads: page resets (base) lose to Jali's styles (jali), and the app's own rules (app) win over Jali's without
- * !important. Jali's styles come first, imported from CSS; main.tsx imports the faces, then this file.
+ * The app's own foundation: MapLibre's and Jali's styles, the theme, what every part shares, Jali's parts as the app
+ * tunes them, and the touch sizes. Every other stylesheet sits beside the module that draws it (a pane, a part of
+ * the chrome, a shared part in ui/) and is imported by it, so a pane's look moves with the pane.
+ *
+ * The cascade layers are declared in index.html, before any stylesheet loads: page resets (base) lose to Jali's
+ * styles (jali), the app's own rules (app) win over Jali's without !important, and the touch sizes (touch) win over
+ * every pane's own. main.tsx imports the faces and this file before any module, so these come first.
  */
 /* MapLibre's own styles go in the base layer, so the app's rules for its controls win without !important. */
 @import "maplibre-gl/dist/maplibre-gl.css" layer(base);
 @import "jali/styles.css";
 @import "./tokens.css";
-@import "./shell.css";
-@import "./panes.css";
-@import "./photos.css";
-@import "./map.css";
+@import "./base.css";
+@import "./jali.css";
+@import "./touch.css";

@@ -1,0 +1,13 @@
+/* Touch: bigger targets on a coarse pointer, for every pane. A layer after the app's (index.html), so it wins. */
+@layer touch {
+  @media (pointer: coarse) {
+    .segmented button,
+    .leg-modes button {
+      min-height: 40px;
+      min-width: 40px;
+    }
+    .btn {
+      min-height: 44px;
+    }
+  }
+}
