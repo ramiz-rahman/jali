@@ -9,8 +9,10 @@ const record = (value: unknown): value is Record<string, unknown> =>
  * builder's `orders-2`) fits, and so does any id written into a DOM attribute or a CSS selector without escaping.
  */
 export const NODE_ID = /^[\w.:-]{1,128}$/;
+/** Ids that name something on `Object.prototype`: never an id, wherever one enters (code, a preset, storage, a link). */
+export const UNSAFE_IDS: ReadonlySet<string> = new Set(["__proto__", "constructor", "prototype"]);
 const nodeId = (value: unknown): value is string =>
-  typeof value === "string" && NODE_ID.test(value);
+  typeof value === "string" && NODE_ID.test(value) && !UNSAFE_IDS.has(value);
 const positive = (value: unknown): value is number =>
   typeof value === "number" && Number.isFinite(value) && value > 0;
 /**
@@ -45,7 +47,11 @@ export function validate(
       return;
     }
     seen.add(value);
-    if (!nodeId(value.id)) error(path, "id must be 1 to 128 letters, digits, _ . : or -");
+    if (!nodeId(value.id))
+      error(
+        path,
+        "id must be 1 to 128 letters, digits, _ . : or -, and not __proto__, constructor or prototype",
+      );
     else if (ids.has(value.id)) error(path, `duplicate id ${value.id}`);
     else ids.add(value.id);
     if (

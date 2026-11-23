@@ -2025,3 +2025,39 @@ Jali's minimal and full. The next round sets a hard size target from these numbe
 - **Reading them.** The peers do less than Jali (no history, address, keyboard, curated page, or feature set), and
   react-resizable-panels is only a split. Jali's own budgets are unchanged and its core is still about 1.9 KB over
   them (known, after the correctness steps); that is for the next round's target, not this step.
+
+## 23 Nov 2026 · Stabilisation step 5: safe ids, a rename's object, copies at the door (23 Nov 2026)
+
+Core half of step 5 (docs/reviews/2026-11-23/PLAN.md, findings A1-1, A1-2 and INGRESS). Header controls, menus and
+boundaries landed earlier.
+
+- **`__proto__`, `constructor` and `prototype` are never ids.** One check in layout validation's id test covers every
+  id a layout holds (nodes, `linkedTo`, the overlay's folds, shown, hidden and tucks), so `setLayout` is `invalid`, a
+  saved layout or preset gives way to the next fallback and a link is unreadable (the instance opens its fallback).
+  `pane()` throws in development, and a generated id for a kind with such a name gets a suffix. Reads stay on `own()`;
+  the hostile-input tests now put such an id into the state past every check to keep proving that.
+- **A rename belongs to its object.** The state is `{ pane, object }` (the object key the session began on). The one
+  place that normalises a state (`reduce`) clears it when that pane shows another object or is gone, so open here, a
+  following detail, Back, Undo, a link and `setLayout` all end it with no case of their own. The field closes, the text
+  is dropped, and focus returns to the pane. Save keeps the ref the session began on and calls `rename.run` with it; a
+  save pending at the change completes for that object and only the field goes away.
+- **Copies at the door.** `run()` copies its arguments once, before the step is checked, so a held action keeps what
+  it was called with; `setLayout` and `createJali` (layout, presets, their saved layouts) copy too (state/ingress.ts:
+  plain objects and arrays only, shared and cyclic parts stay so, a `__proto__` key is data). An argument nested past
+  1000 levels is refused `invalid`. Because every ref is now Jali's own, development freezes refs and the peek too (the
+  freeze skipped them because they might be the app's).
+- **Not done:** an app's `rename.run`, `tabMenu`, `beforeClose` and event handlers still receive refs that are frozen
+  in development (they are Jali's state), as layouts already were.
+- **Size:** Jali full is 106.3 KB gzipped (JS 98.0), 1.5 KB more than before this step (104.8); core is 65.7 against a
+  budget of 63. Still over, none raised; the budgets are re-set in step 8.
+
+## 23 Nov 2026 · Stabilisation step 5, after Codex's review: the doors that were left open (23 Nov 2026)
+
+- **A page's role ids are pane ids**, so `definePageEngine` refuses `__proto__`, `constructor` and `prototype` as a role.
+- **What a page binds is copied** (`bind(item)`'s refs, often cached by the app) before it is installed.
+- **A rename's field is keyed by its object.** `openHere` then `startRename` in one batch is a new session; the old one
+  never saves with its old ref.
+- **`dialogs.choose` is the one entry that isn't copied:** its items are the app's own objects, read by identity
+  (`label`, `current`, `onChoose`).
+- **The development freeze freezes a node before walking its parts**, so a ref that refers to itself can't overflow it;
+  selections and Recent are frozen as they are committed.

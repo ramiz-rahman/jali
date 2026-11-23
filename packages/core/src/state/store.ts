@@ -44,6 +44,7 @@ import {
   type LinkState,
   type Outcome,
   UNAVAILABLE,
+  refuse,
   type Snapshot,
   type Toast,
 } from "./apply";
@@ -58,7 +59,8 @@ import { browserStorage, type StoragePort } from "../ports";
 import { focusPane } from "../dom/focus";
 import { createDom, type JaliDom } from "../dom/scope";
 export type { JaliDom } from "../dom/scope";
-import { paneStateSync, type HeldStates, type PaneStateSync } from "./pane-state";
+import { copyIn } from "./ingress";
+import { objectKey, paneStateSync, type HeldStates, type PaneStateSync } from "./pane-state";
 import { createLifetime } from "./lifetime";
 import type { UrlSync } from "../url";
 import { createEvents } from "./events";
@@ -145,8 +147,9 @@ export interface UiState {
   paletteOpen: boolean;
   settingsOpen: boolean;
   chooser: ChooserState | null;
-  /** The pane whose title is being renamed in place (`actions.startRename`), if any. */
-  renaming: NodeId | null;
+  /** The pane whose title is being renamed in place (`actions.startRename`), and the object (`objectKey`) it showed
+   *  when it began: the rename ends with that object (state/store.ts `reduce`). */
+  renaming: { pane: NodeId; object: string } | null;
   /** Objects opened this session, most recent first (the launcher's "Recent"). */
   recent: ObjectRef[];
   area: { width: number; height: number };
@@ -518,6 +521,12 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
    *  refit where they land. Computed whole, changing nothing, so a refit that throws leaves the state as it was. */
   const reduce = (prev: UiState, patch: Partial<UiState>) => {
     let next = { ...prev, ...patch };
+    // A rename belongs to its object: the pane showing another one, or gone, ends it, however that came about.
+    if (next.renaming && (next.layout !== prev.layout || next.renaming !== prev.renaming)) {
+      const shown = core.tree.panes(next.layout.root).find((p) => p.id === next.renaming!.pane);
+      if (!shown || objectKey(env.kinds, shown.ref) !== next.renaming.object)
+        next = { ...next, renaming: null };
+    }
     const resized = prev.area.width !== next.area.width || prev.area.height !== next.area.height;
     const recapped = prev.settings.paneCap !== next.settings.paneCap;
     const known = env.kinds.registry();
@@ -544,6 +553,8 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
     if (DEV && process.env.NODE_ENV !== "production") {
       if (next.layout !== state.layout) freezeTree(next.layout);
       if (next.view !== state.view) freezeTree(next.view);
+      if (next.selection !== state.selection) freezeTree(next.selection);
+      if (next.recent !== state.recent) freezeTree(next.recent);
     }
     state = next;
     events.changed();
@@ -656,9 +667,17 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
     toast: events.toast,
     run: (name, ...args) => {
       const [step, as] = stepOf(name);
+      // What the caller gave is copied here, once: a later edit of a ref or a layout changes nothing, held or not.
+      let given: typeof args;
+      try {
+        // The chooser's items are the app's own objects (its label reads them by identity); the rest is data.
+        given = name === "dialogs.choose" ? args : copyIn(args);
+      } catch {
+        return commit(() => refuse("invalid"), as);
+      }
       // Its check and controls, then its run, as one step: a change held for an answer is the action itself, checked
       // and run again when the answer comes.
-      return commit((x: Snapshot) => refusalOf(x, step, args) ?? step.run(x, ...args), as);
+      return commit((x: Snapshot) => refusalOf(x, step, given) ?? step.run(x, ...given), as);
     },
     actions: undefined as unknown as Actions,
     keymap: createKeymap(

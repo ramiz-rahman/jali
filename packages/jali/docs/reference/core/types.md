@@ -109,7 +109,7 @@ A share of a split (`weight`, relative to the siblings) or a fixed length in pix
 type NodeId = string
 ```
 
-A node's id: 1 to 128 letters, digits, `_`, `.`, `:` or `-` (`orders`, `pane-3`, `detail:7`). Every id Jali and the builders make fits; a layout from outside with any other id is refused.
+A node's id: 1 to 128 letters, digits, `_`, `.`, `:` or `-` (`orders`, `pane-3`, `detail:7`). Every id Jali and the builders make fits; a layout from outside with any other id is refused. So are `__proto__`, `constructor` and `prototype`, which name something on every object: `pane(ref, { id })` throws in development, `setLayout` answers `"invalid"`, and a saved layout, a preset or a link holding one is not used (a link is unreadable, and the instance opens its fallback).
 
 ### ObjectRef
 
@@ -945,7 +945,7 @@ An instance, from [`createJali`](../core.md#createjali). It is frozen: these mem
 
 - **`Jali.getLayout`**, `getLayout(): DeepReadonly<Layout>`: The layout on screen, to save. It is plain JSON, read-only; `layout.tree.clone` gives a copy to edit.
 
-- **`Jali.setLayout`**, `setLayout(layout: LayoutInput): ActionResult`: Show a layout: anything `createJali({ layout })` takes. It is fitted to the room, focus stays on a pane that is still there, and the address gets a new entry, so Back returns to the layout before. A curated page that is open closes. Refused with `"invalid"` for a pane kind the instance doesn't have; held with `"unsaved"` when a pane that would go has unsaved work; asks `beforeClose` like a close.
+- **`Jali.setLayout`**, `setLayout(layout: LayoutInput): ActionResult`: Show a layout: anything `createJali({ layout })` takes. It is fitted to the room, focus stays on a pane that is still there, and the address gets a new entry, so Back returns to the layout before. A curated page that is open closes. Refused with `"invalid"` for a pane kind the instance doesn't have; held with `"unsaved"` when a pane that would go has unsaved work; asks `beforeClose` like a close. The layout is copied as it is given: editing your object afterwards changes nothing.
 
 - **`Jali.keymap`**, `keymap: Keymap`: This instance's keys: `label(id)` for a tooltip, `sequences(id)`, `platform`.
 
@@ -1488,7 +1488,7 @@ interface Rename {
 }
 ```
 
-Renaming in place, from `createJali({ rename })`. Double-click or F2 on a tab, or on a lone pane's title, the tab menu's Rename…, or `actions.startRename` opens a field there with the title selected. Enter or leaving the field calls `run` with the trimmed text; Esc keeps the old name, and an empty or unchanged name calls nothing. Jali stores no name: your app saves it and the pane shows it, usually with `useTitle`. Return `false`, throw or reject to keep the field open with the text, marked invalid; a promise keeps it busy until it settles. `can` says which panes may be renamed; leave it out for all.
+Renaming in place, from `createJali({ rename })`. Double-click or F2 on a tab, or on a lone pane's title, the tab menu's Rename…, or `actions.startRename` opens a field there with the title selected. Enter or leaving the field calls `run` with the trimmed text, for the object the field was opened on; the field closes, text dropped, if its pane shows another object; Esc keeps the old name, and an empty or unchanged name calls nothing. Jali stores no name: your app saves it and the pane shows it, usually with `useTitle`. Return `false`, throw or reject to keep the field open with the text, marked invalid; a promise keeps it busy until it settles. `can` says which panes may be renamed; leave it out for all.
 
 ### TabMenu
 
@@ -1710,6 +1710,7 @@ interface JaliActions<R extends ObjectRef = ObjectRef>
 
 `jali.actions` (in React, `useJali().actions`): panes and layouts. A curated page's actions are `JaliPage`, the dialogs' `JaliDialogs`. `R` is the refs of the instance's kinds: a ref of another kind is a type error. Each one reads the state now, makes its change once and returns an `ActionResult`. They follow one rule:
 
+- Refs, params and layouts are copied as the action is called. Editing a ref afterwards (even while the action waits for `beforeClose`) changes nothing Jali holds.
 - The pane comes first, as a `PaneTarget`. It is optional (`?`), meaning the focused pane, only when nothing required follows it.
 - What the action uses comes next; options come last, in an object.
 
@@ -1919,7 +1920,7 @@ The name of an event: `"open"`, `"close"`, `"pin"`, `"focus"`, `"layout"` or `"t
 type DeepReadonly<T>
 ```
 
-`T`, read-only all the way down: what an instance gives an app to read (its state, layout, model and events). An edit would change the instance behind its back, with no history and no event; in development it throws. `layout.tree.clone` gives a copy to edit; a read-only layout goes back into `setLayout` and `createJali({ layout })` as it is.
+`T`, read-only all the way down: what an instance gives an app to read (its state, layout, model and events). An edit would change the instance behind its back, with no history and no event; in development it throws. Refs and params in it are frozen too. `layout.tree.clone` gives a copy to edit; a read-only layout goes back into `setLayout` and `createJali({ layout })` as it is.
 
 ### PaneOf
 

@@ -119,6 +119,7 @@ Then a double-click or F2 on a tab opens a text field in its place, with the nam
 - **Esc** keeps the old name. So does an empty name or an unchanged one, and `run` isn't called.
 - **`run` returns `false`**, throws or rejects: the field stays open with the text, marked invalid, and screen readers hear it. The person can fix the name or press Esc.
 - **`run` returns a promise:** the field shows it's busy until the promise settles.
+- **The pane shows another object** (it opened something here, its list moved it, Back, Undo or a link): the field closes, the typed text is dropped and focus goes back to the pane. A save already running still finishes for the object the field was opened on, so a name never lands on the wrong object: `run` gets that object's ref.
 
 `can` says which panes can be renamed. Leave it out and every pane can. Without `rename()`, nothing offers renaming.
 

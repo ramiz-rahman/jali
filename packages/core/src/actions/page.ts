@@ -6,6 +6,8 @@
  * Opt-in: only `definePage` reaches this module. It puts the page's engine (`pageEngine`) on the page, and the
  * instance runs the page through `env.page`, so an app without a page ships none of it.
  */
+import { copyIn } from "../state/ingress";
+import { UNSAFE_IDS } from "../layout/codec/validate";
 import * as core from "../layout/engine";
 import { endSide, treeSide } from "../layout/geometry/direction";
 import { toLayout } from "../layout/build";
@@ -63,9 +65,12 @@ interface Placed {
   view: ViewState;
 }
 
+/** What the page binds `item` to, copied: the app may cache its refs, and what Jali keeps is its own. */
+const bound = (p: ProfileBase, item: ItemId) => copyIn(p.bind(item));
+
 /** Every role shows `item`; opened panes keep what they show. */
 function rebind(layout: Layout, p: ProfileBase, item: ItemId): Layout {
-  const refs = p.bind(item);
+  const refs = bound(p, item);
   const root = core.tree.map(layout.root, (n) =>
     n.type === "pane" && n.role && refs[n.role] ? { ...n, ref: refs[n.role]! } : n,
   );
@@ -96,7 +101,7 @@ function single(p: ProfileBase, item: ItemId, tab: string, ctx: LayoutContext): 
     id: r.id,
     type: "pane",
     size: { weight: 1 },
-    ref: p.bind(item)[r.id]!,
+    ref: bound(p, item)[r.id]!,
     role: r.id,
     priority: r.priority,
   };
@@ -857,5 +862,9 @@ export const pageEngine: PageEngine = {
  * alone renders no rail, header or tabs. Returns a copy of `page`; the fields are `page`'s own.
  */
 export function definePageEngine<P extends ProfileBase<any, any>>(page: P): P {
+  // A role's id is its pane's id, so it can't be one that names something on every object.
+  for (const r of page.roles)
+    if (UNSAFE_IDS.has(r.id))
+      throw new Error(`Jali: "${r.id}" can't be a page role (it can't be a pane id).`);
   return { ...page, [PAGE]: pageEngine };
 }

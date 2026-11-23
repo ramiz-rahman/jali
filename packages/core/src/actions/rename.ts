@@ -5,6 +5,7 @@
  */
 import type { NodeId, ObjectRef } from "../layout/types";
 import { refuse, type Outcome, type Snapshot } from "../state/apply";
+import { objectKey } from "../state/pane-state";
 import type { Step } from "./step";
 
 /** `createJali({ rename })`: which panes can be renamed, and how to save a new name. */
@@ -32,11 +33,16 @@ export const startRename: Step<[NodeId?]> = {
       : canRename(x, id)
         ? undefined
         : refuse("unavailable"),
-  run: ({ s }, id = s.view.focused!) =>
-    s.renaming === id ? null : { op: "patch", patch: { renaming: id } },
+  run: ({ s, m, env }, id = s.view.focused!) =>
+    s.renaming?.pane === id
+      ? null
+      : {
+          op: "patch",
+          patch: { renaming: { pane: id, object: objectKey(env.kinds, m.pane(id)!.ref) } },
+        },
 };
 
 /** Close pane `id`'s rename field, saved or not. Only its own: a save that settles after another pane's field opened
  *  closes nothing. */
 export const endRename = ({ s }: Snapshot, id: NodeId): Outcome =>
-  s.renaming === id ? { op: "patch", patch: { renaming: null } } : null;
+  s.renaming?.pane === id ? { op: "patch", patch: { renaming: null } } : null;
