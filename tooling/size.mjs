@@ -97,11 +97,11 @@ const SCENARIOS = {
   minimal: { entry: "minimal.tsx", budget: BUDGETS.minimal, mustNotShip: without("url") },
   // Every feature: defaultFeatures(), rename and pop out, a curated page, presets, a launcher, host commands and hooks.
   full: { entry: "full.tsx", budget: BUDGETS.full, mustNotShip: DEV_ONLY },
-  // examples/own-icons: the host's own icon for every name, with defaultFeatures().
+  // examples/own-icons: the host's own icon for every name, with defaultFeatures()'s features and rename.
   "own-icons": {
     entry: "../../examples/own-icons/src/main.tsx",
     budget: BUDGETS["own-icons"],
-    mustNotShip: without("url", "palette", "settings", "chooser", "pressed"),
+    mustNotShip: without("url", "palette", "settings", "chooser", "pressed", "rename"),
   },
   // The workspace without React, and without any feature.
   headless: { entry: "headless.ts", budget: BUDGETS.headless, mustNotShip: without() },

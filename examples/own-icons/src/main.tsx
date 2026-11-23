@@ -2,13 +2,22 @@
  * Jali drawing with the host's own icons: `<JaliRoot icons>` takes any of Jali's icon names; this app gives all of
  * them (typed `JaliIcons`, so one missing fails to compile). These are a few strokes on a 16px grid, standing in for
  * an app's icon set. The bundle test (packages/react/src/bundle.test.ts) builds this app.
+ *
+ * It takes each feature from its own entry, as an app that picks its features does, so every icon a feature draws
+ * (⌘K, Settings, "Add to tabs of…", the rename field, held controls) is one of the app's.
  */
+import { use } from "react";
 import { createRoot } from "react-dom/client";
-import { createJali, row } from "jali";
+import { createJali, row, tabs } from "jali";
 import { JaliRoot, definePane, type JaliIconProps, type JaliIcons } from "jali/react";
 import "./app.css";
 import "jali/styles.css";
-import { defaultFeatures } from "jali/features";
+import { urlSync } from "jali/url";
+import { palette } from "jali/palette";
+import { settings } from "jali/settings";
+import { chooser } from "jali/chooser";
+import { pressed } from "jali/pressed";
+import { rename } from "jali/rename";
 
 /** One stroked icon from a path on a 16px grid. */
 const stroke = (d: string) =>
@@ -67,26 +76,58 @@ const icons: JaliIcons = {
   dropTab: stroke("M2.5 2.5h11v11h-11zM8 5v6M5 8h6"),
 };
 
+/** The names the person gave notes (double-click a tab, or F2), standing in for an app's own store. */
+const names = new Map<number, string>();
+
+/** A note's text, fetched once: a promise per note, standing in for an app's data, so a note suspends while it loads. */
+const texts = new Map<number, Promise<string>>();
+const textOf = (id: number) => {
+  let text = texts.get(id);
+  if (!text) {
+    text = new Promise((done) => setTimeout(() => done(`What note ${id} says.`), 300));
+    texts.set(id, text);
+  }
+  return text;
+};
+
 const note = definePane("note", {
   params: { id: Number },
-  title: ({ id }) => `Note ${id}`,
+  title: ({ id }) => names.get(id) ?? `Note ${id}`,
   icon: stroke("M4 2.5h5.5L12 5v8.5H4zM9.5 2.5V5H12M6 8h4M6 10.5h4"),
+  // A note is small: its header keeps Maximise and Close, and the rest of what it can do is in its menu (⋯) and ⌘K.
+  buttons: ["maximise", "close"],
   Component: ({ params, openBeside }) => (
     <article className="note">
       <h3>Note {params.id}</h3>
+      <p>{use(textOf(params.id))}</p>
       <button onClick={() => openBeside(note({ id: params.id + 1 }))}>
         Open the next note beside
       </button>
     </article>
   ),
+  // While its text loads, in the app's own words.
+  Loading: ({ params }) => <p className="note">Opening note {params.id}…</p>,
 });
 
-// The workspace is the whole page, so its panes are the page's <main>.
+// The workspace is the whole page, so its panes are the page's <main>. Notes 2 and 3 share a tab strip.
 const jali = createJali({
   panes: [note],
-  layout: row(note({ id: 1 }), note({ id: 2 })),
+  layout: row(note({ id: 1 }), tabs(note({ id: 2 }), note({ id: 3 }))),
   landmark: "main",
-  features: defaultFeatures(),
+  features: [
+    urlSync(),
+    palette(),
+    settings(),
+    chooser(),
+    pressed(),
+    rename({
+      run: ({ ref }, text) => {
+        const id = Number(ref.params.id);
+        if (text.trim()) names.set(id, text.trim());
+        else names.delete(id);
+      },
+    }),
+  ],
 });
 
 createRoot(document.getElementById("root")!).render(
