@@ -10,6 +10,7 @@
  */
 import { afterAll, beforeAll, describe, expect, it, vi } from "vite-plus/test";
 import {
+  column,
   createJali,
   memoryLocation,
   memoryStorage,
@@ -39,6 +40,13 @@ const START: LayoutInput[] = [
     pane({ kind: "list", params: {} }, { id: "l" }),
     tabs(pane(item(1), { linkedTo: "l" }), item(2), { kind: "wide", params: {} }),
     { kind: "note", params: { n: 1 } },
+  ),
+  // Containers with the ids Jali gives panes: an undo that puts a pane back under a new id, or makes a container
+  // again, must still leave every id once (the layout check after every step).
+  column(
+    { id: "pane-2" },
+    pane({ kind: "list", params: {} }, { id: "pane-4" }),
+    row({ id: "pane-1" }, item(1), pane(item(2), { id: "pane-3" })),
   ),
 ];
 

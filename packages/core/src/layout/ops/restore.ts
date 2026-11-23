@@ -14,7 +14,7 @@ import type {
   UndoEntry,
   ViewState,
 } from "../types";
-import { clone, find, newId, nodes, panes, parent, replace, unzoom } from "../tree/tree";
+import { clone, find, nodes, panes, parent, replace, unzoom } from "../tree/tree";
 import { sameSize, sizeFrom } from "../tree/size";
 import { intoStack } from "../tree/insert";
 import { sameRef } from "./ref";
@@ -51,12 +51,14 @@ export function restoreClosed(
       ids[c.pane.id] = c.pane.id;
     }
   }
-  for (const c of fresh) {
+  // One reservation for every id this undo gives, panes and the containers it makes again alike.
+  const reserve = (prefix: string) => {
     let i = 1;
-    while (taken.has(`pane-${i}`)) i++;
-    ids[c.pane.id] = `pane-${i}`;
-    taken.add(`pane-${i}`);
-  }
+    while (taken.has(`${prefix}-${i}`)) i++;
+    taken.add(`${prefix}-${i}`);
+    return `${prefix}-${i}`;
+  };
+  for (const c of fresh) ids[c.pane.id] = reserve("pane");
   const id = (n: NodeId) => ids[n] ?? n;
   // Each pane's own size in its own container, for when that container is made again around it.
   const own = new Map<NodeId, SlotLevel>();
@@ -66,9 +68,10 @@ export function restoreClosed(
   const wrap = (node: LayoutNode, pane: PaneNode, level: SlotLevel, after: boolean) => {
     const children = after ? [node, pane] : [pane, node];
     const shared = { size: clone(node.size), ...(node.userSized ? { userSized: true } : {}) };
-    const made = at(level.parent)
-      ? newId(next.root, level.type === "stack" ? "stack" : "split")
+    const made = taken.has(level.parent)
+      ? reserve(level.type === "stack" ? "stack" : "split")
       : level.parent;
+    taken.add(made);
     const mine = own.get(node.id);
     if (mine?.parent === level.parent) sizeFrom(node, mine);
     else wrapped.push(node.id);
@@ -141,7 +144,7 @@ export function restoreClosed(
     sizeFrom(pane, { size: { weight: 1 } });
     if (next.root.type === "row") next.root.children.push(pane);
     else {
-      const row = newId(next.root, "split");
+      const row = reserve("split");
       wrap(
         next.root,
         pane,

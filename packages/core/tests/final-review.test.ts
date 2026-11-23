@@ -433,3 +433,18 @@ describe("C1. a tab removes only records it wrote, whatever their content and ti
     );
   });
 });
+
+describe("C2. undo gives every node it makes or puts back an id no other node has", () => {
+  it("a column named pane-2 made again around a pane restored as pane-2", () => {
+    const { jali } = make({
+      page: undefined,
+      layout: column({ id: "pane-2" }, pane(r(1), { id: "a" }), pane(r(2), { id: "pane-1" })),
+    });
+    expect(jali.actions.close("pane-1").ok).toBe(true);
+    expect(jali.actions.openBeside("a", r(3)).ok).toBe(true);
+    expect(jali.actions.undo().ok).toBe(true);
+    const all = L.tree.nodes(jali.getLayout().root).map((n) => n.id);
+    expect(new Set(all).size).toBe(all.length);
+    expect(jali.model().paneOf(r(2))).toBeDefined();
+  });
+});
