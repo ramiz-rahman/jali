@@ -5,7 +5,7 @@
  *
  * Kraken's formats: https://docs.kraken.com/api/docs/websocket-v2/ticker, …/book, …/trade, and REST OHLC.
  */
-import type { Bar } from "./types";
+import type { Bar } from "../types";
 
 export interface KrakenTicker {
   symbol: string;

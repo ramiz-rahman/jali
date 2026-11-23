@@ -2,12 +2,13 @@
  * Price history before today: a year of daily bars and the last four sessions in 30-minute bars, generated from
  * each instrument's own seeded stream so it is the same on every load. Indices are built from their members.
  */
-import { bondPrice } from "./instruments";
+import { MINUTE } from "../bars";
+import { isBond } from "../classes";
+import type { Bar, Index } from "../types";
+import { bondPrice, type SimInstrument } from "./instruments";
 import { createRandom, hash } from "./random";
-import type { Bar, Instrument } from "./types";
 
-export const DAYS = 252;
-export const MINUTE = 60_000;
+const DAYS = 252;
 const HALF_HOUR = 30 * MINUTE;
 const BARS_PER_SESSION = 13; // 09:30 to 16:00 in half hours
 
@@ -19,7 +20,7 @@ export interface History {
 }
 
 /** Session opens of the `count` weekdays before `today` (each 09:30 local), oldest first. */
-export function previousSessions(today: number, count: number): number[] {
+function previousSessions(today: number, count: number): number[] {
   const out: number[] = [];
   const d = new Date(today);
   d.setHours(9, 30, 0, 0);
@@ -30,42 +31,51 @@ export function previousSessions(today: number, count: number): number[] {
   return out;
 }
 
-/** Typical daily volume, in the units the instrument trades in. */
-export function dailyVolume(inst: Instrument): number {
-  if (inst.assetClass === "equity") return (inst.shares ?? 1e8) * 0.004;
-  if (inst.assetClass === "fx") return 9e9;
-  if (inst.assetClass === "govt") return 4e9;
-  if (inst.assetClass === "corp") return 1.5e8;
-  return 0; // indices, and crypto (which is never simulated)
+/** Typical daily volume, in the units the instrument trades in: an index has none of its own. */
+export function dailyVolume(inst: SimInstrument): number {
+  switch (inst.assetClass) {
+    case "equity":
+      return inst.shares * 0.004;
+    case "fx":
+      return 9e9;
+    case "govt":
+      return 4e9;
+    case "corp":
+      return 1.5e8;
+    case "index":
+      return 0;
+  }
 }
 
-/** One instrument's history (not an index: see `indexHistory`). */
-export function instrumentHistory(inst: Instrument, today: number, seed: number): History {
+/** One instrument's history (an index's is its members': see `indexHistory`). */
+export function instrumentHistory(
+  inst: Exclude<SimInstrument, Index>,
+  today: number,
+  seed: number,
+): History {
   const r = createRandom(hash(inst.symbol, seed));
   const sessions = previousSessions(today, DAYS);
-  const isBond = inst.coupon !== undefined;
+  const bond = isBond(inst) ? inst : undefined;
   // A little calmer than today's volatility: a year of it at full strength wanders further than real prices do.
-  const dayVol = (isBond ? inst.vol / 100 : inst.vol / Math.sqrt(252)) * 0.7;
+  const dayVol = (bond ? inst.vol / 100 : inst.vol / Math.sqrt(252)) * 0.7;
   // A day's move in the price: for a bond, its yield's move times roughly its duration.
-  const pxVol = isBond ? (Math.min(inst.maturity! * 0.85, 18) * inst.vol) / 1e4 : dayVol;
+  const pxVol = bond ? (Math.min(bond.maturity * 0.85, 18) * inst.vol) / 1e4 : dayVol;
 
   // Walk back from yesterday's close (or yield): each earlier close undoes one day's move.
   const closes: number[] = Array.from({ length: DAYS }, () => 0);
-  let level = isBond ? inst.prevYield! : inst.prevClose;
+  let level = bond ? bond.prevYield : inst.prevClose;
   for (let d = DAYS - 1; d >= 0; d--) {
     closes[d] = level;
     const move = r.gauss() * dayVol;
-    level = isBond ? level - move : level / Math.exp(move + 0.0002);
+    level = bond ? level - move : level / Math.exp(move + 0.0002);
   }
-  const price = (x: number) => (isBond ? bondPrice(x, inst.coupon!, inst.maturity!) : x);
+  const price = (x: number) => (bond ? bondPrice(x, bond.coupon, bond.maturity) : x);
 
   const volume = dailyVolume(inst);
   const daily: Bar[] = sessions.map((time, d) => {
     const prev = d === 0 ? level : closes[d - 1]!;
     const close = closes[d]!;
-    const open = isBond
-      ? prev + r.gauss() * dayVol * 0.2
-      : prev * Math.exp(r.gauss() * dayVol * 0.2);
+    const open = bond ? prev + r.gauss() * dayVol * 0.2 : prev * Math.exp(r.gauss() * dayVol * 0.2);
     const [o, c] = [price(open), price(close)];
     const wick = () => Math.abs(r.gauss()) * pxVol * 0.45;
     const high = Math.max(o, c) * (1 + wick());
@@ -108,8 +118,8 @@ export function instrumentHistory(inst: Instrument, today: number, seed: number)
 
 /** An index's history, from its members' histories weighted by market value at yesterday's close. */
 export function indexHistory(
-  index: Instrument,
-  members: { inst: Instrument; history: History; weight: number }[],
+  index: Index,
+  members: { inst: SimInstrument; history: History; weight: number }[],
 ): History {
   const combine = (pick: (h: History) => Bar[]): Bar[] =>
     pick(members[0]!.history).map((bar, i) => {
@@ -137,20 +147,4 @@ export function indexHistory(
 export function intradayShape(minutes: number): number {
   const toClose = Math.max(0, 390 - minutes);
   return 0.62 + 1.1 * Math.exp(-minutes / 35) + 0.75 * Math.exp(-toClose / 35);
-}
-
-/** Bars of one size merged into bars of a larger one (1-minute bars into half hours, for 5D). */
-export function aggregate(bars: readonly Bar[], size: number, origin: number): Bar[] {
-  const out: Bar[] = [];
-  for (const b of bars) {
-    const time = origin + Math.floor((b.time - origin) / size) * size;
-    const last = out[out.length - 1];
-    if (last && last.time === time) {
-      last.high = Math.max(last.high, b.high);
-      last.low = Math.min(last.low, b.low);
-      last.close = b.close;
-      last.volume += b.volume;
-    } else out.push({ ...b, time });
-  }
-  return out;
 }

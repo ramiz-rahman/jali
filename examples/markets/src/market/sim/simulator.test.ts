@@ -1,11 +1,19 @@
 import { describe, expect, it } from "vite-plus/test";
+import { isBond } from "../classes";
+import type { MarketData, Quote } from "../types";
+import { createSimulator } from ".";
 import { bondPrice, INSTRUMENTS } from "./instruments";
-import { createSimulator } from "./simulator";
-import type { Quote } from "./types";
 
 // A fixed day, so the tests never depend on when they run: Thursday 19 Nov 2026, 11:45.
 const start = new Date(2026, 10, 19, 11, 45).getTime();
 const sim = (seed = 7) => createSimulator({ seed, start });
+
+/** A simulated quote: the simulator has one for every instrument from the start. */
+function quoteOf(m: MarketData, symbol: string): Quote {
+  const q = m.snapshot({ channel: "quote", symbol });
+  if (!q) throw new Error(`${symbol} has no quote`);
+  return q;
+}
 
 describe("the market simulator", () => {
   it("has the instruments the brief asks for", () => {
@@ -38,9 +46,7 @@ describe("the market simulator", () => {
     const b = sim(8);
     a.step(40);
     b.step(40);
-    expect(a.snapshot({ channel: "quote", symbol: "LMNA" }).last).not.toBe(
-      b.snapshot({ channel: "quote", symbol: "LMNA" }).last,
-    );
+    expect(quoteOf(a, "LMNA").last).not.toBe(quoteOf(b, "LMNA").last);
   });
 
   it("simulates the morning before it starts: the session opened at 09:30 and has bars and volume", () => {
@@ -48,8 +54,8 @@ describe("the market simulator", () => {
     expect(m.now()).toBe(start);
     const bars = m.snapshot({ channel: "bars", symbol: "LMNA", range: "1D" });
     expect(bars.length).toBeGreaterThan(130); // 09:30 to 11:45, one a minute
-    expect(bars[0]!.time).toBe(new Date(2026, 10, 19, 9, 30).getTime());
-    expect(m.snapshot({ channel: "quote", symbol: "LMNA" }).volume).toBeGreaterThan(0);
+    expect(bars[0]?.time).toBe(new Date(2026, 10, 19, 9, 30).getTime());
+    expect(quoteOf(m, "LMNA").volume).toBeGreaterThan(0);
     expect(m.snapshot({ channel: "news" }).length).toBeGreaterThan(5);
   });
 
@@ -57,7 +63,7 @@ describe("the market simulator", () => {
     const m = sim();
     m.step(200);
     for (const inst of INSTRUMENTS) {
-      const q: Quote = m.snapshot({ channel: "quote", symbol: inst.symbol });
+      const q = quoteOf(m, inst.symbol);
       if (inst.assetClass === "index") expect(q.bid).toBe(q.ask);
       else expect(q.bid).toBeLessThan(q.ask);
       expect(q.low).toBeLessThanOrEqual(q.last);
@@ -70,10 +76,9 @@ describe("the market simulator", () => {
     const m = sim();
     m.step(4 * 60 * 30); // half an hour
     for (const inst of INSTRUMENTS.filter((i) => i.assetClass === "equity")) {
-      const q = m.snapshot({ channel: "quote", symbol: inst.symbol });
-      expect(Math.abs(q.changePct)).toBeLessThan(8);
+      expect(Math.abs(quoteOf(m, inst.symbol).changePct)).toBeLessThan(8);
     }
-    const fx = m.snapshot({ channel: "quote", symbol: "EURUSD" });
+    const fx = quoteOf(m, "EURUSD");
     expect(Math.abs(fx.changePct)).toBeLessThan(1.5);
   });
 
@@ -97,7 +102,7 @@ describe("the market simulator", () => {
     const m = sim();
     m.step(10);
     const book = m.snapshot({ channel: "book", symbol: "HRBK" });
-    const q = m.snapshot({ channel: "quote", symbol: "HRBK" });
+    const q = quoteOf(m, "HRBK");
     expect(book.bids).toHaveLength(10);
     expect(book.asks).toHaveLength(10);
     expect(book.bids[0]!.price).toBe(q.bid);
@@ -110,7 +115,7 @@ describe("the market simulator", () => {
 
   it("prints trades at the bid or the ask, newest first, and adds them to the volume", () => {
     const m = sim();
-    const before = m.snapshot({ channel: "quote", symbol: "LMNA" }).volume;
+    const before = quoteOf(m, "LMNA").volume;
     const prints: number[] = [];
     m.subscribe({ channel: "trades", symbol: "LMNA" }, (t) => prints.push(t[0]!.id));
     m.step(80);
@@ -118,7 +123,7 @@ describe("the market simulator", () => {
     expect(prints.length).toBeGreaterThan(5);
     expect(trades[0]!.time).toBeGreaterThanOrEqual(trades[1]!.time);
     const traded = trades.filter((t) => t.time > start).reduce((s, t) => s + t.size, 0);
-    expect(m.snapshot({ channel: "quote", symbol: "LMNA" }).volume).toBeCloseTo(before + traded, 4);
+    expect(quoteOf(m, "LMNA").volume).toBeCloseTo(before + traded, 4);
   });
 
   it("prices bonds from their yields: a higher yield is a lower price", () => {
@@ -126,19 +131,20 @@ describe("the market simulator", () => {
     expect(bondPrice(5, 4, 10)).toBeLessThan(bondPrice(4, 4, 10));
     const m = sim();
     m.step(50);
-    const q = m.snapshot({ channel: "quote", symbol: "GOV10Y" });
-    const inst = m.instrument("GOV10Y")!;
-    expect(q.yield).toBeDefined();
-    expect(Math.sign(q.change)).toBe(-Math.sign(q.yieldChangeBp!));
-    expect(bondPrice(q.yield!, inst.coupon!, inst.maturity!)).toBeCloseTo((q.bid + q.ask) / 2, 1);
+    const q = quoteOf(m, "GOV10Y");
+    const inst = m.instrument("GOV10Y");
+    if (!inst || !isBond(inst) || !q.yield) throw new Error("GOV10Y is a bond with a yield");
+    expect(Math.sign(q.change)).toBe(-Math.sign(q.yield.changeBp));
+    expect(bondPrice(q.yield.pct, inst.coupon, inst.maturity)).toBeCloseTo((q.bid + q.ask) / 2, 1);
   });
 
   it("moves an index with its members", () => {
     const m = sim();
     m.step(200);
-    const index = m.instrument("MXTEC")!;
-    const level = m.snapshot({ channel: "quote", symbol: "MXTEC" });
-    const members = index.members!.map((s) => m.snapshot({ channel: "quote", symbol: s }));
+    const index = m.instrument("MXTEC");
+    if (index?.assetClass !== "index") throw new Error("MXTEC is an index");
+    const level = quoteOf(m, "MXTEC");
+    const members = index.members.map((s) => quoteOf(m, s));
     const up = members.filter((q) => q.change > 0).length;
     // Mostly up members, an index up; mostly down, down. (Weights can tip a close call either way.)
     if (up >= 6) expect(level.change).toBeGreaterThan(0);

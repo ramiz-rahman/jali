@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { createKrakenMarket, HISTORY_RETRY_MS, type SocketLike } from "./kraken";
-import { createSimulator } from "./simulator";
-import { ohlcUrl, parseBars } from "./kraken-frames";
+import { createKrakenMarket, HISTORY_RETRY_MS, type SocketLike } from ".";
+import { createSimulator } from "../sim";
+import { ohlcUrl, parseBars } from "./frames";
 
 /** A websocket that opens at once and records what is sent; `push` plays a message from Kraken. */
 class FakeSocket implements SocketLike {
@@ -85,9 +85,13 @@ describe("the Kraken market", () => {
     ws.push("ticker", "snapshot", [ticker("BTC/USD", 63760, -720)]);
     ws.push("ticker", "update", [ticker("BTC/USD", 63770, -710)]);
     const q = market.snapshot({ channel: "quote", symbol: "BTCUSD" });
-    expect(q).toMatchObject({ last: 63770, prevClose: 64480, bid: 63769.9, askSize: 0.25 });
-    expect(q.tickDir).toBe(1);
-    expect(market.instrument("BTCUSD")!.prevClose).toBe(64480);
+    expect(q).toMatchObject({
+      last: 63770,
+      prevClose: 64480,
+      bid: 63769.9,
+      askSize: 0.25,
+      tickDir: 1,
+    });
     expect(seen).toHaveBeenCalledTimes(2);
   });
 
@@ -121,7 +125,7 @@ describe("the Kraken market", () => {
     ]);
     const b = market.snapshot({ channel: "book", symbol: "ETHUSD" });
     expect(b.bids).toHaveLength(10);
-    expect(b.bids[0]).toEqual({ price: 99.5, size: 2, orders: 0 });
+    expect(b.bids[0]).toEqual({ price: 99.5, size: 2 });
     expect(b.bids.at(-1)!.price).toBe(91);
     expect(b.asks[0]!.price).toBe(101);
     expect(b.asks).toHaveLength(9);
@@ -200,7 +204,7 @@ describe("the Kraken market", () => {
 describe("what comes from Kraken is parsed, not trusted", () => {
   it("says a price is not known yet before the first quote, rather than 0", async () => {
     const { market } = await setup();
-    expect(market.snapshot({ channel: "quote", symbol: "ETHUSD" }).pending).toBe(true);
+    expect(market.snapshot({ channel: "quote", symbol: "ETHUSD" })).toBeNull();
   });
 
   it("drops text that isn't JSON, and messages of a shape it doesn't know", async () => {
@@ -212,7 +216,7 @@ describe("what comes from Kraken is parsed, not trusted", () => {
     ws.push("ticker", "update", [null, "BTC/USD", 7]);
     ws.push("heartbeat", "update", []);
     expect(seen).not.toHaveBeenCalled();
-    expect(market.snapshot({ channel: "quote", symbol: "BTCUSD" }).pending).toBe(true);
+    expect(market.snapshot({ channel: "quote", symbol: "BTCUSD" })).toBeNull();
   });
 
   it("drops a ticker whose prices aren't finite numbers above zero, and keeps the good ones beside it", async () => {
@@ -224,9 +228,8 @@ describe("what comes from Kraken is parsed, not trusted", () => {
       { ...ticker("BTC/USD", 63760), change: Infinity },
       ticker("ETH/USD", 3120),
     ]);
-    expect(market.snapshot({ channel: "quote", symbol: "BTCUSD" }).pending).toBe(true);
+    expect(market.snapshot({ channel: "quote", symbol: "BTCUSD" })).toBeNull();
     expect(market.snapshot({ channel: "quote", symbol: "ETHUSD" })).toMatchObject({ last: 3120 });
-    expect(market.instrument("BTCUSD")?.prevClose).toBe(0);
   });
 
   it("drops book levels and trades that don't parse", async () => {
@@ -241,7 +244,7 @@ describe("what comes from Kraken is parsed, not trusted", () => {
       },
     ]);
     const b = market.snapshot({ channel: "book", symbol: "SOLUSD" });
-    expect(b.bids).toEqual([{ price: 140, size: 1, orders: 0 }]);
+    expect(b.bids).toEqual([{ price: 140, size: 1 }]);
     expect(b.asks).toEqual([]);
     const good = { symbol: "SOL/USD", side: "buy", price: 140, qty: 1, trade_id: 1 };
     ws.push("trade", "snapshot", [

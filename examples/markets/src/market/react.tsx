@@ -2,8 +2,15 @@
  * The market in React. `useTopic(topic, paused)` reads a topic and follows it while the pane is on screen: a pane
  * passes Jali's `paused`, so a pane behind a tab, folded or tucked stops listening and keeps what it showed.
  */
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import type { Instrument, MarketData, Quote, Topic, TopicData } from "./types";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
+import type { FeedState, MarketData, Quote, Topic, TopicData } from "./types";
 
 const MarketContext = createContext<MarketData | null>(null);
 
@@ -17,14 +24,17 @@ export function useMarket(): MarketData {
   return market;
 }
 
-export function useInstrument(symbol: string): Instrument | undefined {
-  return useMarket().instrument(symbol);
-}
-
 const keyOf = (topic: Topic) => JSON.stringify(topic);
 
-/** A topic's latest value, kept up to date until `paused`. On resuming, it catches up at once. */
-export function useTopic<T extends Topic>(topic: T, paused = false): TopicData<T> {
+/**
+ * A topic's latest value, kept up to date until `paused`; on resuming, it catches up at once. With `throttleMs`, at
+ * most one update in that time: for what barely changes on a tick (a sparkline, a year's range).
+ */
+export function useTopic<T extends Topic>(
+  topic: T,
+  paused = false,
+  { throttleMs = 0 }: { throttleMs?: number } = {},
+): TopicData<T> {
   const market = useMarket();
   const key = keyOf(topic);
   const [state, setState] = useState(() => ({ key, data: market.snapshot(topic) }));
@@ -33,8 +43,19 @@ export function useTopic<T extends Topic>(topic: T, paused = false): TopicData<T
     if (paused) return; // out of sight: stop listening, keep what is shown
     const t = JSON.parse(key) as T;
     setState({ key, data: market.snapshot(t) });
-    return market.subscribe(t, (data) => setState({ key, data }));
-  }, [market, key, paused]);
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const stop = market.subscribe(t, (data) => {
+      if (!throttleMs) return setState({ key, data });
+      timer ??= setTimeout(() => {
+        timer = undefined;
+        setState({ key, data: market.snapshot(t) });
+      }, throttleMs);
+    });
+    return () => {
+      stop();
+      clearTimeout(timer);
+    };
+  }, [market, key, paused, throttleMs]);
 
   // A pane that has just been shown another instrument reads it now, rather than showing the last one for a frame.
   return state.key === key ? state.data : market.snapshot(topic);
@@ -42,14 +63,13 @@ export function useTopic<T extends Topic>(topic: T, paused = false): TopicData<T
 
 /** `symbol`'s quote as a map entry, or none when there is no such instrument or its price is not known yet. */
 function known(market: MarketData, symbol: string): [string, Quote][] {
-  if (!market.instrument(symbol)) return [];
-  const q = market.snapshot({ channel: "quote", symbol });
-  return q.pending ? [] : [[symbol, q]];
+  const q = market.instrument(symbol) ? market.snapshot({ channel: "quote", symbol }) : null;
+  return q ? [[symbol, q]] : [];
 }
 
 /**
- * Quotes for several instruments at once (a watchlist, a blotter), in one state update a tick. An instrument whose
- * price is not known yet (`pending`) has no entry, so a caller shows "not known yet" rather than a price of 0.
+ * Quotes for several instruments at once (a watchlist, a blotter), in one state update a frame. An instrument whose
+ * price is not known yet has no entry, so a caller shows "not known yet" rather than a price of 0.
  */
 export function useQuotes(symbols: readonly string[], paused = false): ReadonlyMap<string, Quote> {
   const market = useMarket();
@@ -70,7 +90,7 @@ export function useQuotes(symbols: readonly string[], paused = false): ReadonlyM
     };
     const stops = list.map((symbol) =>
       market.subscribe({ channel: "quote", symbol }, (q) => {
-        if (q.pending) return;
+        if (!q) return;
         quotes.set(symbol, q);
         frame ||= requestAnimationFrame(flush);
       }),
@@ -82,4 +102,12 @@ export function useQuotes(symbols: readonly string[], paused = false): ReadonlyM
   }, [market, key, paused]);
 
   return state.key === key ? state.quotes : read();
+}
+
+const none = () => () => {};
+
+/** The live feed's state, kept up to date; undefined for a market with no live feed. */
+export function useFeed(): FeedState | undefined {
+  const { feed } = useMarket();
+  return useSyncExternalStore(feed?.subscribe ?? none, () => feed?.get());
 }

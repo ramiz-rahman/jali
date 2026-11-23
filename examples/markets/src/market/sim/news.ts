@@ -1,20 +1,17 @@
 /** Made-up headlines: about one company (often after its shares move), or about the market as a whole. */
+import type { Equity, Fx, Headline } from "../types";
+import type { SimInstrument } from "./instruments";
 import type { Random } from "./random";
-import type { Instrument } from "./types";
 
-export interface Draft {
-  title: string;
-  body: string;
-  source: string;
-  symbols: string[];
-}
+/** A headline before the market dates and numbers it. */
+export type HeadlineDraft = Omit<Headline, "id" | "time">;
 
 const SOURCES = ["Meridian Wire", "Desk Notes", "Ledger Daily", "Market Brief"];
 
 const pct = (r: Random, lo: number, hi: number) => `${r.int(lo, hi)}%`;
 
 /** After a sharp move: a headline that explains it, in the direction it went. */
-export function moveHeadline(r: Random, inst: Instrument, up: boolean): Draft {
+export function moveHeadline(r: Random, inst: Equity, up: boolean): HeadlineDraft {
   const n = inst.name;
   const title = up
     ? r.pick([
@@ -36,15 +33,15 @@ export function moveHeadline(r: Random, inst: Instrument, up: boolean): Draft {
 }
 
 /** A headline from the day's flow: company news, rates, currencies or the market. */
-export function flowHeadline(r: Random, instruments: readonly Instrument[]): Draft {
-  const equities = instruments.filter((i) => i.assetClass === "equity");
+export function flowHeadline(r: Random, instruments: readonly SimInstrument[]): HeadlineDraft {
+  const equities = instruments.filter((i): i is Equity => i.assetClass === "equity");
   const company = r.pick(equities);
-  const other = r.pick(equities.filter((e) => e.group !== company.group));
-  const fx = r.pick(instruments.filter((i) => i.assetClass === "fx"));
+  const other = r.pick(equities.filter((e) => e.sector !== company.sector));
+  const fx = r.pick(instruments.filter((i): i is Fx => i.assetClass === "fx"));
   const kind = r.int(0, 9);
   if (kind <= 4) {
     const n = company.name;
-    const options: Draft[] = [
+    const options: HeadlineDraft[] = [
       {
         title: `${n} names a new chief financial officer`,
         body: `The appointment takes effect next quarter. ${company.symbol} said guidance is unchanged.`,
@@ -79,7 +76,7 @@ export function flowHeadline(r: Random, instruments: readonly Instrument[]): Dra
     return r.pick(options);
   }
   if (kind <= 6)
-    return r.pick<Draft>([
+    return r.pick<HeadlineDraft>([
       {
         title: `Government 10-year yield ${r.pick(["edges higher", "slips"])} ahead of the auction`,
         body: `Dealers expect solid demand at the ${r.int(20, 45)}bn sale.`,
@@ -106,7 +103,7 @@ export function flowHeadline(r: Random, instruments: readonly Instrument[]): Dra
       source: r.pick(SOURCES),
       symbols: [fx.symbol],
     };
-  return r.pick<Draft>([
+  return r.pick<HeadlineDraft>([
     {
       title: `Meridian 40 on track for a third weekly gain`,
       body: `Breadth is narrow: ${r.int(9, 16)} of the 40 shares account for most of the rise.`,

@@ -2,7 +2,10 @@
  * The instruments of a made-up market: every company, ticker, issuer and index here is fictional. Prices, sizes and
  * volatilities are set to look like a real market's, so the demo reads true without anyone's data or licence.
  */
-import type { Instrument } from "./types";
+import type { Bond, Equity, Fx, Index, Instrument } from "../types";
+
+/** What the simulator makes up: everything but crypto, whose prices are real (kraken/). */
+export type SimInstrument = Exclude<Instrument, { assetClass: "crypto" }>;
 
 type EquityRow = [symbol: string, name: string, price: number, vol: number, sharesM: number];
 
@@ -61,12 +64,12 @@ const SECTORS: Record<string, EquityRow[]> = {
   ],
 };
 
-const equities: Instrument[] = Object.entries(SECTORS).flatMap(([group, rows]) =>
+const equities: Equity[] = Object.entries(SECTORS).flatMap(([sector, rows]) =>
   rows.map(([symbol, name, prevClose, vol, sharesM]) => ({
     symbol,
     name,
     assetClass: "equity" as const,
-    group,
+    sector,
     currency: "USD",
     decimals: 2,
     tick: 0.01,
@@ -80,31 +83,32 @@ const equities: Instrument[] = Object.entries(SECTORS).flatMap(([group, rows]) =
 type BondRow = [
   symbol: string,
   name: string,
+  issuer: string,
   maturity: number,
   coupon: number,
   prevYield: number,
   vol: number,
 ];
 const GOVTS: BondRow[] = [
-  ["GOV3M", "Government 3-month bill", 0.25, 0, 4.18, 3],
-  ["GOV2Y", "Government 2-year", 2, 3.75, 3.92, 7],
-  ["GOV5Y", "Government 5-year", 5, 3.5, 3.71, 7.5],
-  ["GOV10Y", "Government 10-year", 10, 3.875, 3.96, 7],
-  ["GOV30Y", "Government 30-year", 30, 4.25, 4.34, 6.5],
+  ["GOV3M", "Government 3-month bill", "Government", 0.25, 0, 4.18, 3],
+  ["GOV2Y", "Government 2-year", "Government", 2, 3.75, 3.92, 7],
+  ["GOV5Y", "Government 5-year", "Government", 5, 3.5, 3.71, 7.5],
+  ["GOV10Y", "Government 10-year", "Government", 10, 3.875, 3.96, 7],
+  ["GOV30Y", "Government 30-year", "Government", 30, 4.25, 4.34, 6.5],
 ];
 const CORPS: BondRow[] = [
-  ["HRBK29", "Harbour Bank 4.5% 2029", 3, 4.5, 4.71, 8],
-  ["KSTR32", "Kestrel Aerospace 5% 2032", 6, 5, 5.12, 9],
-  ["TDLN36", "Tideline Energy 5.25% 2036", 10, 5.25, 5.48, 9],
+  ["HRBK29", "Harbour Bank 4.5% 2029", "Harbour Bank", 3, 4.5, 4.71, 8],
+  ["KSTR32", "Kestrel Aerospace 5% 2032", "Kestrel Aerospace", 6, 5, 5.12, 9],
+  ["TDLN36", "Tideline Energy 5.25% 2036", "Tideline Energy", 10, 5.25, 5.48, 9],
 ];
 
 const bond =
-  (assetClass: "govt" | "corp", group: string) =>
-  ([symbol, name, maturity, coupon, prevYield, vol]: BondRow): Instrument => ({
+  (assetClass: Bond["assetClass"]) =>
+  ([symbol, name, issuer, maturity, coupon, prevYield, vol]: BondRow): Bond => ({
     symbol,
     name,
     assetClass,
-    group,
+    issuer,
     currency: "USD",
     decimals: 3,
     tick: 0.001,
@@ -115,7 +119,7 @@ const bond =
     prevYield,
   });
 
-const bonds = [...GOVTS.map(bond("govt", "Government")), ...CORPS.map(bond("corp", "Corporate"))];
+const bonds = [...GOVTS.map(bond("govt")), ...CORPS.map(bond("corp"))];
 
 // Real currency codes (a currency is nobody's product); the rates are simulated.
 type FxRow = [symbol: string, name: string, price: number, vol: number, decimals: number];
@@ -127,11 +131,12 @@ const FX: FxRow[] = [
   ["AUDUSD", "Australian dollar / US dollar", 0.65841, 0.1, 5],
   ["USDCAD", "US dollar / Canadian dollar", 1.36118, 0.062, 5],
 ];
-const fx: Instrument[] = FX.map(([symbol, name, prevClose, vol, decimals]) => ({
+const fx: Fx[] = FX.map(([symbol, name, prevClose, vol, decimals]) => ({
   symbol,
   name,
   assetClass: "fx",
-  group: "Major",
+  // A pair's symbol is its two currencies: EURUSD buys euros, priced in dollars.
+  base: symbol.slice(0, 3),
   currency: symbol.slice(3),
   decimals,
   tick: 10 ** -decimals,
@@ -139,11 +144,18 @@ const fx: Instrument[] = FX.map(([symbol, name, prevClose, vol, decimals]) => ({
   vol,
 }));
 
-const inSector = (...groups: string[]) =>
-  equities.filter((e) => groups.includes(e.group)).map((e) => e.symbol);
+const inSector = (...sectors: string[]) =>
+  equities.filter((e) => sectors.includes(e.sector)).map((e) => e.symbol);
 
 // Indices are made of the equities above, weighted by market value, so they move with them.
-const indices: Instrument[] = [
+type IndexRow = [
+  symbol: string,
+  name: string,
+  prevClose: number,
+  members: string[],
+  tracks: string,
+];
+const INDICES: IndexRow[] = [
   ["MX40", "Meridian 40", 4812.33, equities.map((e) => e.symbol), "All 40 shares"],
   ["MXTEC", "Meridian Technology", 1935.7, inSector("Technology"), "Technology"],
   ["MXFIN", "Meridian Financials", 802.14, inSector("Financials"), "Financials"],
@@ -154,22 +166,20 @@ const indices: Instrument[] = [
     inSector("Energy", "Industrials"),
     "Energy, industrials",
   ],
-].map(([symbol, name, prevClose, members, group]) => ({
-  symbol: symbol as string,
-  name: name as string,
+];
+const indices: Index[] = INDICES.map(([symbol, name, prevClose, members, tracks]) => ({
+  symbol,
+  name,
   assetClass: "index",
-  group: group as string,
+  tracks,
   currency: "USD",
   decimals: 2,
   tick: 0.01,
-  prevClose: prevClose as number,
-  vol: 0,
-  members: members as string[],
+  prevClose,
+  members,
 }));
 
-export const INSTRUMENTS: readonly Instrument[] = [...equities, ...bonds, ...fx, ...indices];
-
-export const SECTOR_NAMES = Object.keys(SECTORS);
+export const INSTRUMENTS: readonly SimInstrument[] = [...equities, ...bonds, ...fx, ...indices];
 
 /** A bond's clean price per 100 from its yield (annual coupons; a bill is a zero). */
 export function bondPrice(yieldPct: number, coupon: number, maturity: number): number {
