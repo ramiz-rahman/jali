@@ -5,7 +5,7 @@
  * another (`<JaliRoot jali>` changed), it tries its children again: the failure was the old instance's.
  */
 import { Component, type ReactNode } from "react";
-import { useOptionalStore } from "../state/react";
+import { StoreContext } from "../state/react";
 
 interface Props {
   children?: ReactNode;
@@ -14,36 +14,25 @@ interface Props {
   onError?: (error: unknown) => void;
 }
 
-interface BoundaryProps extends Props {
-  /** The instance the boundary is in; another one resets it. */
-  instance: unknown;
-}
-
-interface State {
-  failed: boolean;
-  instance: unknown;
-}
-
-class Boundary extends Component<BoundaryProps, State> {
-  override state: State = { failed: false, instance: this.props.instance };
+export class Guard extends Component<Props, { failed: boolean }> {
+  static override contextType = StoreContext;
+  override state = { failed: false };
+  /** The instance it last rendered in. */
+  private seen = this.context;
   static getDerivedStateFromError() {
     return { failed: true };
   }
-  static getDerivedStateFromProps(
-    { instance }: BoundaryProps,
-    state: State,
-  ): Partial<State> | null {
-    return instance === state.instance ? null : { failed: false, instance };
-  }
   override componentDidCatch(error: unknown) {
     this.props.onError?.(error);
+  }
+  override componentDidUpdate() {
+    if (this.seen !== this.context) {
+      this.seen = this.context;
+      if (this.state.failed) this.setState({ failed: false });
+    }
   }
   retry = () => this.setState({ failed: false });
   override render() {
     return this.state.failed ? (this.props.fallback?.(this.retry) ?? null) : this.props.children;
   }
-}
-
-export function Guard(props: Props) {
-  return <Boundary {...props} instance={useOptionalStore()} />;
 }

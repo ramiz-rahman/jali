@@ -37,7 +37,8 @@ export function lastPressedControl(
   const control = el?.closest<HTMLElement>(
     'button, a[href], [role="button"], summary, input, select, textarea',
   );
-  return control?.isConnected ? control : null;
+  // A menu's item closes the menu: it is never where focus goes back to.
+  return control?.isConnected && !control.closest('[role="menu"]') ? control : null;
 }
 
 const note = (input: JaliInput) => {
@@ -95,6 +96,7 @@ export function trackInput(doc: Document | undefined = globalThis.document): () 
     const left = (listening.get(doc) ?? 1) - 1;
     listening.set(doc, left);
     if (left === 0) {
+      pressed.delete(doc);
       doc.removeEventListener("pointerdown", onPointer, true);
       doc.removeEventListener("pointerup", onPointer, true);
       doc.removeEventListener("keydown", onKey, true);

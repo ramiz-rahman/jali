@@ -36,7 +36,7 @@ import { reactDom } from "../dom";
 // Development checks test the literal, so a production build drops them and their messages (dev.ts).
 declare const process: { env: { NODE_ENV?: string } };
 
-const StoreContext = /* @__PURE__ */ createContext<JaliStore | null>(null);
+export const StoreContext = /* @__PURE__ */ createContext<JaliStore | null>(null);
 
 /** Each store's DOM id as the host gave it, and the provider that scopes it while mounted. */
 const bases = new WeakMap<JaliStore, string>();
@@ -109,11 +109,6 @@ export function InstanceScope({ children }: { children?: ReactNode }) {
 
 /** An instance as React code sees it: its kinds have components, its page a rail and header (define.ts). */
 export type ReactJaliStore = JaliStore & { env: ReactEnv };
-
-/** The instance this is inside, or `null` outside any (a boundary that may sit above a provider). */
-export function useOptionalStore(): JaliStore | null {
-  return useContext(StoreContext);
-}
 
 export function useStore(): ReactJaliStore {
   const store = useContext(StoreContext);

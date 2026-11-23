@@ -47,6 +47,9 @@ function inertOutside(keep: Element, root: Element | null, overlays: Element | n
   return () => made.forEach((el) => (el.inert = false));
 }
 
+/** Each document's open modals, oldest first: only the last (topmost) enforces focus, so two guards never compete. */
+const open = /* @__PURE__ */ new WeakMap<Document, Set<Element>>();
+
 interface ModalDialogProps extends HTMLAttributes<HTMLDivElement> {
   /** The scrim's class: `jali-scrim`, with `jali-scrim-light` for a lighter one. */
   scrim: string;
@@ -83,6 +86,8 @@ export function ModalDialog({
   useEffect(() => {
     const el = ref.current!;
     if (store.focusHeld) return undefined;
+    const doc = el.ownerDocument;
+    const was = back.current as HTMLElement | null;
     const first = () =>
       (initialFocus?.current ?? tabStops(el)[0] ?? el).focus({ preventScroll: true });
     first();
@@ -100,30 +105,32 @@ export function ModalDialog({
     // out. Whenever focus leaves while Tab is being pressed, it comes back in at the other end. The browser still
     // decides where Tab goes inside; nothing here moves it.
     let shift: boolean | undefined;
-    const doc = el.ownerDocument;
+    open.set(doc, (open.get(doc) ?? new Set()).add(el));
     const note = (e: KeyboardEvent) => {
       if (e.key !== "Tab") return;
       shift = e.shiftKey;
       setTimeout(() => (shift = undefined));
     };
     const keep = (to: EventTarget | null) => {
-      if (shift === undefined || (to instanceof Node && el.contains(to))) return;
-      const back = shift;
+      if (
+        shift === undefined ||
+        [...open.get(doc)!].pop() !== el ||
+        (to instanceof Node && el.contains(to))
+      )
+        return;
       queueMicrotask(() => {
         if (el.contains(doc.activeElement)) return;
         const stops = tabStops(el);
-        (back ? stops.at(-1) : stops[0])?.focus({ preventScroll: true });
+        (shift ? stops.at(-1) : stops[0])?.focus({ preventScroll: true });
       });
     };
-    const out = (e: FocusEvent) => keep(e.type === "focusin" ? e.target : e.relatedTarget);
+    const out = (e: FocusEvent) => keep(e.relatedTarget);
     doc.addEventListener("keydown", note, true);
     el.addEventListener("focusout", out);
-    doc.addEventListener("focusin", out);
-    const was = back.current as HTMLElement | null;
     return () => {
+      open.get(doc)!.delete(el);
       doc.removeEventListener("keydown", note, true);
       el.removeEventListener("focusout", out);
-      doc.removeEventListener("focusin", out);
       undo();
       // Back where it was, unless the change the dialog made moved focus on purpose (or removed where it was).
       const now = document.activeElement;

@@ -6,8 +6,9 @@
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { memo, useEffect, useState } from "react";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite-plus/test";
-import { createJali, memoryLocation, memoryStorage, pane, type AnyJali } from "@jali/core";
-import { JaliRoot, definePane, useCommands, useHeaderActions } from "@jali/react";
+import { lastPressedControl, trackInput } from "@jali/core/adapter";
+import { createJali, memoryLocation, memoryStorage, pane, row, type AnyJali } from "@jali/core";
+import { JaliRoot, definePane, useCommands, useHeaderActions, useUnsaved } from "@jali/react";
 import { defaultFeatures, urlSync } from "./features";
 
 beforeAll(() => {
@@ -34,8 +35,9 @@ afterEach(() => {
 });
 
 const note = definePane("note", { title: () => "Note", Component: () => <p>note body</p> });
-const make = (): AnyJali =>
+const make = (id?: string): AnyJali =>
   createJali({
+    id,
     panes: [note],
     layout: pane(note({}), { id: "a" }),
     features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
@@ -207,5 +209,73 @@ describe("boundaries reset with the instance", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
     act(() => void jali.dialogs.openSettings());
     expect(screen.getByRole("dialog", { name: "Settings" })).toBeTruthy();
+  });
+});
+
+describe("review fixes", () => {
+  it("two instances with a dialog open each: Tab never hangs, and the topmost keeps focus", async () => {
+    const a = make("one"),
+      b = make("two");
+    render(
+      <>
+        <JaliRoot jali={a} />
+        <JaliRoot jali={b} />
+      </>,
+    );
+    act(() => void a.dialogs.openSettings());
+    act(() => void b.dialogs.openSettings());
+    const dialogs = screen.getAllByRole("dialog", { hidden: true });
+    expect(dialogs).toHaveLength(2);
+    for (let n = 0; n < 6; n++) {
+      fireEvent.keyDown(document.activeElement ?? document.body, {
+        key: "Tab",
+        shiftKey: n % 2 === 1,
+      });
+      act(() => (document.activeElement as HTMLElement | null)?.blur());
+      await act(async () => void (await Promise.resolve()));
+      expect(dialogs[1]!.contains(document.activeElement)).toBe(true);
+    }
+  });
+
+  it("Close from a pane's menu, then Keep editing: focus goes back to the pane, not the page", () => {
+    const draft = definePane("draft", {
+      title: () => "Draft",
+      Component: () => {
+        useUnsaved("a reply");
+        return <p>draft body</p>;
+      },
+    });
+    const jali = createJali({
+      panes: [draft, note],
+      layout: row(pane(draft({}), { id: "d" }), pane(note({}), { id: "n" })),
+      features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
+      storage: memoryStorage(),
+      size: { width: 1200, height: 600 },
+      moveFocus: false,
+    });
+    render(<JaliRoot jali={jali} />);
+    const section = document.querySelector<HTMLElement>('[data-pane="d"]')!;
+    fireEvent.contextMenu(section.querySelector(".jali-pane-header")!);
+    const item = screen.getByRole("menuitem", { name: /^Close/ });
+    fireEvent.pointerDown(item);
+    fireEvent.click(item);
+    const dialog = screen.getByRole("alertdialog");
+    expect(dialog.contains(document.activeElement)).toBe(true);
+    fireEvent.click(screen.getByRole("button", { name: "Keep editing" }));
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+    expect(document.activeElement).toBe(section);
+  });
+
+  it("the pressed element is forgotten when the last instance stops listening", () => {
+    const btn = document.body.appendChild(document.createElement("button"));
+    const stop = trackInput(document);
+    const stop2 = trackInput(document);
+    fireEvent.pointerDown(btn);
+    expect(lastPressedControl(document)).toBe(btn);
+    stop();
+    expect(lastPressedControl(document)).toBe(btn);
+    stop2();
+    expect(lastPressedControl(document)).toBeNull();
+    btn.remove();
   });
 });
