@@ -36,24 +36,22 @@ test.describe("search", () => {
   });
 });
 
-test("package-manager tabs: arrows switch, each tab has its panel, and the choice is kept", async ({
+test("the install line: the menu picks the package manager, and the choice is kept", async ({
   page,
 }) => {
   await page.goto("/get-started/quickstart");
   const install = page.locator("[data-install]").first();
-  const tabs = install.getByRole("tab");
-  await expect(tabs).toHaveCount(4); // npm, pnpm, yarn, bun
-  for (const tab of await tabs.all()) {
-    const panel = await tab.getAttribute("aria-controls");
-    await expect(page.locator(`#${panel}`)).toHaveCount(1);
-  }
-  await tabs.first().focus();
-  await page.keyboard.press("ArrowRight");
-  await expect(install.getByRole("tab", { name: "pnpm" })).toHaveAttribute("aria-selected", "true");
-  await expect(install.getByRole("tabpanel")).toHaveText("pnpm add jali");
+  const menu = install.getByRole("combobox", { name: "Package manager" });
+  await expect(menu.locator("option")).toHaveText(["npm", "pnpm", "yarn", "bun", "vp"]);
+  await expect(install.locator("[data-pm-panel]:visible")).toHaveText("npm install jali");
+  await menu.selectOption("pnpm");
+  await expect(install.locator("[data-pm-panel]:visible")).toHaveText("pnpm add jali");
+  await menu.selectOption("vp");
+  await expect(install.locator("[data-pm-panel]:visible")).toHaveText("vp install jali");
   await page.goto("/");
   const hero = page.locator("[data-install]").first();
-  await expect(hero.getByRole("tab", { name: "pnpm" })).toHaveAttribute("aria-selected", "true");
+  await expect(hero.getByRole("combobox", { name: "Package manager" })).toHaveValue("vp");
+  await expect(hero.locator("[data-pm-panel]:visible")).toHaveText("vp install jali");
 });
 
 test("copy buttons copy the code as written", async ({ page }) => {

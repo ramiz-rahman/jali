@@ -19,6 +19,7 @@ import type { MDXComponents } from "mdx/types";
 import type { ThemedToken } from "shiki/core";
 import {
   ArrowRightIcon,
+  CaretDownIcon,
   CheckIcon,
   CopyIcon,
   FileIcon,
@@ -341,7 +342,7 @@ export function Step({ title, children }: { title: string; children?: ReactNode 
  * A tab strip and one panel per tab, the first shown. In the browser, enhance.ts switches them (click, arrows, Home,
  * End) and, for a `group`, remembers the choice across the site.
  */
-function TabSet({
+export function TabSet({
   label,
   tabs,
   panelClass,
@@ -421,27 +422,41 @@ const MANAGERS = [
   { label: "pnpm", cmd: "pnpm add" },
   { label: "yarn", cmd: "yarn add" },
   { label: "bun", cmd: "bun add" },
+  { label: "vp", cmd: "vp install" },
 ];
 
-/** Install commands for npm, pnpm, yarn and bun, in the remembered "pm" tab group: one panel per manager. */
+/**
+ * The install command on one line: a menu of package managers (npm, pnpm, yarn, bun, Vite+), the command for the one
+ * chosen, and Copy. The choice is the remembered "pm" group (enhance.ts), so every install line and every package
+ * manager tab set on the site follows it. Each command is in the HTML; the menu shows one.
+ */
 export function Install({ packages }: { packages: string }) {
+  const id = usePlainId();
   return (
-    <TabSet
-      label="Package manager"
-      tabs={MANAGERS.map((m) => ({
-        label: m.label,
-        panel: <CodeBody code={`${m.cmd} ${packages}`} lang="sh" numbers={false} />,
-      }))}
-      render={(strip, panels) => (
-        <figure className="code install" data-install="" data-has-header="" data-tabs="pm">
-          <div className="code-header">
-            {strip}
-            <CopyButton label="Copy command" />
-          </div>
-          {panels}
-        </figure>
-      )}
-    />
+    <figure className="code install" data-install="" data-tabs="pm">
+      <span className="install-pm">
+        <select
+          className="install-select"
+          id={`${id}-pm`}
+          aria-label="Package manager"
+          data-pm-select=""
+          defaultValue={MANAGERS[0]!.label}
+        >
+          {MANAGERS.map((m) => (
+            <option key={m.label} value={m.label}>
+              {m.label}
+            </option>
+          ))}
+        </select>
+        <CaretDownIcon aria-hidden size={12} weight="bold" className="install-caret" />
+      </span>
+      {MANAGERS.map((m, i) => (
+        <div key={m.label} className="install-command" data-pm-panel={m.label} hidden={i !== 0}>
+          <CodeBody code={`${m.cmd} ${packages}`} lang="sh" numbers={false} />
+        </div>
+      ))}
+      <CopyButton label="Copy command" />
+    </figure>
   );
 }
 

@@ -135,49 +135,10 @@
     padding-bottom: 2px;
   }
 
-  /* The install line, compact: tabs, then the command. */
+  /* The install line beside the buttons. */
   .prose .landing-opening-actions .install,
   .prose .landing-close .install {
     margin: 0;
-  }
-  .landing-opening-actions .install {
-    display: flex;
-    align-items: center;
-    height: 44px;
-    width: max-content;
-    max-width: 100%;
-  }
-  .landing-opening-actions .install .code-header {
-    flex: none;
-    min-height: 0;
-    border-bottom: 0;
-    border-right: 1px solid var(--jali-border);
-    padding: 0 2px;
-    background: transparent;
-  }
-  .landing-opening-actions .install .tab {
-    height: 42px;
-    font-size: 13px;
-    padding: 0 8px;
-  }
-  .landing-opening-actions .install .tab[aria-selected="true"]::after {
-    left: 8px;
-    right: 8px;
-  }
-  .landing-opening-actions .install .code-copy {
-    display: none;
-  }
-  .landing-opening-actions .install [role="tabpanel"] {
-    flex: 1;
-    min-width: 0;
-    overflow-x: auto;
-  }
-  .landing-opening-actions .install .code-pre {
-    padding: 0;
-    font-size: 13px;
-  }
-  .landing-opening-actions .install .code-line {
-    padding: 0 12px;
   }
 
   /* The lattice, faint and large: behind the headline and the top of the workspace. */
@@ -894,32 +855,10 @@
   }
 }
 
-/* v3: the install line in two rows, as the docs' <Install>: package managers on top, the command below. */
+/* v3: the install line under the subline, as wide as the buttons beside it allow. */
 @layer docs {
-  .landing-opening-actions .install,
-  .landing-opening-actions .install[class] {
-    display: block;
-    height: auto;
-    width: min(30rem, 100%);
+  .landing-opening-actions .install {
+    width: min(26rem, 100%);
     text-align: left;
-  }
-  .landing-opening-actions .install .code-header {
-    border-right: 0;
-    border-bottom: 1px solid var(--jali-border);
-    padding: 0 6px 0 4px;
-    background: var(--d-code-head);
-  }
-  .landing-opening-actions .install .tab {
-    height: 38px;
-  }
-  .landing-opening-actions .install .code-copy {
-    display: inline-flex;
-  }
-  .landing-opening-actions .install .code-pre {
-    padding: 12px 0;
-    font-size: 13.5px;
-  }
-  .landing-opening-actions .install .code-line {
-    padding: 0 16px;
   }
 }

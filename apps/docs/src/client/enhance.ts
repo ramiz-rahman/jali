@@ -174,9 +174,9 @@ function initCode() {
     const copy = target.closest<HTMLElement>("[data-copy-code]");
     if (copy) {
       const figure = copy.closest(".code");
-      // Install: the command in the panel that shows; a code block: its one <pre>.
+      // Install: the command for the package manager chosen; a code block: its one <pre>.
       const pre =
-        figure?.querySelector("[role=tabpanel]:not([hidden]) .code-pre") ??
+        figure?.querySelector("[data-pm-panel]:not([hidden]) .code-pre") ??
         figure?.querySelector(".code-pre");
       const label = copy.getAttribute("aria-label") ?? "Copy code";
       void copyText(codeText(pre)).then((ok) => showCopied(copy, ok, { label }));
@@ -200,6 +200,14 @@ function initCode() {
 const tabKey = (group: string) => `jali-docs-tab:${group}`;
 
 function selectTab(set: Element, label: string) {
+  // An install line (<Install>): a menu of package managers, and one command per manager.
+  const select = set.querySelector<HTMLSelectElement>("[data-pm-select]");
+  if (select) {
+    if (![...select.options].some((o) => o.value === label)) return;
+    select.value = label;
+    for (const panel of all("[data-pm-panel]", set)) panel.hidden = panel.dataset.pmPanel !== label;
+    return;
+  }
   const tabs = all<HTMLButtonElement>("[role=tab]", set.querySelector("[role=tablist]") ?? set);
   if (!tabs.some((t) => t.dataset.tabLabel === label)) return;
   for (const t of tabs) {
@@ -225,6 +233,11 @@ function initTabs() {
     writeStored(tabKey(group), label);
     for (const s of sets) if (s.dataset.tabs === group) selectTab(s, label);
   };
+  document.addEventListener("change", (e) => {
+    const select = (e.target as Element).closest?.<HTMLSelectElement>("[data-pm-select]");
+    const set = select?.closest<HTMLElement>("[data-tabs]");
+    if (select && set) choose(set, select.value);
+  });
   document.addEventListener("click", (e) => {
     const tab = (e.target as Element).closest<HTMLButtonElement>("[data-tabs] [role=tab]");
     const set = tab?.closest<HTMLElement>("[data-tabs]");

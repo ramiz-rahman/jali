@@ -234,11 +234,67 @@
     border-radius: 8px;
   }
 
-  .install .code-header {
-    padding-left: 4px;
+  /* ---------- the install line: package manager, command, copy ---------- */
+  .code.install {
+    display: flex;
+    align-items: center;
+    height: 48px;
+    padding: 0 6px 0 0;
+  }
+  .install-pm {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: none;
+    height: 100%;
+    border-right: 1px solid var(--jali-border);
+  }
+  .install-select {
+    appearance: none;
+    height: 100%;
+    margin: 0;
+    padding: 0 30px 0 16px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    font: 500 13px/1 var(--d-font-mono);
+    color: var(--jali-text);
+    cursor: pointer;
+    transition: background-color 0.15s;
+  }
+  .install-select:hover {
+    background: var(--jali-hover);
+  }
+  .install-select:focus-visible {
+    outline: 2px solid var(--jali-accent);
+    outline-offset: -4px;
+    border-radius: 8px;
+  }
+  .install-caret {
+    position: absolute;
+    right: 12px;
+    color: var(--jali-text-subtle);
+    pointer-events: none;
+  }
+  .install-command {
+    flex: 1;
+    min-width: 0;
   }
   .install .code-pre {
-    padding: 13px 0;
+    padding: 0;
+    font-size: 13.5px;
+    line-height: 46px;
+    scrollbar-width: none;
+  }
+  .install .code-pre:focus-visible {
+    outline-offset: -6px;
+    border-radius: 8px;
+  }
+  .install .code-line {
+    padding: 0 16px;
+  }
+  .install .code-line:first-child .code-text {
+    padding-right: 0;
   }
 
   .tabs {
