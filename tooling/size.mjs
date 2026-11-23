@@ -19,26 +19,30 @@ import { gzipSync } from "node:zlib";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
-// Gzipped KB budgets per scenario and package: about 5% over what each shipped after phase 3b, and never above the
-// budget the same app had before it (minimal, full, own-icons, layout: the owner's, 22 Nov 2026). The core review's
-// fixes raised minimal, full, own-icons, +url and +defaults core by 0.6-0.7 KB (the owner's call, 23 Nov 2026).
-// docs/DECISIONS.md, "Phase 3b's size", has the numbers and what each feature adds over the floor.
+// Gzipped KB budgets per scenario and package: about 5% over what each ships, re-set at the end of the stabilisation
+// round (23 Nov 2026, the owner's decision). The round's correctness work (undo that reverses the operation, the
+// designed read API, links and history, the commit model and its checks, copies at the door, Safari focus) took the
+// minimal app's core from 56.5 to 61.0 KB, past the budgets set after phase 3b, and a size pass took back what it could
+// without changing behaviour. Budgets that every scenario was over guarded nothing; set from what ships, the next
+// change that grows it fails and has to say why. The next round sets a hard target from these numbers and the peers'.
+// docs/DECISIONS.md, "Stabilisation step 8: the size pass and new budgets", has the numbers; "Phase 3b's size" has
+// what each feature adds over the floor.
 const BUDGETS = {
-  bare: { core: 54.5, react: 24.7, css: 8.6, phosphor: 0 },
-  minimal: { core: 56.6, react: 24.7, css: 8.6, phosphor: 0 },
-  full: { core: 63.0, react: 30.6, css: 8.6, phosphor: 1.7 },
-  "own-icons": { core: 57.6, react: 27.5, css: 8.6, phosphor: 0 },
-  headless: { core: 48.7 },
-  layout: { core: 10.7 },
-  "+url": { core: 56.6, react: 24.7 },
-  "+palette": { core: 54.7, react: 25.7 },
-  "+settings": { core: 55, react: 25.6 },
-  "+chooser": { core: 54.7, react: 26 },
-  "+rename": { core: 54.6, react: 25.1 },
-  "+popOut": { core: 54.6, react: 25.9 },
-  "+pressed": { core: 54.5, react: 25.1 },
-  "+defaults": { core: 57.6, react: 27.5 },
-  "+page": { core: 59.7, react: 25.9 },
+  bare: { core: 60.4, react: 25.3, css: 8.7, phosphor: 0 },
+  minimal: { core: 63.7, react: 25.3, css: 8.7, phosphor: 0 },
+  full: { core: 70.4, react: 31.9, css: 8.7, phosphor: 1.7 },
+  "own-icons": { core: 64.9, react: 29, css: 8.7, phosphor: 0 },
+  headless: { core: 55.6 },
+  layout: { core: 11.4 },
+  "+url": { core: 63.7, react: 25.3 },
+  "+palette": { core: 60.9, react: 26.3 },
+  "+settings": { core: 60.9, react: 26.2 },
+  "+chooser": { core: 60.6, react: 26.6 },
+  "+rename": { core: 60.5, react: 25.8 },
+  "+popOut": { core: 60.6, react: 26.5 },
+  "+pressed": { core: 60.4, react: 25.9 },
+  "+defaults": { core: 64.8, react: 28.4 },
+  "+page": { core: 65.8, react: 26.4 },
 };
 
 // What each feature brings, by source file: no scenario without the feature may ship any of it (more than a stray
@@ -70,7 +74,7 @@ const without = (...have) =>
     .concat(DEV_ONLY);
 
 // The per-feature scenarios: the floor (bare.tsx) and one feature, written as they
-// run (tooling/size/.entries/). Each one's budget is set from what it ships (docs/DECISIONS.md, "Phase 3b's size").
+// run (tooling/size/.entries/). Each one's budget is set from what it ships (BUDGETS).
 const FEATURE_SCENARIOS = {
   url: { imports: 'import { urlSync } from "jali/url";', features: "[urlSync()]" },
   palette: { imports: 'import { palette } from "jali/palette";', features: "[palette()]" },
@@ -88,8 +92,8 @@ const FEATURE_SCENARIOS = {
   },
 };
 
-// Scenario → entry file in tooling/size/ (or a generated one); gzipped budgets in KB, about 5% over what each
-// shipped after phase 3b (docs/DECISIONS.md has the numbers); and source files it must not ship.
+// Scenario → entry file in tooling/size/ (or a generated one); gzipped budgets in KB (BUDGETS); and source files it
+// must not ship.
 const SCENARIOS = {
   // The floor: one kind, a starting layout, no feature, no curated page, no launcher.
   bare: { entry: "bare.tsx", budget: BUDGETS.bare, mustNotShip: without() },

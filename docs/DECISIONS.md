@@ -2183,3 +2183,65 @@ Four problems Codex found in step 7a, each fixed with its test on branch `stabil
 - **No page names a read the instance doesn't have.** `useTitle`'s reference still said `jali.model().title(id)`; it
   says `jali.model().pane(id)?.title`, and the reference coverage test checks every `.model().x` and `.get().x` a docs
   page writes against what the instance has.
+
+## 23 Nov 2026 · Stabilisation step 8: the size pass and new budgets (23 Nov 2026)
+
+The round ends with a size pass, then the budgets in `tooling/size.mjs` are re-set to what ships, about 5% over, as
+the owner decided in the plan (docs/reviews/2026-11-23/PLAN.md, "Size (step 8)"). Every scenario's core had been over
+its budget since step 3; a budget everything is over guards nothing.
+
+- **The round, start to end** (gzipped KB, `pnpm size`; the start is `350b4845` for minimal, and for full the last
+  numbers recorded before the round, in "React architecture pass"):
+
+  | Scenario | core        | react       | css       |
+  | -------- | ----------- | ----------- | --------- |
+  | minimal  | 56.5 → 60.7 | 24.0 → 24.1 | 8.3 → 8.3 |
+  | full     | 62.9 → 67.1 | 30.5 → 30.3 | 8.3 → 8.3 |
+
+- **Where the growth went**, in the minimal app's minified bytes per source file, round start to before this pass
+  (+11.7 KB of core, 61.0 KB gzipped):
+  - **Undo reverses the operation** (step 3): +5.3 KB. `layout/ops/restore.ts` puts closed panes back into the layout
+    as it is now (+3.1), `layout/ops/close.ts` records each pane's slot, links and sizes (+1.4), `state/undo.ts` and
+    `actions/close.ts` the rest.
+  - **The designed read API** (step 7a): +3.4 KB, of which 0.8 is `placement` moved from the React chunk so the model
+    says what is drawn; `state/model.ts` +1.9, `state/instance.ts` +0.8.
+  - **The commit model and its checks** (steps 2 and 4): +3.0 KB across `apply.ts`, `actions/step.ts`, the step table
+    and the steps that now own their checks.
+  - **Links and history** (steps 2 and 4): +1.4 KB, one link encoder and one set of limits (`url.ts`,
+    `layout/codec/limits.ts`).
+  - **Safari focus** (React stream): +1.1 KB, `dom/input.ts`'s last pressed control and the dialogs that return to it.
+  - **Copies at the door** (step 5): +0.8 KB, `state/ingress.ts` and the id checks.
+  - **The cuts** (step 1) saved 3.1 KB: the registry's commands bridge (−1.6), pane state (−0.4), `allow`'s viewer
+    role (−0.3), boot, peek and the rest.
+- **This pass** took back what came without a behaviour, every test unchanged: minimal core 61.04 → 60.69 KB, full
+  67.40 → 67.07 (−0.35 and −0.33).
+  - Three development-only messages (the unsafe pane id, the refused history write, the layout a link can't reopen)
+    asked `isDev()`, a call no bundler folds, so they shipped; they now test the literal `NODE_ENV` as dev.ts says
+    (−0.19).
+  - Undo's restore shares the tree's helpers (tab placement within the pinned section, copying a node's size, adding
+    a tuck) instead of its own copies (−0.07).
+  - The model compares a pane by its fields rather than a list of them, and reuses `currentPane`; `mapped` and
+    `onTarget` always pass a check and control on (−0.07).
+  - The address writer drops its waiting replace in one place, the sizes' tree copies share one walk, `fitsLink` is
+    `pastLimits` from an empty layout, and the input listeners are one table (−0.02 gzipped, 0.2 KB minified).
+  - **Left as they are:** the rest of the growth is behaviour (where a closed pane goes back, what the model says, what
+    a step refuses). The candidates that remained (folding the policy table, the public state's field list, the fold's
+    two axes) saved tens of bytes each for code that reads worse, or changed the shape of an exported type.
+- **The new budgets** (gzipped KB, about 5% over what ships, rounded to 0.1): bare 60.4 core / 25.3 react; minimal and
+  `+url` 63.7 / 25.3; full 70.4 / 31.9, Phosphor 1.7; own-icons 64.9 / 29; headless 55.6; layout 11.4; `+palette`
+  60.9 / 26.3; `+settings` 60.9 / 26.2; `+chooser` 60.6 / 26.6; `+rename` 60.5 / 25.8; `+popOut` 60.6 / 26.5;
+  `+pressed` 60.4 / 25.9; `+defaults` 64.8 / 28.4; `+page` 65.8 / 26.4; CSS 8.7 everywhere it is checked. React
+  budgets rise too (minimal 24.7 → 25.3): they had little headroom, and the rule is the same for every column.
+- **The peers, for comparison** (gzipped KB, as recorded in "the peers in the size harness"; Jali's rows now, with
+  that entry's in brackets; React itself, 65.8 KB, left out of every row):
+
+  | Library                | Version | JS          | CSS  | Total         |
+  | ---------------------- | ------- | ----------- | ---- | ------------- |
+  | Jali minimal           |         | 84.8 (82.7) | 8.3  | 93.1 (91.0)   |
+  | Jali full              |         | 99.0 (96.5) | 8.3  | 107.4 (104.8) |
+  | Dockview               | 8.9.0   | 89.5        | 10.2 | 99.6          |
+  | FlexLayout             | 0.11.1  | 47.0        | 3.7  | 50.6          |
+  | react-mosaic           | 7.2.1   | 37.4        | 2.9  | 40.3          |
+  | react-resizable-panels | 4.21.0  | 14.6        | 0.0  | 14.6          |
+
+- **Next:** the next round sets a hard size target from these numbers, with these budgets as its ceiling.
