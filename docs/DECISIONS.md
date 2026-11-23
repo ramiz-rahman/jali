@@ -2413,3 +2413,15 @@ who has read one example finds their way in another, and can tell what a part ma
   for a year. `packageManager` and `engines` in the root package.json pin pnpm and Node for its build.
 - **Checked here:** `tooling/serve-site.mjs` serves `site/` with Netlify's address rules, and `e2e-site` opens every
   app from its folder in Chrome and WebKit, failing on a page error or any of the site's own requests that fail.
+
+## 23 Nov 2026 · A link that names only a preset opens it
+
+- **Why:** the docs' Examples page links into each hosted app in the state that shows a feature. The readable link is
+  `?preset=compare`; the one Jali writes is `?l=1.<code>&preset=compare`. A link with no layout was read as no link,
+  so the app opened its start layout and the page's links all opened the same thing. The site's new showcase check
+  (e2e/site/showcase.spec.ts) found it.
+- **Now:** `readSearch` reads a preset alone as `{ openPreset }`, and arriving runs the preset step, as choosing the
+  preset does: the layout the app saved for it (`saved`), else its own. The address is then written as usual, with
+  the layout and the preset. A preset this instance doesn't have is no link it can open: the instance starts as it
+  would without one.
+- **Tests:** `packages/core/tests/preset-link.test.ts`, `e2e/site/showcase.spec.ts`.

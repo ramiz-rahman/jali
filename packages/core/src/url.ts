@@ -205,12 +205,14 @@ export interface PageRead {
   /** The opened pane the link maximised, by its place among `investigation` (from 1). */
   zoomOpened?: number;
 }
-/** What the address holds: a layout and view, a code that could not be read (`broken`), or a page link. `preset`: the
- *  preset a layout link says it came from (`?preset=`), when it names one. */
+/** What the address holds: a layout and view, a code that could not be read (`broken`), a page link, or a preset
+ *  alone (`?preset=compare`, a link written by hand: it opens that preset). `preset` beside a layout: the preset a
+ *  layout link says it came from, when it names one. */
 export type UrlRead =
   | { layout: Layout; view: Partial<ViewState>; preset?: string }
   | { broken: string; view: Partial<ViewState>; preset?: string }
-  | { page: PageRead; view: Partial<ViewState> };
+  | { page: PageRead; view: Partial<ViewState> }
+  | { openPreset: string; view: Partial<ViewState> };
 
 /** The instance's own params in `q` (never the host's, nor an older link's peek), as the address has them: what a link's
  *  text limit measures, the same way for the writer and the reader. */
@@ -271,8 +273,8 @@ export function readSearch(
       view,
     };
   }
-  if (!code) return null;
   const preset = q.get(k.preset) || undefined;
+  if (!code) return preset && !tooLong ? { openPreset: preset, view: {} } : null;
   const named = preset ? { preset } : {};
   const decoded = tooLong ? null : core.decode(code, kinds);
   if (!decoded) return { broken: code, view: {}, ...named };

@@ -8,7 +8,7 @@
  */
 import { presetById } from "../env";
 import type { ConfirmState, JaliStore } from "../state/store";
-import { arrive, readLayout } from "../actions/layout";
+import { arrive, preset, readLayout } from "../actions/layout";
 import {
   isChange,
   refuse,
@@ -65,6 +65,13 @@ function arriveFromUrl(
         }),
       ),
     );
+  }
+  // A link that names only a preset opens it, as choosing it does (the layout the app saved for it, if any). One this
+  // instance doesn't have is not a link it can open.
+  if ("openPreset" in r) {
+    const id = r.openPreset;
+    if (!store.env.presets.some((p) => p.id === id)) return undefined;
+    return store.apply(latest((x) => settling(preset(x, id))));
   }
   // A preset the link names and this instance has; a link without one leaves the preset as it is.
   const named = r.preset && store.env.presets.some((p) => p.id === r.preset) ? r.preset : undefined;

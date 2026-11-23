@@ -36,7 +36,8 @@ export const jali = createJali({
 When the page opens:
 
 - an address with a layout opens that layout, fitted to this window;
-- an address without one opens the preset, or the starting `layout`;
+- an address that names only a preset (`?preset=compare`) opens that preset, as choosing it does. It's the link to write by hand, in docs or an email: short, readable, and it opens the layout the person saved for that preset, if any;
+- an address without either opens the preset, or the starting `layout`;
 - a link that can't be read (damaged, or naming a kind this app doesn't have) opens the preset instead. Jali keeps a copy of the code in storage and tells the person, with a screen reader announcement and a `toast` event for your app to show (`jali.on("toast", show)`).
 
 ## What goes in the address
