@@ -35,18 +35,18 @@ The sizes are what each feature adds to the floor (one kind of pane, a starting 
 
 | Feature | Import | What the person gets | Adds (gzipped) | In `defaultFeatures()` |
 |---|---|---|---|---|
-| `urlSync()` | `jali/url` | The layout in the address: links reopen it, Back and Forward step through it, a reload keeps it | 2.7 KB | Yes |
-| `palette()` | `jali/palette` | The ⌘K command palette | 1.1 KB | Yes |
+| `urlSync()` | `jali/url` | The layout in the address: links reopen it, Back and Forward step through it, a reload keeps it | 3.1 KB | Yes |
+| `palette()` | `jali/palette` | The ⌘K command palette | 1.5 KB | Yes |
 | `settings()` | `jali/settings` | The settings panel: theme, centre drop, pane cap, keys | 1.3 KB | Yes |
 | `chooser()` | `jali/chooser` | "Add to tabs of…", and `jali.dialogs.choose` for your own commands | 1.5 KB | Yes |
-| `pressed()` | `jali/pressed` | `data-pressed` on Jali's controls while they are held, for a theme that draws it | 0.4 KB | Yes |
-| `rename({ run })` | `jali/rename` | Renaming a pane in place: double-click or F2 on a tab | 0.5 KB | No: it needs your `run` |
-| `popOut()` | `jali/pop-out` | A pane in its own floating window (Chrome and Edge on desktop) | 1.2 KB | No |
-| `defaultFeatures()` | `jali/features` | The first five together | 6.2 KB | |
+| `pressed()` | `jali/pressed` | `data-pressed` on Jali's controls while they are held, for a theme that draws it | 0.6 KB | Yes |
+| `rename({ run })` | `jali/rename` | Renaming a pane in place: double-click or F2 on a tab | 0.6 KB | No: it needs your `run` |
+| `popOut()` | `jali/pop-out` | A pane in its own floating window (Chrome and Edge on desktop) | 1.3 KB | No |
+| `defaultFeatures()` | `jali/features` | The first five together | 7.1 KB | |
 
-A curated page is not a feature but a value you pass as `createJali({ page })`, made with `definePage` from `jali/page`. It adds about 6.0 KB, and an app without one ships none of it.
+A curated page is not a feature but a value you pass as `createJali({ page })`, made with `definePage` from `jali/page`. It adds about 6.1 KB, and an app without one ships none of it.
 
-The floor itself is 51.9 KB of core, 23.5 KB of React parts and 8.3 KB of styles. Without React, the instance alone is 46.4 KB; the layout tree alone (`row`, `column` and the `layout` namespace) is 10.3 KB. These are the numbers of 22 Nov 2026; the size gate keeps them from growing unnoticed.
+The floor itself is 57.6 KB of core, 24.1 KB of React parts and 8.3 KB of styles. Without React, the instance alone is 53.0 KB; the layout builders alone (`row`, `column`, `tabs`, `pane`) are 10.9 KB. These are the numbers of 23 Nov 2026; the size gate keeps them from growing unnoticed.
 
 ## Without a feature
 
