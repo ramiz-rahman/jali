@@ -57,6 +57,8 @@ export function restoreClosed(
     taken.add((ids[c.pane.id] = `pane-${i}`));
   }
   const id = (n: NodeId) => ids[n] ?? n;
+  // Each pane's own size in its own container, for when that container is made again around it.
+  const own: Record<NodeId, SlotLevel> = {};
   // Nodes wrapped in a new split or tab group for a pane to go beside them: sized once the close's sizes are back.
   const wrapped: NodeId[] = [];
   /** `node` and `pane` in a new container in node's place, with node's size: `id` again unless that is taken. */
@@ -66,7 +68,12 @@ export function restoreClosed(
     const made = at(level.parent)
       ? newId(next.root, level.type === "stack" ? "stack" : "split")
       : level.parent;
-    wrapped.push(node.id);
+    const mine = own[node.id];
+    if (mine?.parent === level.parent) {
+      node.size = clone(mine.size);
+      node.userSized = mine.userSized;
+      if (!mine.userSized) delete node.userSized;
+    } else wrapped.push(node.id);
     next.root = replace(
       next.root,
       node.id,
@@ -84,6 +91,7 @@ export function restoreClosed(
             type: level.type,
             ...shared,
             children,
+            ...(level.scroll && { scroll: level.scroll }),
           },
     );
     const stack = at(made);
@@ -145,6 +153,8 @@ export function restoreClosed(
   };
   for (const c of entry.closed) {
     const pane = { ...clone(c.pane), id: id(c.pane.id) };
+    const first = c.slot[0];
+    if (first && first.type !== "stack") own[pane.id] = first;
     place(pane, c.slot);
   }
   const back = Object.values(ids);

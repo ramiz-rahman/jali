@@ -62,6 +62,7 @@ export function captureSlot(layout: Layout, id: NodeId): SlotLevel[] {
         .map((n) => near(n, true)),
       after: group.children.slice(at + 1).map((n) => near(n, false)),
       active: group.type === "stack" && group.active === child.id,
+      scroll: group.type === "row" ? group.scroll : undefined,
     });
   }
   return levels;

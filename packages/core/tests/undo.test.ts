@@ -279,6 +279,39 @@ describe("an undone batch keeps what each pane was (Codex review of step 3)", ()
     expect(node(m, "b")).not.toHaveProperty("linkedTo");
     expect(node(m, "b")).not.toHaveProperty("follows");
   });
+
+  it("nested panes keep their own sizes when their container is made again", () => {
+    const m = make(
+      row(
+        { id: "r" },
+        pane(rec(1), { id: "a" }),
+        column(
+          { id: "k", weight: 2 },
+          pane(rec(2), { id: "b", px: 250 }),
+          pane(rec(3), { id: "c", weight: 3 }),
+        ),
+        pane(rec(4), { id: "d" }),
+      ),
+    );
+    m.a.closeOthers("d");
+    m.a.undo();
+    expect(node(m, "k")?.size).toEqual({ weight: 2 });
+    expect(node(m, "b")?.size).toEqual({ px: 250 });
+    expect(node(m, "c")?.size).toEqual({ weight: 3 });
+  });
+
+  it("a row that scrolls comes back scrolling", () => {
+    const m = make(
+      column(
+        { id: "col" },
+        pane(rec(1), { id: "a" }),
+        row({ id: "s", scroll: "x" }, pane(rec(2), { id: "b" }), pane(rec(3), { id: "c" })),
+      ),
+    );
+    m.a.closeOthers("a");
+    m.a.undo();
+    expect(node(m, "s")).toMatchObject({ type: "row", scroll: "x" });
+  });
 });
 
 describe("entries for what is gone or open again are dropped", () => {

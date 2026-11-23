@@ -229,6 +229,8 @@ export interface SlotLevel {
   after: { id: NodeId; pane: NodeId }[];
   /** A tab group's: whether the pane was its shown tab. */
   active?: boolean;
+  /** A row's: it scrolled sideways. */
+  scroll?: "x";
 }
 /** A pane a close removed, as it was (its content, flags and links), and where it was. */
 export interface ClosedPane {
