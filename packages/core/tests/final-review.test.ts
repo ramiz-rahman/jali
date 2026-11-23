@@ -120,3 +120,13 @@ describe("2. the last view on screen stays, whatever opened panes are beside it"
     expect(where(jali, "application")).not.toBe("hidden");
   });
 });
+
+describe("5. Single view has no layout to add a tab to", () => {
+  it("New tab here is refused in Single view, and the page stays one view", () => {
+    const { jali } = make();
+    expect(jali.get().page).toBeTruthy();
+    if (jali.get().page!.mode !== "single") expect(jali.page!.setMode("single").ok).toBe(true);
+    expect(jali.actions.newTab().reason).toBe("single-view");
+    expect(jali.model().panes).toHaveLength(1);
+  });
+});

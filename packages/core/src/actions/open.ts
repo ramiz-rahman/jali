@@ -249,10 +249,18 @@ export function dismiss({ s, m, ctx }: Snapshot, id: NodeId): Outcome {
   };
 }
 
+/** A new tab of pane `id`: a pane that is there, outside Single view (which has no layout to add a tab to). */
+const tabCheck = ({ s, m }: Snapshot, id: NodeId | undefined) =>
+  s.page?.mode === "single"
+    ? refuse("single-view", say(m).singleNoLayout)
+    : m.pane(id)
+      ? undefined
+      : refuse("not-found");
+
 /** "+" on a tab strip and ⌘K "New tab here": a launcher as a new tab of the pane's stack (or a new stack). */
 export const newTab: Step<[NodeId?]> = {
-  check: ({ s, m, env }, id = s.view.focused) =>
-    !m.pane(id) ? refuse("not-found") : !env.launcher ? refuse("unavailable") : undefined,
+  check: (x, id = x.s.view.focused) =>
+    tabCheck(x, id) ?? (x.env.launcher ? undefined : refuse("unavailable")),
   control: uses("open"),
   run(x, id = x.s.view.focused!) {
     const { s, m, ctx } = x;
@@ -269,11 +277,8 @@ export const newTab: Step<[NodeId?]> = {
 
 /** `ref` as a new tab of pane `id`'s group (or a new group), shown and focused. Already open: that pane is shown. */
 export const addTab: Step<[NodeId, ObjectRef]> = {
-  check({ s, m, ctx }, id, ref) {
-    if (s.page?.mode === "single") return refuse("single-view", say(m).singleNoLayout);
-    if (!m.pane(id)) return refuse("not-found");
-    return Object.hasOwn(ctx.fit.kinds, ref.kind) ? undefined : refuse("invalid");
-  },
+  check: (x, id, ref) =>
+    tabCheck(x, id) ?? (Object.hasOwn(x.ctx.fit.kinds, ref.kind) ? undefined : refuse("invalid")),
   control: uses("open"),
   run(x, id, ref) {
     const { s, m, ctx } = x;
