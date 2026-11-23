@@ -1,0 +1,40 @@
+/* The launcher (panes/launcher/launcher.tsx): what a new pane can show. */
+@layer app {
+  .launcher {
+    display: grid;
+    align-content: start;
+    gap: 20px;
+    padding-top: 16px;
+  }
+  .launcher h3 {
+    font-family: var(--t-font-display);
+    font-size: var(--type-subhead);
+    margin-bottom: 8px;
+  }
+  .launcher-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .launcher-day {
+    justify-content: flex-start;
+  }
+
+  /*
+   * A pane wider than its content reads well at (maximised, or a broad column): the content keeps that width and
+   * sits in the middle, rather than putting a stop's time a screen away from its name. The padding grows instead
+   * of a wrapper, so the content's own bleeds and the drag handles in the gutter still line up.
+   */
+  .pane-body.trip {
+    padding-inline: max(20px, calc((100% - 560px) / 2));
+  }
+  .pane-body.day {
+    padding-inline: max(20px, calc((100% - 680px) / 2));
+  }
+  .pane-body.explore {
+    padding-inline: max(0px, calc((100% - 760px) / 2));
+  }
+  .pane-body.budget {
+    padding-inline: max(20px, calc((100% - 960px) / 2));
+  }
+}

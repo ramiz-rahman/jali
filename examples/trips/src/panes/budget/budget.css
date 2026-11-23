@@ -1,0 +1,307 @@
+/* The budget (panes/budget/budget.tsx): the total, what is booked, the bars by day and by category. */
+@layer app {
+  .budget {
+    padding-top: 14px;
+  }
+  .budget-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+  }
+  .budget-total {
+    font-size: var(--type-figure);
+    line-height: 1;
+    font-weight: 500;
+  }
+  .budget-input {
+    display: grid;
+    gap: 4px;
+    font-size: var(--type-caption);
+    font-weight: 600;
+    color: var(--jali-text-subtle);
+  }
+  .money-field {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 40px;
+    padding: 0 12px;
+    border-radius: 12px;
+    border: 1px solid var(--jali-border-strong);
+    font-family: var(--jali-font);
+    font-variant-numeric: tabular-nums;
+    color: var(--jali-text);
+  }
+  .money-field:focus-within {
+    border-color: var(--jali-accent);
+  }
+  .money-field input {
+    width: 6ch;
+    border: 0;
+    outline: none;
+    background: none;
+    font-family: var(--jali-font);
+    font-variant-numeric: tabular-nums;
+    font-size: var(--type-item);
+  }
+  .budget-heading {
+    margin: 0;
+    font-family: var(--t-font-display);
+    font-size: var(--type-subhead);
+    font-weight: 600;
+    letter-spacing: var(--track-heading);
+  }
+  .budget-heading .muted {
+    font-family: var(--jali-font);
+    font-size: var(--type-item);
+    font-weight: 500;
+    margin-left: 4px;
+  }
+  /* Booked ahead: a hotel per city and the flight, as rows a person can open. */
+  .budget-booked {
+    margin-top: 24px;
+  }
+  .budget-bookings {
+    display: grid;
+    margin: 8px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .budget-booking {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 52px;
+    padding: 6px 8px;
+    margin-inline: -8px;
+    box-sizing: content-box;
+    border: 0;
+    border-radius: 12px;
+    background: none;
+    text-align: left;
+    font-size: var(--type-body);
+  }
+  .budget-bookings li + li .budget-booking {
+    border-top: 1px solid var(--jali-border);
+    border-radius: 0;
+  }
+  button.budget-booking {
+    cursor: pointer;
+  }
+  button.budget-booking:hover {
+    background: var(--jali-hover);
+    border-radius: 12px;
+  }
+  .budget-booking-mark {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    background: var(--jali-hover);
+    color: var(--t-cat-flight);
+  }
+  .budget-booking-text {
+    display: grid;
+    min-width: 0;
+    line-height: var(--lead-snug);
+  }
+  .budget-booking-text b,
+  .budget-booking-text .muted {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .budget-booking-text .muted {
+    font-size: var(--type-meta);
+  }
+  .budget-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 28px 0 8px;
+  }
+  .budget-key {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    margin: 0 0 8px;
+    padding: 0;
+    list-style: none;
+    font-size: var(--type-meta);
+    color: var(--jali-text-subtle);
+  }
+  .budget-key li::before {
+    content: "";
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: 5px;
+    border-radius: 3px;
+    background: var(--cat);
+    vertical-align: -1px;
+  }
+  [data-cat="stay"] {
+    --cat: var(--t-cat-stay);
+  }
+  [data-cat="sights"] {
+    --cat: var(--t-cat-sights);
+  }
+  [data-cat="food"] {
+    --cat: var(--t-cat-food);
+  }
+  [data-cat="transport"] {
+    --cat: var(--t-cat-transport);
+  }
+  [data-cat="flight"] {
+    --cat: var(--t-cat-flight);
+  }
+  .budget-days,
+  .budget-cats {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 2px;
+  }
+  .budget-day {
+    display: grid;
+    grid-template-columns: 112px minmax(0, 1fr) 96px;
+    align-items: center;
+    gap: 12px;
+    min-height: 56px;
+  }
+  /* The days are a list the map and the day follow: a row is picked as the overview's are, a soft fill, and the
+     ring is for the keyboard only, on the row the keys are on. */
+  .budget-days {
+    margin-inline: -10px;
+    outline: none;
+  }
+  .budget-day {
+    padding: 4px 10px;
+    border-radius: 14px;
+    cursor: pointer;
+  }
+  .budget-day:hover {
+    background: var(--jali-hover);
+  }
+  .budget-day[aria-selected="true"] {
+    background: var(--jali-accent-soft);
+  }
+  .budget-days:focus-visible .budget-day[aria-selected="true"] {
+    box-shadow: inset 0 0 0 2px var(--jali-accent);
+  }
+  .budget-day-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .budget-day-label > span {
+    display: grid;
+    line-height: var(--lead-snug);
+  }
+  .budget-day-label .muted {
+    font-size: var(--type-caption);
+  }
+  .bar {
+    position: relative;
+    display: flex;
+    height: 22px;
+    border-radius: 7px;
+    background: var(--jali-hover);
+    overflow: visible;
+  }
+  .bar span {
+    height: 100%;
+    background: var(--cat);
+  }
+  .bar span:first-child {
+    border-radius: 7px 0 0 7px;
+  }
+  .bar span + span {
+    box-shadow: inset 2px 0 0 var(--jali-surface);
+  }
+  .bar-share {
+    position: absolute;
+    top: -5px;
+    bottom: -5px;
+    width: 0;
+    border-left: 2px dashed var(--jali-text);
+    opacity: 0.55;
+  }
+  .budget-day[data-over] .bar-share {
+    border-left-color: var(--t-over);
+    opacity: 1;
+  }
+  .budget-day-total {
+    display: grid;
+    justify-items: end;
+    font-size: var(--type-meta);
+  }
+  .budget-day[data-over] .budget-day-total {
+    color: var(--t-over);
+    grid-template-columns: auto auto;
+    column-gap: 4px;
+    align-items: center;
+  }
+  .budget-day[data-over] .budget-day-total .over-text {
+    grid-column: 1 / -1;
+    font-family: var(--jali-font);
+    font-weight: 600;
+  }
+  .budget-cat {
+    display: grid;
+    grid-template-columns: 90px minmax(0, 1fr) 84px 40px;
+    align-items: center;
+    gap: 12px;
+    min-height: 48px;
+  }
+  .budget-cat-label {
+    font-weight: 600;
+  }
+  .budget-cat .bar span {
+    border-radius: 7px;
+  }
+  .budget-note {
+    display: flex;
+    gap: 6px;
+    margin-top: 18px;
+    max-width: 62ch;
+    line-height: var(--lead-read);
+  }
+  /* The icon sits on the first line at its full size; flex would otherwise squeeze it to a speck. */
+  .budget-note > svg {
+    flex: none;
+    margin-top: 0.3em;
+  }
+  @container (max-width: 400px) {
+    /* Stacked, each bar keeps close to its own day and clear of the next (proximity does the grouping). */
+    .budget-days,
+    .budget-cats {
+      gap: 18px;
+    }
+    .budget-day,
+    .budget-cat {
+      grid-template-columns: 1fr auto;
+      row-gap: 6px;
+      min-height: 0;
+    }
+    .budget-day .bar {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+    .budget-cat {
+      grid-template-columns: 1fr auto auto;
+    }
+    .budget-cat .bar {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+  }
+}

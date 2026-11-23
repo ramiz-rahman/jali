@@ -1,0 +1,278 @@
+/* A place (panes/place/): its photo, where it sits in the plan, its figures, and what is nearby. */
+@layer app {
+  .place {
+    padding-top: 14px;
+  }
+  .place-kind {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    color: var(--t-primary-text);
+    font-weight: 700;
+    font-size: var(--type-meta);
+  }
+  .place-name {
+    margin-top: 8px;
+    font-family: var(--t-font-display);
+    font-size: var(--type-display);
+    line-height: var(--lead-display);
+    font-weight: 700;
+    letter-spacing: var(--track-display);
+    text-wrap: balance;
+  }
+  .place-area {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 8px;
+    color: var(--jali-text-subtle);
+  }
+  .place-plan {
+    display: grid;
+    gap: 10px;
+    margin: 18px 0;
+    padding: 14px;
+    border-radius: 16px;
+    background: var(--jali-canvas);
+  }
+  .place-plan[data-day] {
+    background: color-mix(in oklab, var(--day) 9%, var(--jali-surface));
+  }
+  .place-plan-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+  }
+  .place-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .day-buttons {
+    display: flex;
+    gap: 6px;
+  }
+  .day-buttons button {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-height: 44px;
+    border-radius: 12px;
+    border: 1.5px solid var(--day);
+    background: var(--jali-surface);
+    color: var(--day);
+    font-family: var(--jali-font);
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .day-buttons button:hover {
+    background: var(--day);
+    color: var(--jali-surface);
+  }
+  .facts {
+    display: grid;
+    margin: 0;
+  }
+  .facts > div {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--jali-border);
+  }
+  .facts dt {
+    color: var(--jali-text-subtle);
+    white-space: nowrap;
+  }
+  .facts dd {
+    margin: 0;
+    text-align: right;
+    font-weight: 600;
+  }
+  .place-compare {
+    margin: 0 0 2px;
+    font-size: var(--type-meta);
+    color: var(--jali-text-subtle);
+  }
+  .place-compare b {
+    color: var(--jali-text);
+    font-weight: 600;
+  }
+  /* The difference from the kept place, before the figure: red when it costs more or takes longer. */
+  .delta {
+    display: inline-block;
+    margin-right: 8px;
+    padding: 1px 7px;
+    border-radius: var(--t-radius-pill);
+    font-size: var(--type-caption);
+    font-weight: 700;
+    vertical-align: 1px;
+  }
+  .delta[data-tone="worse"] {
+    background: var(--t-over-soft);
+    color: var(--t-over);
+  }
+  .delta[data-tone="better"] {
+    background: color-mix(in oklab, var(--t-ok) 14%, var(--jali-surface));
+    color: var(--t-ok);
+  }
+  .delta[data-tone="same"] {
+    background: var(--jali-hover);
+    color: var(--jali-text-subtle);
+  }
+  .place-notes {
+    margin: 16px 0 0;
+    font-size: var(--type-item);
+    line-height: var(--lead-read);
+    max-width: 60ch;
+    color: var(--jali-text-muted);
+  }
+  .nearby {
+    margin-top: 24px;
+  }
+  .nearby h4 {
+    font-family: var(--t-font-display);
+    font-size: var(--type-subhead);
+    font-weight: 700;
+  }
+  .nearby-group h5 {
+    margin: 14px 0 4px;
+    font-size: var(--type-meta);
+    font-weight: 700;
+    color: var(--jali-text-subtle);
+  }
+  .nearby ul {
+    list-style: none;
+    margin: 0 -8px;
+    padding: 0;
+  }
+  .nearby-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 42px;
+    padding: 0 8px;
+    border: 0;
+    border-radius: 10px;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+  }
+  .nearby-row:hover {
+    background: var(--jali-hover);
+  }
+  .nearby-icon {
+    color: var(--jali-text-faint);
+    flex: none;
+  }
+  .nearby-name {
+    flex: 1;
+    min-width: 0;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .nearby-dist {
+    font-size: var(--type-caption);
+    color: var(--jali-text-subtle);
+    white-space: nowrap;
+  }
+
+  /* ---------- a place's hero ---------- */
+  .place {
+    padding-top: 0;
+  }
+  .place-hero {
+    position: relative;
+    margin: 0 -20px 18px;
+  }
+  .place-hero .photo {
+    aspect-ratio: 4 / 3;
+    max-height: 340px;
+    width: 100%;
+  }
+  /* A wide pane gets a wider frame, so the photo never pushes the facts out of sight. */
+  @container (min-width: 420px) {
+    .place-hero .photo {
+      aspect-ratio: 16 / 10;
+    }
+  }
+  /*
+   * A wide place pane (maximised, or a broad column): the photo on the left, tall and held in view as the details
+   * scroll beside it at a readable width, instead of a thin strip over facts stretched across the screen.
+   */
+  @container (min-width: 720px) {
+    .place-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(320px, 560px);
+      column-gap: clamp(28px, 4cqi, 56px);
+      align-items: start;
+      max-width: 1320px;
+      margin-inline: auto;
+      padding: 20px 8px 8px;
+    }
+    .place-layout > * {
+      grid-column: 2;
+    }
+    .place-hero {
+      grid-column: 1;
+      grid-row: 1 / span 12;
+      position: sticky;
+      top: 20px;
+      margin: 0;
+    }
+    /* As tall as the pane allows, so the photo fills its column beside the details. */
+    .place-hero .photo {
+      aspect-ratio: auto;
+      height: clamp(360px, calc(100dvh - 200px), 820px);
+      max-height: none;
+      border-radius: 20px;
+    }
+    .place-head {
+      padding-top: 8px;
+    }
+    .place-name {
+      font-size: var(--type-hero);
+    }
+    .place-notes {
+      font-size: var(--type-item);
+    }
+  }
+  @container (min-width: 1100px) {
+    .place-layout {
+      grid-template-columns: minmax(0, 1.4fr) minmax(360px, 560px);
+    }
+  }
+  .place-standin {
+    position: absolute;
+    left: 12px;
+    bottom: 12px;
+    z-index: 1;
+    padding: 4px 10px;
+    border-radius: var(--t-radius-pill);
+    background: rgb(255 255 255 / 0.92);
+    color: #18181b;
+    font-size: var(--type-caption);
+    font-weight: 700;
+    pointer-events: none;
+  }
+  .place-hero:has(.photo-credit:not([hidden])) .place-standin {
+    display: none;
+  }
+
+  /* ---------- thumbnails ---------- */
+  .nearby-photo {
+    flex: none;
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+  }
+}

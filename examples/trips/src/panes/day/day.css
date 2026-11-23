@@ -1,0 +1,458 @@
+/* A day (panes/day/): its head and figures, the timeline of legs and stops, and the places close to it. */
+@layer app {
+  .day {
+    padding-top: 12px;
+  }
+  .day-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .day-head-text {
+    min-width: 0;
+  }
+  .day-date {
+    font-size: var(--type-meta);
+    font-weight: 600;
+    color: var(--jali-text-subtle);
+  }
+  .day-title {
+    font-family: var(--t-font-display);
+    font-size: var(--type-heading);
+    line-height: var(--lead-display);
+    font-weight: 700;
+    letter-spacing: var(--track-title);
+  }
+  /* "Optimise the order": the day's one suggestion, so it reads as one, in the day's colour. */
+  .day-optimise {
+    width: 100%;
+    justify-content: flex-start;
+    margin: 14px 0 4px;
+    padding: 0 14px;
+    border-color: transparent;
+    border-radius: 12px;
+    background: color-mix(in oklab, var(--day) 10%, var(--jali-surface));
+    color: var(--jali-text);
+  }
+  .day-optimise:hover:not(:disabled) {
+    background: color-mix(in oklab, var(--day) 16%, var(--jali-surface));
+  }
+  .day-optimise svg {
+    color: var(--day);
+  }
+  .day-optimise > span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .day-optimise-gain {
+    font-weight: 500;
+    color: var(--jali-text-subtle);
+  }
+  .day-optimised {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 14px 0 4px;
+    min-height: 40px;
+    font-size: var(--type-meta);
+    font-weight: 600;
+    color: var(--jali-text-subtle);
+  }
+  .day-optimised svg {
+    color: var(--t-ok);
+  }
+  .timeline {
+    margin: 10px 0 0;
+    padding-bottom: 8px;
+  }
+  .stops {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  /*
+   * The timeline's rail is one 36px column: the hotel's mark, each stop's number and the legs' lines run down it.
+   * A stop's drag handle sits in the pane's gutter, left of the rail, and shows on hover (always, on touch).
+   */
+  .endpoint,
+  .stop {
+    position: relative;
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    align-items: center;
+    column-gap: 6px;
+  }
+  .endpoint {
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+    min-height: 40px;
+    color: var(--jali-text-subtle);
+    font-size: var(--type-meta);
+    font-weight: 600;
+  }
+  .endpoint-mark {
+    justify-self: center;
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 10px;
+    background: var(--t-ink);
+    color: var(--jali-surface);
+  }
+  .endpoint-label {
+    padding-inline-start: 6px;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .endpoint .stop-time {
+    padding-right: 10px;
+  }
+  /* In the gutter before the rail, whichever way the page reads (a physical left would overflow right to left). */
+  .stop-handle {
+    position: absolute;
+    inset-inline-start: -20px;
+    top: 50%;
+    translate: 0 -50%;
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 40px;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--jali-text-faint);
+    cursor: grab;
+    touch-action: none;
+    opacity: 0;
+    transition: opacity 120ms;
+  }
+  .stop:hover .stop-handle,
+  .stop:focus-within .stop-handle,
+  .stop-handle:active {
+    opacity: 1;
+  }
+  @media (hover: none) {
+    .stop-handle {
+      opacity: 1;
+    }
+  }
+  .stop-handle:hover {
+    color: var(--jali-text);
+    background: var(--jali-hover);
+  }
+  .stop-main {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 10px;
+    min-height: 64px;
+    padding: 7px 10px 7px 7px;
+    border: 0;
+    border-radius: 14px;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+  }
+  .stop-main:hover {
+    background: var(--jali-hover);
+  }
+  /* The stop selected (here, on the map or in a place pane): a fill in the day's colour, no ring. */
+  .stop[aria-current="true"] .stop-main,
+  .stop-item[data-current] .stop-main {
+    background: color-mix(in oklab, var(--day) 11%, var(--jali-surface));
+  }
+  .stop-main:focus-visible {
+    outline: 2px solid var(--day);
+    outline-offset: -2px;
+  }
+  .stop-item[data-dragged] {
+    opacity: 0.4;
+  }
+  .stop-num {
+    position: relative;
+    z-index: 1;
+    justify-self: center;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--day);
+    color: #fff;
+    font-size: var(--type-meta);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    box-shadow: 0 0 0 3px var(--jali-surface);
+  }
+  [data-theme="dark"] .stop-num {
+    color: #111114;
+  }
+  .stop-text {
+    display: grid;
+    gap: 1px;
+    min-width: 0;
+  }
+  /* A name wraps (two lines at most) rather than lose its end: "Tha Tien Riverside" matters more than its row height. */
+  .stop-name {
+    font-weight: 700;
+    font-size: var(--type-item);
+    line-height: var(--lead-snug);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+  }
+  .stop-meta {
+    font-size: var(--type-meta);
+    line-height: var(--lead-compact);
+    color: var(--jali-text-subtle);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .stop-meta svg {
+    vertical-align: -2px;
+  }
+  /* Arrive, and below it, leave: the hours the stop takes, as a calendar would show them. */
+  .stop-time {
+    display: grid;
+    justify-items: end;
+    font-size: var(--type-meta);
+    font-weight: 600;
+    color: var(--jali-text);
+  }
+  .stop-until {
+    font-size: var(--type-caption);
+    font-weight: 500;
+    color: var(--jali-text-faint);
+  }
+
+  /* The foot of a day: places close to its route, each one press from being on it. */
+  .day-more {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--jali-border);
+  }
+  .day-more h4 {
+    font-family: var(--t-font-display);
+    font-size: var(--type-item);
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .day-more ul {
+    list-style: none;
+    margin: 0 -8px;
+    padding: 0;
+  }
+  .day-more-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .day-more-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 52px;
+    padding: 5px 8px;
+    border: 0;
+    border-radius: 12px;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+  }
+  .day-more-main:hover {
+    background: var(--jali-hover);
+  }
+  .day-more-photo {
+    flex: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+  }
+  .day-more-text {
+    display: grid;
+    min-width: 0;
+  }
+  .day-more-name {
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .day-more-meta {
+    font-size: var(--type-caption);
+    color: var(--jali-text-subtle);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .day-more-meta svg {
+    vertical-align: -1px;
+  }
+  .day-more-add {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    margin-right: 8px;
+    border: 1.5px solid var(--day);
+    border-radius: 50%;
+    background: var(--jali-surface);
+    color: var(--day);
+    cursor: pointer;
+  }
+  .day-more-add:hover {
+    background: var(--day);
+    color: var(--jali-surface);
+  }
+  .day-more-find {
+    margin-block: 6px 0;
+    margin-inline: -12px 0;
+  }
+  /* A leg: a line down from one stop's number to the next, drawn in the mode's pattern. */
+  .leg {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding-inline-start: 42px;
+  }
+  .leg-line {
+    position: absolute;
+    inset-inline-start: 16.5px;
+    top: -8px;
+    bottom: -8px;
+    width: 0;
+    border-inline-start: 3px solid var(--day);
+  }
+  .leg[data-mode="walk"] .leg-line {
+    border-inline-start-style: dotted;
+  }
+  .leg[data-mode="taxi"] .leg-line {
+    border-inline-start-style: dashed;
+  }
+  .leg-flight-mark {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--day);
+    color: var(--jali-surface);
+  }
+  .leg-flight .leg-line {
+    border-inline-start-style: dashed;
+    border-inline-start-width: 2px;
+  }
+  .leg[data-mode="scooter"] .leg-line {
+    border-inline-start-style: double;
+    border-inline-start-width: 4px;
+  }
+  .endpoint[data-category="airport"] .endpoint-mark {
+    background: var(--jali-surface);
+    color: var(--t-ink);
+    box-shadow: inset 0 0 0 2px var(--t-ink);
+    border-radius: 50%;
+  }
+  .leg-modes {
+    display: inline-flex;
+    gap: 2px;
+    padding: 2px;
+    border-radius: var(--t-radius-pill);
+    background: var(--jali-hover);
+  }
+  .leg-modes button {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 28px;
+    border: 0;
+    border-radius: var(--t-radius-pill);
+    background: none;
+    color: var(--jali-text-faint);
+    cursor: pointer;
+  }
+  .leg-modes button[aria-pressed="true"] {
+    background: var(--jali-surface);
+    color: var(--jali-text);
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.14);
+  }
+  .leg-text {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 8px;
+    font-size: var(--type-meta);
+    min-width: 0;
+  }
+  .leg-time {
+    font-weight: 600;
+    color: var(--jali-text);
+    white-space: nowrap;
+  }
+  .leg-reset {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    color: var(--jali-text-faint);
+    cursor: pointer;
+  }
+  .drop-line {
+    list-style: none;
+    height: 4px;
+    margin-block: 2px;
+    margin-inline: 42px 0;
+    border-radius: 4px;
+    background: var(--day, var(--jali-accent));
+  }
+  .day-empty {
+    display: grid;
+    justify-items: start;
+    gap: 6px;
+    margin-block: 6px;
+    margin-inline: 42px 0;
+    padding: 16px;
+    border: 1.5px dashed var(--jali-border-strong);
+    border-radius: 14px;
+    color: var(--jali-text-subtle);
+  }
+  .add-current {
+    position: sticky;
+    bottom: -20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 8px -20px -20px;
+    padding: 12px 20px;
+    background: var(--jali-surface);
+    border-top: 1px solid var(--jali-border);
+  }
+  .add-current > span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* ---------- a day's stops ---------- */
+  .stop-photo {
+    width: 48px;
+    height: 48px;
+    border-radius: 11px;
+  }
+}

@@ -1,5 +1,5 @@
 import type { StyleSpecification } from "maplibre-gl";
-import { repairStyle } from "./map-style";
+import { LABEL, repairStyle } from "./map-style";
 
 /** The shapes of the layers that warned, as OpenFreeMap serves them (21 Nov 2026). */
 const style = {
@@ -24,6 +24,20 @@ const style = {
       paint: { "fill-color": "rgb(32,32,32)", "fill-pattern": "wood-pattern" },
     },
     {
+      id: "place_city",
+      type: "symbol",
+      source: "openmaptiles",
+      layout: {
+        "text-field": [
+          "case",
+          ["has", "name:nonlatin"],
+          ["concat", ["get", "name:latin"], "\n", ["get", "name:nonlatin"]],
+          ["coalesce", ["get", "name_en"], ["get", "name"]],
+        ],
+        "text-size": 14,
+      },
+    },
+    {
       id: "place_town",
       type: "symbol",
       source: "openmaptiles",
@@ -33,7 +47,7 @@ const style = {
 } as unknown as StyleSpecification;
 
 describe("repairStyle", () => {
-  const [shield, wood, town] = repairStyle(undefined, style).layers as unknown as {
+  const [shield, wood, city, town] = repairStyle(undefined, style).layers as unknown as {
     filter?: unknown;
     layout?: Record<string, unknown>;
     paint?: Record<string, unknown>;
@@ -52,6 +66,12 @@ describe("repairStyle", () => {
   it("drops what names an image the sprite sheet lacks, and keeps the rest", () => {
     expect(wood!.paint).toEqual({ "fill-color": "rgb(32,32,32)" });
     expect(town!.layout).toEqual({ "text-size": 10 });
+  });
+
+  it("names a place once, in English where it can, not in two scripts", () => {
+    expect(city!.layout).toEqual({ "text-field": LABEL, "text-size": 14 });
+    // A road's number is not a name: it stays as it was.
+    expect(shield!.layout!["text-field"]).toBeUndefined();
   });
 
   it("leaves the style it was given alone", () => {
