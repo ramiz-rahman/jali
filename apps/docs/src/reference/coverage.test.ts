@@ -9,6 +9,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vite-plus/test";
 import * as core from "jali";
+import { DEFAULT_KEYMAP } from "jali/adapter";
 import * as react from "jali/react";
 import * as page from "jali/page";
 import * as icons from "jali/icons";
@@ -139,7 +140,7 @@ describe("the commands page covers every command", () => {
 
   it("every default binding names a command or the palette", () => {
     const ids = new Set(["palette.toggle", ...COMMANDS.map((c) => c.id)]);
-    expect(Object.keys(core.DEFAULT_KEYMAP).filter((id) => !ids.has(id))).toEqual([]);
+    expect(Object.keys(DEFAULT_KEYMAP).filter((id) => !ids.has(id))).toEqual([]);
   });
 });
 

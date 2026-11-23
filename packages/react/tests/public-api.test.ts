@@ -13,23 +13,16 @@ import * as icons from "@jali/react/icons";
 describe("public API", () => {
   it("@jali/core exports exactly these values", () => {
     expect(Object.keys(core).sort()).toEqual([
-      "DEFAULT_KEYMAP",
-      "GAP",
       "altClick",
       "appOnly",
-      "browserLocation",
-      "browserStorage",
       "column",
-      "commandsOf",
       "copyLink",
       "createJali",
       "edgeScroll",
       "en",
-      "formatKeys",
       "keyBelongsToContent",
       "keyHint",
       "layout",
-      "linkSearch",
       "listCommands",
       "memoryLocation",
       "memoryStorage",
@@ -40,7 +33,6 @@ describe("public API", () => {
       "runCommand",
       "sameRef",
       "tabs",
-      "toLayout",
     ]);
   });
 

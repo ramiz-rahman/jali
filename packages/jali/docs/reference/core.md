@@ -284,7 +284,7 @@ row(options: RowOptions, ...children: LayoutInput[]): SplitDraft
 Example, `layouts.ts`:
 
 ```ts
-import { column, pane, row, tabs, toLayout } from "jali";
+import { column, pane, row, tabs } from "jali";
 import { orderKind, ordersKind } from "./kinds";
 
 // A child is a ref, a pane(ref, options), or another row, column or tabs. Options come first when there are any.
@@ -296,10 +296,6 @@ export const desk = row(
     tabs(orderKind({ id: 1042 }), orderKind({ id: 1043 })), // two tabs, the first shown
   ),
 );
-
-// The plain layout tree: what the address carries and the layout namespace works on. Ids it was not given are
-// named after what they hold ("row", "column", "tabs", "order-2").
-export const tree = toLayout(desk);
 ```
 
 Children side by side. A child is a ref (a pane showing it), a `pane(ref, options)`, or another `row`, `column` or `tabs`. Options come first when there are any: `row({ weight: 2 }, a, b)`.
@@ -312,7 +308,7 @@ Nodes without an `id` are named after what they hold: `"row"`, `"column"`, `"tab
 
 - **`children`** (`(Draft | ObjectRef)[]`, required):
 
-**Returns** `SplitDraft`: For `createJali({ layout })`, a preset's `layout`, or `toLayout`.
+**Returns** `SplitDraft`: For `createJali({ layout })` or a preset's `layout`.
 
 ### column
 
@@ -376,18 +372,6 @@ A pane showing `ref`, with options. A bare ref in a `row` is the same as `pane(r
 
 **Returns** `PaneDraft`:
 
-### toLayout
-
-*function*, from `jali`
-
-```ts
-toLayout(input: LayoutInput): Layout
-```
-
-The plain layout tree a builder's result stands for, with an id on every node: what the address carries and the layout namespace works on. A whole `Layout` comes back as it is; a single ref becomes a one-pane layout. You rarely need it: everything that takes a layout takes a builder's result.
-
-**Returns** `Layout`:
-
 ### sameRef
 
 *function*, from `jali`
@@ -418,22 +402,6 @@ Whether two refs are exactly the same: the same kind and the same params, compar
 ## The address and storage
 
 `createJali` makes these for you from its `url` and `storage` options. Pass one yourself for a router, a test or an instance that must not touch the page.
-
-### browserLocation
-
-*function*, from `jali`
-
-```ts
-browserLocation(win?: Window): LocationPort
-```
-
-The address as the browser's history: `navigate` calls `pushState` or `replaceState` with the same path and hash (and does nothing when the address would not change), and `subscribe` listens to `popstate`.
-
-**Parameters**
-
-- **`win`** (`Window`): The window whose history to use.
-
-**Returns** `LocationPort`:
 
 ### memoryLocation
 
@@ -486,22 +454,6 @@ An address that lives in memory: for tests, server rendering, and an instance in
 
 **Returns** `LocationPort & { entries: string[]; visit(search: string): void }`: `entries` is the history, newest last; `href()` is `memory:` plus the search. `visit(search)` is navigation the instance did not make (Back, a router link): it adds an entry and calls every subscriber. `navigate` does not call subscribers.
 
-### browserStorage
-
-*function*, from `jali`
-
-```ts
-browserStorage(prefix: string): StoragePort
-```
-
-`localStorage` under `prefix` (keys are `prefix:key`). Reads and writes never throw: in private mode or with storage blocked, nothing is saved and reads give `null`.
-
-**Parameters**
-
-- **`prefix`** (`string`, required): The key prefix. `createJali({ storage: "orders" })` makes one for you.
-
-**Returns** `StoragePort`:
-
 ### memoryStorage
 
 *function*, from `jali`
@@ -518,60 +470,7 @@ Storage in a `Map`, for tests, server rendering and embedded instances.
 
 **Returns** `StoragePort`:
 
-### linkSearch
-
-*function*, from `jali`
-
-```ts
-linkSearch(link: JaliLink, options: LinkSearchOptions): string
-```
-
-The search string that opens an instance on `link`, written as the instance itself writes it: `linkSearch({ page: "visit", item: 7, open: [call({ slug: "demra" })] }, { panes })` is `"?page=visit&item=7&open=call~slug=demra"`. Reading it back gives exactly that page, item, view, opened panes and peek, or that layout. It needs no instance, only its pane kinds, so a server, an email or another app can build links. Put it after the path the instance is on: `` `/visits${linkSearch(link, { panes })}` ``.
-
-**Parameters**
-
-- **`link`** (`JaliLink`, required): A [`PageLink`](core/types.md#pagelink) (a curated page: `page`, and optionally `item`, `tab`, `open` and `peek`) or a [`LayoutLink`](core/types.md#layoutlink) (a free layout: `layout`, and optionally `preset`, `zoom` and `peek`).
-
-- **`options`** (`LinkSearchOptions`, required): `panes`: the instance's pane kinds, as you pass `createJali({ panes })`. A link never carries a param only the app sets (`appOnly`) or one kept out of the address (`link: false`); `linkSearch` reads which those are from `panes`, so it leaves them out of every ref, however the ref was made. A ref of a kind `panes` lacks throws. `prefix`: the instance's `url.prefix`, when it has one. `search`: a search string whose other params (your app's own) are kept; any instance params in it are replaced.
-
-**Returns** `string`: `"?…"`, or `""` when there is nothing to write.
-
 ## Commands and keys
-
-### commandsOf
-
-*function*, from `jali`
-
-```ts
-commandsOf(jali: Jali): readonly Command[]
-```
-
-Example, `toolbar.ts`:
-
-```ts
-import { commandsOf, copyLink, listCommands, runCommand } from "jali";
-import { store } from "./store";
-
-// A toolbar button that runs one of Jali's commands and shows its keys.
-const zoom = commandsOf(store).find((c) => c.id === "pane.zoom")!;
-const disabled = listCommands(store).find((c) => c.id === "pane.zoom")!.disabled;
-const tooltip = `${zoom.title} · ${store.keymap.label(zoom.id)}`; // "Maximise or restore pane · ⇧⌘↵"
-
-function onClick() {
-  if (!runCommand(store, "pane.zoom")) console.info("refused");
-}
-
-copyLink(store); // the address on the clipboard, and "Link copied" read out
-export { disabled, tooltip, onClick };
-```
-
-Every command the instance has, in palette order: the fixed set, one per preset, and titles in the instance's own words (its name, its page's name and viewers). The same array for the same instance. Every id is on the [Commands](commands.md) page.
-
-**Parameters**
-
-- **`jali`** (`Jali`, required): The instance (only its `env` is read).
-
-**Returns** `readonly Command[]`: Each with `id`, `title`, `group`, an optional `check` that returns a refusal when it can't run now, and `run`.
 
 ### listCommands
 
@@ -579,6 +478,25 @@ Every command the instance has, in palette order: the fixed set, one per preset,
 
 ```ts
 listCommands(jali: Jali): ListedCommand[]
+```
+
+Example, `toolbar.ts`:
+
+```ts
+import { copyLink, listCommands, runCommand } from "jali";
+import { store } from "./store";
+
+// A toolbar button that runs one of Jali's commands and shows its keys.
+const zoom = listCommands(store).find((c) => c.id === "pane.zoom")!;
+const disabled = zoom.disabled;
+const tooltip = `${zoom.title} · ${zoom.keys}`; // "Maximise or restore pane · ⇧⌘↵"
+
+function onClick() {
+  if (!runCommand(store, "pane.zoom")) console.info("refused");
+}
+
+copyLink(store); // the address on the clipboard, and "Link copied" read out
+export { disabled, tooltip, onClick };
 ```
 
 Every command a person can run from a menu now, in the palette's order: the focused pane's own commands first (keys `pane:<id>`), then the instance's and your own `commands`. Each has its `title`, `group`, `keys` label for this platform, `disabled` and the `reason`, and `run`. For an app with its own command menu (no `palette()` feature); in React, [`useJaliCommands`](react.md#usejalicommands). Read it again after `jali.subscribe` calls back.
@@ -645,35 +563,6 @@ Writes `jali.href()` to the clipboard and announces "Link copied", or "Couldn't 
 
 **Returns** `void`:
 
-### DEFAULT_KEYMAP
-
-*constant*, from `jali`
-
-```ts
-const DEFAULT_KEYMAP: { readonly "palette.toggle": readonly ["Mod+K"]; … }
-```
-
-Example, `keymap.ts`:
-
-```ts
-import { DEFAULT_KEYMAP, formatKeys } from "jali";
-import { store } from "./store";
-
-// The instance's keymap: the defaults, with `keyboard.keymap`'s overrides applied.
-store.keymap.label("pane.close"); // "⌘K ⌘W" (rebound in store.ts)
-store.keymap.label("pane.split.down"); // "" (unbound)
-store.keymap.sequences("pane.zoom").map((s) => formatKeys(s, "other")); // ["Ctrl+Shift+Enter"]
-DEFAULT_KEYMAP["pane.split.right"]; // ["Mod+\\"]
-```
-
-The default bindings: command id to one or more binding strings. `Mod` is ⌘ on a Mac and Ctrl elsewhere. Each id and its keys, printed for both platforms, are on the [Commands](commands.md) page.
-
-The defaults keep to three rules:
-
-- single character keys belong to the focused content;
-- no keys the browser keeps for itself (⌘W, ⌘T, Ctrl+Tab and the like), no Ctrl+Alt, and no ⌘ or Ctrl with a digit;
-- one prefix, ⌘K or Ctrl+K, which opens the palette and starts a two-step chord whose second step keeps Mod held.
-
 ### keyBelongsToContent
 
 *function*, from `jali`
@@ -683,37 +572,6 @@ keyBelongsToContent(event: KeyboardEvent): boolean
 ```
 
 Whether a key event belongs to the focused content: its target is a text field, a contenteditable region, a combobox or search box, inside a dialog, or a control that Space presses (a button, link, tab, checkbox, switch, radio or menu item). Use it in a window-level `keydown` handler that wants a single key such as Space. See [Space in lists](../guides/commands-and-keys.md).
-
-### formatKeys
-
-*function*, from `jali`
-
-```ts
-formatKeys(seq: KeySequence, platform?: Platform, words?: KeyWords): string
-```
-
-Example, `format.ts`:
-
-```ts
-import { formatKeys, keyHint } from "jali";
-import { store } from "./store";
-
-keyHint("Alt+Enter", "mac"); // "⌥↵"
-keyHint("Alt+Enter", "other"); // "Alt+Enter"
-keyHint("Mod+Enter"); // for this platform: "⌘↵" on a Mac, "Ctrl+Enter" elsewhere
-store.keymap.sequences("pane.zoom").map((s) => formatKeys(s, store.keymap.platform));
-```
-
-A key sequence as people read it: "⌘K ⌘M" on a Mac, "Ctrl+K Ctrl+M" elsewhere. Sequences come from `keymap.sequences(id)`. `jali.keymap.format(seq)` does the same in the instance's own words.
-
-**Parameters**
-
-- **`seq`** (`readonly Chord[]`, required): One binding: a chord, or a prefix chord and a second chord.
-
-- **`platform`** (`Platform`):
-- **`words`** (`KeyWords`): The words for modifiers, Esc, Space and the arrows, such as `messages.keys`.
-
-**Returns** `string`:
 
 ### altClick
 
@@ -737,6 +595,18 @@ The words for Jali's modifier-click, for hints in your own text: "⌥-click" on 
 keyHint(text: string, platform?: Platform, words?: KeyWords): string
 ```
 
+Example, `hints.ts`:
+
+```ts
+import { keyHint } from "jali";
+import { store } from "./store";
+
+keyHint("Alt+Enter", "mac"); // "⌥↵"
+keyHint("Alt+Enter", "other"); // "Alt+Enter"
+keyHint("Mod+Enter"); // for this platform: "⌘↵" on a Mac, "Ctrl+Enter" elsewhere
+store.keymap.sequences("pane.zoom").map((s) => store.keymap.format(s));
+```
+
 A binding string printed for the platform: `keyHint("Alt+Enter")` is "⌥↵" on a Mac and "Alt+Enter" elsewhere. For keys a pane handles itself, which are not in the keymap. Throws on a key or modifier it doesn't know.
 
 **Parameters**
@@ -744,7 +614,7 @@ A binding string printed for the platform: `keyHint("Alt+Enter")` is "⌥↵" on
 - **`text`** (`string`, required): A binding such as `"Mod+K Mod+M"`.
 
 - **`platform`** (`Platform`):
-- **`words`** (`KeyWords`): As for `formatKeys`.
+- **`words`** (`KeyWords`): The words for the keys (`en.keys`, or your translation of them).
 
 **Returns** `string`:
 
@@ -779,16 +649,6 @@ Jali's English messages: every word it shows or says, by area (`announcements`, 
 
 ## Geometry
 
-### GAP
-
-*constant*, from `jali`
-
-```ts
-const GAP: number
-```
-
-The default gap between panes and inset from the edges of Jali's root, in pixels (6); an instance's own are `createJali({ gap, inset })`. For measuring an instance from outside: its usable area is its element's size minus twice its inset (`GAP * 2` by default).
-
 ### Spacing
 
 *type*, from `jali`
@@ -812,13 +672,13 @@ import { layout } from "jali";
 Example, `layout.ts`:
 
 ```ts
-import { GAP, layout, type Layout, type LayoutContext, type ViewState } from "jali";
+import { layout, type Layout, type LayoutContext, type ViewState } from "jali";
 import { orderKind } from "./kinds";
 import { store } from "./store";
 
 // Every operation is pure: a layout in, a new layout out. The context is the room, the gap and the kinds.
 const ctx: LayoutContext = {
-  fit: { ...store.get().area, gap: GAP, kinds: store.env.kinds.registry() },
+  fit: { ...store.get().area, gap: store.env.spacing.gap, kinds: store.env.kinds.registry() },
   paneCap: store.get().settings.paneCap,
 };
 const start: Layout = layout.tree.clone(store.getLayout());

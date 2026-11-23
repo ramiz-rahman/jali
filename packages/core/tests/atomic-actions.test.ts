@@ -7,16 +7,8 @@
  * The detail stayed, but the peek was gone.
  */
 import { describe, expect, it } from "vite-plus/test";
-import {
-  createJali,
-  memoryLocation,
-  memoryStorage,
-  pane,
-  row,
-  toLayout,
-  type JaliOptions,
-} from "@jali/core";
-import { each, refuse, storeOf } from "@jali/core/adapter";
+import { createJali, memoryLocation, memoryStorage, pane, row, type JaliOptions } from "@jali/core";
+import { each, refuse, storeOf, toLayout } from "@jali/core/adapter";
 import { urlSync } from "../src/features/url-sync";
 
 const item = { kind: "item", title: "Item", params: { id: Number }, width: { min: 200 } };

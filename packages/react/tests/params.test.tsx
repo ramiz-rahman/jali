@@ -4,7 +4,7 @@
  * made before the change still opening as they did.
  */
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { storeOf } from "@jali/core/adapter";
+import { storeOf, toLayout } from "@jali/core/adapter";
 import { afterEach, beforeAll, describe, expect, expectTypeOf, it } from "vite-plus/test";
 import {
   createJali,
@@ -15,7 +15,6 @@ import {
   optional,
   pane,
   row,
-  toLayout,
   type ObjectRef,
   type ParamsOf,
 } from "@jali/core";

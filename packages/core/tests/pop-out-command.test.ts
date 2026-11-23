@@ -4,16 +4,8 @@
  * focused pane allows it. No default key.
  */
 import { afterEach, describe, expect, it } from "vite-plus/test";
-import {
-  commandsOf,
-  createJali,
-  listCommands,
-  memoryStorage,
-  pane,
-  row,
-  runCommand,
-} from "@jali/core";
-import { popOutFeature, storeOf, type PopOutWindow } from "@jali/core/adapter";
+import { createJali, listCommands, memoryStorage, pane, row, runCommand } from "@jali/core";
+import { commandDefsOf, popOutFeature, storeOf, type PopOutWindow } from "@jali/core/adapter";
 
 const note = { kind: "note", title: "Note" };
 const fixed = { kind: "fixed", title: "Fixed", allow: { popOut: false } };
@@ -47,14 +39,14 @@ afterEach(() => {
 
 describe("the Pop out pane command", () => {
   it("isn't there without the feature", () => {
-    expect(commandsOf(make()).some((c) => c.id === "pane.pop_out")).toBe(false);
+    expect(commandDefsOf(make()).some((c) => c.id === "pane.pop_out")).toBe(false);
   });
 
   it("pops the focused pane out, with no key of its own, listed after Full screen", () => {
     const jali = make(window(true));
-    const ids = commandsOf(jali).map((c) => c.id);
+    const ids = commandDefsOf(jali).map((c) => c.id);
     expect(ids.indexOf("pane.pop_out")).toBe(ids.indexOf("pane.fullscreen") + 1);
-    expect(commandsOf(jali).find((c) => c.id === "pane.pop_out")?.title).toBe("Pop out pane");
+    expect(commandDefsOf(jali).find((c) => c.id === "pane.pop_out")?.title).toBe("Pop out pane");
     jali.actions.focus("a");
     expect(listed(jali)).toMatchObject({ group: "Pane", keys: "", disabled: false });
     expect(runCommand(jali, "pane.pop_out")).toBe(true);

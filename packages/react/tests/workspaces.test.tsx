@@ -261,7 +261,7 @@ describe("host commands (18)", () => {
       commands: [{ id: "host.hello", title: "Say hello", group: "Host", run }],
       keyboard: { keymap: { "host.hello": "Mod+K Mod+H" } },
     });
-    expect(core.commandsOf(s).some((c) => c.id === "host.hello")).toBe(true);
+    expect(core.commandDefsOf(s).some((c) => c.id === "host.hello")).toBe(true);
     const off = installKeyboard(s);
     chordAt(s, () => document.body, "Mod+K Mod+H");
     expect(run).toHaveBeenCalledTimes(1);
@@ -290,9 +290,6 @@ describe("mounting (25)", () => {
 });
 
 describe("tokens and the shelf (27, 28)", () => {
-  it("GAP is public", () => {
-    expect(core.GAP).toBe(6);
-  });
   it("the shelf's phone rule needs no host class", () => {
     const css = shelfCss;
     expect(css).not.toMatch(/\.app\b/);

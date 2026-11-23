@@ -121,4 +121,4 @@ Some words come from your app, so Jali shows them as you give them:
 
 Two things are not translated. The Mac's key symbols (⌘, ⌥, ⇧, ↵, the arrows) are symbols, not words. Errors and console warnings meant for developers stay in English.
 
-`formatKeys` and `keyHint` print English key words unless you pass words as their third argument (`keyHint("Alt+Enter", platform, fr.keys)`). `jali.keymap.label(id)` and `jali.keymap.format(seq)` use the instance's own words.
+`keyHint` prints English key words unless you pass words as their third argument (`keyHint("Alt+Enter", platform, fr.keys)`). `jali.keymap.label(id)` and `jali.keymap.format(seq)` use the instance's own words.

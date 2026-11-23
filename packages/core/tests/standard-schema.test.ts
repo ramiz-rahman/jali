@@ -8,14 +8,20 @@
 import { describe, expect, expectTypeOf, it } from "vite-plus/test";
 import {
   createJali,
-  linkSearch,
+  layout,
   memoryLocation,
   memoryStorage,
   row,
   type ParamsOf,
   type StandardSchemaV1,
 } from "@jali/core";
-import { createPaneKinds, defineKind, parseParams, type PaneKindBase } from "@jali/core/adapter";
+import {
+  createPaneKinds,
+  defineKind,
+  parseParams,
+  toLayout,
+  type PaneKindBase,
+} from "@jali/core/adapter";
 import { urlSync } from "../src/features/url-sync";
 
 type Schema<O> = StandardSchemaV1<unknown, O>;
@@ -113,9 +119,7 @@ describe("params declared with a Standard Schema", () => {
     expect(kinds.problems({ kind: "order", params: { id: "x" } })).toEqual([
       { param: "id", value: "x" },
     ]);
-    const location = memoryLocation(
-      linkSearch({ layout: row(order({ id: 5 })) }, { panes: [order] }),
-    );
+    const location = memoryLocation(`?l=${layout.encode(toLayout(row(order({ id: 5 }))))}`);
     const jali = createJali({
       panes: [order],
       layout: row(order({ id: 1 })),

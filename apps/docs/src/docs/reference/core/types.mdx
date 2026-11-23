@@ -138,7 +138,7 @@ Kinds by name, as the layout operations take them (`kinds.registry()`).
 
 <Entry name="LayoutContext" kind="type" from="jali" signature={`interface LayoutContext { fit: FitOptions; paneCap: number; dir?: Direction }`} compact>
 
-Everything a layout operation needs besides the layout. For an instance: `{ fit: { ...jali.get().area, gap: GAP, kinds: jali.env.kinds.registry() }, paneCap: jali.get().settings.paneCap, dir: jali.get().dir }`. `paneCap` is the most panes on screen before the oldest folds (the `paneCap` setting). `dir: "rtl"` mirrors the rects `resolve` returns, so they stay screen coordinates; the tree and the fit are the same.
+Everything a layout operation needs besides the layout. For an instance: `{ fit: { ...jali.get().area, gap: jali.env.spacing.gap, kinds: jali.env.kinds.registry() }, paneCap: jali.get().settings.paneCap, dir: jali.get().dir }`. `paneCap` is the most panes on screen before the oldest folds (the `paneCap` setting). `dir: "rtl"` mirrors the rects `resolve` returns, so they stay screen coordinates; the tree and the fit are the same.
 
 </Entry>
 
@@ -206,7 +206,7 @@ Anything that stands for a layout: a builder's result (`row(...)`), a single ref
 
 <Entry name="Draft" kind="type" from="jali" signature={`type Draft = PaneDraft | SplitDraft | TabsDraft`} compact>
 
-What the builders return: a layout not yet given ids. Pass it wherever a <Ref to="LayoutInput" /> goes; Jali turns it into a `Layout` (<Ref to="toLayout" page="/reference/core" />). Name it in a function of your own that builds part of a layout.
+What the builders return: a layout not yet given ids. Pass it wherever a <Ref to="LayoutInput" /> goes; Jali turns it into a `Layout`. Name it in a function of your own that builds part of a layout.
 
 </Entry>
 
@@ -868,30 +868,6 @@ The `url` option of `createJali`: `location` (a <Ref to="LocationPort" />, defau
 What a layout link carries about sizes. `"local"` (the default): the layout as designed, with the sizes the person dragged kept on their device (for up to 12 layouts), so a colleague opens the link at the designed proportions. `"link"`: everything, so the link reopens exactly.
 
 </Entry>
-
-<Entry name="JaliLink" kind="type" from="jali" signature={`type JaliLink = PageLink | LayoutLink`} compact>What <Ref to="linkSearch" page="/reference/core" /> builds a link to: a curated page or a free layout's layout.</Entry>
-
-<Entry name="PageLink" kind="type" from="jali" signature={`interface PageLink { page: string; item?: ItemId; tab?: string; open?: readonly ObjectRef[]; peek?: ObjectRef }`} compact>
-
-A link to a curated page, for <Ref to="linkSearch" page="/reference/core" />.
-
-<Params>
-<Param name="page" type="string" required>The page's id (its profile's `id`).</Param>
-<Param name="item" type="ItemId">The item it shows. Default: the one the reader saw last, else the page's `firstItem`.</Param>
-<Param name="tab" type="string">The view in use (a role id). Default: the one the reader used last, else the home view.</Param>
-<Param name="open" type="readonly ObjectRef[]">Panes opened from the page's views, in order. A link with any opens in Split view. An instance opens each object once, and at most 32.</Param>
-<Param name="peek" type="ObjectRef">The object in the peek sheet.</Param>
-</Params>
-
-</Entry>
-
-<Entry name="LayoutLink" kind="type" from="jali" signature={`interface LayoutLink { layout: LayoutInput; preset?: string; zoom?: NodeId; peek?: ObjectRef }`} compact>
-
-A link to a free layout's layout, for <Ref to="linkSearch" page="/reference/core" />: the layout (`row(…)` and the other builders, or a <Ref to="Layout" />), the preset it came from, the maximised pane's id and the object in the peek sheet.
-
-</Entry>
-
-<Entry name="LinkSearchOptions" kind="type" from="jali" signature={`interface LinkSearchOptions { prefix?: string; search?: string; panes: readonly PaneKindBase[] }`} compact>The options of <Ref to="linkSearch" page="/reference/core" />: the instance's pane kinds (required), its `url.prefix`, and a search string whose other params are kept. A link never carries a param only the app sets (`appOnly`) or one kept out of the address (`link: false`): `linkSearch` reads which those are from `panes`, and leaves them out of every ref, whether a kind's call built it (`query({ sql, autorun: true })`) or it is a plain object from a live layout or peek.</Entry>
 
 <Entry name="LocationPort" kind="type" from="jali" signature={`interface LocationPort {\n  search(): string;\n  href(): string;\n  navigate(search: string, mode: NavigateMode): void;\n  subscribe(fn: () => void): () => void;\n}`} compact>
 

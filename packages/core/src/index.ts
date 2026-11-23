@@ -11,7 +11,6 @@ export {
   column,
   tabs,
   pane,
-  toLayout,
   type LayoutInput,
   type Draft,
   type PaneDraft,
@@ -138,16 +137,7 @@ export { en, type Messages, type MessageOverrides, type ScreenDirection } from "
 // ---------- the address and what a person keeps ----------
 export type { UrlSyncOptions, LinkSizes } from "./url";
 export {
-  linkSearch,
-  type JaliLink,
-  type PageLink,
-  type LayoutLink,
-  type LinkSearchOptions,
-} from "./url";
-export {
-  browserLocation,
   memoryLocation,
-  browserStorage,
   memoryStorage,
   type LocationPort,
   type StoragePort,
@@ -156,7 +146,6 @@ export {
 
 // ---------- commands and keys ----------
 export {
-  commandsOf,
   runCommand,
   copyLink,
   listCommands,
@@ -166,7 +155,6 @@ export {
 export type { TabMenu, TabMenuItem } from "./commands/tab-menu";
 export type { Rename } from "./actions/rename";
 export {
-  DEFAULT_KEYMAP,
   type Keymap,
   type KeymapOverrides,
   type KeymapOptions,
@@ -178,7 +166,6 @@ export {
 export { keyBelongsToContent } from "./commands/content-keys";
 export {
   keyHint,
-  formatKeys,
   altClick,
   type Platform,
   type KeyWords,
@@ -187,7 +174,6 @@ export {
 } from "./commands/format";
 
 // ---------- geometry ----------
-/** The gap between panes and the root's inset, in px: for a host that measures around an instance. */
-export { GAP, type Spacing } from "./tokens";
+export type { Spacing } from "./tokens";
 /** Scroll a row that scrolls sideways while a drag is held near its edge, for an app's own drag (Jali's does it). */
 export { edgeScroll, type EdgeScroll } from "./workspace/edge-scroll";

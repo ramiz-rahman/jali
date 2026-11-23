@@ -52,7 +52,7 @@ Jali writes only its own search params. Your own params, the path and the hash a
 | `scroll` | Where each [row that scrolls sideways](scrolling-rows.md) came to rest, when it isn't at its start. |
 | `page`, `item`, `tab`, `open` | A curated page: which one, its item, the view in use, and the panes opened from it. |
 
-A page link writes each object (`open`, `peek`) as its kind and params: `call~slug=demra~t=#12` is a `call` with `slug: "demra"` and `t: 12`. You don't write this yourself: build links with `linkSearch`, below.
+A page link writes each object (`open`, `peek`) as its kind and params: `call~slug=demra~t=#12` is a `call` with `slug: "demra"` and `t: 12`. You don't write this yourself: Jali writes it, and **Copy link** copies it.
 
 Deliberate changes (opening, closing, moving, choosing a preset) add a history entry. A detail following a list replaces the entry, so Back skips the rows passed through. A divider drag replaces it once the drag settles.
 
@@ -71,40 +71,6 @@ A link reopens the same panes, showing the same objects, in the same arrangement
 | Params a kind keeps out of links (`appOnly`, `link: false`) | Never written | Your app sets them again |
 
 **Copy link** (in ⌘K, and `copyLink(jali)` from `jali`) copies the address as Jali writes it, so it follows these rules already.
-
-## Build a link from outside
-
-Your app often needs a link before any pane shows it: a row in a search result, an email, a page on the server. `linkSearch` builds the same search string Jali would write, with nothing running. Give it your pane kinds, the `panes` you pass `createJali`: they say which params a link never carries.
-
-```ts
-import { linkSearch, row } from "jali";
-import { order, customer, panes } from "./panes";
-
-// A curated page: its item, the view in use, a pane opened from it and the peek.
-const href = `/customers${linkSearch(
-  {
-    page: "customer",
-    item: 7,
-    tab: "orders",
-    open: [order({ id: 1041 })],
-    peek: order({ id: 1042 }),
-  },
-  { panes },
-)}`;
-
-// A free layout: the layout, and what rides with it.
-const layoutHref = `/desk${linkSearch(
-  { layout: row(order({ id: 1041 }), customer({ id: 7 })) },
-  { panes },
-)}`;
-
-// The layout on screen now.
-const nowHref = `/desk${linkSearch({ layout: jali.getLayout() }, { panes })}`;
-```
-
-Reading the link gives what you built it from, refitted to the reader's window. A page link may leave out `item` and `tab`: the reader then gets the item and view they saw last in this instance, else the page's `firstItem` and `home`. With `prefix`, it writes a prefixed instance's params; with `search`, it keeps your own params from that search string.
-
-A link never carries an `appOnly` or `link: false` param. `linkSearch` reads which those are from `panes`, so every ref is treated the same: one a kind's call built (`order({ id: 1 })`), a copy, or a plain `{ kind, params }` object from `jali.getLayout()`. A ref of a kind `panes` doesn't have throws, since what it may carry can't be known.
 
 ## Sizes: "local" or "link"
 

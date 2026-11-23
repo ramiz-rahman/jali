@@ -1,8 +1,14 @@
 /**
- * Every workspace command with its default keys, from jali itself: commandsOf for ids, titles and groups,
+ * Every workspace command with its default keys, from jali itself: commandDefsOf for ids, titles and groups,
  * DEFAULT_KEYMAP through createKeymap for keys, printed for a Mac and for Windows and Linux.
  */
-import { DEFAULT_KEYMAP, PALETTE_ID, createKeymap, formatKeys, type Command } from "jali/adapter";
+import {
+  DEFAULT_KEYMAP,
+  PALETTE_ID,
+  createKeymap,
+  formatKeys,
+  type CommandDef,
+} from "jali/adapter";
 import { COMMANDS, REFUSED, displayId } from "./command-data";
 
 const MAC = createKeymap({}, { platform: "mac" });
@@ -49,7 +55,7 @@ function Row({ id, title, refused }: { id: string; title: string; refused: strin
 
 /** One table, grouped as the palette groups them; the palette chord first (it is a key, not a palette command). */
 export function CommandTable() {
-  const groups: [string, Command[]][] = [];
+  const groups: [string, CommandDef[]][] = [];
   for (const c of COMMANDS) {
     const g = groups.find(([name]) => name === c.group);
     if (g) g[1].push(c);

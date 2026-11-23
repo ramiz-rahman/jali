@@ -13,7 +13,6 @@ import {
   pane,
   row,
   tabs,
-  toLayout,
   type Jali,
   type JaliOptions,
   type Layout,
@@ -31,6 +30,7 @@ import {
   storeOf,
   structureKey,
   urlKeys,
+  toLayout,
 } from "@jali/core/adapter";
 import { JaliRoot, definePane, usePaneState } from "@jali/react";
 import { follow } from "../../core/src/actions/follow";

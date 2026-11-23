@@ -31,7 +31,7 @@ import { storeOf, type AnyJali, type Jali } from "../state/instance";
 import { cycleRegions } from "./regions";
 import { own as ownOf } from "../own";
 
-/** A command: one of Jali's (`commandsOf`), or the app's own (`createJali({ commands })`). */
+/** A command: one of Jali's (`listCommands`), or the app's own (`createJali({ commands })`). */
 export interface Command {
   id: string;
   title: string;
@@ -354,7 +354,6 @@ function buildCommands(env: Env): CommandDef[] {
 interface Built {
   defs: CommandDef[];
   byId: Map<string, CommandDef>;
-  commands: Command[];
 }
 const built = /* @__PURE__ */ new WeakMap<Env, Built>();
 const forEnv = (env: Env) => {
@@ -364,21 +363,11 @@ const forEnv = (env: Env) => {
     const byId = new Map<string, CommandDef>();
     for (const c of all) if (!byId.has(c.id)) byId.set(c.id, c);
     const defs = all.filter((c) => byId.get(c.id) === c);
-    const commands = defs.map((c): Command => ({
-      id: c.id,
-      title: c.title,
-      group: c.group,
-      run: (jali) => void run(storeOf(jali), c.id),
-    }));
-    b = { defs, byId, commands };
+    b = { defs, byId };
     built.set(env, b);
   }
   return b;
 };
-
-/** The instance's commands, in palette order. Same array per instance. */
-export const commandsOf = (jali: Pick<AnyJali, "env">): readonly Command[] =>
-  forEnv(jali.env).commands;
 
 /** The registry's commands, with their checks (adapters). */
 export const commandDefsOf = (store: Pick<JaliStore, "env">): readonly CommandDef[] =>

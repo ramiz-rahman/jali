@@ -14,16 +14,8 @@ import type {
 } from "./layout/types";
 import type { HistoryMode } from "./state/apply";
 import type { ItemId } from "./profile";
-import { toLayout, type LayoutInput } from "./layout/build";
 import type { UrlState, UrlWriter } from "./state/store";
-import {
-  createPaneKinds,
-  linkLayout,
-  linkRef,
-  readLayout,
-  readRef,
-  type PaneKindBase,
-} from "./pane-kinds";
+import { readLayout, readRef } from "./pane-kinds";
 import { browserLocation, browserStorage, type LocationPort, type StoragePort } from "./ports";
 import { own as ownOf } from "./own";
 import { sameRef } from "./layout/ops/ref";
@@ -141,7 +133,7 @@ function setPage(q: URLSearchParams, k: UrlKeys, link: PageLink) {
 }
 
 /** A link to a curated page: which page, its item, the view in use, panes opened from it and the peek. */
-export interface PageLink {
+interface PageLink {
   /** The page's id (its profile's `id`). */
   page: string;
   /** The item it shows. Default: the one the reader saw last, else the page's first. */
@@ -153,68 +145,6 @@ export interface PageLink {
   /** The object in the peek sheet. */
   peek?: ObjectRef;
 }
-/** A link to a free layout's layout: the layout (`row(...)` and the rest, or a layout), and what rides with it. */
-export interface LayoutLink {
-  layout: LayoutInput;
-  /** The preset it came from, so the link marks it and Reset layout rebuilds it. */
-  preset?: string;
-  /** The maximised pane's id. */
-  zoom?: NodeId;
-  /** The object in the peek sheet. */
-  peek?: ObjectRef;
-}
-export type JaliLink = PageLink | LayoutLink;
-
-export interface LinkSearchOptions {
-  /** The instance's `url.prefix`, when it has one. */
-  prefix?: string;
-  /** A search string whose other params are kept (your app's own): `"?filter=open"`. Its instance params are
-   *  replaced. Default: none. */
-  search?: string;
-  /** The instance's pane kinds (what you pass `createJali({ panes })`). They say which params a link never carries
-   *  (`appOnly`, `link: false`), so the link leaves those out of every ref, however it was made: a kind's call, a
-   *  copy, a live layout's plain objects. Required: without the kinds, no ref says what is private. */
-  panes: readonly PaneKindBase[];
-}
-
-/**
- * The search string (`"?page=visit&item=7&open=call~slug=x"`) that opens an instance on `link`, as the instance
- * itself would write it: reading it back gives exactly that page, item, view, opened panes and peek, or that layout.
- * Needs no instance, so a server, an email or another app can build one. Put it after the path the instance is at.
- * Like the instance, it never writes a param only the app sets (`appOnly`) or one kept out of the address
- * (`link: false`): the instance's `panes` say which those are, for every ref, however it was made. A ref of a kind
- * `panes` doesn't have throws, as does a call without `panes`: what it may write can't be known.
- */
-export function linkSearch(link: JaliLink, options: LinkSearchOptions): string {
-  if (!options || !Array.isArray(options.panes))
-    throw new TypeError(
-      "Jali: linkSearch needs the instance's pane kinds, `linkSearch(link, { panes })`",
-    );
-  const kinds = createPaneKinds(options.panes).registry();
-  const k = urlKeys(options.prefix);
-  const q = new URLSearchParams(options.search ?? "");
-  const out = (ref: ObjectRef) => linkRef(kinds, known(kinds, ref));
-  for (const key of Object.values(k)) q.delete(key);
-  if ("page" in link) setPage(q, k, link.open ? { ...link, open: link.open.map(out) } : link);
-  else {
-    const layout = toLayout(link.layout);
-    for (const p of core.tree.panes(layout.root)) known(kinds, p.ref);
-    q.set(k.layout, core.encode(linkLayout(kinds, layout)));
-    if (link.preset) q.set(k.preset, link.preset);
-    if (link.zoom) q.set(k.zoom, link.zoom);
-  }
-  if (link.peek) q.set(k.peek, encodePeek(out(link.peek)));
-  const text = q.toString();
-  return text ? `?${text}` : "";
-}
-
-/** `ref`, when `kinds` has its kind; otherwise a TypeError: which of its params are private can't be known. */
-function known(kinds: KindRegistry, ref: ObjectRef): ObjectRef {
-  if (!Object.hasOwn(kinds, ref.kind))
-    throw new TypeError(`Jali: linkSearch was given a "${ref.kind}" ref, a kind not in \`panes\``);
-  return ref;
-}
-
 /** The search string for `s`, keeping every param of `search` that is not the instance's. */
 export function buildSearch(search: string, s: UrlState, k: UrlKeys = urlKeys()): string {
   const q = new URLSearchParams(search);

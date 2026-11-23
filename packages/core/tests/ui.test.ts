@@ -3,7 +3,7 @@ import { clampSize, snap, SNAP_IN, SNAP_OUT } from "../src/dividers/resize";
 import { zoneFor, EDGE_ZONE } from "../src/workspace/dnd";
 import { decodePeek, encodePeek } from "../src/url";
 import { createKeyHandler } from "../src/commands/keyboard";
-import { commandsOf, runCommand } from "../src/commands/registry";
+import { commandDefsOf, runCommand } from "../src/commands/registry";
 import { formatChord, parseKeys } from "../src/commands/format";
 import { mergeTargets } from "../src/actions/tabs";
 import { openPaneFor } from "../src/actions/open";
@@ -60,7 +60,7 @@ describe("peek param", () => {
 
 describe("command registry", () => {
   it("has unique stable ids covering the keyboard map", () => {
-    const ids = commandsOf(store).map((c) => c.id);
+    const ids = commandDefsOf(store).map((c) => c.id);
     expect(new Set(ids).size).toBe(ids.length);
     for (const id of [
       "pane.focus.next",
@@ -289,7 +289,7 @@ describe("drag preview label", () => {
 
 describe("new commands", () => {
   it("have stable ids", () => {
-    const ids = commandsOf(store).map((c) => c.id);
+    const ids = commandDefsOf(store).map((c) => c.id);
     for (const id of ["pane.merge", "pane.unmerge", "stack.new-tab", "pane.split.auto"])
       expect(ids).toContain(id);
   });

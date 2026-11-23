@@ -194,7 +194,11 @@ export {
   settingsEn,
   urlSyncEn,
 } from "./state/feature-messages";
-export { DEFAULT_PREFIX, PALETTE_ID, createKeymap } from "./commands/keymap";
+export { DEFAULT_KEYMAP, DEFAULT_PREFIX, PALETTE_ID, createKeymap } from "./commands/keymap";
+export { formatKeys } from "./commands/format";
+export { toLayout } from "./layout/build";
+export { browserLocation, browserStorage } from "./ports";
+export { GAP } from "./tokens";
 export {
   createKeyHandler,
   installKeyboard,

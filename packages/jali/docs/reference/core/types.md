@@ -221,7 +221,7 @@ Kinds by name, as the layout operations take them (`kinds.registry()`).
 interface LayoutContext { fit: FitOptions; paneCap: number; dir?: Direction }
 ```
 
-Everything a layout operation needs besides the layout. For an instance: `{ fit: { ...jali.get().area, gap: GAP, kinds: jali.env.kinds.registry() }, paneCap: jali.get().settings.paneCap, dir: jali.get().dir }`. `paneCap` is the most panes on screen before the oldest folds (the `paneCap` setting). `dir: "rtl"` mirrors the rects `resolve` returns, so they stay screen coordinates; the tree and the fit are the same.
+Everything a layout operation needs besides the layout. For an instance: `{ fit: { ...jali.get().area, gap: jali.env.spacing.gap, kinds: jali.env.kinds.registry() }, paneCap: jali.get().settings.paneCap, dir: jali.get().dir }`. `paneCap` is the most panes on screen before the oldest folds (the `paneCap` setting). `dir: "rtl"` mirrors the rects `resolve` returns, so they stay screen coordinates; the tree and the fit are the same.
 
 ### FitOptions
 
@@ -337,7 +337,7 @@ Anything that stands for a layout: a builder's result (`row(...)`), a single ref
 type Draft = PaneDraft | SplitDraft | TabsDraft
 ```
 
-What the builders return: a layout not yet given ids. Pass it wherever a `LayoutInput` goes; Jali turns it into a `Layout` ([`toLayout`](../core.md#tolayout)). Name it in a function of your own that builds part of a layout.
+What the builders return: a layout not yet given ids. Pass it wherever a `LayoutInput` goes; Jali turns it into a `Layout`. Name it in a function of your own that builds part of a layout.
 
 ### PaneDraft
 
@@ -1432,58 +1432,6 @@ type LinkSizes = "link" | "local"
 ```
 
 What a layout link carries about sizes. `"local"` (the default): the layout as designed, with the sizes the person dragged kept on their device (for up to 12 layouts), so a colleague opens the link at the designed proportions. `"link"`: everything, so the link reopens exactly.
-
-### JaliLink
-
-*type*, from `jali`
-
-```ts
-type JaliLink = PageLink | LayoutLink
-```
-
-What [`linkSearch`](../core.md#linksearch) builds a link to: a curated page or a free layout's layout.
-
-### PageLink
-
-*type*, from `jali`
-
-```ts
-interface PageLink { page: string; item?: ItemId; tab?: string; open?: readonly ObjectRef[]; peek?: ObjectRef }
-```
-
-A link to a curated page, for [`linkSearch`](../core.md#linksearch).
-
-**Parameters**
-
-- **`page`** (`string`, required): The page's id (its profile's `id`).
-
-- **`item`** (`ItemId`): The item it shows. Default: the one the reader saw last, else the page's `firstItem`.
-
-- **`tab`** (`string`): The view in use (a role id). Default: the one the reader used last, else the home view.
-
-- **`open`** (`readonly ObjectRef[]`): Panes opened from the page's views, in order. A link with any opens in Split view. An instance opens each object once, and at most 32.
-
-- **`peek`** (`ObjectRef`): The object in the peek sheet.
-
-### LayoutLink
-
-*type*, from `jali`
-
-```ts
-interface LayoutLink { layout: LayoutInput; preset?: string; zoom?: NodeId; peek?: ObjectRef }
-```
-
-A link to a free layout's layout, for [`linkSearch`](../core.md#linksearch): the layout (`row(…)` and the other builders, or a `Layout`), the preset it came from, the maximised pane's id and the object in the peek sheet.
-
-### LinkSearchOptions
-
-*type*, from `jali`
-
-```ts
-interface LinkSearchOptions { prefix?: string; search?: string; panes: readonly PaneKindBase[] }
-```
-
-The options of [`linkSearch`](../core.md#linksearch): the instance's pane kinds (required), its `url.prefix`, and a search string whose other params are kept. A link never carries a param only the app sets (`appOnly`) or one kept out of the address (`link: false`): `linkSearch` reads which those are from `panes`, and leaves them out of every ref, whether a kind's call built it (`query({ sql, autorun: true })`) or it is a plain object from a live layout or peek.
 
 ### LocationPort
 

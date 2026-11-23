@@ -11,12 +11,11 @@ import {
   memoryStorage,
   pane,
   row,
-  toLayout,
   type AnyJali,
   type ParamsOf,
   type UrlState,
 } from "@jali/core";
-import { definePageEngine as definePage } from "@jali/core/adapter";
+import { definePageEngine as definePage, toLayout } from "@jali/core/adapter";
 import { encodePeek, storeOf } from "@jali/core/adapter";
 import { definePane } from "@jali/react";
 import { defaultFeatures, urlSync } from "./features";

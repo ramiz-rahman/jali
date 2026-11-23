@@ -4,7 +4,8 @@
  */
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { act, cleanup, render, screen } from "@testing-library/react";
-import { GAP, createJali, memoryLocation, memoryStorage, pane, row } from "@jali/core";
+import { createJali, memoryLocation, memoryStorage, pane, row } from "@jali/core";
+import { GAP } from "@jali/core/adapter";
 import type { JaliOptions } from "@jali/core";
 import { JaliRoot, JaliView, Shelf, definePane } from "@jali/react";
 import { defaultFeatures, urlSync } from "./features";

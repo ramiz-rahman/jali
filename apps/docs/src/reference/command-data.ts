@@ -1,12 +1,12 @@
 /**
- * The command table's data. Ids, titles, groups and keys come from jali itself (commandsOf, DEFAULT_KEYMAP),
+ * The command table's data. Ids, titles, groups and keys come from jali itself (commandDefsOf, DEFAULT_KEYMAP),
  * so the table is always the package's; when each command is refused is written here, from each command's `check`
  * in packages/core/src/commands/registry.ts and the action it runs. The coverage test checks that every command id
  * has a note here, and no note names a command that is gone.
  */
 import {
   chooserFeature,
-  commandsOf,
+  commandDefsOf,
   createPaneKinds,
   en,
   pageEngine,
@@ -55,7 +55,7 @@ export const SAMPLE_ENV: Env = {
 export const PRESET_PATTERN = "layout.preset.<id>";
 export const displayId = (id: string) => (id.startsWith("layout.preset.") ? PRESET_PATTERN : id);
 
-export const COMMANDS = commandsOf({ env: SAMPLE_ENV });
+export const COMMANDS = commandDefsOf({ env: SAMPLE_ENV });
 
 /** When a command does not run. "Silent" means the key is still taken (the keyboard layer never lets a bound key
  *  through) but nothing is announced; the palette shows the command greyed out. */

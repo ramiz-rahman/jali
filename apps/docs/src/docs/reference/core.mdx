@@ -6,7 +6,6 @@ summary: Every function and constant jali exports, with its options, defaults an
 import { Entry, Params, Param, ChildParams, Returns, Values, Value, Ref } from "../../reference";
 import createCode from "../../samples/reference/create-workspace.ts?raw";
 import builderCode from "../../samples/reference/builders.ts?raw";
-import keymapCode from "../../samples/reference/keymap.ts?raw";
 import formatCode from "../../samples/reference/format.ts?raw";
 import commandsCode from "../../samples/reference/commands.ts?raw";
 import layoutCode from "../../samples/reference/layout-ops.ts?raw";
@@ -72,7 +71,7 @@ Jali's keys, in one place. See <Ref to="KeyboardOptions" page="/reference/core/t
 <Param name="landmark" type={`"region" | "main"`} default={`"region"`}>What the panes are to screen readers. `"region"`: a `<section>` labelled "Panes", which sits inside your page's own `<main>` and adds no second one. `"main"`: the panes render as the page's `<main>`. Use it when Jali is the whole app and the page has no `<main>` of its own.</Param>
 <Param name="label" type="string">The instance's name for assistive technology, for a page with more than one instance. Its landmark is named this instead of "Panes", and each of Jali's landmarks inside it adds it (a pane "Order 7, Orders", the shelf "Shelf, Orders", the switcher, the peek, a page's views), so no two instances repeat a landmark. Without it, the names are Jali's own. See [Two instances on one page](/guides/two-instances).</Param>
 <Param name="dir" type="Direction" default="the page's">The reading direction. By default the instance reads its page's: the computed `direction` where it renders, so `<html dir="rtl">` is enough, and it follows a later change of `dir`. Give one to fix it; `<JaliRoot>` then sets `dir` on its elements, so the styles agree. Right to left, a row starts at the right, and every left and right a key, command, drop zone or message names is still the screen's. The layout and its links are the same in both. See <Ref to="Direction" page="/reference/core/types" />.</Param>
-<Param name="gap" type="number" default="6 (GAP)">The space between panes, in CSS pixels. The layout measures with it (splits, rows that scroll, the stacked view), and `<JaliRoot>` writes it on its root and its layer as `--jali-gap`, so a style that reads the variable agrees with where the panes are.</Param>
+<Param name="gap" type="number" default="6">The space between panes, in CSS pixels. The layout measures with it (splits, rows that scroll, the stacked view), and `<JaliRoot>` writes it on its root and its layer as `--jali-gap`, so a style that reads the variable agrees with where the panes are.</Param>
 <Param name="inset" type="number" default="the gap">The space between the edges of Jali's root and its panes, in CSS pixels, written as `--jali-inset`. Set it apart from the gap to line the panes up with your own bars.</Param>
 <Param name="size" type="{ width: number; height: number }">A fixed size instead of the window's, for tests and server rendering. `<JaliRoot>` measures the real one once it renders.</Param>
 <Param name="moveFocus" type="boolean" default="true">`false` leaves DOM focus alone: for tests and an instance that is never shown.</Param>
@@ -155,7 +154,7 @@ Nodes without an `id` are named after what they hold: `"row"`, `"column"`, `"tab
 <Param name="children" type="(Draft | ObjectRef)[]" required />
 </Params>
 
-<Returns type="SplitDraft">For `createJali({ layout })`, a preset's `layout`, or <Ref to="toLayout" />.</Returns>
+<Returns type="SplitDraft">For `createJali({ layout })` or a preset's `layout`.</Returns>
 
 </Entry>
 
@@ -199,14 +198,6 @@ A pane showing `ref`, with options. A bare ref in a `row` is the same as `pane(r
 
 </Entry>
 
-<Entry name="toLayout" kind="function" from="jali" signature={`toLayout(input: LayoutInput): Layout`} compact>
-
-The plain layout tree a builder's result stands for, with an id on every node: what the address carries and the layout namespace works on. A whole `Layout` comes back as it is; a single ref becomes a one-pane layout. You rarely need it: everything that takes a layout takes a builder's result.
-
-<Returns type="Layout" />
-
-</Entry>
-
 <Entry name="sameRef" kind="function" from="jali" signature={`sameRef(a: ObjectRef | undefined, b: ObjectRef | undefined): boolean`} example={sameRefCode} exampleFile="same-ref.ts">
 
 Whether two refs are exactly the same: the same kind and the same params, compared with `===`, in any key order (a layout read back from Postgres `jsonb` shows the same objects). Jali compares refs with this everywhere. `1` and `"1"` differ here; to ask whether two refs show the same object, use `kinds.sameObject`.
@@ -224,18 +215,6 @@ Whether two refs are exactly the same: the same kind and the same params, compar
 
 `createJali` makes these for you from its `url` and `storage` options. Pass one yourself for a router, a test or an instance that must not touch the page.
 
-<Entry name="browserLocation" kind="function" from="jali" signature={`browserLocation(win?: Window): LocationPort`} compact>
-
-The address as the browser's history: `navigate` calls `pushState` or `replaceState` with the same path and hash (and does nothing when the address would not change), and `subscribe` listens to `popstate`.
-
-<Params>
-<Param name="win" type="Window" default="window">The window whose history to use.</Param>
-</Params>
-
-<Returns type="LocationPort" />
-
-</Entry>
-
 <Entry name="memoryLocation" kind="function" from="jali" signature={`memoryLocation(initial?: string): LocationPort & { entries: string[]; visit(search: string): void }`} example={createCode} exampleFile="jali.ts" exampleHighlight="18,22,28-29">
 
 An address that lives in memory: for tests, server rendering, and an instance in a dialog that must not touch the page's address.
@@ -245,18 +224,6 @@ An address that lives in memory: for tests, server rendering, and an instance in
 </Params>
 
 <Returns type="LocationPort & { entries: string[]; visit(search: string): void }">`entries` is the history, newest last; `href()` is `memory:` plus the search. `visit(search)` is navigation the instance did not make (Back, a router link): it adds an entry and calls every subscriber. `navigate` does not call subscribers.</Returns>
-
-</Entry>
-
-<Entry name="browserStorage" kind="function" from="jali" signature={`browserStorage(prefix: string): StoragePort`} compact>
-
-`localStorage` under `prefix` (keys are `prefix:key`). Reads and writes never throw: in private mode or with storage blocked, nothing is saved and reads give `null`.
-
-<Params>
-<Param name="prefix" type="string" required>The key prefix. `createJali({ storage: "orders" })` makes one for you.</Param>
-</Params>
-
-<Returns type="StoragePort" />
 
 </Entry>
 
@@ -272,34 +239,9 @@ Storage in a `Map`, for tests, server rendering and embedded instances.
 
 </Entry>
 
-<Entry name="linkSearch" kind="function" from="jali" signature={`linkSearch(link: JaliLink, options: LinkSearchOptions): string`} compact>
-
-The search string that opens an instance on `link`, written as the instance itself writes it: `linkSearch({ page: "visit", item: 7, open: [call({ slug: "demra" })] }, { panes })` is `"?page=visit&item=7&open=call~slug=demra"`. Reading it back gives exactly that page, item, view, opened panes and peek, or that layout. It needs no instance, only its pane kinds, so a server, an email or another app can build links. Put it after the path the instance is on: `` `/visits${linkSearch(link, { panes })}` ``.
-
-<Params>
-<Param name="link" type="JaliLink" required>A <Ref to="PageLink" page="/reference/core/types" /> (a curated page: `page`, and optionally `item`, `tab`, `open` and `peek`) or a <Ref to="LayoutLink" page="/reference/core/types" /> (a free layout: `layout`, and optionally `preset`, `zoom` and `peek`).</Param>
-<Param name="options" type="LinkSearchOptions" required>`panes`: the instance's pane kinds, as you pass `createJali({ panes })`. A link never carries a param only the app sets (`appOnly`) or one kept out of the address (`link: false`); `linkSearch` reads which those are from `panes`, so it leaves them out of every ref, however the ref was made. A ref of a kind `panes` lacks throws. `prefix`: the instance's `url.prefix`, when it has one. `search`: a search string whose other params (your app's own) are kept; any instance params in it are replaced.</Param>
-</Params>
-
-<Returns type="string">`"?…"`, or `""` when there is nothing to write.</Returns>
-
-</Entry>
-
 ## Commands and keys
 
-<Entry name="commandsOf" kind="function" from="jali" signature={`commandsOf(jali: Jali): readonly Command[]`} example={commandsCode} exampleFile="toolbar.ts">
-
-Every command the instance has, in palette order: the fixed set, one per preset, and titles in the instance's own words (its name, its page's name and viewers). The same array for the same instance. Every id is on the [Commands](/reference/commands) page.
-
-<Params>
-<Param name="jali" type="Jali" required>The instance (only its `env` is read).</Param>
-</Params>
-
-<Returns type="readonly Command[]">Each with `id`, `title`, `group`, an optional `check` that returns a refusal when it can't run now, and `run`.</Returns>
-
-</Entry>
-
-<Entry name="listCommands" kind="function" from="jali" signature={`listCommands(jali: Jali): ListedCommand[]`} compact>
+<Entry name="listCommands" kind="function" from="jali" signature={`listCommands(jali: Jali): ListedCommand[]`} example={commandsCode} exampleFile="toolbar.ts">
 
 Every command a person can run from a menu now, in the palette's order: the focused pane's own commands first (keys `pane:<id>`), then the instance's and your own `commands`. Each has its `title`, `group`, `keys` label for this platform, `disabled` and the `reason`, and `run`. For an app with its own command menu (no `palette()` feature); in React, <Ref to="useJaliCommands" page="/reference/react" />. Read it again after `jali.subscribe` calls back.
 
@@ -351,36 +293,10 @@ Writes `jali.href()` to the clipboard and announces "Link copied", or "Couldn't 
 
 </Entry>
 
-<Entry name="DEFAULT_KEYMAP" kind="constant" from="jali" signature={`const DEFAULT_KEYMAP: { readonly "palette.toggle": readonly ["Mod+K"]; … }`} example={keymapCode} exampleFile="keymap.ts" exampleHighlight="8">
-
-The default bindings: command id to one or more binding strings. `Mod` is ⌘ on a Mac and Ctrl elsewhere. Each id and its keys, printed for both platforms, are on the [Commands](/reference/commands) page.
-
-The defaults keep to three rules:
-
-- single character keys belong to the focused content;
-- no keys the browser keeps for itself (⌘W, ⌘T, Ctrl+Tab and the like), no Ctrl+Alt, and no ⌘ or Ctrl with a digit;
-- one prefix, ⌘K or Ctrl+K, which opens the palette and starts a two-step chord whose second step keeps Mod held.
-
-</Entry>
-
 <Entry name="keyBelongsToContent" kind="function" from="jali" signature={`keyBelongsToContent(event: KeyboardEvent): boolean`} compact>
 
 
 Whether a key event belongs to the focused content: its target is a text field, a contenteditable region, a combobox or search box, inside a dialog, or a control that Space presses (a button, link, tab, checkbox, switch, radio or menu item). Use it in a window-level `keydown` handler that wants a single key such as Space. See [Space in lists](/guides/commands-and-keys).
-
-</Entry>
-
-<Entry name="formatKeys" kind="function" from="jali" signature={`formatKeys(seq: KeySequence, platform?: Platform, words?: KeyWords): string`} example={formatCode} exampleFile="format.ts">
-
-A key sequence as people read it: "⌘K ⌘M" on a Mac, "Ctrl+K Ctrl+M" elsewhere. Sequences come from `keymap.sequences(id)`. `jali.keymap.format(seq)` does the same in the instance's own words.
-
-<Params>
-<Param name="seq" type="readonly Chord[]" required>One binding: a chord, or a prefix chord and a second chord.</Param>
-<Param name="platform" type="Platform" default="this platform" />
-<Param name="words" type="KeyWords" default="English">The words for modifiers, Esc, Space and the arrows, such as `messages.keys`.</Param>
-</Params>
-
-<Returns type="string" />
 
 </Entry>
 
@@ -394,14 +310,14 @@ The words for Jali's modifier-click, for hints in your own text: "⌥-click" on 
 
 </Entry>
 
-<Entry name="keyHint" kind="function" from="jali" signature={`keyHint(text: string, platform?: Platform, words?: KeyWords): string`} compact>
+<Entry name="keyHint" kind="function" from="jali" signature={`keyHint(text: string, platform?: Platform, words?: KeyWords): string`} example={formatCode} exampleFile="hints.ts">
 
 A binding string printed for the platform: `keyHint("Alt+Enter")` is "⌥↵" on a Mac and "Alt+Enter" elsewhere. For keys a pane handles itself, which are not in the keymap. Throws on a key or modifier it doesn't know.
 
 <Params>
 <Param name="text" type="string" required>A binding such as `"Mod+K Mod+M"`.</Param>
 <Param name="platform" type="Platform" default="this platform" />
-<Param name="words" type="KeyWords" default="English">As for `formatKeys`.</Param>
+<Param name="words" type="KeyWords" default="English">The words for the keys (`en.keys`, or your translation of them).</Param>
 </Params>
 
 <Returns type="string" />
@@ -417,12 +333,6 @@ Jali's English messages: every word it shows or says, by area (`announcements`, 
 </Entry>
 
 ## Geometry
-
-<Entry name="GAP" kind="constant" from="jali" signature={`const GAP: number`} compact>
-
-The default gap between panes and inset from the edges of Jali's root, in pixels (6); an instance's own are `createJali({ gap, inset })`. For measuring an instance from outside: its usable area is its element's size minus twice its inset (`GAP * 2` by default).
-
-</Entry>
 
 <Entry name="Spacing" kind="type" from="jali" signature={`interface Spacing { gap: number; inset: number }`} compact>
 
