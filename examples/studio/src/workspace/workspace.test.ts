@@ -10,14 +10,17 @@ import {
   reportUnsaved,
   testJaliOptions,
 } from "jali/testing";
-import { openFollowing, sessionInLayout } from "./actions";
-import { clip } from "./panes/clip";
-import { transcript } from "./panes/transcript";
-import { audible, channelOf } from "./edits";
-import { createServices } from "./services";
-import { loadSessions, sessionById, wordsFor, type SegmentData } from "./sessions/sessions";
-import { slashForSearch, spaceForTransport } from "./shell/keys";
-import { createStudioJali, kinds } from "./workspace";
+import { audible, channelOf } from "../model/mix";
+import { clip } from "../panes/clip";
+import { transcript } from "../panes/transcript";
+import { createServices } from "../services";
+import { wordsFor } from "../sessions/derive";
+import type { SessionId } from "../sessions/ids";
+import { loadSessions, sessionById } from "../sessions/load";
+import type { SegmentData } from "../sessions/types";
+import { slashForSearch, spaceForTransport } from "../shell/keys";
+import { createStudioJali, kinds } from "./createStudioJali";
+import { openFollowing, sessionInLayout } from "../panes/links";
 
 /** The app's workspace with nothing shared: a memory address and storage, a fixed size, no DOM focus, no sound. */
 function testJali({ search = "", width = 1440, height = 808 } = {}) {
@@ -49,8 +52,8 @@ const shown = (jali: Jali, id: string) => jali.model().pane(id)?.ref.params;
 // The sessions' data loads on demand in the app; here, all of it first.
 await loadSessions();
 
-const APOLLO = "apollo11-landing";
-const DINNER = "dinner-party";
+const APOLLO: SessionId = "apollo11-landing";
+const DINNER: SessionId = "dinner-party";
 
 describe("the studio workspace", () => {
   afterEach(() => vi.useRealTimers());
@@ -200,7 +203,7 @@ describe("the studio workspace", () => {
   it("holds only the transcript while it has unsaved corrections: the other followers move on", () => {
     vi.useFakeTimers();
     const { jali } = testJali();
-    // What the transcript's `useUnsaved` reports while its draft has corrections (panes/transcript.tsx).
+    // What the transcript's `useUnsaved` reports while its draft has corrections (panes/transcript/useCorrections.ts).
     reportUnsaved(jali, "transcript", "1 unsaved correction");
     jali.actions.select("library", transcript({ session: DINNER }));
     vi.advanceTimersByTime(200);
@@ -219,7 +222,7 @@ describe("the studio workspace", () => {
     vi.useFakeTimers();
     const { jali } = testJali();
     const draft = () => paneStateOf(jali, "transcript")?.draft;
-    // A correction in the landing's first line, the way the transcript keeps it (panes/transcript.tsx).
+    // A correction in the landing's first line, the way the transcript keeps it (panes/transcript/useCorrections.ts).
     reportPaneState(jali, "transcript", "draft", { s01: "Houston, Tranquility Base." });
     reportUnsaved(jali, "transcript", "1 unsaved correction");
     jali.actions.select("library", transcript({ session: DINNER }));
@@ -261,7 +264,7 @@ describe("the studio workspace", () => {
 
   it("jumps to a marker, the person's own included", () => {
     const { jali, services } = testJali();
-    services.edits.addMarker(APOLLO, 42.5, "Good quote");
+    services.edits.session(sessionById(APOLLO)!).addMarker(42.5, "Good quote");
     run(jali, "studio.marker");
     const request = chooser(jali);
     const mine = request.items.find((m) => request.label(m) === "Good quote")!;
@@ -350,20 +353,22 @@ describe("the transport", () => {
 
 describe("sessions of three, eight and four tracks", () => {
   afterEach(() => vi.useRealTimers());
-  const SONG = "light-caught-by-the-stone";
+  const SONG: SessionId = "light-caught-by-the-stone";
 
   it("starts each session's mix from the catalogue, and solo counts only that session's tracks", () => {
     const { services } = testJali();
     const { edits } = services;
-    expect(channelOf(edits.of(APOLLO), "pao").gain).toBe(-12);
-    expect(channelOf(edits.of(DINNER), "p05").pan).toBeLessThan(0);
-    expect(channelOf(edits.of(DINNER), "p08").pan).toBeGreaterThan(0);
+    expect(channelOf(APOLLO, edits.of(APOLLO).mix, "pao").gain).toBe(-12);
+    expect(channelOf(DINNER, edits.of(DINNER).mix, "p05").pan).toBeLessThan(0);
+    expect(channelOf(DINNER, edits.of(DINNER).mix, "p08").pan).toBeGreaterThan(0);
     const song = sessionById(SONG)!;
-    edits.setChannel(SONG, "bass", { solo: true });
-    expect(audible(edits.of(SONG), "bass", song.tracks)).toBe(true);
-    expect(audible(edits.of(SONG), "drums", song.tracks)).toBe(false);
+    edits.session(sessionById(SONG)!).setChannel("bass", { solo: true });
+    expect(audible(SONG, edits.of(SONG).mix, "bass", song.tracks)).toBe(true);
+    expect(audible(SONG, edits.of(SONG).mix, "drums", song.tracks)).toBe(false);
     // A solo in the song mutes nothing in the landing.
-    expect(audible(edits.of(APOLLO), "air-ground", sessionById(APOLLO)!.tracks)).toBe(true);
+    expect(audible(APOLLO, edits.of(APOLLO).mix, "air-ground", sessionById(APOLLO)!.tracks)).toBe(
+      true,
+    );
   });
 
   it("moves every layout between the sessions: every follower of the library goes along", () => {
@@ -408,9 +413,11 @@ describe("corrections", () => {
   it("saves corrections in the app's store, and drops one put back as recorded", () => {
     const { edits } = createServices({ persist: false, audio: false });
     const seg = sessionById(APOLLO)!.segments[0]!;
-    edits.saveCorrections(APOLLO, { [seg.id]: "Eagle, you are looking great." });
+    edits
+      .session(sessionById(APOLLO)!)
+      .saveCorrections({ [seg.id]: "Eagle, you are looking great." });
     expect(edits.of(APOLLO).corrections[seg.id]).toBe("Eagle, you are looking great.");
-    edits.saveCorrections(APOLLO, { [seg.id]: seg.text });
+    edits.session(sessionById(APOLLO)!).saveCorrections({ [seg.id]: seg.text });
     expect(edits.of(APOLLO).corrections[seg.id]).toBeUndefined();
   });
 });

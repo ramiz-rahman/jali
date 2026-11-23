@@ -6,34 +6,46 @@
  * library's cursor is on. The segment detail follows the transcript (id "transcript") instead; `kept: true` keeps one
  * segment, for comparing. A pane with the same id in two layouts keeps its state across a switch, so a half-done
  * correction comes along from Edit to Review.
+ *
+ * The top bar draws each as its plan (shell/layoutPlans.ts).
  */
 import { column, pane, row, type PresetOptions } from "jali";
-import { clip } from "./panes/clip";
-import { library } from "./panes/library";
-import { markers } from "./panes/markers";
-import { mixer } from "./panes/mixer";
-import { timeline } from "./panes/timeline";
-import { transcript } from "./panes/transcript";
+import { clip } from "../panes/clip";
+import { library } from "../panes/library";
+import { markers } from "../panes/markers";
+import { mixer } from "../panes/mixer";
+import { timeline } from "../panes/timeline";
+import { transcript } from "../panes/transcript";
+import { FIRST_SESSION } from "../sessions/ids";
 
-import { FIRST_SESSION } from "./sessions/sessions";
+export type PresetId = "edit" | "mix" | "review" | "compare";
+
 const session = FIRST_SESSION;
 const followsLibrary = { linkedTo: "library", follows: true } as const;
 const followsTranscript = { linkedTo: "transcript", follows: true } as const;
 
-const lib = () => pane(library(), { id: "library", weight: 0.8 });
-const tr = (weight = 1) =>
-  pane(transcript({ session }), { id: "transcript", ...followsLibrary, weight });
-const tl = () => pane(timeline({ session }), { id: "timeline", ...followsLibrary });
+type Place = { weight?: number; priority?: "supporting" };
 
-export const presets: PresetOptions[] = [
+const libraryPane = (weight = 0.8) => pane(library(), { id: "library", weight });
+const transcriptPane = (weight = 1) =>
+  pane(transcript({ session }), { id: "transcript", ...followsLibrary, weight });
+const timelinePane = () => pane(timeline({ session }), { id: "timeline", ...followsLibrary });
+const mixerPane = () => pane(mixer({ session }), { id: "mixer", ...followsLibrary });
+const markersPane = (place: Place) =>
+  pane(markers({ session }), { id: "markers", ...followsLibrary, ...place });
+/** The segment detail that follows the transcript. */
+const detailPane = (place: Place, segment = "s01") =>
+  pane(clip({ session, segment }), { id: "clip", ...followsTranscript, ...place });
+
+export const presets: (PresetOptions & { id: PresetId })[] = [
   {
     // Correcting the words: the transcript large, the timeline under it, the segment detail beside.
     id: "edit",
     label: "Edit",
     layout: row(
-      lib(),
-      column({ weight: 2.6 }, tr(), tl()),
-      pane(clip({ session, segment: "s01" }), { id: "clip", ...followsTranscript, weight: 1.1 }),
+      libraryPane(),
+      column({ weight: 2.6 }, transcriptPane(), timelinePane()),
+      detailPane({ weight: 1.1 }),
     ),
   },
   {
@@ -41,14 +53,14 @@ export const presets: PresetOptions[] = [
     id: "mix",
     label: "Mix",
     layout: row(
-      lib(),
+      libraryPane(),
       column(
         { weight: 2.6 },
         // The timeline takes its few lanes' height; the mixer's faders get all the rest of the throw.
-        tl(),
-        pane(mixer({ session }), { id: "mixer", ...followsLibrary }),
+        timelinePane(),
+        mixerPane(),
       ),
-      pane(markers({ session }), { id: "markers", ...followsLibrary, weight: 0.9 }),
+      markersPane({ weight: 0.9 }),
     ),
   },
   {
@@ -57,25 +69,16 @@ export const presets: PresetOptions[] = [
     label: "Review",
     layout: column(
       row(
-        lib(),
-        tr(1.7),
+        libraryPane(),
+        transcriptPane(1.7),
         column(
           { weight: 1.2 },
-          pane(clip({ session, segment: "s01" }), {
-            id: "clip",
-            ...followsTranscript,
-            weight: 1.5,
-          }),
+          detailPane({ weight: 1.5 }),
           // The markers give way first on a narrow screen: the transcript is what Review is for.
-          pane(markers({ session }), {
-            id: "markers",
-            ...followsLibrary,
-            weight: 1,
-            priority: "supporting",
-          }),
+          markersPane({ weight: 1, priority: "supporting" }),
         ),
       ),
-      tl(),
+      timelinePane(),
     ),
   },
   {
@@ -84,14 +87,14 @@ export const presets: PresetOptions[] = [
     id: "compare",
     label: "Compare",
     layout: row(
-      pane(library(), { id: "library", weight: 0.7 }),
-      column({ weight: 1.5 }, tr(), tl()),
+      libraryPane(0.7),
+      column({ weight: 1.5 }, transcriptPane(), timelinePane()),
       pane(clip({ session, segment: "s39" }), {
         id: "clip-a",
         linkedTo: "transcript",
         kept: true,
       }),
-      pane(clip({ session, segment: "s47" }), { id: "clip", ...followsTranscript }),
+      detailPane({}, "s47"),
     ),
   },
 ];

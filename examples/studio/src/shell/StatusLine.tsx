@@ -6,15 +6,15 @@
  */
 import { Shelf, useJali, useJaliState } from "jali/react";
 import { BuiltWithJali, Maker } from "@jali-examples/shared/maker/maker";
-import { show } from "../actions";
 import { useTransport } from "../audio/react";
 import { credits } from "../panes/credits";
 import { catalogueOf } from "../sessions/catalog";
+import { show } from "../panes/links";
+import { keepFocus } from "../ui/atoms/Key";
 
 export function StatusLine() {
   const jali = useJali();
-  const loaded = useTransport((s) => s.session);
-  const cat = catalogueOf(loaded);
+  const credit = useTransport((s) => catalogueOf(s.session).short);
   const zoomed = useJaliState((s) => !!s.view.zoomed);
   return (
     <footer className="status" aria-label="Status">
@@ -24,8 +24,8 @@ export function StatusLine() {
       <button
         type="button"
         className="status-credits"
-        title={`${cat.short}\nEvery credit and licence.`}
-        onMouseDown={(e) => e.preventDefault()}
+        title={`${credit}\nEvery credit and licence.`}
+        onMouseDown={keepFocus}
         onClick={() => show(jali, credits())}
       >
         Credits

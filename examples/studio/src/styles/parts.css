@@ -6,7 +6,7 @@
  *   key         sizes: big (.key-m, the launcher), standard (.key), small (.key-s); the slab sizes its own
  *   latch       a key that stays down when on (aria-pressed, or a selected tab or row), with its lamp lit
  *   lamp        .led, or a pseudo-element on Jali's parts that take no children
- *   knob, jog   rotary controls (ui/Knob.tsx)
+ *   knob, jog   rotary controls (ui/molecules/dial/)
  *   fader       a cap riding in a slot
  *   readout     black glass with light marks
  *   lcd         grey-green reflective glass with dark print
@@ -253,7 +253,7 @@
     color: var(--st-signal);
   }
   /*
-   * ---------- fader: a long-throw slide (ui/Fader.tsx) ----------
+   * ---------- fader: a long-throw slide (ui/molecules/Fader.tsx) ----------
    * A milled slot with real depth, a shaped cap with grip ribs and a centre line, a 0 dB mark across the slot. The
    * travel box (`.fader-travel`) is inset by half a cap from the slot's ends; the meter and the scale beside it use
    * the same inset (`--travel-inset`), so their ticks line up with the cap's centre line.

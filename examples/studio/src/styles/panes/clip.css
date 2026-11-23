@@ -39,12 +39,6 @@
     align-items: stretch;
     gap: 10px;
   }
-  .clip-stats {
-    margin-left: auto;
-    font-size: var(--type-legend);
-    color: var(--legend);
-    font-family: var(--font-readout);
-  }
   /* Speaker and track: an LCD window. */
   .clip-fields {
     display: grid;

@@ -228,6 +228,8 @@
   --h-key-m: 48px; /* the launcher's big keys */
   --h-row: 36px; /* a row in a list: markers, ⌘K, the chooser, menus */
   --h-bar: 48px; /* a pane's header, a toolbar, a dialog's field */
+  --h-slab: 104px; /* the control slab (shell.css) */
+  --h-status: 40px; /* the status line (shell.css) */
 
   /* Mechanisms move, they don't spring: a short travel that stops dead. */
   --ease: cubic-bezier(0.45, 0, 0.15, 1);

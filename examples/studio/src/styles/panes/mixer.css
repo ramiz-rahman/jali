@@ -290,9 +290,6 @@
   .mx-keys .mx-btn-wide {
     flex: 1;
   }
-  .mx-meters-anchor {
-    display: none;
-  }
   /* Short: a smaller dial, a one-line scribble strip; the fader keeps what height is left. */
   @container mixer (max-height: 470px) {
     .mx-module {

@@ -94,7 +94,7 @@
     display: flex;
     align-items: center;
     gap: var(--zone-gap);
-    height: 104px;
+    height: var(--h-slab);
     padding: 0 20px;
     box-sizing: border-box;
     min-width: 0;
@@ -435,7 +435,7 @@
     display: flex;
     align-items: center;
     gap: 28px;
-    min-height: 40px;
+    min-height: var(--h-status);
     padding: 0 20px;
     color: var(--legend);
     font-family: var(--jali-font);
@@ -497,7 +497,7 @@
   }
   /*
    * ---------- the controls along the bottom ----------
-   * `data-controls="bottom"` (ui/controlsPlace.ts): the slab stands on the window's bottom edge, like a console's
+   * `data-controls="bottom"` (settings.ts): the slab stands on the window's bottom edge, like a console's
    * front panel under the work, and the status line moves up to the top. The light still comes from above, so the slab's
    * edges swap: its top edge is now the one that shows (a lit chamfer over a dark seam, no shadow thrown down).
    */
@@ -511,5 +511,12 @@
   }
   [data-controls="bottom"] .app > .status {
     order: -1;
+  }
+  /* What stands along the window's bottom edge, for what floats above it (the toasts, shell/Toasts.tsx). */
+  :root {
+    --bottom-edge: var(--h-status);
+  }
+  :root[data-controls="bottom"] {
+    --bottom-edge: var(--h-slab);
   }
 }
