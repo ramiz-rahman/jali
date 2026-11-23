@@ -19,9 +19,10 @@ import type { UrlState, UrlWriter } from "./state/store";
 import { readLayout, readRef } from "./pane-kinds";
 import { browserLocation, browserStorage, type LocationPort, type StoragePort } from "./ports";
 import { own as ownOf } from "./own";
-import { isDev } from "./dev";
 import { sameRef } from "./layout/ops/ref";
 import { fitsLink, linkUsage, MAX_LINK_TEXT, OPEN_MAX } from "./layout/codec/limits";
+
+declare const process: { env: { NODE_ENV?: string } };
 
 export const PERSIST_MS = 120;
 /** The least time between two replaces: more in between wait, and only the latest is written. */
@@ -445,8 +446,15 @@ export function createUrlSync({
   const linked = (s: UrlState): UrlState | undefined => {
     const [out, own] = project(s);
     if (!fitsAddress(out, keys) || !readsBack(out)) {
-      if (!warned && isDev())
-        console.warn("Jali: the layout is one a link can't reopen; the address is left as it was");
+      // Development only, behind the literal test a production build drops (dev.ts).
+      try {
+        if (process.env.NODE_ENV !== "production" && !warned)
+          console.warn(
+            "Jali: the layout is one a link can't reopen; the address is left as it was",
+          );
+      } catch {
+        /* no `process`: production */
+      }
       warned = true;
       return undefined;
     }

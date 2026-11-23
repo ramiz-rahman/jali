@@ -7,7 +7,7 @@
  * first when there are any: `row({ weight: 2 }, a, b)`. Nodes without an `id` get one from what they hold ("orders",
  * "row", then "orders-2"); give an `id` to a pane that another one links to.
  */
-import { isDev } from "../dev";
+declare const process: { env: { NODE_ENV?: string } };
 import { UNSAFE_IDS } from "./codec/validate";
 import type {
   DeepReadonly,
@@ -74,10 +74,21 @@ function parts<O>(args: unknown[]): [O, Child[]] {
 
 export function pane(ref: ObjectRef, options: PaneNodeOptions = {}): PaneDraft {
   // Elsewhere (production, a layout not built here) layout validation refuses it.
-  if (options.id !== undefined && UNSAFE_IDS.has(options.id) && isDev())
-    throw new Error(
-      `Jali: "${options.id}" can't be a pane id (it names something on every object).`,
-    );
+  // Development only, behind the literal test a production build drops (dev.ts).
+  let unsafe: Error | undefined;
+  try {
+    if (
+      process.env.NODE_ENV !== "production" &&
+      options.id !== undefined &&
+      UNSAFE_IDS.has(options.id)
+    )
+      unsafe = new Error(
+        `Jali: "${options.id}" can't be a pane id (it names something on every object).`,
+      );
+  } catch {
+    /* no `process`: production */
+  }
+  if (unsafe) throw unsafe;
   return { type: "pane", ref, options };
 }
 

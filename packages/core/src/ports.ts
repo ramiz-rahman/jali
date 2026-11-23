@@ -21,7 +21,7 @@
  * `router.subscribe("onResolved", fn)`.
  */
 
-import { isDev } from "./dev";
+declare const process: { env: { NODE_ENV?: string } };
 
 export type NavigateMode = "push" | "replace";
 
@@ -57,13 +57,17 @@ export function browserLocation(win: Window = window): LocationPort {
         if (mode === "push") win.history.pushState(null, "", url.href);
         else win.history.replaceState(win.history.state, "", url.href);
       } catch (err) {
-        if (!warned && isDev()) {
-          warned = true;
-          console.warn(
-            "Jali: the browser refused a history write; the address lags until the next one.",
-            err,
-          );
+        // Development only, behind the literal test a production build drops (dev.ts).
+        try {
+          if (process.env.NODE_ENV !== "production" && !warned)
+            console.warn(
+              "Jali: the browser refused a history write; the address lags until the next one.",
+              err,
+            );
+        } catch {
+          /* no `process`: production */
         }
+        warned = true;
       }
     },
     subscribe(fn) {
