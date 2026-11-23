@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Jali supports React 18.2 and up as well as 19. This checks the oldest: it copies HEAD into a throwaway worktree, pins
-# react, react-dom and their types to 18 there, and runs the typecheck and the unit tests. Run from the repo root:
+# react, react-dom and their types to 18 there, and typechecks and tests Jali's packages. The examples are apps, on
+# this repository's React (19): one may use what only 19 has (`use` in own-icons). Run from the repo root:
 #   pnpm test:react18
 set -euo pipefail
 # A directory of its own per run, so two checks (two sessions, or verify beside a manual run) never share one.
@@ -21,9 +22,13 @@ node -e '
   const f = "pnpm-workspace.yaml";
   fs.writeFileSync(f, fs.readFileSync(f, "utf8").replace("overrides:\n",
     "overrides:\n  react: 18.3.1\n  react-dom: 18.3.1\n  \"@types/react\": 18.3.12\n  \"@types/react-dom\": 18.3.1\n"));
+  const t = "tsconfig.json";
+  const config = JSON.parse(fs.readFileSync(t, "utf8"));
+  config.include = config.include.filter((p) => !p.startsWith("examples/"));
+  fs.writeFileSync(t, JSON.stringify(config));
 '
 pnpm install --no-frozen-lockfile --silent
 # The React @jali/react's tests run on (the root has none; above this checkout, Node would find another's).
 (cd packages/react && node -e 'console.log("React", require("react/package.json").version)')
 pnpm exec tsc -b --noEmit
-pnpm exec vp test run
+pnpm exec vp test run --project core --project react
