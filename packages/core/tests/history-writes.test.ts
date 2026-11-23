@@ -248,6 +248,36 @@ describe("the writer", () => {
     expect(q.get("w2.zoom")).toBe("a");
   });
 
+  it("an action a writer of the host's own runs as it writes makes its own write", () => {
+    const modes: string[] = [];
+    let jali!: ReturnType<typeof createJali>;
+    let acted = false;
+    jali = createJali({
+      panes: [list],
+      layout: row(
+        pane({ kind: "list", params: {} }, { id: "a" }),
+        pane({ kind: "list", params: {} }, { id: "b" }),
+        pane({ kind: "list", params: {} }, { id: "c" }),
+      ),
+      storage: memoryStorage(),
+      size: { width: 1600, height: 800 },
+      moveFocus: false,
+      url: {
+        write(_state, mode) {
+          if (!jali) return;
+          modes.push(mode);
+          if (!acted) {
+            acted = true;
+            jali.actions.setPinned("a", true);
+          }
+        },
+      },
+    });
+    jali.actions.close("c");
+    expect(modes).toEqual(["push", "push"]);
+    expect(jali.model().pane("a")?.pinned).toBe(true);
+  });
+
   it("writes at most one replace per 250 ms, the latest winning, with the address as it was asked for", () => {
     vi.useFakeTimers();
     const { port, writes } = history();

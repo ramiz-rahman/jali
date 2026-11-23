@@ -433,10 +433,13 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
     () => state,
     () => {
       settleOnePane();
-      // One history decision per batch, written once, from the state it ends with.
-      const mode = batchMode;
-      batchMode = "none";
-      submitUrl(mode);
+      // One history decision per batch, written once, from the state it ends with. A writer of the host's own that
+      // runs an action as it writes adds that action's decision, written before the batch ends (a few rounds at most).
+      for (let round = 0; batchMode !== "none" && round < 8; round++) {
+        const mode = batchMode;
+        batchMode = "none";
+        submitUrl(mode);
+      }
     },
   );
   const batch = events.batch;
