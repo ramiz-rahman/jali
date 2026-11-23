@@ -54,7 +54,6 @@ const icons: JaliIcons = {
   activityError: stroke("M4 4l8 8M12 4l-8 8"),
   defaultKind: stroke("M3.5 3.5h9v9h-9z"),
   openBeside: stroke("M2.5 3.5h11v9h-11zM10 3.5v9"),
-  openFull: stroke("M3 6V3h3M10 3h3v3M13 10v3h-3M6 13H3v-3"),
   addToTabs: stroke("M8 2.5l5.5 3L8 8.5l-5.5-3zM2.5 8L8 11l5.5-3M2.5 10.5L8 13.5l5.5-3"),
   singleView: stroke("M3.5 3.5h9v9h-9z"),
   splitView: stroke("M2.5 3.5h11v9h-11zM8 3.5v9"),

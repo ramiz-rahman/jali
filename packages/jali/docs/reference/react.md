@@ -960,8 +960,6 @@ One icon per name Jali draws. `<JaliRoot icons>` takes any part of it; type your
 
 - **`icons.openBeside`**, `openBeside: JaliIcon`: The peek's "Open beside". Default: Phosphor's `SidebarSimple, mirrored`.
 
-- **`icons.openFull`**, `openFull: JaliIcon`: The peek's "Open full". Default: Phosphor's `CornersOut`.
-
 - **`icons.addToTabs`**, `addToTabs: JaliIcon`: Each group in the "Add to tabs of…" chooser. Default: Phosphor's `Stack`.
 
 - **`icons.singleView`**, `singleView: JaliIcon`: A curated page's "Single view". Default: Phosphor's `Square`.

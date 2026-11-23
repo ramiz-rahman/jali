@@ -70,7 +70,6 @@ const announcements = {
   opened: (pane: string) => `${pane} opened`,
   newTab: (source: string) => `New tab beside ${source}. Choose what to show`,
   launcherClosed: (focus: string) => `New pane closed. Focus is on ${focus}`,
-  openedFull: (pane: string) => `${pane} opened full`,
 
   // linked selection: a list's detail follows its selection
   followed: (pane: string) => `Showing ${pane}`,
@@ -224,7 +223,6 @@ const commands = {
   copyLink: "Copy link to this layout",
   peekClose: "Close peek",
   peekOpenBeside: "Open peek beside",
-  peekOpenFull: "Open peek full",
   centreDropToggle: "Switch centre drop (swap ↔ tab)",
 };
 
@@ -453,7 +451,6 @@ const peek = {
   label: (pane: string) => `Peek: ${pane}`,
   badge: "Peek",
   openBeside: "Open beside",
-  openFull: "Open full",
   close: "Close peek",
   closeTip: (keys: string) => `Close (${keys})`,
 };

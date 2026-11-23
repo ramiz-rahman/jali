@@ -257,7 +257,6 @@ export const myIcons: JaliIcons = {
   activityError: sprite("x-bold"),
   defaultKind: sprite("square"),
   openBeside: sprite("panel-right"),
-  openFull: sprite("expand"),
   addToTabs: sprite("layers"),
   singleView: sprite("square"),
   splitView: sprite("columns"),

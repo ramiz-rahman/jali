@@ -47,7 +47,7 @@ import {
   resizeDivider,
   setDividerSize,
 } from "./resize";
-import { openPeekBeside, openPeekFull, peek, select } from "./peek";
+import { openPeekBeside, peek, select } from "./peek";
 import { follow, setKept } from "./follow";
 import { endRename, startRename } from "./rename";
 import { choose, closeChooser, type ChooseOptions } from "./choose";
@@ -268,7 +268,6 @@ export const STEPS = /* @__PURE__ */ (() =>
     resetDivider: [resetDivider, null],
     enterResizeMode: [enterResizeMode, null],
     leaveResizeMode: [leaveResizeMode, null],
-    openPeekFull: [openPeekFull, null],
     follow: [follow, null],
     arrive: [arrive, null],
     setActivity: [setActivity, null],

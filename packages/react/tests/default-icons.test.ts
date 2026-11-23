@@ -38,7 +38,6 @@ describe("default icons", () => {
       activityError: true,
       defaultKind: true,
       openBeside: true,
-      openFull: true,
       addToTabs: true,
       singleView: true,
       splitView: true,

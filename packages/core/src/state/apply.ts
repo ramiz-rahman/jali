@@ -94,7 +94,6 @@ export type Op =
   | "focusExisting"
   | "dismiss"
   | "newTab"
-  | "openFull"
   | "close"
   | "closeOthers"
   | "undo"
@@ -367,7 +366,6 @@ export const POLICY: Record<Op, Policy> = {
   split: layout("push", "reshape"),
   dismiss: layout("push", "reshape"),
   newTab: layout("push", "reshape"),
-  openFull: layout("push", "reshape"),
   close: layout("push", "reshape"),
   closeOthers: layout("push", "reshape"),
   undo: layout("push", "reshape"),

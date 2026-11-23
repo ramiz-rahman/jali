@@ -93,9 +93,6 @@ describe("a param only the app sets", () => {
 
     storeOf(jali).env.kinds.register({ kind: "query", title: "Query", params: queryParams });
     expect(jali.get().view.peek?.params).toEqual({ sql: "peeked" });
-    // Opened full, its pane doesn't get it either.
-    storeOf(jali).actions.openPeekFull();
-    expect(refs(jali).find((r) => r.kind === "query")?.params).toEqual({ sql: "peeked" });
   });
 
   it("set by the app on a kind registered later is kept: only a link's refs are read again", () => {

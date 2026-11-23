@@ -88,7 +88,7 @@ If the object is already open in another pane, that pane is focused instead, and
 
 `peek(ref)` shows the object in a sheet over the right of the panes, without adding a pane or changing the layout. `peek(null)` closes it. In a list, Space usually opens it; Esc closes it.
 
-From the sheet, **Open beside** closes the peek and opens the object beside the pane it was peeked from, and **Open full** makes it the only pane. While the sheet is open, moving the list's selection moves the peek with it.
+From the sheet, **Open beside** closes the peek and opens the object beside the pane it was peeked from. While the sheet is open, moving the list's selection moves the peek with it.
 
 If the list already has a following detail on screen, Space shows the row in that detail instead of opening a sheet. Two answers to one question would be one too many.
 

@@ -323,13 +323,6 @@ function buildCommands(env: Env): CommandDef[] {
       check: checkPeek,
       run: (u) => u.actions.openPeekBeside(),
     },
-    {
-      id: "peek.open_full",
-      title: t.peekOpenFull,
-      group: g.peek,
-      check: checkPeek,
-      run: (u) => u.actions.openPeekFull(),
-    },
 
     ...(has("settings")
       ? [

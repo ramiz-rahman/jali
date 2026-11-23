@@ -41,7 +41,6 @@ export const SOURCES = {
   defaultKind: "Square",
   // The peek keeps beside, on the right: the sidebar, mirrored.
   openBeside: { icon: "SidebarSimple", mirrored: true },
-  openFull: "CornersOut",
   addToTabs: "Stack",
   singleView: "Square",
   splitView: "SquareSplitHorizontal",

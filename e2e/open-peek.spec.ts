@@ -38,7 +38,7 @@ test.describe("Open and peek", () => {
     await app.shot("01-open-beside-replaces");
   });
 
-  test("peek with Space, follow with J, Open beside, Open full, Esc", async ({ app, page }) => {
+  test("peek with Space, follow with J, Open beside, Esc", async ({ app, page }) => {
     // No detail follows the list in this layout, so Space opens the peek sheet.
     await app.open({ preset: "One table" });
     await app.row("orders", /^3\b/).click();
@@ -66,20 +66,6 @@ test.describe("Open and peek", () => {
     await expect(
       page.locator('section[data-kind="record"]').getByRole("heading", { level: 2 }),
     ).toHaveText("order 4");
-
-    // Now a detail follows the list: Space shows the row there instead of the sheet. Close it to peek again.
-    await page
-      .locator('section[data-kind="record"]')
-      .getByRole("button", { name: /^Close/ })
-      .click();
-    await app.grid("orders").focus();
-
-    // Open full: the peek becomes the whole page (one pane).
-    await page.keyboard.press("Space");
-    await expect(peek).toBeVisible();
-    await peek.getByRole("button", { name: /Open full/ }).click();
-    await expect(peek).toBeHidden();
-    expect(await app.visibleIds()).toEqual(["full"]);
   });
 
   test("a shared ?peek= link opens the peek", async ({ app, page }) => {

@@ -1,8 +1,8 @@
 import * as core from "../layout/engine";
-import type { Layout, NodeId, ObjectRef, ViewState } from "../layout/types";
+import type { NodeId, ObjectRef } from "../layout/types";
 import { refuse, type Change, type Outcome, type Snapshot } from "../state/apply";
 import { say } from "../state/messages";
-import { openBeside, withRecent } from "./open";
+import { openBeside } from "./open";
 import { follow, followerOnScreen, followLater, sameRef } from "./follow";
 import { own } from "../own";
 
@@ -41,23 +41,6 @@ export function openPeekBeside(x: Snapshot): Outcome {
     source = x.s.peekSource ?? x.s.view.focused;
   if (!ref || !source) return null;
   return [peek(x, null), (y: Snapshot) => openBeside(y, source, ref)];
-}
-
-export function openPeekFull({ s, ctx, env }: Snapshot): Outcome {
-  const ref = s.view.peek;
-  if (!ref) return null;
-  const layout: Layout = {
-    version: 1,
-    root: { id: "full", type: "pane", size: { weight: 1 }, ref },
-  };
-  const view: ViewState = { focused: "full", focusHistory: ["full"] };
-  return {
-    op: "openFull",
-    layout: core.refit(layout, view, ctx),
-    view,
-    msg: say(env).openedFull(env.kinds.title(ref)),
-    patch: { peekSource: undefined, recent: withRecent(env.kinds, s.recent, [ref]) },
-  };
 }
 
 /**

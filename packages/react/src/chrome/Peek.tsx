@@ -125,7 +125,7 @@ export function Peek({ presentation }: { presentation: Presentation }) {
           <span className="jali-peek-label">{t.badge}</span>
         </div>
         <div className="jali-pane-actions">
-          {/* A curated page never replaces its arrangement; a role that only peeks can't keep either. */}
+          {/* A role that only peeks can't keep it, and a curated page never replaces its arrangement. */}
           {canPin ? (
             <button
               type="button"
@@ -136,16 +136,6 @@ export function Peek({ presentation }: { presentation: Presentation }) {
               <icon.openBeside {...ICON.header} aria-hidden /> {t.openBeside}
             </button>
           ) : null}
-          {page ? null : (
-            <button
-              type="button"
-              className="jali-text-btn"
-              onClick={() => actions.openPeekFull()}
-              title={t.openFull}
-            >
-              <icon.openFull {...ICON.header} aria-hidden /> {t.openFull}
-            </button>
-          )}
           <button
             type="button"
             className="jali-icon-btn"

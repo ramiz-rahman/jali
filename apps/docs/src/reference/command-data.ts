@@ -136,7 +136,6 @@ export const REFUSED: Record<string, string> = {
   "page.as_full": "Silent unless a curated page is open and the viewer may not investigate.",
   "peek.close": "Silent when no peek is open.",
   "peek.open_beside": "Silent when no peek is open.",
-  "peek.open_full": "Silent when no peek is open.",
   "settings.open": "Only with the settings() feature (jali/settings). Never refused there.",
   "settings.centre_drop.toggle": "Never.",
 };

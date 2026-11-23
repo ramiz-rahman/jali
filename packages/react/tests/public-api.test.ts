@@ -108,7 +108,7 @@ describe("public API", () => {
 
   it("@jali/react/icons exports Jali's default set, with an icon for every name", () => {
     expect(Object.keys(icons)).toEqual(["defaultIcons"]);
-    expect(Object.keys(icons.defaultIcons).length).toBe(32);
+    expect(Object.keys(icons.defaultIcons).length).toBe(31);
   });
 
   it("the layout namespace is the pure tree API", () => {

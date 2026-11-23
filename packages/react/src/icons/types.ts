@@ -39,7 +39,6 @@ export type JaliIconName =
   | "defaultKind"
   // the peek sheet and the chooser
   | "openBeside"
-  | "openFull"
   | "addToTabs"
   // a curated page's bar
   | "singleView"

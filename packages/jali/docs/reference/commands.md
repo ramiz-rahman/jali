@@ -73,7 +73,6 @@ The titles below are for an instance with no curated page. With a curated page, 
 | `page.as_full` | View as investigator (links open beside) | none | none | Silent unless a curated page is open and the viewer may not investigate. |
 | `peek.close` | Close peek | none | none | Silent when no peek is open. |
 | `peek.open_beside` | Open peek beside | none | none | Silent when no peek is open. |
-| `peek.open_full` | Open peek full | none | none | Silent when no peek is open. |
 | `settings.open` | Open settings | none | none | Only with the settings() feature (jali/settings). Never refused there. |
 | `settings.centre_drop.toggle` | Switch centre drop (swap ↔ tab) | none | none | Never. |
 
