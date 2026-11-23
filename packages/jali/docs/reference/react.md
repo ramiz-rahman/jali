@@ -648,7 +648,7 @@ export function StatusLine() {
 }
 ```
 
-Subscribes to one value of the state. The component re-renders when that value changes, compared with `isEqual` (`Object.is` unless given). A selector may return a new object or array; pass `shallow` to re-render only when one of its values changed.
+Subscribes to one value of the state. The component re-renders when that value changes, compared with `isEqual` (`Object.is` unless given). A selector may return a new object or array; pass your own equality function (one that compares its values, say) to re-render only when one of them changed.
 
 **Parameters**
 

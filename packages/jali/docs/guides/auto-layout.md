@@ -47,7 +47,7 @@ What it doesn't keep is the shape: sizes the person dragged, fixed `px` widths, 
 
 - `jali.actions.autoLayout()` arranges the panes, as the command does.
 - `layout.arrange(layout, ctx, { focused, maxColumns, maxRows })` is the pure step, for a layout you hold: it returns a new layout and changes nothing. Run `layout.refit` on the result before showing it, as `autoLayout` does.
-- An agent can call it, or have Jali arrange the panes after each of its turns that opened or closed panes (`arrange: "after-changes"`). That step asks your `allow` like any other and is skipped when the agent chose the layout itself: see [Let an agent arrange panes](agents.md).
+- To arrange the panes after an agent's turn that opened or closed panes, call `jali.actions.autoLayout()` from your own code when the turn ends. It asks your `allow` like any other action; skip it when the agent chose the layout itself. See [Let an agent arrange panes](agents.md).
 
 ## Next
 

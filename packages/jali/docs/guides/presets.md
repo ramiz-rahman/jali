@@ -204,7 +204,7 @@ When the panes a person opened have piled up, `jali.actions.autoLayout()` arrang
 <button onClick={() => jali.actions.autoLayout()}>Tidy up</button>;
 ```
 
-An agent can call it too, or let Jali arrange the panes after each of its turns: see [Let an agent arrange panes](agents.md).
+To arrange the panes after each of an agent's turns, call it from your own code when the turn ends: see [Let an agent arrange panes](agents.md).
 
 ## Next
 

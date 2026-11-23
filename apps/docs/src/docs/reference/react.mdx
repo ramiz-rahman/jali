@@ -269,7 +269,7 @@ The instance from the nearest `<JaliRoot>`: its `actions`, `on`, `getLayout` and
 
 <Entry name="useJaliState" kind="hook" from="jali/react" signature={`useJaliState<T>(select: (s: JaliState) => T, isEqual?: (a: T, b: T) => boolean): T`} example={hooksCode} exampleFile="StatusLine.tsx">
 
-Subscribes to one value of the state. The component re-renders when that value changes, compared with `isEqual` (`Object.is` unless given). A selector may return a new object or array; pass `shallow` to re-render only when one of its values changed.
+Subscribes to one value of the state. The component re-renders when that value changes, compared with `isEqual` (`Object.is` unless given). A selector may return a new object or array; pass your own equality function (one that compares its values, say) to re-render only when one of them changed.
 
 <Params>
 <Param name="select" type="(s: JaliState) => T" required>Picks the value.</Param>
