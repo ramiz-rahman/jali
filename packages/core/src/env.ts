@@ -76,7 +76,7 @@ export interface Env {
   allow?: import("./actions/allow").Allow;
   /** The buttons in a pane's header (`createJali({ buttons })`). */
   buttons?: import("./pane/buttons").PaneButtons;
-  /** The gap between panes and the inset from the root's edges, in px (`createJali({ gap, inset })`). */
+  /** The gap between panes and the inset from the root's edges, in px (`createJali({ gap })`; the inset is the gap). */
   spacing: import("./tokens").Spacing;
 }
 

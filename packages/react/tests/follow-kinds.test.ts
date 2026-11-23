@@ -18,6 +18,7 @@ import { storeOf } from "@jali/core/adapter";
 import { definePane } from "@jali/react";
 import { FOLLOW_MS } from "../../core/src/actions/follow";
 import { geometryOf } from "../../core/src/state/apply";
+import { stabilityBreaches } from "../../core/tests/fixtures/stability";
 import { defaultFeatures, noUrl, urlSync } from "./features";
 
 const Nothing = () => null;
@@ -59,7 +60,6 @@ const make = (layout = defaultLayout()) =>
     storage: memoryStorage(),
     size: { width: 1600, height: 900 },
     moveFocus: false,
-    onUnstable: (op) => breaches.push(op),
   });
 const defaultLayout = () =>
   row(
@@ -74,10 +74,10 @@ const defaultLayout = () =>
     ),
   );
 
-let breaches: string[];
+const breaches = stabilityBreaches();
 beforeEach(() => {
   vi.useFakeTimers();
-  breaches = [];
+  breaches.length = 0;
 });
 afterEach(() => vi.useRealTimers());
 

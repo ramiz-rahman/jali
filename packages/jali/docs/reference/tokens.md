@@ -124,12 +124,12 @@ One set for both themes.
 
 ## Spacing
 
-Written by Jali, not set by you. The layout measures in pixels, so the space between panes is an option, `createJali({ gap, inset })`, and `<JaliRoot>` writes it on its root and its layer as these two variables. Read them in your own styles to line things up with the panes; setting them in CSS moves nothing.
+Written by Jali, not set by you. The layout measures in pixels, so the space between panes is an option, `createJali({ gap })`, and `<JaliRoot>` writes it on its root and its layer as these two variables. Read them in your own styles to line things up with the panes; setting them in CSS moves nothing.
 
 | Token | What it is | Default |
 |---|---|---|
 | `--jali-gap` | The space between panes, and the gutter a strip's scrollbar sits in (`createJali({ gap })`). | `6px` |
-| `--jali-inset` | The space between the edges of Jali's root and its panes (`createJali({ inset })`, else the gap). | the gap |
+| `--jali-inset` | The space between the edges of Jali's root and its panes (always the same as the gap). | the gap |
 
 ## Derived
 

@@ -17,6 +17,7 @@ import {
   type LayoutInput,
 } from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
+import { stabilityBreaches } from "./fixtures/stability";
 
 const kinds = [
   { kind: "list", title: "List", width: { min: 260, comfortable: 360 } },
@@ -60,6 +61,8 @@ const geometry = (j: Jali) =>
     .sort()
     .join(" ");
 
+const unstable = stabilityBreaches();
+
 describe("moving and pinning tabs", () => {
   it("never moves a rect, at any width", () => {
     const breaches: string[] = [];
@@ -77,7 +80,6 @@ describe("moving and pinning tabs", () => {
             storage: memoryStorage(),
             size: { width, height: 800 },
             moveFocus: false,
-            onUnstable: () => {},
           });
         for (const id of tabsOf(make()))
           for (const act of ["first", "last", "pin"] as const) {
@@ -96,7 +98,7 @@ describe("moving and pinning tabs", () => {
 
 describe("an action whose rects depend on what it shows", () => {
   it("slides panes to their new place instead of jumping, and is no stability breach", () => {
-    const unstable: string[] = [];
+    unstable.length = 0;
     const j = createJali({
       panes: kinds,
       layout: row(
@@ -106,7 +108,6 @@ describe("an action whose rects depend on what it shows", () => {
       storage: memoryStorage(),
       size: { width: 1600, height: 800 },
       moveFocus: false,
-      onUnstable: (op) => unstable.push(op),
     });
     const store = storeOf(j);
     const before = geometry(j);

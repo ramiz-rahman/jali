@@ -127,13 +127,9 @@ Jali's keys, in one place. See [`KeyboardOptions`](core/types.md#keyboardoptions
 
 - **`gap`** (`number`): The space between panes, in CSS pixels. The layout measures with it (splits, rows that scroll, the stacked view), and `<JaliRoot>` writes it on its root and its layer as `--jali-gap`, so a style that reads the variable agrees with where the panes are.
 
-- **`inset`** (`number`): The space between the edges of Jali's root and its panes, in CSS pixels, written as `--jali-inset`. Set it apart from the gap to line the panes up with your own bars.
-
 - **`size`** (`{ width: number; height: number }`): A fixed size instead of the window's, for tests and server rendering. `<JaliRoot>` measures the real one once it renders.
 
 - **`moveFocus`** (`boolean`): `false` leaves DOM focus alone: for tests and an instance that is never shown.
-
-- **`onUnstable`** (`(op: string, before: string, after: string) => void`): Called when a focus or swap action moved a pane on screen, which it never should.
 
 - **`beforeClose`** (`BeforeClose`): Asked before a change removes panes or makes a pane show another object: a close, close others, a preset, `setLayout`, Back and Forward, `openHere`. Return `true` to let it happen or `false` to keep the panes, or a promise of either for a check that takes time. Jali's own "Discard unsaved changes?" follows a yes when a pane still reports unsaved work, including work reported while the guard decided. An action your guard runs while it answers at once waits for the change being decided, then runs: it returns `reason: "pending"`, and its `settled` says how it went. See [`BeforeClose`](core/types.md#beforeclose).
 
@@ -657,7 +653,7 @@ Jali's English messages: every word it shows or says, by area (`announcements`, 
 interface Spacing { gap: number; inset: number }
 ```
 
-An instance's spacing in CSS pixels, as `Env.spacing` holds it: the gap between panes, and the inset from the edges of Jali's root.
+An instance's spacing in CSS pixels, as `Env.spacing` holds it: the gap between panes, and the inset from the edges of Jali's root, which is always the gap.
 
 ## The layout namespace
 

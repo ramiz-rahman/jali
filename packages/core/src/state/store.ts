@@ -264,7 +264,6 @@ export interface JaliConfig {
   buttons?: import("../pane/buttons").PaneButtons;
   onPaneError?: (error: unknown, info: PaneErrorInfo) => void;
   gap?: number;
-  inset?: number;
   keyboard?: KeyboardOptions;
   /** Where the instance writes its address (usually `createUrlSync()`, which `boot` and `startUi` read from too).
    *  Default: none. */
@@ -390,7 +389,6 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
     messages: _words,
     keyboard = {},
     gap,
-    inset,
     ...shared
   } = deps;
   const env: Env = {
@@ -400,7 +398,7 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
     profile: deps.profile ?? null,
     palette: hasPalette,
     messages,
-    spacing: spacingOf({ gap, inset }),
+    spacing: spacingOf({ gap }),
   };
   const onPaneError = deps.onPaneError ?? devPaneError;
   if (onPaneError) env.onPaneError = onPaneError;

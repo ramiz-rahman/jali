@@ -1,31 +1,28 @@
 /**
  * Geometry shared by layout math (TS) and styles (CSS). The layout measures in pixels, so the numbers here (and a
- * instance's own `createJali({ gap, inset })`) are the source of truth: `<JaliRoot>` writes them on its root as
+ * instance's own `createJali({ gap })`) are the source of truth: `<JaliRoot>` writes them on its root as
  * `--jali-gap` and `--jali-inset`, and the styles read those (with these values as fallbacks). `applyTokens` writes
  * them on another element, for a host that reads them outside the instance.
  * A host's own bars (a top bar, a status line) are the host's: Jali neither knows nor sets their heights.
  */
 
-/** The default gap between panes, and the default inset from the root's edges to the panes. */
+/** The default gap between panes, which is also the inset from the root's edges to the panes. */
 export const GAP = 6;
 /** Height of the pane switcher, while one pane shows at a time. */
 export const SWITCHER_H = 44;
 
-/** An instance's spacing, in CSS pixels: between panes, and from the root's edges to them. */
+/** An instance's spacing, in CSS pixels: between panes, and from the root's edges to them (always the same). */
 export interface Spacing {
   gap: number;
   inset: number;
 }
 
-/** The spacing an instance was given (`createJali({ gap, inset })`): the inset follows the gap unless set. */
-export function spacingOf(o: { gap?: number; inset?: number } = {}): Spacing {
-  const check = (v: number | undefined, name: string) => {
-    if (v !== undefined && !(Number.isFinite(v) && v >= 0))
-      throw new RangeError(`Jali: ${name} must be a finite number of pixels, 0 or more (got ${v})`);
-    return v;
-  };
-  const gap = check(o.gap, "gap") ?? GAP;
-  return { gap, inset: check(o.inset, "inset") ?? gap };
+/** The spacing an instance was given (`createJali({ gap })`): the inset is the gap. */
+export function spacingOf(o: { gap?: number } = {}): Spacing {
+  const gap = o.gap ?? GAP;
+  if (!(Number.isFinite(gap) && gap >= 0))
+    throw new RangeError(`Jali: gap must be a finite number of pixels, 0 or more (got ${gap})`);
+  return { gap, inset: gap };
 }
 
 /** The spacing as CSS variables, for an element's style. */

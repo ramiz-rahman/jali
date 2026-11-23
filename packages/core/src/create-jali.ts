@@ -131,16 +131,10 @@ export interface JaliOptions<
    * on its root as `--jali-gap`, so styles that read the variable agree with where the panes are.
    */
   gap?: number;
-  /** The space between the instance's edges and its panes, in CSS pixels. Default: the gap. Written as
-   *  `--jali-inset`. */
-  inset?: number;
   /** A fixed size instead of the window's (tests, server rendering). */
   size?: { width: number; height: number };
   /** `false` leaves DOM focus alone (tests, an instance that is never shown). Default true. */
   moveFocus?: boolean;
-  /** Called when an action that never moves anything (choosing, moving or pinning a tab, revealing or keeping a
-   *  pane) moved panes: a bug. Default: reported in development. */
-  onUnstable?: (op: string, before: string, after: string) => void;
   /**
    * Asked before a change removes panes or makes them show another object: a close, close others, a preset,
    * `setLayout`, Back and Forward, a pane showing something else. `true` lets it happen, `false` keeps the panes; a
@@ -222,7 +216,6 @@ export function resolveOptions(options: JaliOptions): JaliConfig {
     size,
     moveFocus = true,
     storage: kept,
-    onUnstable,
     beforeClose: _guard,
     linkMode,
     landmark,
@@ -260,7 +253,6 @@ export function resolveOptions(options: JaliOptions): JaliConfig {
     ...(typeof label === "string" && label.trim() ? { label: label.trim() } : {}),
     ...(confirmDiscard === false ? { confirmDiscard } : {}),
     ...(pageTheme === false ? { pageTheme } : {}),
-    ...(onUnstable ? { unstable: onUnstable } : {}),
     ...(moveFocus ? {} : { focusPane: null }),
     initial: {
       ...(layout ? { layout: toLayout(layout) } : {}),

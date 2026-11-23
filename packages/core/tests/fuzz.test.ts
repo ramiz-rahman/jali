@@ -22,6 +22,7 @@ import {
 } from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
 import { urlSync } from "../src/features/url-sync";
+import { stabilityBreaches } from "./fixtures/stability";
 
 const kinds: PaneKindBase[] = [
   { kind: "list", title: "List", width: { min: 260, comfortable: 360 }, selects: "item" },
@@ -68,6 +69,8 @@ const MOVED = new Set([54, 1289, 1403, 1421, 1571]);
 beforeAll(() => void vi.useFakeTimers());
 afterAll(() => void vi.useRealTimers());
 
+const unstable = stabilityBreaches();
+
 describe("random sequences of public actions", () => {
   it(`keep every invariant (${SEEDS} seeds × ${STEPS} steps)`, () => {
     const problems: string[] = [];
@@ -76,8 +79,7 @@ describe("random sequences of public actions", () => {
       const pick = <T>(a: readonly T[]) => a[Math.floor(r() * a.length)]!;
       const location = memoryLocation();
       const storage = memoryStorage();
-      const unstable: string[] = [];
-      const unstableAt: string[] = [];
+      unstable.length = 0;
       const jali = createJali({
         panes: kinds,
         launcher,
@@ -86,7 +88,6 @@ describe("random sequences of public actions", () => {
         storage,
         size: { width: 1400, height: 800 },
         moveFocus: false,
-        onUnstable: (op, before, after) => (unstable.push(op), unstableAt.push(before, after)),
       });
       const store = storeOf(jali);
       jali.start();
@@ -189,13 +190,7 @@ describe("random sequences of public actions", () => {
           break;
         }
         if (unstable.length) {
-          fail(
-            `"${unstable.join(", ")}" moved panes` +
-              (process.env.FUZZ_DEBUG
-                ? `\n    ${JSON.stringify(layout)}\n    ${unstableAt.join("\n    ")}`
-                : ""),
-          );
-          unstableAt.length = 0;
+          fail(`"${unstable.join(", ")}" moved panes`);
           unstable.length = 0;
         }
         // Single view keeps the wide layout's address on purpose (widen, and it comes back; 19 Nov 2026), and shows

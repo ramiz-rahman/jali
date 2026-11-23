@@ -8,6 +8,7 @@ import { createJali, memoryLocation, memoryStorage, pane, row, tabs } from "@jal
 import { storeOf } from "@jali/core/adapter";
 import { definePane } from "@jali/react";
 import { geometryOf } from "../../core/src/state/apply";
+import { stabilityBreaches } from "../../core/tests/fixtures/stability";
 import { defaultFeatures, urlSync } from "./features";
 
 const Nothing = () => null;
@@ -18,8 +19,9 @@ const order = definePane("order", {
   width: { min: 400 },
   Component: Nothing,
 });
+const breaches = stabilityBreaches();
 const make = (layout: Parameters<typeof createJali>[0]["layout"], width = 1400) => {
-  const breaches: string[] = [];
+  breaches.length = 0;
   const jali = createJali({
     panes: [list, order],
     layout,
@@ -27,7 +29,6 @@ const make = (layout: Parameters<typeof createJali>[0]["layout"], width = 1400) 
     storage: memoryStorage(),
     size: { width, height: 800 },
     moveFocus: false,
-    onUnstable: (op) => breaches.push(op),
   });
   return { jali, breaches };
 };
