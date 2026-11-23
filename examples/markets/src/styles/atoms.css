@@ -1,0 +1,230 @@
+/*
+ * The atoms' styles (ui/atoms/): numbers, buttons, chips, the select, a flashing price, the sparkline.
+ */
+@layer app {
+  .num,
+  .c-num,
+  .mono {
+    font-family: var(--jali-font-mono);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    white-space: nowrap;
+  }
+  /* The select (ui/atoms/select.tsx): a button showing the choice, and a list in a portal, drawn like Jali's menus. */
+  .select-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 26px;
+    padding: 0 8px 0 10px;
+    border: 1px solid var(--jali-border-strong);
+    border-radius: var(--jali-radius-control);
+    background: var(--jali-canvas);
+    color: var(--jali-text);
+    font: inherit;
+    font-size: var(--mk-type-meta);
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .select-trigger:hover {
+    background: var(--jali-hover);
+  }
+  .select-trigger:focus-visible {
+    outline: 2px solid var(--jali-focus-ring);
+    outline-offset: 1px;
+  }
+  .select-caret {
+    color: var(--jali-text-subtle);
+  }
+  .select-content {
+    z-index: 60;
+    min-width: max(var(--radix-select-trigger-width), 9rem);
+    max-height: min(var(--radix-select-content-available-height), 22.5rem);
+    overflow: hidden;
+    padding: 4px;
+    background: var(--jali-surface-raised);
+    border: 1px solid var(--jali-border-strong);
+    border-radius: var(--jali-radius-menu);
+    box-shadow: var(--jali-shadow-menu);
+    color: var(--jali-text);
+    font-family: var(--jali-font);
+    font-size: var(--mk-type-meta);
+    transform-origin: var(--radix-select-content-transform-origin);
+    animation: select-in 120ms ease-out;
+  }
+  @keyframes select-in {
+    from {
+      opacity: 0;
+      transform: scale(0.97);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .select-content {
+      animation: none;
+    }
+  }
+  .select-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    height: 28px;
+    padding: 0 8px;
+    border-radius: 4px;
+    outline: none;
+    cursor: pointer;
+    user-select: none;
+  }
+  .select-item[data-highlighted] {
+    background: var(--jali-hover);
+  }
+  .select-item[data-state="checked"] {
+    font-weight: 600;
+  }
+  .select-check {
+    display: grid;
+    color: var(--jali-accent);
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 3px;
+    background: var(--jali-canvas);
+    border: 1px solid var(--jali-border);
+    color: var(--jali-text-muted);
+    font-size: var(--mk-type-meta);
+    white-space: nowrap;
+  }
+  .chip-link {
+    font-family: var(--jali-font-mono);
+    cursor: pointer;
+  }
+  .chip-live {
+    color: var(--jali-accent);
+    border-color: var(--jali-accent);
+  }
+  .chip-link:hover {
+    color: var(--jali-accent);
+    border-color: var(--jali-accent);
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 12px;
+    border: 1px solid var(--jali-control);
+    border-radius: var(--jali-radius-control);
+    background: var(--jali-surface-raised);
+    color: var(--jali-text);
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .btn:hover {
+    background: var(--jali-hover);
+  }
+  .btn:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+  .btn kbd {
+    color: inherit;
+    opacity: 0.75;
+  }
+  .btn-buy {
+    background: var(--mk-up);
+    border-color: var(--mk-up);
+    color: var(--mk-on-signal);
+  }
+  .btn-sell {
+    background: var(--mk-down);
+    border-color: var(--mk-down);
+    color: var(--mk-on-signal);
+  }
+  .btn-buy:hover,
+  .btn-sell:hover {
+    filter: brightness(1.08);
+    background: revert-layer;
+  }
+  .btn-buy:hover {
+    background: var(--mk-up);
+  }
+  .btn-sell:hover {
+    background: var(--mk-down);
+  }
+  .btn-quiet {
+    border-color: transparent;
+    background: none;
+    color: var(--jali-text-muted);
+  }
+  .btn-small {
+    height: 24px;
+    padding: 0 8px;
+    font-size: var(--mk-type-meta);
+  }
+  .flash {
+    padding: 0 3px;
+    margin: 0 -3px;
+    border-radius: 3px;
+  }
+  .flash[data-flash="up"][data-beat="0"] {
+    animation: flash-up-a 700ms ease-out;
+  }
+  .flash[data-flash="up"][data-beat="1"] {
+    animation: flash-up-b 700ms ease-out;
+  }
+  .flash[data-flash="down"][data-beat="0"] {
+    animation: flash-down-a 700ms ease-out;
+  }
+  .flash[data-flash="down"][data-beat="1"] {
+    animation: flash-down-b 700ms ease-out;
+  }
+  @keyframes flash-up-a {
+    from {
+      background: var(--mk-up-flash);
+    }
+  }
+  @keyframes flash-up-b {
+    from {
+      background: var(--mk-up-flash);
+    }
+  }
+  @keyframes flash-down-a {
+    from {
+      background: var(--mk-down-flash);
+    }
+  }
+  @keyframes flash-down-b {
+    from {
+      background: var(--mk-down-flash);
+    }
+  }
+  /* No flashing under reduced motion: the arrow and sign still say which way each price moved. */
+  @media (prefers-reduced-motion: reduce) {
+    .flash[data-flash] {
+      animation: none !important;
+    }
+  }
+  .spark {
+    display: block;
+  }
+  .spark-line {
+    fill: none;
+    stroke-width: 1.25;
+  }
+  .spark[data-dir="up"] .spark-line {
+    stroke: var(--mk-up);
+  }
+  .spark[data-dir="down"] .spark-line {
+    stroke: var(--mk-down);
+  }
+  .spark-base {
+    stroke: var(--jali-border-strong);
+    stroke-dasharray: 2 2;
+  }
+}

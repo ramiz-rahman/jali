@@ -1,0 +1,104 @@
+/*
+ * The molecules' styles (ui/molecules/): a change, a segmented control, an empty state, figures.
+ */
+@layer app {
+  .segmented {
+    display: inline-flex;
+    flex: none;
+    padding: 2px;
+    gap: 2px;
+    border-radius: var(--jali-radius-control);
+    background: var(--jali-canvas);
+    border: 1px solid var(--jali-border);
+  }
+  .segmented button {
+    height: 22px;
+    min-width: 28px;
+    padding: 0 8px;
+    border: 0;
+    border-radius: 3px;
+    background: none;
+    color: var(--jali-text-muted);
+    font-size: var(--mk-type-meta);
+    cursor: pointer;
+  }
+  .segmented button:hover {
+    color: var(--jali-text);
+  }
+  .segmented button[aria-pressed="true"] {
+    background: var(--jali-surface-raised);
+    color: var(--jali-text);
+    font-weight: 600;
+    box-shadow: 0 0 0 1px var(--jali-border-strong);
+  }
+  .empty {
+    /* Its padding inside its height, so an empty pane never scrolls. */
+    box-sizing: border-box;
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 4px;
+    height: 100%;
+    min-height: 120px;
+    padding: 16px;
+    text-align: center;
+    color: var(--jali-text-subtle);
+  }
+  .empty-title {
+    margin: 0;
+    color: var(--jali-text-muted);
+    font-weight: 600;
+  }
+  .empty-body {
+    margin: 0;
+    max-width: 32ch;
+    font-size: var(--mk-type-meta);
+  }
+  .delta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 3px;
+    font-family: var(--jali-font-mono);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .delta[data-dir="up"] {
+    color: var(--mk-up);
+  }
+  .delta[data-dir="down"] {
+    color: var(--mk-down);
+  }
+  .delta[data-dir="flat"] {
+    color: var(--jali-text-subtle);
+  }
+  .delta .arrow {
+    flex: none;
+  }
+  .figures {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px 16px;
+    margin: 0;
+  }
+  .figures div {
+    display: grid;
+    gap: 1px;
+    min-width: 0;
+  }
+  .figures dt {
+    color: var(--jali-text-subtle);
+    font-size: var(--mk-type-meta);
+  }
+  .figures dd {
+    margin: 0;
+    font-family: var(--jali-font-mono);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  /* The year's range is two prices: it takes a whole row. */
+  .figures div:last-child {
+    grid-column: 1 / -1;
+  }
+}

@@ -1,6 +1,6 @@
 /**
  * A select, after shadcn/ui's (https://ui.shadcn.com/docs/components/select): Radix's Select, wrapped in the same
- * parts with the same `data-slot`s. The example has no Tailwind, so the classes are its own, in panes.css, on
+ * parts with the same `data-slot`s. The example has no Tailwind, so the classes are its own, in atoms.css, on
  * Jali's tokens. The list opens in a portal on <body>, where the theme's tokens still apply (they are on :root).
  */
 import { CaretDownIcon, CheckIcon } from "@phosphor-icons/react";

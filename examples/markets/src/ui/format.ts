@@ -1,5 +1,5 @@
-/** Numbers as a trader reads them: fixed decimals, a real minus sign, compact sizes. */
-import type { Instrument } from "../market/types";
+/** Numbers and words as a trader reads them: fixed decimals, a real minus sign, compact sizes, the units of each class. */
+import type { Instrument, Quote, Side } from "../market/types";
 
 const formats = new Map<string, Intl.NumberFormat>();
 const fmt = (min: number, max = min, extra: Intl.NumberFormatOptions = {}) => {
@@ -80,25 +80,51 @@ function round(x: number, digits: number) {
 }
 
 /** What a quantity is in: shares, face value, a currency or a coin. */
-export const unit = (inst: Instrument) =>
-  inst.assetClass === "equity"
-    ? "shares"
-    : inst.assetClass === "fx"
-      ? inst.symbol.slice(0, 3)
-      : inst.assetClass === "crypto"
-        ? base(inst)
-        : "face";
-
-/** A crypto pair's coin: BTC in BTCUSD. */
-export const base = (inst: Instrument) => inst.symbol.replace(/USD$/, "");
+export function unit(inst: Instrument): string {
+  switch (inst.assetClass) {
+    case "equity":
+      return "shares";
+    case "govt":
+    case "corp":
+      return "face";
+    case "fx":
+    case "crypto":
+      return inst.base;
+    case "index":
+      return "units";
+  }
+}
 
 /** The spread in the units traders use: pips for FX, price points for bonds, basis points for shares, and for crypto
  *  (whose spread is often a single tick, far under a basis point) the price itself. */
-export const spread = (inst: Instrument, bid: number, ask: number) =>
-  inst.assetClass === "fx"
-    ? `${((ask - bid) / (inst.tick * 10)).toFixed(1)} pips`
-    : inst.coupon !== undefined
-      ? (ask - bid).toFixed(3)
-      : inst.assetClass === "crypto"
-        ? price(inst, ask - bid)
-        : `${(((ask - bid) / ask) * 1e4).toFixed(1)}bp`;
+export function spread(inst: Instrument, bid: number, ask: number): string {
+  switch (inst.assetClass) {
+    case "fx":
+      return `${((ask - bid) / (inst.tick * 10)).toFixed(1)} pips`;
+    case "govt":
+    case "corp":
+      return (ask - bid).toFixed(3);
+    case "crypto":
+      return price(inst, ask - bid);
+    case "equity":
+    case "index":
+      return `${(((ask - bid) / ask) * 1e4).toFixed(1)}bp`;
+  }
+}
+
+/** A side in words: the button, and what a fill did. */
+export const SIDE: Record<Side, { verb: string; past: string }> = {
+  buy: { verb: "Buy", past: "Bought" },
+  sell: { verb: "Sell", past: "Sold" },
+};
+
+/** An instrument's level in a list or a strip: a bond by its yield and its change in bp, anything else by its price
+ *  and its change in %. `change` is the signed number behind `changeText`, for its direction. */
+export function level(
+  inst: Instrument,
+  q: Quote,
+): { text: string; change: number; changeText: string } {
+  return q.yield
+    ? { text: percent(q.yield.pct), change: q.yield.changeBp, changeText: bp(q.yield.changeBp) }
+    : { text: price(inst, q.last), change: q.change, changeText: pct(q.changePct) };
+}
