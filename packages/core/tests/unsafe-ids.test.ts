@@ -12,6 +12,7 @@ import {
   pane,
   row,
   type Layout,
+  type LayoutInput,
 } from "@jali/core";
 import { urlSync } from "../src/features/url-sync";
 
@@ -20,7 +21,7 @@ const ref = (id: number) => ({ kind: "item", params: { id } });
 const UNSAFE = ["__proto__", "constructor", "prototype"];
 
 /** The layout a builder draft stands for (a copy, since an instance's own is frozen in development). */
-const built = (draft: Parameters<typeof row>[0]) =>
+const built = (draft: LayoutInput) =>
   structuredClone(
     createJali({
       panes: [item, { kind: "constructor", title: "C" }],

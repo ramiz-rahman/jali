@@ -111,9 +111,9 @@ describe("what Jali keeps and hands back is frozen in development", () => {
   it("state, the peek and every ref in the layout throw when changed", () => {
     const jali = make();
     jali.actions.peek("a", { kind: "item", params: { id: 2 } });
-    expect(() => ((jali.get().view.peek as { params: { id: number } }).params.id = 5)).toThrow(
-      TypeError,
-    );
+    expect(
+      () => ((jali.get().view.peek as unknown as { params: { id: number } }).params.id = 5),
+    ).toThrow(TypeError);
     const root = jali.getLayout().root as unknown as {
       children: { ref: { params: { id: number } } }[];
     };

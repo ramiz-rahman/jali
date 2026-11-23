@@ -1,3 +1,25 @@
+# Migrating to the stabilisation step 5 (23 Nov 2026): safe ids, a rename's object, copies at the door
+
+Ids that name something on every object are refused where ids enter; a rename ends with its object; what an app hands
+Jali is copied.
+
+## Behaviour
+
+| Before                                                                                                   | After                                                                                                                                                                                                                                                                                                |
+| -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| a pane or node id `__proto__`, `constructor` or `prototype` was valid                                    | refused: `pane(ref, { id })` throws in development; `setLayout` is `"invalid"`; a saved layout or preset holding one gives way to the next fallback; a link holding one is unreadable (the instance opens its fallback). A kind with such a name gets a generated id with a suffix (`constructor-2`) |
+| the rename field stayed open when its pane came to show another object, and Enter saved onto the new one | the field closes, the text is dropped and focus goes back to the pane; a save already running still calls `rename.run` for the object the field was opened on                                                                                                                                        |
+| a ref, params or a layout the app edited after passing it in changed Jali's state                        | copied as the action is called (`jali.actions`, `setLayout`, `createJali` layout and presets); edits afterwards change nothing                                                                                                                                                                       |
+| in development, refs and the peek in the state and layout were not frozen                                | frozen with the rest: `jali.get().view.peek.params.id = 1` and `jali.getLayout()…ref.params.id = 1` throw                                                                                                                                                                                            |
+
+## `jali/adapter`
+
+| Before                                                             | After                                                                                                                                                                                                                                                                                                 |
+| ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `store.get().renaming: NodeId \| null`                             | `{ pane: NodeId; object: string } \| null`: the pane, and the object key (`objectKey`) it showed when the rename began; the core clears it when that pane's object changes or the pane goes. A field reads `renaming?.pane`; its save uses the ref the session began on, never the pane's current one |
+| `store.actions.endRename(pane)`                                    | unchanged: ends the rename only if it is that pane's                                                                                                                                                                                                                                                  |
+| `layout.validate` accepted any 1 to 128 character id of `\w . : -` | also refuses `__proto__`, `constructor` and `prototype`                                                                                                                                                                                                                                               |
+
 # Migrating to the stabilisation step 4 (23 Nov 2026): a step owns its check; one link encoder
 
 What an action needs is checked in one place, and everything that offers it asks the same check. Every address Jali
