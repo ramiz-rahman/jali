@@ -2037,3 +2037,14 @@ boundaries landed earlier.
   in development (they are Jali's state), as layouts already were.
 - **Size:** Jali full is 106.3 KB gzipped (JS 98.0), 1.5 KB more than before this step (104.8); core is 65.7 against a
   budget of 63. Still over, none raised; the budgets are re-set in step 8.
+
+## 23 Nov 2026 · Stabilisation step 5, after Codex's review: the doors that were left open (23 Nov 2026)
+
+- **A page's role ids are pane ids**, so `definePageEngine` refuses `__proto__`, `constructor` and `prototype` as a role.
+- **What a page binds is copied** (`bind(item)`'s refs, often cached by the app) before it is installed.
+- **A rename's field is keyed by its object.** `openHere` then `startRename` in one batch is a new session; the old one
+  never saves with its old ref.
+- **`dialogs.choose` is the one entry that isn't copied:** its items are the app's own objects, read by identity
+  (`label`, `current`, `onChoose`).
+- **The development freeze freezes a node before walking its parts**, so a ref that refers to itself can't overflow it;
+  selections and Recent are frozen as they are committed.
