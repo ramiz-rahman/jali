@@ -15,9 +15,9 @@
  * Without Web Audio (tests, a browser that refuses it) the engine is a silent clock with the same API.
  */
 import { createStore, type Store } from "@jali-examples/shared/store";
-import { SILENCE_DB } from "../levels";
+import { SILENCE_DB } from "../ui/lib/levels";
 import type { Edits } from "../model/edits";
-import { clamp } from "../numbers";
+import { clamp } from "../ui/lib/numbers";
 import type { SessionId } from "../sessions/ids";
 import { loadSession, sessionById } from "../sessions/load";
 import type { SegmentData, SessionData } from "../sessions/types";

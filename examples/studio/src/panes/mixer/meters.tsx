@@ -11,8 +11,8 @@
  */
 import { createContext, useCallback, useContext, useRef } from "react";
 import { useFrame } from "../../audio/react";
-import { SILENCE_DB } from "../../levels";
-import { clamp } from "../../numbers";
+import { SILENCE_DB } from "../../ui/lib/levels";
+import { clamp } from "../../ui/lib/numbers";
 import { useServices } from "../../services";
 import { Lamp } from "../../ui/atoms/Lamp";
 import { prepare, screenPalette, type ScreenPalette } from "../../ui/lib/canvas";

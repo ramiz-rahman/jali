@@ -12,8 +12,8 @@
  *   silence, End to +6 dB.
  */
 import { useRef, type CSSProperties, type ReactNode } from "react";
-import { MAX_DB, SILENCE_DB } from "../../levels";
-import { clamp } from "../../numbers";
+import { MAX_DB, SILENCE_DB } from "../lib/levels";
+import { clamp } from "../lib/numbers";
 import { sliderProps, useDrag } from "../lib/drag";
 import { feelSlide } from "../lib/feel";
 import { keyTarget, useWheel, wheelDelta } from "../lib/input";

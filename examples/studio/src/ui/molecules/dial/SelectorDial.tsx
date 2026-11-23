@@ -5,7 +5,7 @@
  * to `reset` (its detent is marked).
  */
 import { useRef } from "react";
-import { clamp } from "../../../numbers";
+import { clamp } from "../../lib/numbers";
 import { angleOf, sliderProps, useDrag } from "../../lib/drag";
 import { feelSlide } from "../../lib/feel";
 import { keyTarget, useWheel, wheelDelta } from "../../lib/input";

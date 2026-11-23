@@ -6,7 +6,7 @@ import { catalogueOf } from "../sessions/catalog";
 import type { SessionId } from "../sessions/ids";
 
 export interface Channel {
-  /** The fader, in dB: `SILENCE_DB` (levels.ts) is silence. */
+  /** The fader, in dB: `SILENCE_DB` (ui/lib/levels.ts) is silence. */
   gain: number;
   /** -1 (left) to 1 (right). */
   pan: number;

@@ -6,7 +6,7 @@
  * A strip is a track's place on the desk, made the first time the track is played or mixed, and kept: moving back to
  * a session finds its strips where they were.
  */
-import { dbToGain, gainToDb, SILENCE_DB } from "../levels";
+import { dbToGain, gainToDb, SILENCE_DB } from "../ui/lib/levels";
 import type { SessionEdits } from "../model/edits";
 import { audible, channelOf } from "../model/mix";
 import type { SessionData } from "../sessions/types";

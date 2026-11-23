@@ -4,7 +4,7 @@
  * the scene and draws it every frame while it plays.
  */
 import type { Loop } from "../../audio/engine";
-import { clamp } from "../../numbers";
+import { clamp } from "../../ui/lib/numbers";
 import { clock } from "../../sessions/format";
 import type { MarkerData, SegmentData, TrackData } from "../../sessions/types";
 import type { Envelope } from "../../sessions/derive";

@@ -6,7 +6,7 @@
  */
 import type { ReactNode } from "react";
 import { MASTER_METERS } from "../../audio/graph";
-import { dbLabel } from "../../levels";
+import { dbLabel } from "../../ui/lib/levels";
 import type { Channel } from "../../model/mix";
 import type { SessionView } from "../../model/view";
 import { colourOf, trackInput } from "../../sessions/derive";

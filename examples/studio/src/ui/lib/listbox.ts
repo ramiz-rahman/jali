@@ -7,7 +7,7 @@
  *   <div {...list.props} aria-label="Sessions">{rows.map((r, i) => <div {...list.row(i)}>…</div>)}</div>
  */
 import { useEffect, useRef, type KeyboardEvent } from "react";
-import { clamp } from "../../numbers";
+import { clamp } from "./numbers";
 import { keyTarget, typingIn } from "./input";
 
 /** J/K and the arrows move by one, Page keys by ten, Home and End to the ends. The new index, or null. */

@@ -8,7 +8,7 @@
  * (a playhead that is playing); without it, `onChange` gets the value the turn has reached.
  */
 import { useRef } from "react";
-import { clamp } from "../../../numbers";
+import { clamp } from "../../lib/numbers";
 import { angleOf, sliderProps, turnBy, useDrag } from "../../lib/drag";
 import { keyTarget, useWheel, wheelDelta } from "../../lib/input";
 import { DialBody, turnedTo } from "./parts";

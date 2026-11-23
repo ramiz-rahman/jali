@@ -3,8 +3,8 @@
  * field of the wrong shape is the session's own (none) while the rest is kept.
  */
 import { finite, isRecord, text } from "@jali-examples/shared/store";
-import { MAX_DB, SILENCE_DB } from "../levels";
-import { clamp } from "../numbers";
+import { MAX_DB, SILENCE_DB } from "../ui/lib/levels";
+import { clamp } from "../ui/lib/numbers";
 import { isSession } from "../sessions/ids";
 import type { MarkerData } from "../sessions/types";
 import { recordOf } from "../storage";

@@ -5,7 +5,7 @@
  * the arrow keys 1 (Shift: 10), Home and End go to the ends, and a double-click centres it.
  */
 import { useRef } from "react";
-import { clamp } from "../../../numbers";
+import { clamp } from "../../lib/numbers";
 import { angleOf, sliderProps, turnBy, useDrag } from "../../lib/drag";
 import { feelSlide } from "../../lib/feel";
 import { keyTarget, useWheel, wheelDelta } from "../../lib/input";

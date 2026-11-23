@@ -10,7 +10,7 @@ import { useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from
 import { WaveSineIcon } from "@phosphor-icons/react";
 import { useActivity, useJaliState } from "jali/react";
 import { useFrame, useTransport } from "../../audio/react";
-import { clamp } from "../../numbers";
+import { clamp } from "../../ui/lib/numbers";
 import { useServices } from "../../services";
 import { colourOf, envelopeOf, hasTranscript, trackInput } from "../../sessions/derive";
 import { clock } from "../../sessions/format";
