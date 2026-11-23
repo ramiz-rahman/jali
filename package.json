@@ -8,6 +8,8 @@
   "scripts": {
     "dev": "vp dev examples/data-studio",
     "build": "tsc -b && vp build examples/data-studio && vp build examples/loan-review",
+    "build:site": "node tooling/build-site.mjs",
+    "preview:site": "node tooling/serve-site.mjs",
     "typecheck": "tsc -b --noEmit && tsc --noEmit -p apps/docs && tsc --noEmit -p packages/react/type-tests && tsc --noEmit -p packages/jali/type-tests",
     "verify": "node tooling/verify.mjs",
     "test": "vp test run && vp test run --config apps/docs/src/reference/vitest.config.ts && node tooling/docs-check.mjs && node tooling/agent-docs.mjs --check",
@@ -41,5 +43,9 @@
     "vite": "catalog:",
     "vite-plus": "catalog:",
     "vitest": "catalog:"
-  }
+  },
+  "engines": {
+    "node": ">=26"
+  },
+  "packageManager": "pnpm@12.9.1"
 }

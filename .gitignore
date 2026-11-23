@@ -1,5 +1,7 @@
 node_modules
 dist
+# The built public site (pnpm build:site)
+/site
 test-results
 playwright-report
 .DS_Store
