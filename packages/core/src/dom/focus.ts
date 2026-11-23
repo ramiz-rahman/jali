@@ -19,14 +19,18 @@ function paneTarget(el: HTMLElement) {
   );
 }
 
-/** Focus a pane after the next paint, unless focus is on a divider or in a dialog. */
-export function focusPane(dom: JaliDom, id: NodeId) {
+/** Focus a pane after the next paint, unless focus is on a divider or in a dialog, or the instance ended meanwhile
+ *  (`life`: a replacement with the same id draws its panes under the same element ids). */
+export function focusPane(dom: JaliDom, id: NodeId, life?: AbortSignal) {
   if (typeof document === "undefined" || typeof requestAnimationFrame === "undefined") return;
   requestAnimationFrame(() => {
     const active = document.activeElement;
     if (
-      active?.closest &&
-      (active.closest("[role=separator]") || dom.port.inDivider(active) || inOverlay(dom, active))
+      life?.aborted ||
+      (active?.closest &&
+        (active.closest("[role=separator]") ||
+          dom.port.inDivider(active) ||
+          inOverlay(dom, active)))
     )
       return;
     const el = dom.pane(id);

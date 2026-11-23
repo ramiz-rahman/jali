@@ -12,7 +12,7 @@ import {
   row,
   type JaliOptions,
 } from "@jali/core";
-import { definePageEngine as definePage } from "@jali/core/adapter";
+import { definePageEngine as definePage, paneDomId } from "@jali/core/adapter";
 import { urlSync } from "../src/features/url-sync";
 
 const record = { kind: "record", title: "Record", params: { id: Number }, width: { min: 260 } };
@@ -150,5 +150,43 @@ describe("4. a page link keeps its maximised pane", () => {
   it("a zoom the page's layout doesn't show is left out", () => {
     const fresh = make({}, "?page=review&item=1&tab=application&zoom=nope").jali;
     expect(fresh.get().view.zoomed).toBeUndefined();
+  });
+});
+
+describe("3. a focus move queued for the next frame ends with its instance", () => {
+  it("destroyed before the frame, a replacement with the same id keeps the host's focus", () => {
+    const frames: FrameRequestCallback[] = [];
+    vi.stubGlobal("requestAnimationFrame", (f: FrameRequestCallback) => frames.push(f));
+    const layout = row(pane(r(1), { id: "a" }), pane(r(2), { id: "b" }), pane(r(3), { id: "c" }));
+    const mk = () =>
+      createJali({
+        id: "w",
+        panes: [record],
+        layout,
+        storage: memoryStorage(),
+        size: { width: 1600, height: 900 },
+      });
+    const old = mk();
+    old.start();
+    expect(old.actions.tuck("a").ok).toBe(true);
+    expect(frames.length).toBeGreaterThan(0);
+    old.destroy();
+    // The replacement draws its panes under the same ids, and the person is in the host's own control.
+    const fresh = mk();
+    fresh.start();
+    for (const id of ["a", "b", "c"]) {
+      const el = document.createElement("div");
+      el.id = paneDomId("w", id);
+      el.tabIndex = -1;
+      document.body.append(el);
+    }
+    const button = document.createElement("button");
+    document.body.append(button);
+    button.focus();
+    for (const f of frames.splice(0)) f(0);
+    expect(document.activeElement).toBe(button);
+    fresh.destroy();
+    document.body.replaceChildren();
+    vi.unstubAllGlobals();
   });
 });

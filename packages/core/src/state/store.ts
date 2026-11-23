@@ -281,7 +281,7 @@ export interface JaliConfig {
   id?: string;
   initial?: Partial<UiState>;
   /** Moves DOM focus into a pane after the next paint. Default: Jali's (dom/focus.ts); `null` leaves DOM focus alone. */
-  focusPane?: ((scope: JaliDom, id: NodeId) => void) | null;
+  focusPane?: ((scope: JaliDom, id: NodeId, life?: AbortSignal) => void) | null;
   unstable?: (op: string, before: string, after: string) => void;
   beforeClose?: BeforeClose;
   settings?: Partial<Settings>;
@@ -778,7 +778,8 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
     url: store.writeUrl,
     announce: store.announce,
     toast: store.toast,
-    focus: (id: NodeId) => (store.focusHeld || life.ended() ? undefined : focusOf?.(dom, id)),
+    focus: (id: NodeId) =>
+      store.focusHeld || life.ended() ? undefined : focusOf?.(dom, id, life.signal),
     defer,
     unstable: unstable ?? devUnstable,
   };
