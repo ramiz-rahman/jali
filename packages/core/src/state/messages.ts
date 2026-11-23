@@ -520,9 +520,12 @@ export const en = /* @__PURE__ */ [
   typeof renameEn &
   typeof popOutEn;
 
+/** A message as a translation writes it: a function of its values may return any text, not only English's. */
+type Words<T> = T extends (...args: infer A) => string ? (...args: A) => string : T;
+
 /** Every message Jali uses, by area. A full translation is a `Messages`: a missing key is a type error. */
 export type Messages = {
-  [Area in keyof typeof en]: { [Key in keyof (typeof en)[Area]]: (typeof en)[Area][Key] };
+  [Area in keyof typeof en]: { [Key in keyof (typeof en)[Area]]: Words<(typeof en)[Area][Key]> };
 };
 
 /** What `createJali({ messages })` takes: any areas, and any keys in them. The rest stay English. */

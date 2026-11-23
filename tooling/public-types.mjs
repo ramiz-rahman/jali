@@ -31,6 +31,7 @@ export const NOT_EXPORTED = {
   ReadAs: "helper of ParamsOf",
   ParamsFrom: "helper of PaneProps",
   ParamsOfPane: "helper of usePane",
+  Words: "helper of Messages",
   Child: "a builder's argument: a Draft or an ObjectRef",
   NodeBase: "the fields every LayoutNode shares",
   Node: "helper of layout.find",

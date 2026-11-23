@@ -174,6 +174,18 @@ describe("messages", () => {
     const spread: Messages = { ...en, palette: { ...en.palette, placeholder: "Rechercher…" } };
     expect([partial, misspelt, wrongType, spread.palette.placeholder]).toHaveLength(4);
   });
+
+  it("type a message that picks its words by a value as any text, not only English's", () => {
+    // English's body returns one of two sentences; a translation, or an app's own wording, returns its own.
+    const body = (count: number) =>
+      count === 1 ? "Cette requête sera perdue." : "Ces requêtes seront perdues.";
+    const overrides: MessageOverrides = { confirmDiscard: { body } };
+    const full: Messages = { ...en, confirmDiscard: { ...en.confirmDiscard, body } };
+    expect(make({ messages: overrides }).messages.confirmDiscard.body(2)).toBe(
+      "Ces requêtes seront perdues.",
+    );
+    expect(full.confirmDiscard.body(1)).toBe("Cette requête sera perdue.");
+  });
 });
 
 /**
