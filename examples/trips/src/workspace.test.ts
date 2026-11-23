@@ -143,7 +143,8 @@ describe("the trips workspace", () => {
     const { jali, location } = testJali();
     jali.actions.select("overview", day({ n: 6 }));
     selectPlace(jali, "nai-harn", { from: "day" });
-    vi.advanceTimersByTime(200);
+    // The follow, then the address: a replace is written at most every 250 ms.
+    vi.advanceTimersByTime(250);
     const link = location.search();
     expect(new URLSearchParams(link).get("l")).toBeTruthy();
 

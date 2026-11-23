@@ -6,6 +6,7 @@
 import { describe, expect, it } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, row, type JaliOptions } from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
+import { REPLACE_MS } from "../../core/src/url";
 import { definePane } from "@jali/react";
 import { close } from "../../core/src/actions/close";
 import { defaultFeatures, urlSync } from "./features";
@@ -213,6 +214,8 @@ describe("beforeClose: a later yes meets the state of the moment", () => {
 
 /** Let held answers settle (they resolve through promises). */
 const settle = () => new Promise((r) => setTimeout(r, 0));
+/** Let the address catch up: a replace is written at most every 250 ms. */
+const written = () => new Promise((r) => setTimeout(r, REPLACE_MS + 10));
 
 describe("Back and Forward keep their navigation with the question (C9)", () => {
   /** A workspace with history: the first address, Order 7 opened, then Order 8 opened with unsaved work. */
@@ -243,7 +246,7 @@ describe("Back and Forward keep their navigation with the question (C9)", () => 
     expect(store.get().confirm).not.toBeNull();
     expect(location.search()).toBe(second);
     store.actions.keepEditing();
-    await settle();
+    await written();
     expect(objects(jali)).toContain(8);
     expect(location.search()).toBe(third);
     stop();
@@ -282,7 +285,7 @@ describe("Back and Forward keep their navigation with the question (C9)", () => 
     location.visit(second);
     location.visit(first);
     store.actions.keepEditing();
-    await settle();
+    await written();
     expect(objects(jali)).toEqual(expect.arrayContaining([7, 8]));
     expect(location.search()).toBe(third);
     stop();

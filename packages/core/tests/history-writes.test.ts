@@ -18,7 +18,7 @@ import {
   type JaliOptions,
   type LocationPort,
 } from "@jali/core";
-import { edgeScroll, storeOf } from "@jali/core/adapter";
+import { browserLocation, createUrlSync, edgeScroll, storeOf } from "@jali/core/adapter";
 import { urlSync } from "../src/features/url-sync";
 
 afterEach(() => vi.useRealTimers());
@@ -180,5 +180,82 @@ describe("a gesture writes the address once, when it ends (SAFARI-3)", () => {
     release();
     expect(writes).toEqual(["push"]);
     expect(port.search()).toContain("scroll=week");
+  });
+});
+
+describe("the writer", () => {
+  const state = (zoomed: string) => () => ({
+    layout: storeOf(jaliFor).get().layout,
+    view: { focusHistory: [], zoomed },
+    presetId: undefined,
+    page: null,
+  });
+  const jaliFor = createJali({
+    panes: [list],
+    layout: row(
+      pane({ kind: "list", params: {} }, { id: "a" }),
+      pane({ kind: "list", params: {} }, { id: "b" }),
+    ),
+    storage: memoryStorage(),
+    size: { width: 1600, height: 800 },
+    moveFocus: false,
+  });
+
+  it("writes at most one replace per 250 ms, the latest winning, with the address as it was asked for", () => {
+    vi.useFakeTimers();
+    const { port, writes } = history();
+    const sync = createUrlSync({ location: port, storage: memoryStorage() });
+    sync.write(state("a"), "replace");
+    expect(writes).toEqual(["replace"]);
+    sync.write(state("b"), "replace");
+    sync.write(state("a"), "replace");
+    let late = "b";
+    sync.write(() => state(late)(), "replace");
+    late = "a";
+    vi.advanceTimersByTime(200);
+    expect(writes).toEqual(["replace"]);
+    vi.advanceTimersByTime(50);
+    expect(writes).toEqual(["replace", "replace"]);
+    // Captured when asked for: `late` changed after, and the address says "b".
+    expect(new URLSearchParams(port.search()).get("zoom")).toBe("b");
+  });
+
+  it("a push writes the replace still waiting first, so Back returns to it", () => {
+    vi.useFakeTimers();
+    const { port, writes } = history();
+    const sync = createUrlSync({ location: port, storage: memoryStorage() });
+    sync.write(state("a"), "replace");
+    sync.write(state("b"), "replace");
+    sync.write(state("a"), "push");
+    expect(writes).toEqual(["replace", "replace", "push"]);
+    expect(port.entries().map((e) => new URLSearchParams(e).get("zoom"))).toEqual(["b", "a"]);
+    vi.advanceTimersByTime(1000);
+    expect(writes).toHaveLength(3);
+  });
+
+  it("a history write the browser refuses leaves actions and events working, with one warning", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const refuse = () => {
+      throw new DOMException(
+        "Attempt to use history.replaceState() more than 100 times per 10 seconds",
+        "SecurityError",
+      );
+    };
+    const win = {
+      location: { href: "http://x/", search: "" },
+      history: { state: null, pushState: refuse, replaceState: refuse },
+      addEventListener() {},
+      removeEventListener() {},
+    } as unknown as Window;
+    const jali = make(browserLocation(win));
+    const heard: string[] = [];
+    jali.on("open", (e) => heard.push(e.pane));
+    const a = jali.actions.openBeside("a", c(1));
+    const b = jali.actions.openBeside("a", c(2));
+    expect(a.ok && b.ok).toBe(true);
+    expect(heard).toEqual([a.pane, b.pane]);
+    expect(jali.model().pane(b.pane!)?.ref).toEqual(c(2));
+    expect(warn).toHaveBeenCalledTimes(1);
+    warn.mockRestore();
   });
 });

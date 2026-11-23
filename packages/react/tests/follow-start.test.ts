@@ -17,6 +17,7 @@ import {
 import { storeOf } from "@jali/core/adapter";
 import { definePane } from "@jali/react";
 import { FOLLOW_MS } from "../../core/src/actions/follow";
+import { REPLACE_MS } from "../../core/src/url";
 import { defaultFeatures, urlSync } from "./features";
 
 const Nothing = () => null;
@@ -239,7 +240,7 @@ describe("a layout that arrives (Back, a link, a reload) and a list with a selec
     const stop = jali.start();
     jali.actions.preset("quotes");
     jali.actions.select("watch", quote({ symbol: "ORBD" }));
-    vi.advanceTimersByTime(FOLLOW_MS);
+    vi.advanceTimersByTime(REPLACE_MS);
     const older = location.search();
     jali.setLayout(
       row(
@@ -264,7 +265,7 @@ describe("a layout that arrives (Back, a link, a reload) and a list with a selec
   it("a link mid-session: the selection takes the link's quote, and the followers stay as the link has them", () => {
     const { jali: writer, location: from } = make();
     writer.actions.select("watch", quote({ symbol: "ORBD" }));
-    vi.advanceTimersByTime(FOLLOW_MS);
+    vi.advanceTimersByTime(REPLACE_MS);
     const link = from.search();
     const { jali, location } = make();
     const stop = jali.start();
@@ -312,7 +313,7 @@ describe("a layout that arrives (Back, a link, a reload) and a list with a selec
   it("a reload starts the list on what its follower shows", () => {
     const { jali, location } = make();
     jali.actions.select("watch", quote({ symbol: "HRBK" }));
-    vi.advanceTimersByTime(FOLLOW_MS);
+    vi.advanceTimersByTime(REPLACE_MS);
     const { jali: reloaded } = make({ preset: "plain", search: location.search() });
     expect(shown(reloaded, "quote")).toEqual(quote({ symbol: "HRBK" }));
     expect(selected(reloaded, "watch")).toEqual(quote({ symbol: "HRBK" }));

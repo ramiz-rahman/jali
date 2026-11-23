@@ -6,7 +6,7 @@ import { describe, expect, it } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, pane, row, type Jali } from "@jali/core";
 import { definePane } from "@jali/react";
 import { storeOf } from "../../core/src/state/instance";
-import { readSearch } from "../../core/src/url";
+import { readSearch, REPLACE_MS } from "../../core/src/url";
 import { defaultFeatures, urlSync } from "./features";
 
 const day = definePane("day", {
@@ -34,10 +34,12 @@ const make = (location = memoryLocation()): Jali =>
 const scrollParam = (search: string) => new URLSearchParams(search).get("scroll");
 
 describe("a strip's place in the link", () => {
-  it("goes into the link, and a link reopens there", () => {
+  it("goes into the link, and a link reopens there", async () => {
     const location = memoryLocation();
     const jali = make(location);
     storeOf(jali).actions.setScroll("week", 732);
+    // A replace is written at most every 250 ms.
+    await new Promise((r) => setTimeout(r, REPLACE_MS + 10));
     expect(scrollParam(location.search())).toBe("week:732");
 
     const reader = make(memoryLocation(location.search()));

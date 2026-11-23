@@ -70,7 +70,7 @@ The address also records history. `location.entries` lists every entry, so you c
 
 ## Timing
 
-Some changes wait. A following detail shows the list's item once the cursor rests (150ms), and divider sizes reach the address 120ms after the drag. Use fake timers and move them on:
+Some changes wait. A following detail shows the list's item once the cursor rests (150ms), divider sizes reach the address 120ms after the drag, and a replace of the address waits until 250ms after the last one. Use fake timers and move them on:
 
 ```ts
 import { expect, vi } from "vitest";

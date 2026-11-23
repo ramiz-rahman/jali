@@ -21,6 +21,8 @@
  * `router.subscribe("onResolved", fn)`.
  */
 
+import { isDev } from "./dev";
+
 export type NavigateMode = "push" | "replace";
 
 export interface LocationPort {
@@ -34,7 +36,13 @@ export interface LocationPort {
   subscribe(fn: () => void): () => void;
 }
 
+/**
+ * The browser's history. A write the browser refuses (Safari allows about 100 in 10 seconds, and throws
+ * `SecurityError` past that) is dropped: the address lags until the next write, and the action that asked still
+ * happens. Development says so once.
+ */
 export function browserLocation(win: Window = window): LocationPort {
+  let warned = false;
   return {
     search: () => win.location.search,
     href: () => win.location.href,
@@ -44,9 +52,19 @@ export function browserLocation(win: Window = window): LocationPort {
       const url = new URL(win.location.href);
       url.search = search;
       if (url.href === win.location.href) return;
-      // A replace keeps the entry's state (a router's, the host's): Jali owns its search params, not the entry.
-      if (mode === "push") win.history.pushState(null, "", url.href);
-      else win.history.replaceState(win.history.state, "", url.href);
+      try {
+        // A replace keeps the entry's state (a router's, the host's): Jali owns its search params, not the entry.
+        if (mode === "push") win.history.pushState(null, "", url.href);
+        else win.history.replaceState(win.history.state, "", url.href);
+      } catch (err) {
+        if (!warned && isDev()) {
+          warned = true;
+          console.warn(
+            "Jali: the browser refused a history write; the address lags until the next one.",
+            err,
+          );
+        }
+      }
     },
     subscribe(fn) {
       win.addEventListener("popstate", fn);

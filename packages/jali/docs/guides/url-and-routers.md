@@ -57,6 +57,8 @@ A page link writes each opened pane's object (`open`) as its kind and params: `c
 
 Deliberate changes (opening, closing, moving, choosing a preset) add a history entry. A detail following a list replaces the entry, so Back skips the rows passed through. A divider drag replaces it once the drag settles.
 
+Each action makes one history write, after it lands: an action held for an answer (`beforeClose`, "Discard unsaved changes?") writes nothing until it does, and nothing if it doesn't. During a drag, edge scrolling included, nothing is written; the address is written once when it ends. Replaces are written at most every 250 ms, the latest winning, because browsers refuse more than about 100 history writes in 10 seconds (Safari throws). A write the browser refuses anyway is dropped: the address lags until the next one, and the action still happens.
+
 ## What a link brings back, and what it doesn't
 
 A link reopens the same panes, showing the same objects, in the same arrangement. Some things are the reader's, not the sender's:

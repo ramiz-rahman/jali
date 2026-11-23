@@ -160,7 +160,8 @@ describe("the studio workspace", () => {
     const { jali, location } = testJali();
     jali.actions.preset("review");
     jali.actions.select("library", transcript({ session: DINNER }));
-    vi.advanceTimersByTime(200);
+    // The follow, then the address: a replace is written at most every 250 ms.
+    vi.advanceTimersByTime(250);
     const link = location.search();
     expect(new URLSearchParams(link).get("l")).toBeTruthy();
     expect(new URLSearchParams(link).get("preset")).toBe("review");

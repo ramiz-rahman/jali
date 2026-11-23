@@ -16,6 +16,7 @@ import {
   type JaliOptions,
 } from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
+import { REPLACE_MS } from "../../core/src/url";
 import { geometryOf } from "../../core/src/state/apply";
 import { definePane } from "@jali/react";
 import { defaultFeatures, urlSync } from "./features";
@@ -589,7 +590,7 @@ describe("beforeClose: the host is asked before panes go", () => {
     expect(ids(jali)).toEqual(["orders", "order", "order-2"]);
   });
 
-  it("covers Back and Forward, and puts the address back when it keeps the panes", () => {
+  it("covers Back and Forward, and puts the address back when it keeps the panes", async () => {
     const location = memoryLocation();
     let allow = true;
     const jali = make({
@@ -603,6 +604,8 @@ describe("beforeClose: the host is asked before panes go", () => {
     allow = false;
     location.visit(first);
     expect(jali.model().panes.some((p) => p.ref.params.id === 7)).toBe(true);
+    // A replace is written at most every 250 ms.
+    await new Promise((r) => setTimeout(r, REPLACE_MS + 10));
     expect(location.search()).toBe(shown);
     stop();
   });

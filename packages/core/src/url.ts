@@ -1,7 +1,8 @@
 /**
  * URL sync, through a location port (ports.ts). Structure goes in ?l= (layout/codec); zoom, scroll and the preset the
  * layout came from ride along. The peek never does: a reload closes it. Deliberate structural changes push a
- * history entry; resizes replace it 120ms after the last move; view changes replace immediately.
+ * history entry; resizes replace it 120ms after the last move; view changes replace it. Replaces are written at most
+ * once per 250 ms (browsers refuse more than about 100 history writes in 10 s), the latest winning.
  */
 import * as core from "./layout/engine";
 import type {
@@ -21,6 +22,8 @@ import { own as ownOf } from "./own";
 import { sameRef } from "./layout/ops/ref";
 
 export const PERSIST_MS = 120;
+/** The least time between two replaces: more in between wait, and only the latest is written. */
+export const REPLACE_MS = 250;
 const BROKEN_KEY = "broken-layout";
 /** The most panes a page link opens (`open=`); the rest are left out. docs/DECISIONS.md, 20 Nov 2026. */
 export const OPEN_MAX = 32;
@@ -358,7 +361,11 @@ export function createUrlSync({
 }: UrlSyncOptions = {}): UrlSync {
   const keys = urlKeys(prefix);
   const sizesKey = `${prefix ?? ""}sizes`;
+  /** The replace waiting for its slot: its address, or (debounced) how to read it when it is written. */
+  let waiting: (() => string) | null = null;
   let timer: ReturnType<typeof setTimeout> | undefined;
+  /** When the last replace was written. */
+  let replaced = -Infinity;
   // Cancelled for good (`jali.destroy()`): later writes are dropped, so none lands on the next route's address.
   let closed = false;
   // "local": the sizes the person dragged, per layout structure (a few layouts, most recent first).
@@ -380,24 +387,53 @@ export function createUrlSync({
     const next = Object.keys(own).length ? [[key, own] as [string, PersonalSizes], ...rest] : rest;
     storage.set(sizesKey, JSON.stringify(next.slice(0, 12)));
   };
-  const write = (s0: UrlState, push: boolean) => {
+  /** The address for `s0`, keeping the host's params. */
+  const search = (s0: UrlState) => {
     let s = s0;
     if (sizes === "local" && !s.page) {
       const split = splitPersonalSizes(s.layout);
       keepSizes(split.layout, split.sizes);
       s = { ...s, layout: split.layout };
     }
-    const next = buildSearch(location.search(), s, keys);
-    if (next === location.search()) return;
-    location.navigate(next, push ? "push" : "replace");
+    return buildSearch(location.search(), s, keys);
+  };
+  const go = (next: string, mode: "push" | "replace") => {
+    if (next !== location.search()) location.navigate(next, mode);
+  };
+  /** Write the replace waiting, now. */
+  const flush = () => {
+    clearTimeout(timer);
+    timer = undefined;
+    const read = waiting;
+    waiting = null;
+    if (!read) return;
+    replaced = Date.now();
+    go(read(), "replace");
+  };
+  const schedule = (ms: number) => {
+    clearTimeout(timer);
+    timer = setTimeout(flush, Math.max(0, ms));
   };
   return {
-    // A debounced write reads the state when it fires, so it writes the latest sizes.
     write(state: () => UrlState, mode: HistoryMode) {
       if (mode === "none" || closed) return;
-      clearTimeout(timer);
-      if (mode === "debounce") timer = setTimeout(() => write(state(), false), PERSIST_MS);
-      else write(state(), mode === "push");
+      // A push is written at once, after the replace still waiting, so the entry it leaves says what it should.
+      if (mode === "push") {
+        flush();
+        return go(search(state()), "push");
+      }
+      // A debounced write reads the state when it is written, so it writes the latest sizes; it waits for the moves
+      // to rest, and for its slot.
+      if (mode === "debounce") {
+        waiting = () => search(state());
+        return schedule(Math.max(PERSIST_MS, replaced + REPLACE_MS - Date.now()));
+      }
+      // A replace is the address now, written in its slot: a later one takes its place without moving the slot.
+      const next = search(state());
+      waiting = () => next;
+      const wait = replaced + REPLACE_MS - Date.now();
+      if (wait <= 0) flush();
+      else if (!timer) schedule(wait);
     },
     read(kinds) {
       const r = readSearch(location.search(), kinds, keys);
@@ -415,9 +451,18 @@ export function createUrlSync({
       closed = true;
       clearTimeout(timer);
       timer = undefined;
+      waiting = null;
     },
     keepBroken: (code) => storage.set(`${prefix ?? ""}${BROKEN_KEY}`, code),
-    onPop: (fn) => location.subscribe(fn),
-    href: () => location.href(),
+    // Back or Forward left the entry a waiting replace was for: it would write that entry's address over this one's.
+    onPop: (fn) =>
+      location.subscribe(() => {
+        clearTimeout(timer);
+        timer = undefined;
+        waiting = null;
+        fn();
+      }),
+    // "Copy link" copies what is on screen: a replace still waiting is written first.
+    href: () => (flush(), location.href()),
   };
 }
