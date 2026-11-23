@@ -209,6 +209,10 @@ export function createKeymap(overrides: KeymapOverrides = {}, opts: KeymapOption
     else merged.set(id, typeof v === "string" ? [v] : v);
   }
   const entries: [string, KeySequence[]][] = [];
+  // A key runs one command: the first bound to it. A second binding of the same keys could never run, so it is
+  // refused and reported.
+  const owner = (seq: KeySequence) =>
+    entries.find(([, seqs]) => seqs.some((s) => sameSequence(s, seq)))?.[0];
   for (const [id, list] of merged) {
     const seqs: KeySequence[] = [];
     for (const b of list) {
@@ -220,11 +224,13 @@ export function createKeymap(overrides: KeymapOverrides = {}, opts: KeymapOption
         continue;
       }
       const taken = clash(seq);
+      const bound = owner(seq);
       if (seq.length > 2) warn(id, b, "a binding has at most two steps");
       else if (seq.length === 1 && isCharacterKey(seq[0]!))
         warn(id, b, "a single character key belongs to the focused content (WCAG 2.1.4)");
       else if (taken)
         warn(id, b, `the host reserves ${formatKeys(taken, platform)} (keyboard.reserved)`);
+      else if (bound) warn(id, b, `${formatKeys(seq, platform)} already runs ${bound}`);
       else seqs.push(seq);
     }
     if (seqs.length) entries.push([id, seqs]);
