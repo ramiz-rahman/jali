@@ -301,46 +301,97 @@ describe("review fixes", () => {
   });
 });
 
-describe("the browser's full screen follows Jali's", () => {
-  it("switching Full screen from B to A asks the browser for A", () => {
-    let fsEl: Element | null = null;
-    const asked: Element[] = [];
-    const doc = Object.getOwnPropertyDescriptor(Document.prototype, "fullscreenElement");
-    Object.defineProperty(document, "fullscreenElement", { configurable: true, get: () => fsEl });
-    const req = vi.fn(function (this: Element) {
-      asked.push(this);
-      fsEl = this;
-      document.dispatchEvent(new Event("fullscreenchange"));
+describe("the browser's full screen follows Jali's, only while it is Jali's", () => {
+  /** A Fullscreen API stub: `refuse` makes a request on that element reject. */
+  function stubFullscreen(refuse?: (el: Element) => boolean) {
+    const fs = { el: null as Element | null, asked: [] as Element[] };
+    const change = () => document.dispatchEvent(new Event("fullscreenchange"));
+    Object.defineProperty(document, "fullscreenElement", { configurable: true, get: () => fs.el });
+    (HTMLElement.prototype as { requestFullscreen?: unknown }).requestFullscreen = function (
+      this: HTMLElement,
+    ) {
+      fs.asked.push(this);
+      if (refuse?.(this)) return Promise.reject(new TypeError("refused"));
+      fs.el = this;
+      change();
       return Promise.resolve();
-    });
-    (HTMLElement.prototype as { requestFullscreen?: unknown }).requestFullscreen = req;
-    document.exitFullscreen = vi.fn(() => {
-      fsEl = null;
-      document.dispatchEvent(new Event("fullscreenchange"));
+    };
+    document.exitFullscreen = () => {
+      fs.el = null;
+      change();
       return Promise.resolve();
+    };
+    const restore = () => {
+      delete (document as { fullscreenElement?: unknown }).fullscreenElement;
+      delete (HTMLElement.prototype as { requestFullscreen?: unknown }).requestFullscreen;
+    };
+    return { fs, restore };
+  }
+  const two = () => {
+    const jali = createJali({
+      panes: [note],
+      layout: row(pane(note({}), { id: "a" }), pane(note({}), { id: "b" })),
+      features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
+      storage: memoryStorage(),
+      size: { width: 1200, height: 600 },
+      moveFocus: false,
     });
+    render(<JaliRoot jali={jali} />);
+    return { jali, store: storeOf(jali) };
+  };
+
+  it("switching Full screen from B to A asks the browser for A, and Exit leaves it", () => {
+    const { fs, restore } = stubFullscreen();
     try {
-      const jali = createJali({
-        panes: [note],
-        layout: row(pane(note({}), { id: "a" }), pane(note({}), { id: "b" })),
-        features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
-        storage: memoryStorage(),
-        size: { width: 1200, height: 600 },
-        moveFocus: false,
-      });
-      render(<JaliRoot jali={jali} />);
-      const store = storeOf(jali);
+      const { jali, store } = two();
       act(() => void jali.actions.toggleFullScreen("b"));
-      expect(fsEl).toBe(store.dom.pane("b"));
+      expect(fs.el).toBe(store.dom.pane("b"));
       act(() => void store.run("setFullScreen", "a", true));
       expect(store.get().fullScreen).toBe("a");
-      expect(fsEl).toBe(store.dom.pane("a"));
+      expect(fs.el).toBe(store.dom.pane("a"));
       act(() => void jali.actions.toggleFullScreen());
-      expect(fsEl).toBeNull();
+      expect(fs.el).toBeNull();
     } finally {
-      delete (document as { fullscreenElement?: unknown }).fullscreenElement;
-      if (doc) Object.defineProperty(Document.prototype, "fullscreenElement", doc);
-      delete (HTMLElement.prototype as { requestFullscreen?: unknown }).requestFullscreen;
+      restore();
+    }
+  });
+
+  it("the browser refusing A after B leaves it and Jali agreeing, and Exit still works", async () => {
+    let store!: ReturnType<typeof two>["store"];
+    const { fs, restore } = stubFullscreen((el) => el === store.dom.pane("a"));
+    try {
+      const made = two();
+      store = made.store;
+      act(() => void made.jali.actions.toggleFullScreen("b"));
+      expect(fs.el).toBe(store.dom.pane("b"));
+      await act(async () => void store.run("setFullScreen", "a", true));
+      const jaliPane = store.get().fullScreen;
+      // Agreeing: the browser shows the pane Jali has on the whole screen, or neither has one.
+      expect(fs.el).toBe(jaliPane ? store.dom.pane(jaliPane) : null);
+      // Exit, if anything is still on the whole screen, leaves both.
+      if (jaliPane) act(() => void made.jali.actions.toggleFullScreen());
+      expect(store.get().fullScreen).toBeUndefined();
+      expect(fs.el).toBeNull();
+    } finally {
+      restore();
+    }
+  });
+
+  it("a host element on the whole screen after B is the host's: A's Full screen never replaces it", () => {
+    const { fs, restore } = stubFullscreen();
+    try {
+      const { jali, store } = two();
+      act(() => void jali.actions.toggleFullScreen("b"));
+      const host = document.createElement("div");
+      document.body.append(host);
+      act(() => void host.requestFullscreen());
+      expect(fs.el).toBe(host);
+      act(() => void store.run("setFullScreen", "a", true));
+      expect(fs.el).toBe(host);
+      expect(fs.asked.at(-1)).toBe(host);
+      host.remove();
+    } finally {
+      restore();
     }
   });
 });
