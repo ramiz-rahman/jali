@@ -208,7 +208,7 @@ export const clock = definePane("clock", {
 
 Many panes can show the same object at once: a ticket in a list, in a detail and in a peek. Read data through the app's one shared cache (TanStack Query, SWR, your own store), keyed by the object's id, so every pane showing it updates together after an edit. Don't fetch in a pane around that cache.
 
-With TanStack Query, pass `enabled: !paused` (or `subscribed: !paused`) so hidden panes stop fetching.
+With TanStack Query, pass `enabled: !paused` so hidden panes stop fetching, and leave `subscribed` on, so they still hear what other panes fetch for the same query.
 
 ### 10. Theme Jali with its tokens, not with Tailwind inside it
 

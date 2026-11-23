@@ -290,7 +290,7 @@ function OrderStatus() {
 }
 ```
 
-With TanStack Query, pass `enabled: !paused` or `subscribed: !paused`.
+With TanStack Query, pass `enabled: !paused`, and leave `subscribed` on. The hidden pane then fetches nothing, but still hears answers other panes fetch for the same query, so it shows them the moment it comes back, with no fetch and no loading state. Turning `subscribed` off too would leave it on whatever it last saw: a pane that shares a query with something on screen could come back "loading" for a read that finished long ago.
 
 Some work is meant to go on while nobody looks at it: a recording, a stream, music playing. Keep that going while `paused`, stop only what draws it (meters, a moving playhead), and report `useActivity("live")`, so the pane's tab, the shelf and the "N folded" chip show that it is still running.
 
