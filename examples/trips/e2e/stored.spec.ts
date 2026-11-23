@@ -4,6 +4,7 @@
  * hostile storage, loads the app and uses it, and fails on any uncaught error.
  */
 import { expect, test, type Page } from "@playwright/test";
+import { cancelledByLeaving } from "../../shared/e2e/quality";
 
 const PLAN = "trips:plan:v2";
 const PANE_STATE = "trips-thailand:pane-state@2";
@@ -12,12 +13,15 @@ const pane = (page: Page, id: string) => page.locator(`.jali-pane[data-pane="${i
 const layout = (page: Page, name: string) =>
   page.getByRole("navigation", { name: "Layouts" }).getByRole("button", { name });
 
-/** Errors thrown on the page or written to its console, from now on. */
+/** Errors thrown on the page or written to its console, from now on (not WebKit's word on loads a reload cancels). */
 function errors(page: Page): string[] {
   const seen: string[] = [];
-  page.on("pageerror", (e) => seen.push(e.message));
+  const cancelled = cancelledByLeaving(page);
+  page.on("pageerror", (e) => {
+    if (!cancelled(e.message)) seen.push(e.message);
+  });
   page.on("console", (m) => {
-    if (m.type() === "error") seen.push(m.text());
+    if (m.type() === "error" && !cancelled(m.text())) seen.push(m.text());
   });
   return seen;
 }

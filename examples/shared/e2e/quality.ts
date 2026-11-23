@@ -28,12 +28,33 @@ interface QualityOptions {
   consoleAllow: RegExp | null;
 }
 
+/** WebKit's words for a load the page being left never finished: a fetch, a lazy module, MapLibre's worker. */
+const CANCELLED =
+  /due to access control checks\.$|^Importing a module script failed\.$|^Error: Worker failed to load\./;
+
+/**
+ * Whether a console message is WebKit's word on a load a navigation cancelled: a reload or a `goto` leaving a page
+ * still fetching, or still starting a worker or a lazy module. Chrome drops these silently; WebKit writes each as an
+ * error. They are the browser's, not the app's, so a console check passes them over: only these messages, and only
+ * while the page is being left (from its navigation's request to the next page's DOMContentLoaded). The same message
+ * at any other time still fails.
+ */
+export function cancelledByLeaving(page: Page): (text: string) => boolean {
+  let leaving = false;
+  page.on("request", (r) => {
+    if (r.isNavigationRequest() && r.frame() === page.mainFrame()) leaving = true;
+  });
+  page.on("domcontentloaded", () => (leaving = false));
+  return (text) => leaving && CANCELLED.test(text);
+}
+
 export const test = base.extend<QualityOptions & { consoleGuard: void }>({
   consoleAllow: [null, { option: true }],
   consoleGuard: [
     async ({ page, consoleAllow }, use, info) => {
       const heard: string[] = [];
-      const allowed = (text: string) => !!consoleAllow?.test(text);
+      const cancelled = cancelledByLeaving(page);
+      const allowed = (text: string) => cancelled(text) || !!consoleAllow?.test(text);
       page.on("console", (m) => {
         const type = m.type();
         if ((type === "error" || type === "warning") && !allowed(m.text()))
