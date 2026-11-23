@@ -4,7 +4,7 @@
  * this (`<ExampleApp id>`), so do its Markdown copies, and the public site's check opens every link
  * (e2e/site/showcase.spec.ts). The apps themselves are built by tooling/build-site.mjs, whose HOSTED list must match.
  */
-import { REPO_BRANCH, REPO_URL } from "../site/config";
+import { REPO_BRANCH, REPO_URL } from "../site/config.ts";
 
 export interface Shows {
   /** What it shows, as a short phrase ("A list and the detail that follows it"). */

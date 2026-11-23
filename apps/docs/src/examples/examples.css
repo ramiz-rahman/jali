@@ -106,76 +106,78 @@
   }
 }
 
-/* The home page's grid of apps (ExampleGrid). */
+/* The home page's apps (ExampleShowcase): a tab per app over one large screenshot. */
 @layer docs {
-  /* Doubled, to win over the prose list's indent. */
-  .example-grid.example-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 20px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
+  .showcase > .tab-strip {
+    margin: 0 0 16px -10px;
+    gap: 4px;
   }
-  .example-grid.example-grid > li {
-    margin: 0;
-    padding: 0;
+  .showcase .tab {
+    height: 44px;
+    font-size: 15px;
   }
-  .example-tile {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    height: 100%;
-    color: inherit;
-    text-decoration: none;
-  }
-  .example-tile-shot {
+  .showcase-shot {
     display: block;
     overflow: hidden;
-    margin-bottom: 8px;
     border: 1px solid var(--jali-border);
-    border-radius: var(--d-radius);
+    border-radius: 12px;
     background: var(--jali-canvas);
-    transition:
-      border-color 0.15s,
-      box-shadow 0.2s var(--d-ease),
-      transform 0.2s var(--d-ease);
+    box-shadow:
+      0 1px 2px rgb(0 0 0 / 0.04),
+      0 24px 48px -24px rgb(0 0 0 / 0.18);
+    transition: border-color 0.15s;
   }
-  .example-tile-shot img {
+  .showcase-shot:hover {
+    border-color: var(--jali-border-strong);
+  }
+  .showcase-shot img {
     display: block;
     width: 100%;
     height: auto;
     aspect-ratio: 1440 / 900;
   }
-  :root[data-theme="dark"] .example-tile-shot img[data-shot="light"],
-  :root:not([data-theme="dark"]) .example-tile-shot img[data-shot="dark"] {
+  :root[data-theme="dark"] .showcase-shot img[data-shot="light"],
+  :root:not([data-theme="dark"]) .showcase-shot img[data-shot="dark"] {
     display: none;
   }
-  .example-tile:hover .example-tile-shot {
-    border-color: var(--jali-border-strong);
-    box-shadow: 0 6px 24px rgb(0 0 0 / 0.08);
-    transform: translateY(-2px);
+  .showcase-panel:not([hidden]) {
+    animation: showcase-in 0.25s var(--d-ease);
   }
-  .example-tile-name {
-    font: 600 16px/24px var(--d-font-display);
-    color: var(--jali-text);
-  }
-  .example-tile:hover .example-tile-name {
-    color: var(--jali-accent);
-  }
-  .example-tile-text {
-    font-size: 14.5px;
-    line-height: 22px;
-    color: var(--jali-text-muted);
-  }
-  @media (max-width: 900px) {
-    .example-grid.example-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+  @keyframes showcase-in {
+    from {
+      opacity: 0;
     }
   }
-  @media (max-width: 560px) {
-    .example-grid.example-grid {
-      grid-template-columns: 1fr;
+  @media (prefers-reduced-motion: reduce) {
+    .showcase-panel:not([hidden]) {
+      animation: none;
+    }
+  }
+  .showcase-caption {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px 32px;
+    margin-top: 20px;
+  }
+  .prose .showcase-summary {
+    margin: 0;
+    max-width: 38rem;
+    font-size: 1.0625rem;
+    line-height: 1.75rem;
+    color: var(--jali-text-muted);
+  }
+  .showcase-actions {
+    display: flex;
+    flex: none;
+    gap: 10px;
+  }
+  @media (max-width: 720px) {
+    .showcase-caption {
+      flex-direction: column;
+    }
+    .showcase-actions {
+      flex-wrap: wrap;
     }
   }
 }

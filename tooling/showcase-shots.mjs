@@ -1,7 +1,8 @@
 /**
  * The Examples page's screenshots: each hosted app at its first showcase link (apps/docs/src/examples/data.ts), at
- * 1440 × 900, in light and in dark, saved as WebP in apps/docs/public/media/examples/<id>-<theme>.webp. An app that
- * opens dark whatever the system says (`opens: "dark"`) has one, <id>-light.webp. Run it again when an app's look
+ * 1440 × 900 with twice the pixels (sharp on a high-density screen), in light and in dark, saved as WebP in
+ * apps/docs/public/media/examples/<id>-<theme>.webp. An app that opens dark whatever the system says
+ * (`opens: "dark"`) has one, <id>-light.webp. Run it again when an app's look
  * changes; the files are committed.
  *
  *   node tooling/showcase-shots.mjs     (builds the site first; SITE_BUILT=1 uses the site/ already there)
@@ -31,7 +32,7 @@ try {
   for (const theme of ["light", "dark"]) {
     const context = await browser.newContext({
       viewport: { width: 1440, height: 900 },
-      deviceScaleFactor: 1,
+      deviceScaleFactor: 2,
       colorScheme: theme,
       reducedMotion: "reduce",
     });
@@ -45,7 +46,7 @@ try {
       await page.waitForTimeout(2500);
       const png = join(out, `${app.id}-${theme}.png`);
       await page.screenshot({ path: png });
-      execFileSync("cwebp", ["-quiet", "-q", "82", png, "-o", png.replace(/\.png$/, ".webp")]);
+      execFileSync("cwebp", ["-quiet", "-q", "78", png, "-o", png.replace(/\.png$/, ".webp")]);
       rmSync(png);
       console.log(`showcase-shots: ${app.id} (${theme})`);
       await page.close();

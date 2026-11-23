@@ -31,7 +31,7 @@ const keys = (id: string, platform: "mac" | "other") => {
 
 export const MARKDOWN_TABLES: Record<string, (attrs: Record<string, string | true>) => string> = {
   ExampleApp: (a) => exampleMarkdown(String(a.id)),
-  ExampleGrid: () => exampleListMarkdown(),
+  ExampleShowcase: () => exampleListMarkdown(),
   PartsTable: (a) =>
     table(
       ["Part", "Element", "What it is", "State attributes"],

@@ -7,6 +7,7 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { ArrowRightIcon, ArrowUpRightIcon, GithubLogoIcon } from "@phosphor-icons/react";
 import { Fragment, type ReactNode } from "react";
+import { TabSet } from "../shell/mdx";
 import { EXAMPLES, appPath, appOf, sourceUrl } from "./data";
 
 const PUBLIC = [join(process.cwd(), "public"), join(process.cwd(), "apps/docs/public")].find(
@@ -97,19 +98,25 @@ export function ExampleApp({ id }: { id: string }) {
   );
 }
 
-/** The six apps as a grid of screenshots, for the home page: each opens its part of the Examples page. */
-export function ExampleGrid() {
+/**
+ * The six apps on the home page: a tab per app over one large screenshot, and under it what the app is, Open and its
+ * part of the Examples page. The site's tabs (enhance.ts) switch them, so it needs no React in the browser.
+ */
+export function ExampleShowcase() {
   return (
-    <ul className="example-grid" aria-label="Example apps">
-      {EXAMPLES.map((app) => {
+    <TabSet
+      label="Example apps"
+      tabs={EXAMPLES.map((app) => {
         const both = app.opens !== "dark" && hasShot(shot(app.id, "dark"));
-        return (
-          <li key={app.id}>
-            <a className="example-tile" href={`/examples#${app.id}`}>
-              <span className="example-tile-shot">
+        const open = appPath(app.id, app.shows[0].link);
+        return {
+          label: app.name,
+          panel: (
+            <>
+              <a className="showcase-shot" href={open} aria-label={`Open ${app.name}`}>
                 <img
                   src={shot(app.id, "light")}
-                  alt=""
+                  alt={`${app.name}, running`}
                   width={1440}
                   height={900}
                   loading="lazy"
@@ -119,7 +126,7 @@ export function ExampleGrid() {
                 {both ? (
                   <img
                     src={shot(app.id, "dark")}
-                    alt=""
+                    alt={`${app.name}, running`}
                     width={1440}
                     height={900}
                     loading="lazy"
@@ -127,13 +134,30 @@ export function ExampleGrid() {
                     data-shot="dark"
                   />
                 ) : null}
-              </span>
-              <span className="example-tile-name">{app.name}</span>
-              <span className="example-tile-text">{app.summary}</span>
-            </a>
-          </li>
-        );
+              </a>
+              <div className="showcase-caption">
+                <p className="showcase-summary">{app.summary}</p>
+                <div className="showcase-actions">
+                  <a className="button button-primary" href={open}>
+                    Open {app.name}
+                    <ArrowRightIcon aria-hidden size={16} weight="bold" />
+                  </a>
+                  <a className="button button-quiet" href={`/examples#${app.id}`}>
+                    What it shows
+                  </a>
+                </div>
+              </div>
+            </>
+          ),
+        };
       })}
-    </ul>
+      panelClass="showcase-panel"
+      render={(strip, panels) => (
+        <div className="showcase" data-tabs="">
+          {strip}
+          {panels}
+        </div>
+      )}
+    />
   );
 }
