@@ -42,7 +42,7 @@ Give the root element a height, and name the CSS layers once (`@layer base, jali
 
 - **Docs:** [jali.ramizrahman.com](https://jali.ramizrahman.com): [Installation](https://jali.ramizrahman.com/get-started/installation), [Key concepts](https://jali.ramizrahman.com/get-started/key-concepts), [Why Jali](https://jali.ramizrahman.com/get-started/why-jali), [Reference](https://jali.ramizrahman.com/reference/core).
 - **For coding agents:** the docs ship inside the package, `node_modules/jali/docs/`, and as [llms.txt](https://jali.ramizrahman.com/llms.txt). The agent skill is [`skills/jali`](skills/jali/SKILL.md).
-- **Examples:** five apps in [`examples/`](examples): [Data Studio](examples/data-studio), [Loan review](examples/loan-review), [Markets](examples/markets), [Studio](examples/studio) and [Trips](examples/trips). Run one with `pnpm install` and `pnpm data-studio`.
+- **Examples:** six apps in [`examples/`](examples), each [running on the site](https://jali.ramizrahman.com/examples): [Data Studio](examples/data-studio), [Loan review](examples/loan-review), [Markets](examples/markets), [Studio](examples/studio), [Trips](examples/trips) and [Handshake](examples/handshake). Run one with `pnpm install` and `pnpm data-studio`.
 - **The package:** [`packages/jali`](packages/jali) is the one published package, `jali`.
 - **Working on Jali:** [CONTRIBUTING.md](CONTRIBUTING.md) (setup, checks, practice) and [ARCHITECTURE.md](ARCHITECTURE.md) (how it is built). The product brief is [docs/BRIEF.md](docs/BRIEF.md), and every decision is in [docs/DECISIONS.md](docs/DECISIONS.md).
 

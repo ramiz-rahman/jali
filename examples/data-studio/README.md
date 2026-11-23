@@ -1,6 +1,6 @@
 # Data Studio: a Jali example
 
-A database browser where the person builds the layout: a catalog of tables, tables, records, related records, an audit log, a table's structure, an entity diagram, SQL queries and charts of their results, each in a pane. The database is a sample of shop orders and microloans that runs in the browser (PGlite), with no backend.
+A database browser where the person builds the layout: a catalog of tables, tables, records, related records, an audit log, a table's structure, an entity diagram, SQL queries and charts of their results, each in a pane. The database is a sample of shop orders and a home-lending book that runs in the browser (PGlite), with no backend.
 
 ```sh
 vp install                   # at the repository's root

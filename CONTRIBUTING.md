@@ -13,17 +13,17 @@ pnpm data-studio      # an example app, on :5300
 
 The repo is a pnpm workspace:
 
-| Folder           | What it is                                                                                                                                               |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `packages/jali`  | `jali`, the one published package. Its entries re-export the two below; `vp pack` bundles them.                                                          |
-| `packages/core`  | `@jali/core` (private): the framework-free core.                                                                                                         |
-| `packages/react` | `@jali/react` (private): the React adapter, its parts and styles.                                                                                        |
-| `apps/docs`      | The docs site (Astro): `pnpm --filter @jali/docs dev`, on :5400. See [apps/docs/AGENTS.md](apps/docs/AGENTS.md).                                         |
-| `examples/`      | Five example apps, plus `minimal` (the Quickstart's app) and `own-icons` (a size check). Held to [docs/EXAMPLES-STANDARD.md](docs/EXAMPLES-STANDARD.md). |
-| `e2e/`           | Jali's browser tests, against Data Studio and Loan review.                                                                                               |
-| `tooling/`       | The checks and generators: `verify`, `size`, `docs-check`, `agent-docs`, `pack-check`, `public-types`, `consumers`, `icons`, the React 18 check.         |
-| `skills/jali`    | The skill a coding agent loads to build with Jali.                                                                                                       |
-| `docs/`          | The product brief, the decisions, the API review, the migration notes, and dated reviews.                                                                |
+| Folder           | What it is                                                                                                                                              |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `packages/jali`  | `jali`, the one published package. Its entries re-export the two below; `vp pack` bundles them.                                                         |
+| `packages/core`  | `@jali/core` (private): the framework-free core.                                                                                                        |
+| `packages/react` | `@jali/react` (private): the React adapter, its parts and styles.                                                                                       |
+| `apps/docs`      | The docs site (Astro): `pnpm --filter @jali/docs dev`, on :5400. See [apps/docs/AGENTS.md](apps/docs/AGENTS.md).                                        |
+| `examples/`      | Six example apps, plus `minimal` (the Quickstart's app) and `own-icons` (a size check). Held to [docs/EXAMPLES-STANDARD.md](docs/EXAMPLES-STANDARD.md). |
+| `e2e/`           | Jali's browser tests, against Data Studio and Loan review.                                                                                              |
+| `tooling/`       | The checks and generators: `verify`, `size`, `docs-check`, `agent-docs`, `pack-check`, `public-types`, `consumers`, `icons`, the React 18 check.        |
+| `skills/jali`    | The skill a coding agent loads to build with Jali.                                                                                                      |
+| `docs/`          | The product brief, the decisions, the API review, the migration notes, and dated reviews.                                                               |
 
 | App             | Start it           | Port |
 | --------------- | ------------------ | ---- |
