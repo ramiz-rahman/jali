@@ -16,7 +16,7 @@
     padding: 2rem 0 2.25rem;
   }
   :root .ref-entry[data-compact] .ref-entry-grid {
-    grid-template-areas: "head" "body";
+    grid-template-areas: "head" "aside" "body";
     padding: 1.5rem 0 1.75rem;
   }
   :root .ref-entry-head {
