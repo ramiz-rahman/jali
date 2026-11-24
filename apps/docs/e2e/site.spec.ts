@@ -198,6 +198,36 @@ test("the quickstart starts on note 1; its button opens note 2, and again lights
   await expect(notes.nth(1)).toHaveClass(/is-flash/);
 });
 
+test("search closes on Esc, and opens again at the top with its heading in sight", async ({
+  page,
+}) => {
+  await page.goto("/get-started/introduction");
+  const dialog = page.getByRole("dialog", { name: "Search the docs" });
+  await page.keyboard.press("ControlOrMeta+k");
+  await expect(dialog).toBeVisible();
+  await expect(page.getByRole("combobox", { name: "Search the docs" })).toBeFocused();
+  // Down the list, so it scrolls.
+  for (let i = 0; i < 12; i++) await page.keyboard.press("ArrowDown");
+  await expect
+    .poll(() => page.locator("#search-results").evaluate((el) => el.scrollTop))
+    .toBeGreaterThan(0);
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+  // Esc from somewhere else inside it closes it too.
+  await page.keyboard.press("ControlOrMeta+k");
+  await expect(dialog).toBeVisible();
+  expect(await page.locator("#search-results").evaluate((el) => el.scrollTop)).toBe(0);
+  // The heading is inside the list's visible box (geometry, not toBeInViewport, which misreads a modal dialog).
+  await expect(page.locator(".search-group")).toBeVisible();
+  const heading = (await page.locator(".search-group").boundingBox())!;
+  const shown = (await page.locator("#search-results").boundingBox())!;
+  expect(heading.y).toBeGreaterThanOrEqual(shown.y);
+  expect(heading.y + heading.height).toBeLessThanOrEqual(shown.y + shown.height);
+  await page.locator(".search-foot").click();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+});
+
 test("copy buttons copy the code as written", async ({ page }) => {
   // What the buttons write, captured as it is written: WebKit lets a click write the clipboard but has no permission
   // to grant for a script to read it back.
@@ -223,7 +253,7 @@ test("copy buttons copy the code as written", async ({ page }) => {
   await block.getByRole("button", { name: "Copy code" }).click();
   await expect(block.getByRole("button", { name: "Copied" })).toBeVisible();
   const text = (await copied()).at(-1)!;
-  expect(text).toContain('import { createJali, row } from "jali";');
+  expect(text).toContain('import { createJali } from "jali";');
   expect(text).not.toContain("​");
 
   await page.getByRole("button", { name: "Copy page" }).click();

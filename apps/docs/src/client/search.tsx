@@ -78,6 +78,7 @@ const ICON = { page: FileTextIcon, heading: HashIcon, entry: BracketsCurlyIcon }
 function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const ref = useRef<HTMLDialogElement>(null);
   const input = useRef<HTMLInputElement>(null);
+  const list = useRef<HTMLUListElement>(null);
   const [data, setData] = useState<SearchIndex | null>(null);
   const [failed, setFailed] = useState(false);
   const [q, setQ] = useState("");
@@ -94,13 +95,17 @@ function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void })
       d.showModal();
       setQ("");
       setActive(0);
+      // Each opening starts at the top, the "Pages" heading in sight, not where the last search was scrolled to.
+      if (list.current) list.current.scrollTop = 0;
       input.current?.focus();
     }
     if (!open && d.open) d.close();
   }, [open]);
   useEffect(() => setActive(0), [q]);
   useEffect(() => {
-    document.getElementById(`search-hit-${active}`)?.scrollIntoView({ block: "nearest" });
+    // Back on the first result, the list goes to its very top, so the heading above it shows too.
+    if (active === 0) list.current?.scrollTo({ top: 0 });
+    else document.getElementById(`search-hit-${active}`)?.scrollIntoView({ block: "nearest" });
   }, [active]);
 
   const go = (h: Hit | undefined) => {
@@ -126,7 +131,18 @@ function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void })
       ref={ref}
       className="search-dialog"
       aria-label="Search the docs"
-      onClose={onClose}
+      // The browser's close event comes a moment after the close: one from an earlier close can arrive after a quick
+      // reopen, and must not shut the dialog that is open now.
+      onClose={() => {
+        if (!ref.current?.open) onClose();
+      }}
+      // Esc closes it from anywhere inside, by the dialog's own hand: the browser's built-in close on Esc can be
+      // cancelled by another listener on the page or an extension, and then nothing would happen.
+      onKeyDown={(e) => {
+        if (e.key !== "Escape") return;
+        e.preventDefault();
+        onClose();
+      }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -154,6 +170,7 @@ function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void })
           </kbd>
         </div>
         <ul
+          ref={list}
           id="search-results"
           className="search-results"
           role="listbox"
