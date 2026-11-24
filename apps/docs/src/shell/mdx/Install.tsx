@@ -80,7 +80,8 @@ export function Install({ packages }: { packages: string }) {
           data-choice-panel={m.label}
           hidden={m.label !== first}
         >
-          <CodeBody code={`${m.cmd} ${packages}`} lang="sh" numbers={false} />
+          {/* Plain text, not highlighted: one quiet line, the command as it is typed. */}
+          <CodeBody code={`${m.cmd} ${packages}`} lang="text" numbers={false} />
         </div>
       ))}
       <CopyButton label="Copy command" />

@@ -234,41 +234,58 @@
     border-radius: 8px;
   }
 
-  /* ---------- the install line: package manager, command, copy ---------- */
+  /*
+   * ---------- the install line: package manager, command, copy ----------
+   * One surface, framed as a pane in its workspace: a hairline border, and inside it, a little in, the panel that holds
+   * the line. The package manager is a quiet label at its start (it opens the menu), the command is plain text, and
+   * Copy stands at the end.
+   */
   .code.install {
+    isolation: isolate;
     display: flex;
     align-items: center;
-    height: 48px;
-    padding: 0 6px 0 0;
-  }
-  /* The menu opens below the line, so the line doesn't clip it. */
-  .code.install {
+    height: 54px;
+    padding: 0 10px 0 5px;
+    border-radius: calc(var(--d-radius) + 4px);
+    background: var(--d-ground);
+    /* The menu opens below the line, so the line doesn't clip it. */
     overflow: visible;
   }
+  .code.install::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: 4px;
+    border: 1px solid color-mix(in srgb, var(--jali-text) 7%, transparent);
+    border-radius: var(--d-radius);
+    background: var(--d-code-bg);
+  }
+  /* The menu is placed against the whole line (the figure), not the label. */
   .install-pm {
-    position: relative;
     flex: none;
-    align-self: stretch;
-    border-right: 1px solid var(--jali-border);
   }
   .install-trigger {
     display: flex;
     align-items: center;
-    gap: 8px;
-    height: 100%;
-    padding: 0 12px 0 16px;
-    border-radius: calc(var(--d-radius) - 1px) 0 0 calc(var(--d-radius) - 1px);
+    gap: 7px;
+    height: 34px;
+    margin-left: 4px;
+    padding: 0 8px 0 10px;
+    border-radius: 8px;
     font: 500 13px/1 var(--d-font-mono);
-    color: var(--jali-text);
-    transition: background-color 0.15s;
+    color: var(--jali-text-muted);
+    transition:
+      background-color 0.15s,
+      color 0.15s;
   }
   .install-trigger:hover,
   .install-trigger[aria-expanded="true"] {
-    background: var(--jali-hover);
+    background: color-mix(in srgb, var(--jali-text) 6%, transparent);
+    color: var(--jali-text);
   }
   .install-trigger:focus-visible {
     outline: 2px solid var(--jali-accent);
-    outline-offset: -2px;
+    outline-offset: 0;
   }
   .install-current {
     display: inline-flex;
@@ -279,12 +296,20 @@
     display: none;
   }
   .install-caret {
-    margin-left: 2px;
     color: var(--jali-text-subtle);
     transition: transform 0.2s var(--d-ease);
   }
   .install-trigger[aria-expanded="true"] .install-caret {
     transform: rotate(180deg);
+  }
+  /* The manager's mark stays in the background until the label is pointed at: the line's words lead. */
+  .install-trigger .pm-mark {
+    color: var(--jali-text-subtle);
+    transition: color 0.15s;
+  }
+  .install-trigger:hover .pm-mark,
+  .install-trigger[aria-expanded="true"] .pm-mark {
+    color: var(--jali-text);
   }
   .pm-mark {
     flex: none;
@@ -294,8 +319,8 @@
   .install-menu.install-menu {
     position: absolute;
     z-index: 30;
-    top: calc(100% + 8px);
-    left: -1px;
+    top: calc(100% + 6px);
+    left: 0;
     min-width: 176px;
     margin: 0;
     padding: 5px;
@@ -364,15 +389,16 @@
   .install .code-pre {
     padding: 0;
     font-size: 14px;
-    line-height: 46px;
+    line-height: 44px;
+    color: var(--jali-text);
     scrollbar-width: none;
   }
   .install .code-pre:focus-visible {
-    outline-offset: -6px;
+    outline-offset: -4px;
     border-radius: 8px;
   }
   .install .code-line {
-    padding: 0 16px;
+    padding: 0 12px 0 20px;
   }
   .install .code-line:first-child .code-text {
     padding-right: 0;
