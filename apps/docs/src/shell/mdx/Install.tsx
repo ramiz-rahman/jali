@@ -15,7 +15,7 @@ export const MANAGERS = [
   { label: "pnpm", cmd: "pnpm add" },
   { label: "yarn", cmd: "yarn add" },
   { label: "bun", cmd: "bun add" },
-  { label: "vp", cmd: "vp install" },
+  { label: "vp", cmd: "vp add" },
 ] as const;
 
 export function Install({ packages }: { packages: string }) {

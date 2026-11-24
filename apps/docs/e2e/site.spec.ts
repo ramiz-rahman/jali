@@ -63,12 +63,12 @@ test("the install line: the menu picks the package manager, from the pointer or 
   await expect(menu.getByRole("option", { name: "pnpm" })).toHaveAttribute("data-active", "");
   await page.keyboard.press("End");
   await page.keyboard.press("Enter");
-  await expect(command).toHaveText("vp install jali");
+  await expect(command).toHaveText("vp add jali");
   await page.keyboard.press("Enter");
   await page.keyboard.press("y");
   await page.keyboard.press("Escape");
   await expect(menu).toBeHidden();
-  await expect(command).toHaveText("vp install jali");
+  await expect(command).toHaveText("vp add jali");
 
   // A click elsewhere closes it.
   await install.getByRole("button", { name: "Package manager: vp" }).click();
@@ -78,7 +78,7 @@ test("the install line: the menu picks the package manager, from the pointer or 
   await page.goto("/");
   const hero = page.locator("figure.install").first();
   await expect(hero.getByRole("button", { name: "Package manager: vp" })).toBeVisible();
-  await expect(hero.locator(".install-command:visible")).toHaveText("vp install jali");
+  await expect(hero.locator(".install-command:visible")).toHaveText("vp add jali");
 });
 
 test("the landing takes the page's width at every window width, with nothing past the edge", async ({
