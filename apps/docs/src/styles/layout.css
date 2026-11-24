@@ -295,17 +295,42 @@
     border-radius: 6px;
   }
 
+  /* Folded, it stays under the top bar as the page scrolls, naming the section being read. */
   .toc-disclosure {
     display: none;
+    position: sticky;
+    top: calc(var(--d-topbar) + 8px);
+    z-index: 30;
     margin: -12px 0 32px;
     border: 1px solid var(--jali-border);
     border-radius: var(--d-radius);
     background: var(--jali-surface);
+    /* A band of the page's ground around it, so the page scrolls under a clean edge, not up against the bar. */
+    box-shadow: 0 0 0 8px var(--d-ground);
+  }
+  .toc-disclosure[open] {
+    border-radius: var(--d-radius) var(--d-radius) 0 0;
+  }
+  .toc-disclosure-panel {
+    position: absolute;
+    top: 100%;
+    left: -1px;
+    right: -1px;
+    max-height: min(60vh, 32rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 4px 16px 14px;
+    border: 1px solid var(--jali-border);
+    border-top: 0;
+    border-radius: 0 0 var(--d-radius) var(--d-radius);
+    background: var(--jali-surface);
+    box-shadow: var(--jali-shadow-menu);
+    scrollbar-width: thin;
   }
   .toc-disclosure summary {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 10px;
     padding: 10px 16px;
     cursor: pointer;
     list-style: none;
@@ -316,8 +341,31 @@
   .toc-disclosure summary::-webkit-details-marker {
     display: none;
   }
+  /* The bar sits in the room the page keeps clear for the top bars (scroll-padding-top), so it counts as in view there:
+     focusing it scrolls nothing. */
+  .toc-disclosure :is(summary, a) {
+    scroll-margin-top: calc(-1 * (var(--d-topbar) + 24px + var(--d-toc-bar, 0px)));
+  }
+  .toc-disclosure-label {
+    flex: none;
+  }
+  .toc-disclosure-current {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--jali-text);
+  }
+  .toc-disclosure-current:not(:empty)::before {
+    content: "·";
+    margin-right: 10px;
+    color: var(--jali-text-faint);
+  }
   .toc-disclosure summary::after {
     content: "";
+    flex: none;
+    margin-left: auto;
     width: 7px;
     height: 7px;
     margin-right: 4px;
@@ -330,7 +378,16 @@
     transform: rotate(-135deg) translateY(-2px);
   }
   .toc-disclosure .toc-list {
-    margin: 0 16px 14px;
+    margin: 0;
+  }
+  /* A heading the reader jumps to lands below the bar as well as the top bar. */
+  :root:has(.layout[data-wide] .toc-disclosure) {
+    --d-toc-bar: 56px;
+  }
+  @media (max-width: 1023px) {
+    :root:has(.toc-disclosure) {
+      --d-toc-bar: 56px;
+    }
   }
 
   /* ---------- drawer (phone nav) ---------- */
