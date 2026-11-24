@@ -154,6 +154,6 @@
     border-radius: 5px;
     background: var(--d-ground);
     color: var(--jali-text-subtle);
-    font: 500 11.5px/1 var(--d-font-mono);
+    font: 500 12px/1 var(--d-font-mono);
   }
 }

@@ -33,8 +33,8 @@
   }
   .example-summary {
     margin: 18px 0 0;
-    font-size: 17px;
-    line-height: 27px;
+    font-size: 18px;
+    line-height: 30px;
     color: var(--jali-text);
   }
   .example-actions {
@@ -97,7 +97,7 @@
   .example-data,
   .example-run {
     margin: 18px 0 0;
-    font-size: 14.5px;
+    font-size: 14px;
     line-height: 22px;
     color: var(--jali-text-subtle);
   }
@@ -163,8 +163,8 @@
   .prose .showcase-summary {
     margin: 0;
     max-width: 38rem;
-    font-size: 1.0625rem;
-    line-height: 1.75rem;
+    font-size: 18px;
+    line-height: 30px;
     color: var(--jali-text-muted);
   }
   .showcase-actions {

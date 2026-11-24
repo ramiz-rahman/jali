@@ -12,15 +12,15 @@
     color: var(--jali-accent);
   }
   .page-title {
-    font: 600 2.375rem/2.875rem var(--d-font-display);
-    letter-spacing: -0.02em;
+    font: 600 36px/44px var(--d-font-display);
+    letter-spacing: -0.024em;
     color: var(--jali-text);
     text-wrap: balance;
   }
   .page-summary {
     margin-top: 12px;
-    font-size: 1.1875rem;
-    line-height: 1.875rem;
+    font-size: 20px;
+    line-height: 32px;
     color: var(--jali-text-muted);
     text-wrap: pretty;
   }
@@ -37,7 +37,7 @@
     height: 32px;
     padding: 0 10px;
     border-radius: 8px;
-    font-size: 13.5px;
+    font-size: 14px;
     font-weight: 500;
     color: var(--jali-text-subtle);
     transition:
@@ -59,6 +59,8 @@
   /* ---------- prose ---------- */
   .prose {
     color: var(--jali-text);
+    font-size: 16px;
+    line-height: 28px;
   }
   .prose > :first-child,
   .prose > .heading-wrap:first-child > .heading {
@@ -84,17 +86,17 @@
   }
   .prose h2 {
     margin: 56px 0 14px;
-    font: 400 1.5rem/2rem var(--d-font-display);
-    letter-spacing: -0.01em;
+    font: 600 24px/32px var(--d-font-display);
+    letter-spacing: -0.016em;
   }
   .prose h3 {
     margin: 36px 0 10px;
-    font: 600 1.125rem/1.75rem var(--d-font-display);
-    letter-spacing: -0.003em;
+    font: 600 20px/28px var(--d-font-display);
+    letter-spacing: -0.01em;
   }
   .prose h4 {
     margin: 28px 0 8px;
-    font: 600 1rem/1.625rem var(--d-font);
+    font: 600 16px/24px var(--d-font);
   }
   .prose .heading-wrap[data-level="2"] + .heading-wrap[data-level="3"] > h3 {
     margin-top: 20px;
@@ -209,13 +211,13 @@
   .prose table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 14.5px;
+    font-size: 14px;
     line-height: 22px;
   }
   .prose th {
     padding: 0 16px 10px 0;
     border-bottom: 1px solid var(--jali-border-strong);
-    font: 600 13px/18px var(--d-font);
+    font: 600 13px/20px var(--d-font);
     color: var(--jali-text-subtle);
     text-align: left;
     white-space: nowrap;
@@ -266,13 +268,14 @@
     align-items: center;
     gap: 6px;
     font-size: 13px;
-    line-height: 18px;
+    line-height: 20px;
     color: var(--jali-text-subtle);
   }
   .pager-title {
-    font: 500 17px/24px var(--d-font-display);
+    font: 600 18px/26px var(--d-font-display);
     color: var(--jali-text);
     transition: color 0.15s;
+    letter-spacing: -0.01em;
   }
   .pager-link:hover .pager-title {
     color: var(--jali-accent);
@@ -283,7 +286,7 @@
     margin-top: 28px;
     padding-top: 20px;
     border-top: 1px solid var(--jali-border);
-    font-size: 13.5px;
+    font-size: 13px;
     color: var(--jali-text-subtle);
   }
   .page-meta a {
@@ -302,7 +305,7 @@
     max-width: 52rem;
     margin: 0 auto;
     padding: 40px 24px 80px;
-    font: 14px/23px var(--d-font-mono);
+    font: 14px/22px var(--d-font-mono);
     color: var(--jali-text);
     white-space: pre-wrap;
     overflow-wrap: anywhere;
@@ -359,23 +362,23 @@
   }
   .not-found-hint {
     margin-top: 24px;
-    font-size: 14.5px;
+    font-size: 15px;
     color: var(--jali-text-subtle);
   }
 
   @media (max-width: 767px) {
     .page-title {
-      font-size: 2rem;
-      line-height: 2.5rem;
+      font-size: 30px;
+      line-height: 38px;
     }
     .page-summary {
-      font-size: 1.0625rem;
-      line-height: 1.75rem;
+      font-size: 18px;
+      line-height: 30px;
     }
     .prose h2 {
       margin-top: 48px;
-      font-size: 1.375rem;
-      line-height: 1.875rem;
+      font-size: 22px;
+      line-height: 30px;
     }
     /* No margin beside the text on a phone: the permalink shows just above its heading, and only on focus. */
     .heading-anchor {
