@@ -6,7 +6,7 @@
  * takes keys only when they are pressed inside it.
  */
 import { useId, useState, useSyncExternalStore } from "react";
-import { createJali, memoryLocation, memoryStorage, row, type Jali } from "jali";
+import { createJali, memoryLocation, memoryStorage, type Jali } from "jali";
 import { JaliRoot } from "jali/react";
 import { note } from "../../samples/concepts/quickstart/note-open-beside";
 import { demoKinds } from "../../live/kinds";
@@ -41,7 +41,7 @@ function makeApp(source: Source, id: string): LandingApp {
       ? createJali({
           ...embedded,
           panes: [note],
-          layout: row(note({ id: 1 }), note({ id: 2 })),
+          layout: note({ id: 1 }),
           name: "Notes",
           // Its landmarks are named for it, so another workspace on the page never repeats one.
           label: "Notes app",

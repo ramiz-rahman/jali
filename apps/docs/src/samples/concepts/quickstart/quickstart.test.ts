@@ -3,35 +3,41 @@
  * Not shown on the site.
  */
 import { describe, expect, it } from "vitest";
-import { row } from "jali";
 import { createTestJali } from "jali/testing";
 import { note } from "./note-open-beside";
 
-const start = () =>
-  createTestJali({ panes: [note], layout: row(note({ id: 1 }), note({ id: 2 })) }).jali;
+const start = () => createTestJali({ panes: [note], layout: note({ id: 1 }) }).jali;
 const notes = (jali: ReturnType<typeof start>) => jali.model().panes.map((p) => p.ref.params.id);
+const paneOf = (jali: ReturnType<typeof start>, id: number) =>
+  jali.model().panes.find((p) => p.ref.params.id === id)!.id;
 
 describe("the Quickstart", () => {
-  it("starts with notes 1 and 2 side by side", () => {
-    expect(notes(start())).toEqual([1, 2]);
+  it("starts with note 1", () => {
+    expect(notes(start())).toEqual([1]);
   });
 
-  it("opens note 3 beside note 2 from note 2's button, and focus stays in note 2", () => {
+  it("opens note 2 beside note 1 from note 1's button, and focus stays in note 1", () => {
     const jali = start();
-    const two = jali.model().panes.find((p) => p.ref.params.id === 2)!.id;
-    jali.actions.focus(two);
-    const opened = jali.actions.openBeside(two, note({ id: 3 }));
-    expect(opened.ok).toBe(true);
-    expect(notes(jali)).toEqual([1, 2, 3]);
-    expect(jali.get().view.focused).toBe(two);
+    const one = paneOf(jali, 1);
+    jali.actions.focus(one);
+    expect(jali.actions.openBeside(one, note({ id: 2 })).ok).toBe(true);
+    expect(notes(jali)).toEqual([1, 2]);
+    expect(jali.get().view.focused).toBe(one);
   });
 
   it("keeps opening the next note beside the newest", () => {
     const jali = start();
-    for (let id = 3; id <= 5; id++) {
-      const from = jali.model().panes.find((p) => p.ref.params.id === id - 1)!.id;
-      expect(jali.actions.openBeside(from, note({ id })).ok).toBe(true);
-    }
+    for (let id = 2; id <= 5; id++)
+      expect(jali.actions.openBeside(paneOf(jali, id - 1), note({ id })).ok).toBe(true);
     expect(notes(jali)).toEqual([1, 2, 3, 4, 5]);
+  });
+
+  it("never opens a note twice: note 1's button again shows the note 2 it opened", () => {
+    const jali = start();
+    const one = paneOf(jali, 1);
+    jali.actions.openBeside(one, note({ id: 2 }));
+    const again = jali.actions.openBeside(one, note({ id: 2 }));
+    expect(again).toEqual({ ok: true, pane: paneOf(jali, 2) });
+    expect(notes(jali)).toEqual([1, 2]);
   });
 });

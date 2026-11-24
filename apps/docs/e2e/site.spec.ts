@@ -178,6 +178,26 @@ test("with reduced motion, the folded chip's menu opens from the keys with focus
   await expect(notes.locator(`[role="tab"][data-tab="${shown}"]`)).toBeFocused();
 });
 
+test("the quickstart starts on note 1; its button opens note 2, and again lights note 2 up rather than copy it", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.locator("#quickstart").scrollIntoViewIfNeeded();
+  await expect(page.locator('[data-island="QuickstartApp"]')).toHaveAttribute("data-hydrated", "", {
+    timeout: 15_000,
+  });
+  const notes = page.locator(".landing-split section[data-pane]");
+  await expect(notes).toHaveCount(1);
+  const open = notes.first().getByRole("button", { name: "Open the next note beside" });
+  await open.click();
+  await expect(notes).toHaveCount(2);
+  await expect(notes.nth(1).getByRole("heading", { name: "Note 2", level: 3 })).toBeVisible();
+  // Again: no copy of note 2; that pane flashes instead.
+  await open.click();
+  await expect(notes).toHaveCount(2);
+  await expect(notes.nth(1)).toHaveClass(/is-flash/);
+});
+
 test("copy buttons copy the code as written", async ({ page }) => {
   // What the buttons write, captured as it is written: WebKit lets a click write the clipboard but has no permission
   // to grant for a script to read it back.

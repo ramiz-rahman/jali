@@ -1,8 +1,8 @@
 # Quickstart
 
-Build the smallest Jali app, two notes side by side, then open a third from a button.
+Build the smallest Jali app, a note whose button opens the next note beside it.
 
-This page builds a small app, one file at a time: two notes side by side, each with a button that opens the next note beside it. The finished app is [`examples/minimal`](https://github.com/ramiz-rahman/jali/tree/master/examples/minimal) in the repo, which adds a launcher and makes the panes the page's `<main>`.
+This page builds a small app, one file at a time: a note with a button that opens the next note beside it. The finished app is [`examples/minimal`](https://github.com/ramiz-rahman/jali/tree/master/examples/minimal) in the repo, which adds a launcher and makes the panes the page's `<main>`.
 
 You need Node and a React app. Start from a new one, or skip this step and use your own:
 
@@ -11,7 +11,7 @@ npm create vite@latest notes -- --template react-ts
 cd notes
 ```
 
-*Live demo on the site: What you are building, running: two notes side by side. Drag the line between them, or click a note's button to open the next note beside it.*
+*Live demo on the site: What you are building, running. Click a note's button to open the next note beside it, then drag the line between them.*
 
 ### Install Jali
 
@@ -57,18 +57,18 @@ export const note = definePane("note", {
 `jali.ts`
 
 ```tsx
-import { createJali, row } from "jali";
+import { createJali } from "jali";
 import { defaultFeatures } from "jali/features";
 import { note } from "./note";
 
 export const jali = createJali({
   panes: [note],
-  layout: row(note({ id: 1 }), note({ id: 2 })),
+  layout: note({ id: 1 }),
   features: defaultFeatures(),
 });
 ```
 
-`row(...)` puts panes side by side; `column(...)` puts them one above the other. These two share the width equally.
+The layout here is one pane, note 1. Several are written the same way: `row(note({ id: 1 }), note({ id: 2 }))` puts panes side by side, and `column(...)` one above the other. See [Lay out panes](../guides/layouts.md).
 
 `features` turns on what Jali does beyond laying out panes. `defaultFeatures()` is Jali's usual set: the layout in the address bar, the ⌘K palette, Settings and the chooser. Reload the page and the layout comes back; Back and Forward step through changes. If the address already holds a layout, that one opens instead. An app that wants less picks each feature from its own entry, and ships only those: see [Features](../reference/features.md).
 
@@ -128,7 +128,7 @@ Screen readers meet the panes as a region named "Panes", inside your page's own 
 
 The `@layer` line names the order of the layers once. Your resets go in a layer before `jali`; your own styles go after it, or outside any layer, and win without `!important`. With Tailwind, the line is `@layer theme, base, jali, components, utilities;`.
 
-Run the app. You see two notes side by side. Drag the line between them to resize. Press ⌘K (Ctrl+K on Windows and Linux) to see every command.
+Run the app. You see note 1, filling the window. Press ⌘K (Ctrl+K on Windows and Linux) to see every command.
 
 ### Open a pane beside
 
@@ -154,7 +154,9 @@ export const note = definePane("note", {
 });
 ```
 
-Click the button in note 2. Note 3 opens to its right, and focus stays in note 2, so you can keep working where you were.
+Click the button in note 1. Note 2 opens to its right, and focus stays in note 1, so you can keep working where you were. Drag the line between them to resize.
+
+Click note 1's button again. Note 2 is already beside it, so Jali opens no copy: it lights note 2 up for a moment and says "Already open". A link never opens a second copy of a pane it opened.
 
 Keep clicking the button in the newest note. Each click opens the next note beside the one you clicked in. When the panes no longer fit at their minimum width, some fold into tabs, and the note you are working in stays on screen. Widen the window and they come back. [How a layout fits](../learn/fitting.md) explains the order, and [Opening and linking](../learn/opening-and-linking.md) explains what `openBeside` does when a pane opens several links.
 

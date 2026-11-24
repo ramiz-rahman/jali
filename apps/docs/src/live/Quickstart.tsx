@@ -1,6 +1,6 @@
 /**
- * The quickstart's own app, running: the `note` kind with its "Open the next note beside" button and two notes in a
- * row, as the Quickstart page builds it (samples/concepts/quickstart). On the Quickstart page, as what the reader is
+ * The quickstart's own app, running: the `note` kind with its "Open the next note beside" button, starting from
+ * note 1, as the Quickstart page builds it (samples/concepts/quickstart). On the Quickstart page, as what the reader is
  * building, and on the landing, beside its code.
  */
 import { LandingWorkspace, useLandingApp } from "../shell/landing/NotesWorkspace";

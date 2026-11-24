@@ -9,7 +9,7 @@ Written from the docs site by tooling/agent-docs.mjs; don't edit these files.
 - [Introduction](get-started/introduction.md): What Jali is, the problem it solves, and when not to use it.
 - [Why Jali](get-started/why-jali.md): How Jali compares with dockview, FlexLayout, react-mosaic, Golden Layout and react-resizable-panels, and when one of them is the better choice.
 - [Installation](get-started/installation.md): Add Jali to a React app with Vite, Next.js or another bundler, render it on the server, and set up TypeScript.
-- [Quickstart](get-started/quickstart.md): Build the smallest Jali app, two notes side by side, then open a third from a button.
+- [Quickstart](get-started/quickstart.md): Build the smallest Jali app, a note whose button opens the next note beside it.
 - [Key concepts](get-started/key-concepts.md): Every word Jali uses, defined in a sentence or two, most with an example or a picture.
 - [Using Jali with coding agents](get-started/coding-agents.md): The rules a coding agent, or a person, should follow when adding Jali to an app.
 

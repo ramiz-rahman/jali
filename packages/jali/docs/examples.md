@@ -13,4 +13,4 @@ Each one is a whole app, not a demo of one feature, and each runs here in your b
 
 ## The smallest app
 
-`examples/minimal` is the app the [Quickstart](get-started/quickstart.md) builds: one kind of pane, a note, two of them side by side, and a button that opens the next note beside it. It is one file, `src/main.tsx`, with a few lines of CSS. Run it with `pnpm minimal` at the repository's root, then [localhost:5310](http://localhost:5310). Start there, then read [Define a pane kind](guides/pane-kinds.md) to add your own.
+`examples/minimal` is the app the [Quickstart](get-started/quickstart.md) builds: one kind of pane, a note, with a button that opens the next note beside it. It is one file, `src/main.tsx`, with a few lines of CSS. Run it with `pnpm minimal` at the repository's root, then [localhost:5310](http://localhost:5310). Start there, then read [Define a pane kind](guides/pane-kinds.md) to add your own.
