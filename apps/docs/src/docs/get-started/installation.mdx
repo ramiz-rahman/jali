@@ -111,7 +111,7 @@ Then `useJali().actions.openBeside` takes refs of your kinds only, and `jali.on(
 If your app gets Jali through `link:`, `file:` or `workspace:`, or from a symlinked checkout, two things can go wrong:
 
 - **Two copies of React.** Jali finds its own copy of React beside its source, the app bundles two, and hooks fail with "Invalid hook call". With Vite, add `resolve: { dedupe: ["react", "react-dom"] }` to `vite.config.ts`. With webpack, alias `react` and `react-dom` to your app's copy.
-- **A stale build.** A linked Jali resolves to its built files in `dist/`, which don't rebuild when its source changes. Rebuild it (`pnpm build:packages` in the Jali repo), or read its source: with Vite, add the `"source"` condition, `resolve: { conditions: ["source", ...defaultClientConditions] }`, and for Vitest also `ssr: { resolve: { conditions: ["source", ...defaultServerConditions] } }`. Both defaults come from `vite`.
+- **A stale build.** A linked Jali resolves to its built files in `dist/`, which don't rebuild when its source changes. Rebuild it with `pnpm build:packages` in the Jali repo. Or read its source: with Vite, add the `"source"` condition, `resolve: { conditions: ["source", ...defaultClientConditions] }`. For Vitest, also add `ssr: { resolve: { conditions: ["source", ...defaultServerConditions] } }`. Both defaults come from `vite`.
 
 ## Next
 

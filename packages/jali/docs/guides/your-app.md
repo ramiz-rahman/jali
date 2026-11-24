@@ -2,7 +2,12 @@
 
 Choose the features you ship, put your own chrome around the panes, run two instances on one page, and let an agent arrange panes.
 
-Jali fits into the app around it. Choose the [features](#choose-features) you ship and pay only for those, put your own top bar and status line [around the panes](#build-your-own-chrome), run [two instances](#two-instances-on-one-page) on one page, and let [an agent](#let-an-agent-arrange-panes) open panes within the limits you set.
+Jali fits into the app around it. This page shows how to:
+
+- [choose the features](#choose-features) you ship, and pay only for those;
+- put your own top bar and status line [around the panes](#build-your-own-chrome);
+- run [two instances](#two-instances-on-one-page) on one page;
+- let [an agent](#let-an-agent-arrange-panes) open panes within the limits you set.
 
 ## Choose features
 
@@ -307,7 +312,7 @@ Each `<JaliRoot>` fills the box it is given, so each box needs a definite height
 
 ### Its own name for screen readers
 
-`label` names the instance for assistive technology. Its landmark is called "Orders" instead of "Panes", and each of Jali's landmarks inside it adds the name: the pane "Order 7, Orders", the shelf "Shelf, Orders", and the switcher, the peek and a page's views the same way. Without it, both would have a "Panes" region, and a pane titled the same in each would repeat a name, so a screen-reader user moving by landmarks couldn't tell them apart.
+`label` names the instance for assistive technology. Its landmark is called "Orders" instead of "Panes", and each of Jali's landmarks inside it adds the name. The pane is "Order 7, Orders", the shelf is "Shelf, Orders", and the switcher, the peek and a page's views follow the same pattern. Without it, both would have a "Panes" region, and a pane titled the same in each would repeat a name, so a screen-reader user moving by landmarks couldn't tell them apart.
 
 ### Its own params in the address
 
@@ -327,7 +332,7 @@ Everything else an instance starts while its `<JaliRoot>` is mounted works for e
 
 ### Inside a page with its own theme
 
-An instance sets `data-theme` on `<html>` from its theme setting, and on its own root and dialog layer. Inside a page that has its own light and dark (a docs site, an app with its own switch), pass `pageTheme: false`, and it writes none of them and follows the page's `.dark` and `[data-theme]` scopes instead.
+An instance sets `data-theme` on `<html>` from its theme setting, and on its own root and dialog layer. Inside a page that has its own light and dark, such as a docs site or an app with its own switch, pass `pageTheme: false`. The instance then writes none of them, and follows the page's `.dark` and `[data-theme]` scopes instead.
 
 ### Focus
 

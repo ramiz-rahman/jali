@@ -29,7 +29,7 @@ Kinds belong to the instance, so every test gets its own: nothing about one test
 
 - Each action returns what happened: `{ ok: true, pane }` (the pane it opened or acted on), or `{ ok: false, reason }`. Check `reason` to test a rule: `"unsaved"` when the person is asked first, `"not-found"` for a pane that is not there.
 - `jali.get()` is the state: `layout`, `view.focused`, `unsaved`, `selection`, `presetId`.
-- `jali.model()` is the layout as it is on screen: `panes` in tree order, `pane(id)` and `paneOf(ref)`, each pane with its `title` and `where` (`"shown"`, `"tab"`, `"folded"`, `"tucked"` or `"hidden"`).
+- `jali.model()` is the layout as it is on screen: `panes` in tree order, plus `pane(id)` and `paneOf(ref)`. Each pane has its `title` and `where`: `"shown"`, `"tab"`, `"folded"`, `"tucked"` or `"hidden"`.
 - `jali.on("open" | "close" | "focus" | "layout", handler)` tells you each change once.
 
 ## What a rendered pane would report

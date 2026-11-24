@@ -10,7 +10,7 @@ Each problem below starts with what you see, then says why and how to fix it. Ja
 
 **Why:** Jali fills the box you give it, and the box has no height.
 
-**Fix:** give `<JaliRoot>` (or the element around `<JaliView />`) a height: `height: 100%` with `html`, `body` and `#root` at full height, `100dvh`, or a grid or flex cell that has one. See the CSS in the [Quickstart](../get-started/quickstart.md) and [Build your own chrome](your-app.md#build-your-own-chrome).
+**Fix:** give `<JaliRoot>` (or the element around `<JaliView />`) a height. Any of these works: `height: 100%` with `html`, `body` and `#root` at full height; `100dvh`; or a grid or flex cell that has a height. See the CSS in the [Quickstart](../get-started/quickstart.md) and [Build your own chrome](your-app.md#build-your-own-chrome).
 
 ## "Invalid hook call"
 
@@ -38,7 +38,12 @@ Each problem below starts with what you see, then says why and how to fix it. Ja
 
 ## An action returns `{ ok: false, reason: "unavailable" }`
 
-**Why:** what it needs isn't there: the feature (`jali.dialogs.openPalette()` without `palette()`, `openSettings()` without `settings()`, `choose()` without `chooser()`, `startRename()` without `rename()`), a launcher (Split, New tab), a curated page, or room (a phone shows one pane at a time).
+**Why:** something it needs isn't there:
+
+- **Its feature.** `jali.dialogs.openPalette()` needs `palette()`, `openSettings()` needs `settings()`, `choose()` needs `chooser()`, and `startRename()` needs `rename()`.
+- **A launcher**, for Split and New tab.
+- **A curated page.**
+- **Room.** A phone shows one pane at a time.
 
 **Fix:** add what's missing. Every refusal reason is listed under [`RefusalReason`](../reference/core/types.md#refusalreason).
 

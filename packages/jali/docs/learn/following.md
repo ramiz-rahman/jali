@@ -113,7 +113,7 @@ Opening a chart for the selected quote counts as opening the selection, so the n
 
 ## Chains: list, list, detail
 
-A list can follow another list. Library, then transcript, then segment detail: the transcript is a follower of the library, and the detail is a follower of the transcript. When the library moves on, the transcript shows the new session. The detail follows only when the transcript, now showing something else, reports its new selection with `select`, so each list in a chain must report its new selection when its own object changes (in an effect on its params), including `select(null)` if it has no row selected. A list that doesn't leaves the detail on the old row.
+A list can follow another list. Library, then transcript, then segment detail: the transcript is a follower of the library, and the detail is a follower of the transcript. When the library moves on, the transcript shows the new session. The detail follows only when the transcript, now showing something else, reports its new selection with `select`. So each list in a chain must report its new selection when its own object changes, in an effect on its params, including `select(null)` if it has no row selected. A list that doesn't leaves the detail on the old row.
 
 ## It waits for the selection to rest
 
@@ -153,7 +153,7 @@ const watchlist = definePane("watchlist", {
 });
 ```
 
-This happens when the instance starts, when a link arrives, and after a preset or `setLayout`, in the same change: nothing moves and there is no step to undo. Only a follower of the kind the list selects counts. A follower of another kind, such as a chart beside a watchlist of quotes, shows what its `follow` gives for a selection, and that can't be turned back into the selection, so the list starts on nothing. In a chain, the first list starts first, so a list that follows it starts from the layout as the first one leaves it. A list that already has a selection agrees with its followers instead ([A new layout beside a list](#a-new-layout-beside-a-list)).
+This happens when the instance starts, when a link arrives, and after a preset or `setLayout`, in the same change: nothing moves and there is no step to undo. Only a follower of the kind the list selects counts. A follower of another kind, such as a chart beside a watchlist of quotes, shows what its `follow` gives for a selection. That can't be turned back into the selection, so the list starts on nothing. In a chain, the first list starts first, so a list that follows it starts from the layout as the first one leaves it. A list that already has a selection agrees with its followers instead ([A new layout beside a list](#a-new-layout-beside-a-list)).
 
 Read the selection back to put the cursor there, `useJaliState((s) => s.selection[node.id])`, and report a selection of your own only when there is none (no follower of that kind).
 
@@ -164,7 +164,7 @@ A list keeps its selection through a preset or `setLayout` when it is in the new
 - When the layout gives the list a follower of the selected item's kind, the list's selection becomes what that follower shows. The list's other followers show what their kinds give for it.
 - When it gives none of that kind, the list's followers follow its selection, as they would when the selection moves.
 
-A layout that arrives from outside (Back, Forward, a link, a reload) agrees too, on the list's side only: when it gives the list a follower of the selected item's kind that shows something else, the selection becomes what it shows. Its followers stay exactly as the link has them, and nothing is announced.
+A layout that arrives from outside (Back, Forward, a link, a reload) agrees too, on the list's side only. When it gives the list a follower of the selected item's kind that shows something else, the selection becomes what the follower shows. Its followers stay exactly as the link has them, and nothing is announced.
 
 A list that keeps its cursor only in its own state won't see this. To move the cursor with it, read the selection back from Jali, `useJaliState((s) => s.selection[node.id])`, and put the cursor on that item. A kept detail keeps the object the layout gives it. A follower with unsaved work does too: if the layout shows another object in it, the person is asked first, as for any change that would lose the work.
 

@@ -434,7 +434,7 @@ export const jali = createJali({
 
 ### One command menu: yours
 
-Leaving `palette()` out of `features` tells Jali your app has the command menu. Jali renders no palette and leaves ⌘K alone. `listCommands(jali)` gives your menu everything Jali's palette would have listed: the focused pane's own commands first, then Jali's and your own `commands`, each with its `title`, `group`, `keys` label, whether it is `disabled` now and the `reason`, and `run`. It is the same array until something it lists changes, so it is a store snapshot as it is: `useSyncExternalStore(jali.subscribe, read, read)`, with `read = () => listCommands(jali)`, as the sample does, re-renders your menu only then. Pass the same read as the third argument, the server's snapshot, or a server render fails.
+Leaving `palette()` out of `features` tells Jali your app has the command menu. Jali renders no palette and leaves ⌘K alone. `listCommands(jali)` gives your menu everything Jali's palette would have listed: the focused pane's own commands first, then Jali's and your own `commands`. Each comes with its `title`, `group` and `keys` label, whether it is `disabled` now and the `reason`, and `run`. It returns the same array until something it lists changes, so it works as a store snapshot as it is. The sample reads it with `useSyncExternalStore(jali.subscribe, read, read)`, where `read = () => listCommands(jali)`, so your menu re-renders only when a command changes. Pass the same read as the third argument, the server's snapshot, or a server render fails.
 
 `src/HostCommandMenu.tsx`
 
@@ -498,7 +498,7 @@ Jali's two-step keys all start with one prefix, ⌘K by default. `keyboard: { pr
 
 ### Who gets a key
 
-1. **Whoever handles the key first and calls `event.preventDefault()` keeps it.** Jali listens on `window`, so a handler on your document, your chrome or an element runs before it, and Jali leaves a key it finds handled alone. That is the same rule your pane content follows.
+1. **Whoever handles the key first and calls `event.preventDefault()` keeps it.** Jali listens on `window`, so a handler on your document, your chrome or an element runs first. Jali leaves alone any key it finds handled. That is the same rule your pane content follows.
 2. **The second step of a chord is Jali's.** Once someone has pressed the prefix, Jali takes the next key before anything else (in the capture phase), so ⌘K ⌘Z never also runs your app's ⌘Z.
 3. **With `keyboard: { scope: "local" }`, keys pressed outside the panes are never Jali's**, apart from keys pressed with nothing focused right after using the panes. In an app where the panes are one region among many, use it.
 

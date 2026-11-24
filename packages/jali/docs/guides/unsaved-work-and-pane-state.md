@@ -83,7 +83,12 @@ function TicketNote({ edited }: { edited: boolean }) {
 
 It clears itself when the component unmounts.
 
-While it has some, the pane is marked with a dot: on its tab, where the dot holds the close button's place and turns back into × on hover or focus; in its header; on its shelf chip and in the phone switcher; and in the peek sheet while it shows the same object. Screen readers hear "Unsaved changes" with the pane's name. Each of those elements carries `data-unsaved`, for your own styles.
+While it has some, the pane is marked with a dot:
+
+- on its tab, where the dot takes the close button's place and turns back into × on hover or focus;
+- in its header;
+- on its shelf chip and in the phone switcher;
+- in the peek sheet while it shows the same object. Screen readers hear "Unsaved changes" with the pane's name. Each of those elements carries `data-unsaved`, for your own styles.
 
 While a pane has unsaved work, any change that would remove it or show another object in it is held, and the person is asked: "Discard unsaved changes?". The dialog names each pane and the words you gave. **Keep editing** is focused, and Esc or a click outside keeps the work. **Discard** makes the change against the layout as it is then: what changed elsewhere while the question was open stays. If the change would now lose other work too, the person is asked again. Work is forgotten only when the change is made. Back or Forward that is not made in the end puts the address back on what is on screen.
 

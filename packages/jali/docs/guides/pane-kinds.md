@@ -166,15 +166,15 @@ A component deeper inside the pane reads the same props with `usePane()`, so you
 
 ## The size of the content, and what scrolls
 
-`Component` renders into a box that fills the pane under its header and has a definite width and height, so `height: 100%` works and container queries on size do too: give your root `container-type: size` (with `height: 100%`) and lay out by `@container (max-height: 300px)`. The box follows the pane as it is resized, folded or maximised.
+`Component` renders into a box that fills the pane under its header, with a definite width and height. So `height: 100%` works, and so do container queries on size: give your root `container-type: size` (with `height: 100%`) and lay out by `@container (max-height: 300px)`. The box follows the pane as it is resized, folded or maximised.
 
-That box is also the pane's scroller (`overflow: auto`). Content taller than the pane scrolls it, and the pane's header stays put. For `position: sticky`, this means an element sticks to that scroller, with nothing between if your content is its direct child. If your content scrolls itself, give your root `height: 100%` and `overflow: auto`, and put the sticky element inside it: the outer box then has nothing to scroll and your root is the scroller the element sticks to. The peek sheet has the same box.
+That box is also the pane's scroller (`overflow: auto`). Content taller than the pane scrolls it, and the pane's header stays put. For `position: sticky`, this means an element sticks to that scroller, with nothing between if your content is its direct child. If your content scrolls itself, give your root `height: 100%` and `overflow: auto`, and put the sticky element inside it. The outer box then has nothing to scroll, and your root is the scroller the element sticks to. The peek sheet has the same box.
 
 ## What a pane reports
 
 Three hooks tell Jali about the pane they are called in:
 
-- `useActivity("loading")` shows `"loading"`, `"working"`, `"live"`, `"needs-you"`, `"error"` or `"idle"` in the header, tab and shelf. Use `"working"` for work the person waits on, and `"live"` for work that is meant to go on, such as a recording or playback: it shows a slowly breathing dot, not a spinner, and reads "Live".
+- `useActivity("loading")` shows `"loading"`, `"working"`, `"live"`, `"needs-you"`, `"error"` or `"idle"` in the header, tab and shelf. Use `"working"` for work the person waits on. Use `"live"` for work that is meant to go on, such as a recording or playback: it shows a slowly breathing dot instead of a spinner, and reads "Live".
 - `useUnsaved(dirty && "an unsaved note")` reports work the person would lose.
 - `useCommands([...])` adds commands to ⌘K while the pane is focused.
 
@@ -225,7 +225,7 @@ const jali = createJali({
 
 **When a component suspends** (it reads data with a Suspense query, or React 19's `use()`), the pane shows a quiet "Loading…" and its activity reads `"loading"`. Give the kind a `Loading` component to show something of your own. It gets the same props as `Component`.
 
-**When the object isn't there,** show it in the kind's own way. A ref whose params Jali can't read (a required one missing, a value of the wrong type, from a layout in code, a saved layout or an action) never reaches `Component`: Jali shows a message naming the param. Give the kind a `Missing` component to show your own instead. It gets the pane's props, with the params as they came, `problems` (what Jali couldn't read) and `close`, so it can explain and offer a way on, such as a button that shows a list in the pane with `openHere`. A link that holds such a ref is refused as broken before it opens anything.
+**When the object isn't there,** show it in the kind's own way. Jali may get a ref whose params it can't read: a required one missing, or a value of the wrong type, from a layout in code, a saved layout or an action. That ref never reaches `Component`; Jali shows a message naming the param instead. Give the kind a `Missing` component to show your own instead. It gets the pane's props, with the params as they came, plus `problems` (what Jali couldn't read) and `close`. So it can explain what went wrong and offer a way on, such as a button that shows a list in the pane with `openHere`. A link that holds such a ref is refused as broken before it opens anything.
 
 Params that read can still name nothing: a session that was deleted, an order from another account. Render the same component from `Component`, with no problems, so both cases look alike. In the peek sheet, which has no pane of its own, `openHere` is refused, so offer `close` there:
 
@@ -314,7 +314,7 @@ export const customerKind = definePane("customer", {
 });
 ```
 
-**To mark a pane from its data,** call `usePaneAttributes` with `data-*` attributes, such as `{ "data-connection": "production" }` on a query that runs against production. Jali puts them on the pane, its tab, its shelf chip, its switcher entry and the peek sheet while it shows the same object, and styles none of them, so your CSS decides what a production pane looks like: `[data-connection="production"] { border-top: 2px solid crimson; }`. Like a title, they go when the pane shows another object or closes, and are not saved.
+**To mark a pane from its data,** call `usePaneAttributes` with `data-*` attributes, such as `{ "data-connection": "production" }` on a query that runs against production. Jali puts them on the pane, its tab, its shelf chip, its switcher entry, and the peek sheet while it shows the same object. It styles none of them, so your CSS decides what a production pane looks like: `[data-connection="production"] { border-top: 2px solid crimson; }`. Like a title, they go when the pane shows another object or closes, and are not saved.
 
 ## Pause hidden panes
 
@@ -338,7 +338,7 @@ function OrderStatus() {
 
 With TanStack Query, pass `enabled: !paused`, and leave `subscribed` on. The hidden pane then fetches nothing, but still hears answers other panes fetch for the same query, so it shows them the moment it comes back, with no fetch and no loading state. Turning `subscribed` off too would leave it on whatever it last saw: a pane that shares a query with something on screen could come back "loading" for a read that finished long ago.
 
-Some work is meant to go on while nobody looks at it: a recording, a stream, music playing. Keep that going while `paused`, stop only what draws it (meters, a moving playhead), and report `useActivity("live")`, so the pane's tab, the shelf and the "N folded" chip show that it is still running.
+Some work is meant to go on while nobody looks at it: a recording, a stream, music playing. Keep that going while `paused`, and stop only what draws it (meters, a moving playhead). Report `useActivity("live")`, so the pane's tab, the shelf and the "N folded" chip show that it is still running.
 
 ## Lists: select, peek and open beside
 
@@ -602,7 +602,7 @@ Three levels, and each can only take away. A control is allowed when none of the
 2. **The kind**, `definePane("chart", { allow })`, for what its content can handle.
 3. **Every pane**, `createJali({ allow })`: defaults for all panes, and `when`, a function asked for each action, with the pane, the preset the layout came from and the curated page, if one is open.
 
-Everything is allowed by default. Pop out comes with its feature, `popOut()` from `jali/pop-out`: adding it also adds a Pop out button to the header, before Close, and **Pop out pane** (`pane.pop_out`) to ⌘K, with no key until you bind one.
+Everything is allowed by default. Pop out comes with its feature, `popOut()` from `jali/pop-out`. Adding it also adds a Pop out button to the header, before Close, and **Pop out pane** (`pane.pop_out`) to ⌘K. It has no key until you bind one.
 
 Because the levels only take away, `createJali({ allow })`'s `true` can't turn back on what a kind turned off. `when` is your code, not part of the layout, so the rule itself never travels in a link. What it reads can: a layout's preset and its panes come from the address. These controls shape what people are offered; they are not a security boundary. A rule that must hold, such as who may delete a record, belongs in your app's own checks too.
 

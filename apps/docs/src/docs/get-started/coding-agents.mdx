@@ -77,7 +77,7 @@ With TanStack Query, pass `enabled: !paused` so hidden panes stop fetching, and 
 
 Jali has no Tailwind in it. Its styles are plain CSS on `--jali-*` tokens, in the `jali` cascade layer, so it works the same in apps with and without Tailwind. Don't add Tailwind classes to Jali's parts, don't copy its parts to restyle them, and don't use `!important`. To change how Jali looks, set its tokens, or import the Tailwind bridge (below). The content inside your panes is yours: style it the way your app styles everything else.
 
-Name the layer order once, at the top of your CSS (`@layer base, jali;`, or with Tailwind `@layer theme, base, jali, components, utilities;`), then set tokens by hand or import `jali/tailwind.css` to take your Tailwind theme. [Theming](/guides/theming) has the details.
+Name the layer order once, at the top of your CSS: `@layer base, jali;`, or with Tailwind `@layer theme, base, jali, components, utilities;`. Then set tokens by hand, or import `jali/tailwind.css` to take your Tailwind theme. [Theming](/guides/theming) has the details.
 
 ## Before you write code
 

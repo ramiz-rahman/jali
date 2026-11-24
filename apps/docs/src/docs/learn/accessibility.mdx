@@ -7,13 +7,13 @@ Jali builds its own accessible parts, with no dependencies, and tests them in a 
 
 ## What Jali guarantees
 
-These are checked by Jali's browser tests (`e2e/a11y.spec.ts` and `e2e/axe.spec.ts` in the repo, which run axe, WCAG 2.2 A and AA, on the panes, tab strips, menus, the palette, Settings, the discard question and curated pages):
+Jali's browser tests check everything below. `e2e/a11y.spec.ts` and `e2e/axe.spec.ts` in the repo run axe, for WCAG 2.2 A and AA, on the panes, tab strips, menus, the palette, Settings, the discard question and curated pages.
 
 - **Landmarks.** The panes are one region named "Panes", inside your page's `<main>`, or the page's `<main>` itself with `createJali({ landmark: "main" })`. Each pane is a region named by its title. With two instances on a page, `createJali({ label })` or `<JaliRoot aria-label>` names each one, and every landmark inside carries that name, so none repeats.
 - **Focus you can see and follow.** The focused pane has a visible edge. After a change, focus goes to where the person expects: back to the pane that opened something, to the tab that moved, to the control that opened a dialog when it closes. Focus never leaves an element of your chrome marked `data-jali-chrome`.
 - **Every action from the keyboard.** Everything a pointer can do (resize, move, tab, tuck, maximise, close) has a key or a menu item. Dragging always has an alternative, as WCAG 2.5.7 asks: "Add to tabs of…" and the move keys do what a drag does.
 - **Standard patterns.** Dividers follow the WAI-ARIA window splitter pattern (`role="separator"`, its value as a percentage and as words). Tab strips follow the tabs pattern, with one tab stop per strip and their tab panels named. Menus follow the menu pattern, with type-ahead. The palette and the chooser are a field over a list of choices. Settings and the discard question are modal dialogs.
-- **Modal dialogs.** While a dialog is open, focus moves into it, Tab stays inside it (in Safari too, where Tab skips buttons by default: Jali sends focus back in, and Option+Tab reaches every button), everything behind it is `inert`, and Esc closes it and gives focus back to what opened it: the button that was pressed, even where the browser doesn't focus a clicked button (Safari).
+- **Modal dialogs.** While a dialog is open, focus moves into it and Tab stays inside it. That holds in Safari too, where Tab skips buttons by default: Jali sends focus back in, and Option+Tab reaches every button. Everything behind the dialog is `inert`. Esc closes it and gives focus back to what opened it: the button that was pressed, even in Safari, where the browser doesn't focus a clicked button.
 - **Announcements.** A live region says what changed after each action that moves something ("Order 1041 opened beside Orders", "opened as a tab: not enough room") and why an action didn't happen. Messages that arrive within a moment of each other are read as one.
 - **Reasons, not dead ends.** A control that can't act now stays reachable and says why (`aria-disabled` with its reason), and ⌘K lists refused commands greyed out with the reason.
 - **Forced colours.** In Windows High Contrast and other forced-colour modes, the focused pane's ring, the shown tab's underline, a focused divider and the palette's active result are drawn in system colours. The browser tests check each of these.
@@ -59,7 +59,7 @@ Jali can't see inside your content. Each pane needs:
 
 - **Names for its controls**, and a heading or label for anything that isn't obvious from the pane's title.
 - **Keys that claim only what they use.** Call `event.preventDefault()` on the keys your content handles, and let the rest bubble, so F6, ⌘K and Jali's commands keep working. Content that needs every key, such as an editor, marks itself `data-pane-keys="content"`, and Jali then takes only F6 and ⇧F6 there, so focus can always leave.
-- **A list that says where its cursor is.** A list that drives a following detail should use one tab stop with the active option exposed (`aria-activedescendant`, or moving focus between options), or a list of plain buttons. The [Following a list](/learn/following) sample does the first.
+- **A list that says where its cursor is.** A list that drives a following detail should be one of two things. Either one tab stop with the active option exposed (`aria-activedescendant`, or moving focus between options), or a list of plain buttons. The [Following a list](/learn/following) sample does the first.
 - **Contrast in your own colours.** Jali's default theme passes axe's colour-contrast check, light and dark, in the docs site's browser tests. Colours you set through `--jali-*` tokens are yours to check.
 - **Toasts that can be read and reached.** Render them in `<JaliRoot overlays>`, with a live role, and keep Undo reachable from the keyboard.
 

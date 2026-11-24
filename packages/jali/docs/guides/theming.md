@@ -39,7 +39,7 @@ Cascade layers are ordered by where each name first appears. Declare yours, with
 }
 ```
 
-Import only `app.css` from your code. Rules in a layer after `jali` (here `components`) beat Jali's at any specificity. Rules in a layer before it (`base`, for page resets) lose to Jali's, so a reset like `button { font: inherit }` can't undo Jali's type sizes. Jali's root is a flex column that fills its box, so a rule that lays out the element you pass `className` to (a grid of top bar, panes and status line) belongs in a layer after `jali`, or outside any layer.
+Import only `app.css` from your code. Rules in a layer after `jali` (here `components`) beat Jali's at any specificity. Rules in a layer before it (`base`, for page resets) lose to Jali's, so a reset like `button { font: inherit }` can't undo Jali's type sizes. Jali's root is a flex column that fills its box. So a rule that lays out the element you pass `className` to, such as a grid of top bar, panes and status line, belongs in a layer after `jali`, or outside any layer.
 
 > **Warning: Order matters.** If Jali's CSS loads first, `jali` becomes the first layer, and every layer you name after it beats Jali, resets included.
 
@@ -71,7 +71,7 @@ Every token, with its light and dark values, is in the [Tokens reference](../ref
 
 The space between panes is an option, because the layout measures with it: `createJali({ gap: 3 })`. It defaults to 6px, and the space between Jali's edges and its panes is always the same. Jali writes it on its root as `--jali-gap` and `--jali-inset`, so your own bars can line up with the panes (`padding-inline: var(--jali-inset)`).
 
-The accent's tints (`--jali-accent-weak`, `--jali-accent-mid`, `--jali-drop` and the focus ring) are mixed from `--jali-accent` on each instance's root. Change the accent and they follow, on the whole page or on one instance. For one instance, set it on an element around `<JaliRoot>`: the palette, the other dialogs and the tab menus render in a layer beside Jali's root (`[data-jali-layer]`), not inside it, so an accent set on the root itself reaches the panes but not them.
+The accent's tints (`--jali-accent-weak`, `--jali-accent-mid`, `--jali-drop` and the focus ring) are mixed from `--jali-accent` on each instance's root. Change the accent and they follow, on the whole page or on one instance. For one instance, set it on an element around `<JaliRoot>`. The palette, the other dialogs and the tab menus render in a layer beside Jali's root (`[data-jali-layer]`), not inside it, so an accent set on the root itself reaches the panes but not them.
 
 ## Example: retheme to teal
 
@@ -106,7 +106,7 @@ Jali's default palette switches to dark (Jali sets `color-scheme: dark`, and eve
 
 A theme scope switches only Jali's defaults. A token you set yourself, on `:root` or any element above the scope, is kept inside it. If your app sets `color-scheme` itself, Jali's defaults follow yours.
 
-Jali also has its own theme setting (System, Light or Dark, in its settings panel), and a started instance writes the result to `data-theme` on `<html>` (unless it was made with `pageTheme: false`). It writes the same on Jali's root (`[data-jali]`) and dialog layer (`[data-jali-layer]`), so a rule can follow the theme inside Jali without reaching for `<html>`. That matters for what `light-dark()` can't switch, such as an image: `[data-jali][data-theme="dark"] .grain { background-image: url(grain-dark.svg); }`. The copy is not a theme scope of its own: whatever sits between `<html>` and Jali's root still decides Jali's colours. If your app has its own light and dark switch, either pass the choice to Jali as well, so the two never disagree, or make the instance with `pageTheme: false` so it never writes `data-theme` (on `<html>`, its root or its layer) and follows your scopes:
+Jali also has its own theme setting (System, Light or Dark, in its settings panel), and a started instance writes the result to `data-theme` on `<html>` (unless it was made with `pageTheme: false`). It writes the same on Jali's root (`[data-jali]`) and dialog layer (`[data-jali-layer]`), so a rule can follow the theme inside Jali without reaching for `<html>`. That matters for what `light-dark()` can't switch, such as an image: `[data-jali][data-theme="dark"] .grain { background-image: url(grain-dark.svg); }`. The copy is not a theme scope of its own: whatever sits between `<html>` and Jali's root still decides Jali's colours. If your app has its own light and dark switch, do one of two things. Pass the choice to Jali as well, so the two never disagree. Or make the instance with `pageTheme: false`, so it never writes `data-theme` (on `<html>`, its root or its layer) and follows your scopes:
 
 `src/theme.ts`
 
@@ -167,7 +167,7 @@ Your theme's variables switch with your dark mode, so Jali follows. To follow a 
 
 ## Style the parts
 
-Every class Jali renders starts with `jali-`, so none collide with yours. The parts you may rely on, and the attributes that carry their state, are listed in [Parts](../reference/parts.md): a pane is `.jali-pane` with `data-kind` and `data-focused`, a tab is `.jali-tab` with `aria-selected`, `data-pinned` and `data-folded`, and so on. State is always an attribute, never a class. Only the listed parts and the tokens are stable: anything not listed there, including the elements inside a part (`.jali-pane-actions button`), is Jali's own and may change.
+Every class Jali renders starts with `jali-`, so none collide with yours. [Parts](../reference/parts.md) lists the parts you may rely on and the attributes that carry their state. For example, a pane is `.jali-pane` with `data-kind` and `data-focused`, and a tab is `.jali-tab` with `aria-selected`, `data-pinned` and `data-folded`. State is always an attribute, never a class. Only the listed parts and the tokens are stable: anything not listed there, including the elements inside a part (`.jali-pane-actions button`), is Jali's own and may change.
 
 `src/parts.css`
 
@@ -197,7 +197,7 @@ With Tailwind, put rules like these in your stylesheet, in a layer after `jali`.
 
 ## Your own icons
 
-Jali comes with its own icons, so you install no icon library for them. They are [Phosphor's](https://phosphoricons.com) in the regular weight, copied into the package. To use your app's own, pass `icons` to `<JaliRoot>`, by name: `close`, `maximise`, `tuck`, `fold` and the rest ([every name](../reference/react.md#icons)). Each is a component that takes `size`, `className` and `aria-hidden`; an icon from Phosphor, Lucide or most other React sets is one. Names you leave out stay Jali's. Put `className` on the icon's own element: it carries the size for the icon's place, so the `--jali-icon-*` tokens size your icons as they do Jali's (`size` is the default size, for an icon that ignores `className`).
+Jali comes with its own icons, so you install no icon library for them. They are [Phosphor's](https://phosphoricons.com) in the regular weight, copied into the package. To use your app's own, pass `icons` to `<JaliRoot>`, by name: `close`, `maximise`, `tuck`, `fold` and the rest ([every name](../reference/react.md#icons)). Each is a component that takes `size`, `className` and `aria-hidden`; an icon from Phosphor, Lucide or most other React sets is one. Names you leave out stay Jali's. Put `className` on the icon's own element. It carries the size for the icon's place, so the `--jali-icon-*` tokens size your icons as they do Jali's. `size` is the default size, for an icon that ignores `className`.
 
 `src/App.tsx`
 
@@ -288,7 +288,7 @@ For Arabic, Hebrew, Persian or Urdu, set `dir="rtl"` on the page (or on an eleme
 Right to left, Jali shows the mirror of the same layout:
 
 - A row starts at the right, so reading order, F6 and "Focus next pane" go from right to left.
-- Left and right still mean the screen. "Focus pane left" (⌘K ⌘←) goes to the pane on the left of the screen, a drop on a pane's left edge puts the pane on its left, and "Split right" opens the new pane on the right.
+- Left and right still mean the screen. "Focus pane left" (⌘K ⌘←) goes to the pane on the left of the screen. A drop on a pane's left edge puts the pane on its left. "Split right" opens the new pane on the right.
 - Dividers follow the pointer and the arrow keys, the peek sheet opens on the left, and tab strips, the shelf and menus read from the right.
 - The layout and its link are the same in both directions, so a link made in a left-to-right app opens mirrored in a right-to-left one.
 

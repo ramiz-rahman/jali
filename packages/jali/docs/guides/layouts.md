@@ -2,7 +2,12 @@
 
 Write the layouts Jali opens on, put panes in tabs and in rows that scroll sideways, and let Jali tidy them when they pile up.
 
-A layout is where the panes sit: rows, columns and tabs, and the panes in them. This page is everything about shaping it. [Presets](#start-from-presets) are the layouts your app opens on and switches between, [tabs](#tabs) put several panes in one place, [rows that scroll sideways](#rows-that-scroll-sideways) hold more panes than fit, and [auto layout](#auto-layout) tidies the panes when they have piled up.
+A layout is where the panes sit: rows, columns and tabs, and the panes in them. This page is everything about shaping it:
+
+- [Presets](#start-from-presets): the layouts your app opens on and switches between.
+- [Tabs](#tabs): several panes in one place.
+- [Rows that scroll sideways](#rows-that-scroll-sideways): more panes than fit.
+- [Auto layout](#auto-layout): tidy the panes when they have piled up.
 
 ## Start from presets
 
@@ -59,7 +64,7 @@ export const presets: PresetOptions[] = [
 
 A preset's `layout` can also be a function, to build a fresh layout each time it is chosen.
 
-Sizes are a starting point. With weights, each pane first gets its kind's `width.min`, then spare room brings it up to `width.comfortable`, then it is shared by weight. Panes that don't fit fold into tabs. See [Define a pane kind](pane-kinds.md) for the widths. A tab group (`tabs(...)`) is as narrow as its widest tab allows: every tab must fit in it, whichever one is shown, so a group holding a chart that needs 360px never goes below 360px.
+Sizes are a starting point. With weights, each pane first gets its kind's `width.min`, then spare room brings it up to `width.comfortable`, then it is shared by weight. Panes that don't fit fold into tabs. See [Define a pane kind](pane-kinds.md) for the widths. A tab group (`tabs(...)`) is as narrow as its widest tab allows, because every tab must fit in it, whichever one is shown. A group holding a chart that needs 360px never goes below 360px.
 
 #### A pane in more than one preset
 
@@ -67,7 +72,7 @@ Give a pane the same `id` in two presets, showing the same object, and it is the
 
 If the other preset has that id showing another object, or doesn't have it, the switch asks first when the pane has unsaved work, and the pane starts afresh there.
 
-A list that is in both presets keeps its selection. When the new preset puts a follower beside it, the list and the follower agree, and the preset's word wins: a follower of the selected item's kind resets the list's selection to what the preset gives it. The person sees the item the preset names. If the preset gives the list no follower of that kind, its followers show the list's selection. See [A new layout beside a list](../learn/following.md#a-new-layout-beside-a-list).
+A list that is in both presets keeps its selection. When the new preset puts a follower beside it, the list and the follower agree, and the preset wins. A follower of the selected item's kind sets the list's selection to what the preset gives it. The person sees the item the preset names. If the preset gives the list no follower of that kind, its followers show the list's selection. See [A new layout beside a list](../learn/following.md#a-new-layout-beside-a-list).
 
 ### Give them to `createJali`
 
@@ -352,7 +357,7 @@ const jali = createJali({
 
 Return `undefined` or `[]` for a pane with no items of its own. Choosing an item closes the menu and puts focus back on the tab before `run` is called, so an item that moves focus somewhere else wins. Esc closes the menu and returns focus to the tab.
 
-`run` gets the pane as it is when the item is chosen: a menu can stay open while the pane changes (a detail follows its list), so act on what `run` is given, not on what the menu was built from. Once the pane has closed, `run` isn't called. Jali's own items work the same way: **Move tab right** moves the tab one place right of where it is now, and **Pin tab** pins it (chosen after it was pinned elsewhere, it stays pinned), never toggles.
+`run` gets the pane as it is when the item is chosen. A menu can stay open while the pane changes (a detail follows its list), so act on what `run` is given, not on what the menu was built from. Once the pane has closed, `run` isn't called. Jali's own items work the same way. **Move tab right** moves the tab one place right of where it is now. **Pin tab** always pins and never toggles: chosen after the tab was pinned elsewhere, it leaves it pinned.
 
 The function is for every tab, not one per kind, because kinds often share their items. Branch on `pane.ref.kind` when they don't.
 
@@ -570,7 +575,7 @@ After a while of opening things, a layout collects panes in whatever order the p
 1. **Order.** The panes in front, in reading order, with each pane's linked panes right after it: a list, then its detail, then what the detail opened. Then the panes that were behind another tab, in the same way.
 2. **One row.** In that order, every chain of linked panes that fits across whole at its kinds' minimum widths, so linked panes sit next to each other, then single panes that still fit. A pane becomes a tab only when it didn't fit across in either row. The fit then shares the row out, bringing every pane towards its comfortable width.
 3. **A second row**, below, only for the panes that didn't fit across, and only when the height has room for both rows' tallest minimum. Never more than two rows.
-4. **Tabs** for the rest. A pane joins the tabs of the pane it was opened from, else of the pane whose tabs it already is, else of the pane before it in the order, as long as that cell's row still fits with the tab's width. The focused pane is the tab that shows, so the person never loses the pane they were in.
+4. **Tabs** for the rest. A pane joins the tabs of the first of these whose row still fits with the tab's width: the pane it was opened from, the pane whose tabs it already is, or the pane before it in the order. The focused pane is the tab that shows, so the person never loses the pane they were in.
 
 ![Studio's Mix at 1024 pixels: four panes in two rows, the mixer below the library and the timeline](https://jali.ramizrahman.com/media/auto-layout/mix.gif)
 
