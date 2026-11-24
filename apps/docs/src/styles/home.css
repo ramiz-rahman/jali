@@ -394,15 +394,18 @@
     letter-spacing: -0.016em;
     color: var(--jali-text);
   }
+  /* One shape in every note, whatever its pane's width: the sheet's full width, words left, arrow at the right edge. */
   .landing-ws .note button {
     --button-ease: cubic-bezier(0.23, 1, 0.32, 1);
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: 8px;
-    align-self: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    align-self: stretch;
     margin-top: auto;
-    min-height: 36px;
-    padding: 7px 14px;
+    min-height: 40px;
+    padding: 8px 14px;
+    text-wrap: balance;
     border: 0;
     border-radius: 9px;
     background: var(--jali-surface-raised);
@@ -426,6 +429,7 @@
   }
   .landing-ws .note button::after {
     content: "→";
+    flex: none;
     color: var(--jali-text-subtle);
     transition:
       transform 0.24s var(--button-ease),
