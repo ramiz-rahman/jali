@@ -49,7 +49,7 @@
     background: var(--jali-border-strong);
   }
   .brand-docs {
-    font: 500 15px/1 var(--d-font-display);
+    font: 500 16px/1 var(--d-font-display);
     color: var(--jali-text-subtle);
     padding-top: 1px;
   }
@@ -222,7 +222,7 @@
   }
   .nav-heading {
     margin: 0 0 8px;
-    font: 600 13px/20px var(--d-font-display);
+    font: 600 14px/20px var(--d-font-display);
     color: var(--jali-text);
   }
   .nav-list {
@@ -260,7 +260,7 @@
   /* ---------- on this page ---------- */
   .toc-heading {
     margin: 0 0 12px;
-    font: 600 13px/20px var(--d-font-display);
+    font: 600 14px/20px var(--d-font-display);
     color: var(--jali-text);
   }
   .toc-list {
@@ -272,7 +272,7 @@
     margin-left: -1px;
     padding: 4px 0 4px 14px;
     border-left: 1px solid transparent;
-    font-size: 13px;
+    font-size: 14px;
     line-height: 20px;
     color: var(--jali-text-subtle);
     transition:
@@ -281,7 +281,7 @@
   }
   .toc-list [data-level="3"] .toc-link {
     padding-left: 26px;
-    font-size: 13px;
+    font-size: 14px;
   }
   .toc-link:hover {
     color: var(--jali-text);
@@ -536,7 +536,7 @@
     border-radius: 8px;
     color: var(--jali-text-muted);
     text-decoration: none;
-    font: 500 15px/20px var(--d-font);
+    font: 500 14px/20px var(--d-font);
   }
   .topbar-section:hover {
     color: var(--jali-text);

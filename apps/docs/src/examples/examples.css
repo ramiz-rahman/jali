@@ -84,7 +84,7 @@
     color: var(--jali-text-faint);
   }
   .example-show-text {
-    font-size: 15px;
+    font-size: 16px;
     line-height: 24px;
     color: var(--jali-text-muted);
   }
@@ -131,7 +131,7 @@
     color: var(--jali-text-faint);
   }
   .example-card-text {
-    font-size: 15px;
+    font-size: 14px;
     line-height: 24px;
     color: var(--jali-text-muted);
   }

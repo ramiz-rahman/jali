@@ -223,7 +223,7 @@
   .prose th {
     padding: 0 16px 10px 0;
     border-bottom: 1px solid var(--jali-border-strong);
-    font: 600 13px/20px var(--d-font);
+    font: 600 12px/20px var(--d-font);
     color: var(--jali-text-subtle);
     text-align: left;
     white-space: nowrap;
@@ -273,7 +273,7 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-size: 13px;
+    font-size: 12px;
     line-height: 20px;
     color: var(--jali-text-subtle);
   }
@@ -292,7 +292,7 @@
     margin-top: 28px;
     padding-top: 20px;
     border-top: 1px solid var(--jali-border);
-    font-size: 13px;
+    font-size: 12px;
     color: var(--jali-text-subtle);
   }
   .page-meta a {
@@ -389,7 +389,7 @@
     border-radius: 9px;
     background: var(--jali-surface);
     font-weight: 500;
-    font-size: 15px;
+    font-size: 14px;
     transition:
       border-color 0.15s,
       color 0.15s;
@@ -400,7 +400,7 @@
   }
   .not-found-hint {
     margin-top: 24px;
-    font-size: 15px;
+    font-size: 14px;
     color: var(--jali-text-subtle);
   }
 
