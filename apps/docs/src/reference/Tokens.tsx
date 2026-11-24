@@ -1,6 +1,8 @@
 /**
  * The token page's parts. Swatches are real: each sits in a `.light` or `.dark` scope, so the colour on screen is the
- * one Jali's theme gives that token there, read through the CSS variable itself.
+ * one Jali's theme gives that token there, read through the CSS variable itself. The site sets its own values for the
+ * tokens (src/styles/tokens.css), so the scope also carries `data-d-theme`, which gives it the site's values for that
+ * theme whatever theme the page is in.
  */
 import type { CSSProperties } from "react";
 import {
@@ -70,7 +72,12 @@ function Swatch({
   })();
   return (
     <div className="ref-swatch">
-      <div className={`ref-swatch-scope ${theme}`} data-theme={theme} aria-hidden>
+      <div
+        className={`ref-swatch-scope ${theme}`}
+        data-theme={theme}
+        data-d-theme={theme}
+        aria-hidden
+      >
         {inner}
       </div>
       <div className="ref-swatch-label">

@@ -1,10 +1,12 @@
 /*
  * Colour and type. Jali's public tokens, set to the brand (stone ground, warm neutrals, Nil), and the few the site
  * adds (--d-*), all derived from them where they can be. `data-theme` on <html> is the resolved theme; before the
- * script runs, prefers-color-scheme stands in.
+ * script runs, prefers-color-scheme stands in. `data-d-theme` on an element gives that part of the page one theme's
+ * values whatever the page's (the token reference's light and dark swatches).
  */
 @layer docs {
-  :root {
+  :root,
+  [data-d-theme="light"] {
     /* Jali, light: stone and Nil. */
     --jali-canvas: #efeae2;
     --jali-surface: #fdfcfa;
@@ -73,7 +75,8 @@
   }
 
   /* Dark: warm charcoal, Nil lifted for dark grounds. */
-  :root[data-theme="dark"] {
+  :root[data-theme="dark"],
+  [data-d-theme="dark"] {
     --jali-canvas: #0e0d0b;
     --jali-surface: #1a1815;
     --jali-surface-raised: #221f1b;
