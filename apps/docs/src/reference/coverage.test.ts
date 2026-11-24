@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vite-plus/test";
 import * as core from "jali";
 import { DEFAULT_KEYMAP } from "jali/adapter";
-import { defaultIcons } from "../../../../packages/react/src/icons/default";
+import { defaultIcons } from "./jali-sources";
 import * as react from "jali/react";
 import * as page from "jali/page";
 import * as testing from "jali/testing";

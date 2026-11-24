@@ -11,12 +11,12 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createServer } from "vite-plus";
+// The docs site, for links to pages that aren't Markdown here (the home page, the examples).
+import { SITE_URL } from "../apps/docs/src/site/site-url.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const docsApp = join(root, "apps/docs");
 export const OUT = join(root, "packages/jali/docs");
-/** The docs site, for links to pages that aren't Markdown here (the home page, the examples). */
-const SITE = "https://jali.ramizrahman.com";
 
 /**
  * A site anchor as the heading's anchor in rendered Markdown (GitHub's rule, which most viewers follow): lower case,
@@ -46,26 +46,22 @@ export async function render() {
     },
   });
   try {
-    const { readingOrder, sources, toMarkdown } =
-      await server.ssrLoadModule("/src/site/sources.ts");
-    const { MARKDOWN_TABLES } = await server.ssrLoadModule("/src/site/markdown-tables.ts");
-    const order = readingOrder().filter((p) => sources[p.path]);
+    const { pageAt } = await server.ssrLoadModule("/src/site/sources.ts");
+    const { readingOrder: order } = await server.ssrLoadModule("/src/site/nav.ts");
+    const { toMarkdown } = await server.ssrLoadModule("/src/site/markdown/index.ts");
     const fileOf = (path) => `${path.replace(/^\//, "")}.md`;
     const known = new Set(order.map((p) => p.path));
     const files = new Map();
     for (const item of order) {
-      const page = sources[item.path];
+      const page = pageAt(item.path);
       const here = dirname(fileOf(item.path));
       const link = (href) => {
         const m = /^(\/[^#?]*)(#.*)?$/.exec(href);
         // A page the docs don't have as Markdown (the home page, an example) keeps its site URL.
-        if (!m || !known.has(m[1])) return href.startsWith("/") ? `${SITE}${href}` : href;
+        if (!m || !known.has(m[1])) return href.startsWith("/") ? `${SITE_URL}${href}` : href;
         return `${relative(here, fileOf(m[1])) || fileOf(m[1])}${m[2] ? `#${slug(m[2].slice(1))}` : ""}`;
       };
-      const md = toMarkdown(page, { tables: MARKDOWN_TABLES, link }).replace(
-        /\]\((\/[^)\s]*)\)/g,
-        (_, href) => `](${link(href)})`,
-      );
+      const md = toMarkdown(page, { link });
       files.set(fileOf(item.path), md);
     }
     const version = JSON.parse(
@@ -84,8 +80,7 @@ export async function render() {
         section = item.section;
         index.push("", `## ${section}`, "");
       }
-      const page = sources[item.path];
-      index.push(`- [${item.title}](${fileOf(item.path)}): ${page.summary}`);
+      index.push(`- [${item.title}](${fileOf(item.path)}): ${pageAt(item.path).summary}`);
     }
     files.set("README.md", `${index.join("\n")}\n`);
     return files;

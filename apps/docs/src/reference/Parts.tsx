@@ -1,21 +1,8 @@
-/**
- * The styling contract, from jali/react itself (packages/react/src/parts.ts): every public part, its selector, what
- * it is, and the state attributes it carries.
- */
-import type { ReactNode } from "react";
-import { ADORNMENTS, parts, type PartArea } from "../../../../packages/react/src/parts";
+/** The styling contract as a table (./parts-data.ts): every public part, all of them or one area's. */
+import { withCode } from "../ui/lib/with-code";
+import { elementCode, partWhat, partsIn, type PartArea } from "./parts-data";
 
-/** Backticks in the contract's sentences as code. */
-function prose(text: string): ReactNode[] {
-  return text
-    .split(/(`[^`]+`)/)
-    .map((s, i) => (s.startsWith("`") ? <code key={i}>{s.slice(1, -1)}</code> : s));
-}
-
-/** An element name as code, keeping any note after it: `button`, or `div` (`role="menu"`). */
-const element = (e: string) => (e.startsWith("`") ? e : e.replace(/^(\w+)/, "`$1`"));
-
-/** The parts, all of them or one area's (`<PartsTable area="Tabs" />`). */
+/** `<PartsTable area="Tabs" />`: one area's parts; without `area`, every part. */
 export function PartsTable({ area }: { area?: PartArea }) {
   return (
     <div className="ref-table-wrap">
@@ -28,36 +15,31 @@ export function PartsTable({ area }: { area?: PartArea }) {
           </tr>
         </thead>
         <tbody>
-          {Object.entries(parts)
-            .filter(([, part]) => !area || part.area === area)
-            .map(([name, part]) => (
-              <tr key={name} id={`part-${name}`}>
-                <td>
-                  <code>{part.selector}</code>
-                  <div className="ref-cmd-title">
-                    {prose(part.what)}
-                    {"adornments" in part ? <> {prose(ADORNMENTS)}</> : null}
-                  </div>
-                </td>
-                <td data-label="Element">{prose(element(part.element))}</td>
-                <td data-label="State attributes">
-                  {part.attributes.length ? (
-                    <dl className="ref-part-attrs">
-                      {part.attributes.map((a) => (
-                        <div key={a.name}>
-                          <dt>
-                            <code>{a.name}</code>
-                          </dt>
-                          <dd>{prose(a.means)}</dd>
-                        </div>
-                      ))}
-                    </dl>
-                  ) : (
-                    <span className="ref-dash">none</span>
-                  )}
-                </td>
-              </tr>
-            ))}
+          {partsIn(area).map(([name, part]) => (
+            <tr key={name} id={`part-${name}`}>
+              <td>
+                <code>{part.selector}</code>
+                <div className="ref-cmd-title">{withCode(partWhat(part))}</div>
+              </td>
+              <td data-label="Element">{withCode(elementCode(part.element))}</td>
+              <td data-label="State attributes">
+                {part.attributes.length ? (
+                  <dl className="ref-part-attrs">
+                    {part.attributes.map((a) => (
+                      <div key={a.name}>
+                        <dt>
+                          <code>{a.name}</code>
+                        </dt>
+                        <dd>{withCode(a.means)}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                ) : (
+                  <span className="ref-dash">none</span>
+                )}
+              </td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>

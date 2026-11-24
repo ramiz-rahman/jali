@@ -1,23 +1,38 @@
-/** An example app for the Markdown copies (llms.txt, the .md pages, the docs in the package): full addresses throughout. */
+/**
+ * The example apps' parts as Markdown (src/site/markdown), for llms.txt, the .md pages and the docs in the package:
+ * the links that open an app, what it shows, its data and how to run it, with full addresses throughout.
+ */
+import type { MarkdownComponent } from "../site/markdown/component";
 import { SITE_URL } from "../site/site-url.mjs";
 import { EXAMPLES, appOf, appPage, appPath, sourceUrl } from "./data";
 
-/** The parts of an app's page, as Markdown: the links that open it, what it shows, its data, how to run it. */
-export const exampleShotMarkdown = (id: string) => {
-  const app = appOf(id);
-  return `[Open ${app.name}](${SITE_URL}${appPath(id, app.shows[0].link)}) · [Source](${sourceUrl(id)})`;
-};
-export const exampleShowsMarkdown = (id: string) =>
-  appOf(id)
-    .shows.map(
-      (s) =>
-        `- **[${s.title}](${SITE_URL}${appPath(id, s.link)})**: ${s.text}${s.learn ? ` ([how it works](${SITE_URL}${s.learn}))` : ""}`,
-    )
-    .join("\n");
-export const exampleDataMarkdown = (id: string) => appOf(id).data;
-export const exampleRunMarkdown = (id: string) =>
-  `Run \`pnpm ${id}\` at the repository's root, then open http://localhost:${appOf(id).port}.`;
+const appList = () =>
+  `\n\n${EXAMPLES.map((a) => `- [${a.name}](${SITE_URL}${appPage(a.id)}): ${a.summary}`).join("\n")}\n\n`;
 
-/** The six apps as a list, for the home page's and the overview's Markdown copies. */
-export const exampleListMarkdown = () =>
-  EXAMPLES.map((a) => `- [${a.name}](${SITE_URL}${appPage(a.id)}): ${a.summary}`).join("\n");
+/** A component that names one app (`<ExampleShot id="trips" />`). */
+const forApp =
+  (write: (id: string) => string): MarkdownComponent =>
+  (p) =>
+    `\n\n${write(String(p.id))}\n\n`;
+
+export const examplesMarkdown: Record<string, MarkdownComponent> = {
+  ExampleIndex: appList,
+  ExampleShowcase: appList,
+  ExampleShot: forApp((id) => {
+    const app = appOf(id);
+    return `[Open ${app.name}](${SITE_URL}${appPath(id, app.shows[0].link)}) · [Source](${sourceUrl(id)})`;
+  }),
+  ExampleShows: forApp((id) =>
+    appOf(id)
+      .shows.map(
+        (s) =>
+          `- **[${s.title}](${SITE_URL}${appPath(id, s.link)})**: ${s.text}${s.learn ? ` ([how it works](${SITE_URL}${s.learn}))` : ""}`,
+      )
+      .join("\n"),
+  ),
+  ExampleData: forApp((id) => appOf(id).data),
+  ExampleRun: forApp(
+    (id) =>
+      `Run \`pnpm ${id}\` at the repository's root, then open http://localhost:${appOf(id).port}.`,
+  ),
+};

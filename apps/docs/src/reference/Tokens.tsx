@@ -5,10 +5,10 @@
 import type { CSSProperties } from "react";
 import {
   BRIDGE,
-  PUBLIC_TOKENS,
   TOKEN_PURPOSE,
   inPlaceDefault,
   partsReading,
+  tokensIn,
   valuesOf,
   type SwatchKind,
   type TokenGroup,
@@ -86,9 +86,7 @@ const short = (value: string) => (value.length > 28 ? `${value.slice(0, 26)}…`
 
 /** Every public token of `group` (or all), each with what reads it and its light and dark values. */
 export function TokenTable({ group }: { group?: TokenGroup }) {
-  const tokens = PUBLIC_TOKENS.filter((t) => !group || TOKEN_PURPOSE[t]?.group === group).sort(
-    (a, b) => Object.keys(TOKEN_PURPOSE).indexOf(a) - Object.keys(TOKEN_PURPOSE).indexOf(b),
-  );
+  const tokens = tokensIn(group);
   return (
     <div className="ref-tokens-wrap">
       <div className="ref-tokens">

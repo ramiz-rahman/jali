@@ -490,7 +490,7 @@ In the peek sheet's own content, it names the sheet, for the object the sheet sh
 *hook*, from `jali/react`
 
 ```ts
-usePaneAttributes(attributes: Record<\`data-\${string}\`, string> | null | undefined): void
+usePaneAttributes(attributes: Record<`data-${string}`, string> | null | undefined): void
 ```
 
 Mark the pane from its data with `data-*` attributes, so your styles can tell it apart: `usePaneAttributes({ "data-connection": "production" })` on a query pane connected to production. Jali puts them on everything that stands for the pane: its section, its tab in any strip (folded and tucked too), its shelf chip, its entry in the phone's pane switcher, the tab and shelf menus, and the peek sheet while it shows the pane's object. Jali gives them no style of its own.

@@ -3,17 +3,9 @@
  * values and the Tailwind bridge come from the files; what each token is for is written here. The coverage test
  * checks that every public token in jali-theme.css has a purpose below, and no purpose names a token that is gone.
  */
-import theme from "../../../../packages/react/src/styles/jali-theme.css?raw";
-import tailwind from "../../../../packages/react/src/styles/jali-tailwind.css?raw";
-import workspace from "../../../../packages/react/src/styles/workspace.css?raw";
-import pane from "../../../../packages/react/src/styles/pane.css?raw";
-import dividers from "../../../../packages/react/src/styles/dividers.css?raw";
-import shelf from "../../../../packages/react/src/styles/shelf.css?raw";
-import chrome from "../../../../packages/react/src/styles/chrome.css?raw";
-import page from "../../../../packages/react/src/styles/page.css?raw";
-import dialogs from "../../../../packages/react/src/styles/dialogs.css?raw";
-import follow from "../../../../packages/react/src/styles/follow.css?raw";
-import icons from "../../../../packages/react/src/styles/icons.css?raw";
+import { STYLES } from "./jali-sources";
+
+const { theme, tailwind } = STYLES;
 
 export type TokenGroup =
   | "Surfaces"
@@ -476,6 +468,14 @@ export function publicTokensOf(css: string): string[] {
 export const PUBLIC_TOKENS: string[] = publicTokensOf(theme);
 const IN_PLACE = inPlaceTokensOf(theme);
 
+/** The public tokens of `group` (or all), in the order TOKEN_PURPOSE lists them: the page's order. */
+export function tokensIn(group?: TokenGroup): string[] {
+  const order = Object.keys(TOKEN_PURPOSE);
+  return PUBLIC_TOKENS.filter((t) => !group || TOKEN_PURPOSE[t]?.group === group).sort(
+    (a, b) => order.indexOf(a) - order.indexOf(b),
+  );
+}
+
 /** A token read in place: its default there, for `var(token, default)` in a swatch; undefined for a declared one. */
 export const inPlaceDefault = (token: string): string | undefined =>
   IN_PLACE[token] && IN_PLACE[token] !== "(none)" ? IN_PLACE[token] : undefined;
@@ -495,13 +495,11 @@ export function valuesOf(token: string): { light: string; dark: string } {
   return { light: side(value, 0), dark: side(value, 1) };
 }
 
-const PARTS_CSS = { workspace, pane, dividers, shelf, chrome, page, dialogs, follow, icons };
-
 /** The jali-* classes whose rules read `token` (from the package's styles), deduplicated, in file order. */
 export function partsReading(token: string): string[] {
   const found: string[] = [];
   const reads = new RegExp(`var\\(${token}[,)]`);
-  for (const css of Object.values(PARTS_CSS)) {
+  for (const css of Object.values(STYLES.parts)) {
     for (const m of bare(css).matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
       if (!reads.test(m[2]!)) continue;
       for (const cls of m[1]!.match(/\.jali-[a-z0-9-]+/g) ?? [])

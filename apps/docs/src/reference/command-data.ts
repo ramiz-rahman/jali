@@ -5,10 +5,13 @@
  * has a note here, and no note names a command that is gone.
  */
 import {
+  PALETTE_ID,
   chooserFeature,
   commandDefsOf,
+  createKeymap,
   createPaneKinds,
   en,
+  formatKeys,
   pageEngine,
   paletteFeature,
   popOutFeature,
@@ -143,3 +146,50 @@ export const REFUSED: Record<string, string> = {
   "settings.open": "Only with the settings() feature (jali/settings). Never refused there.",
   "settings.centre_drop.toggle": "Never.",
 };
+
+const KEYMAPS = {
+  mac: createKeymap({}, { platform: "mac" }),
+  other: createKeymap({}, { platform: "other" }),
+};
+export type Platform = keyof typeof KEYMAPS;
+
+/** The keys bound to a command by default, as a reader on `platform` presses them (none, one or several). */
+export const keysOf = (id: string, platform: Platform) =>
+  KEYMAPS[platform].sequences(id).map((s) => formatKeys(s, platform));
+
+export interface CommandRow {
+  id: string;
+  /** The id as the table shows it: the presets' ids as one pattern. */
+  shown: string;
+  title: string;
+  group: string;
+  refused: string;
+}
+
+/**
+ * The command table's rows, in the palette's groups: the palette chord first (it is a key, not a palette command),
+ * then every command. The page's table (Commands.tsx) and its Markdown (./markdown.ts) are both drawn from these.
+ */
+export const COMMAND_ROWS: CommandRow[] = [
+  {
+    id: PALETTE_ID,
+    shown: PALETTE_ID,
+    title: "Open or close the command palette, and start a two-step chord",
+    group: "Palette",
+    refused: "Never. Works with a dialog open too.",
+  },
+  ...COMMANDS.map((c) => ({
+    id: c.id,
+    shown: displayId(c.id),
+    title: c.title,
+    group: c.group,
+    refused: REFUSED[displayId(c.id)] ?? "Not documented.",
+  })),
+];
+
+/** The rows grouped, each group once, in the order its first row comes. */
+export function commandGroups(): [string, CommandRow[]][] {
+  const groups = new Map<string, CommandRow[]>();
+  for (const r of COMMAND_ROWS) groups.set(r.group, [...(groups.get(r.group) ?? []), r]);
+  return [...groups];
+}
