@@ -2,7 +2,7 @@
   "name": "jali-repo",
   "version": "0.0.0",
   "private": true,
-  "description": "Jali's workspace root: the published package `jali` (packages/jali), built from @jali/core and @jali/react (packages/, private), the docs site (apps/docs), the example apps (examples/) and the repo's tooling (tooling/). See docs/BRIEF.md.",
+  "description": "Jali's workspace root: the published package `jali-layout` (packages/jali), built from @jali/core and @jali/react (packages/, private), the docs site (apps/docs), the example apps (examples/) and the repo's tooling (tooling/). See docs/BRIEF.md.",
   "author": "Ramiz Rahman (https://ramizrahman.com/)",
   "type": "module",
   "scripts": {

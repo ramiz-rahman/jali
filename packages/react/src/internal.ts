@@ -1,6 +1,6 @@
 /**
- * What the published `jali` package (packages/jali) re-exports from this instance package, beyond its index: each
- * feature with its parts, `defaultFeatures`, and the pieces `jali/react` lists one by one. Not for apps.
+ * What the published `jali-layout` package (packages/jali) re-exports from this instance package, beyond its index: each
+ * feature with its parts, `defaultFeatures`, and the pieces `jali-layout/react` lists one by one. Not for apps.
  */
 export * from "./index";
 export { definePage } from "./page/define";

@@ -1,5 +1,5 @@
-import { createJali, row } from "jali";
-import { definePane } from "jali/react";
+import { createJali, row } from "jali-layout";
+import { definePane } from "jali-layout/react";
 
 // What the content can handle: a toolbar can't fill a screen, so the kind says so.
 const toolbar = definePane("toolbar", {

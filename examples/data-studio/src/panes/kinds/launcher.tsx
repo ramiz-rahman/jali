@@ -1,4 +1,4 @@
-import { KindIcon, definePane, useLauncher, type PaneProps } from "jali/react";
+import { KindIcon, definePane, useLauncher, type PaneProps } from "jali-layout/react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { MagnifyingGlassIcon, PlusIcon, TableIcon } from "@phosphor-icons/react";
 import type { ObjectRef, TableInfo } from "@jali-examples/shared/data/types";

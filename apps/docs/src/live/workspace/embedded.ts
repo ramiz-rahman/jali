@@ -4,7 +4,7 @@
  * so three workspaces on one page never all answer ⌘K or F6, and the site's own theme left alone.
  */
 import { useId } from "react";
-import { memoryStorage } from "jali";
+import { memoryStorage } from "jali-layout";
 
 /** An id for one workspace, `prefix` and React's id for this place in the page. */
 export function useEmbeddedId(prefix: string): string {

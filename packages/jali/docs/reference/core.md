@@ -1,20 +1,20 @@
-# jali
+# jali-layout
 
-Every function and constant jali exports, with its options, defaults and what it returns.
+Every function and constant jali-layout exports, with its options, defaults and what it returns.
 
-The framework-free part of Jali: the instance, the layouts it shows, the address and storage ports, commands and keys. Render it with [jali/react](react.md). Types have their own page, [jali types](core/types.md).
+The framework-free part of Jali: the instance, the layouts it shows, the address and storage ports, commands and keys. Render it with [jali-layout/react](react.md). Types have their own page, [jali-layout types](core/types.md).
 
 ```sh
-npm install jali
+npm install jali-layout
 ```
 
-Framework adapters import `jali/adapter`: everything on this page, and, by name, what an adapter needs from inside the package, such as the `DomPort` through which the core finds the adapter's elements, the instance's store (`storeOf`), and the pure layout operations (`layout`). Apps need only what is on this page.
+Framework adapters import `jali-layout/adapter`: everything on this page, and, by name, what an adapter needs from inside the package, such as the `DomPort` through which the core finds the adapter's elements, the instance's store (`storeOf`), and the pure layout operations (`layout`). Apps need only what is on this page.
 
 ## The instance
 
 ### createJali
 
-*function*, from `jali`
+*function*, from `jali-layout`
 
 ```ts
 createJali(options: JaliOptions): Jali<RefOf<kinds>, PageOf<page>>
@@ -23,10 +23,10 @@ createJali(options: JaliOptions): Jali<RefOf<kinds>, PageOf<page>>
 Example, `jali.ts`:
 
 ```ts
-import { createJali, memoryLocation, memoryStorage } from "jali";
+import { createJali, memoryLocation, memoryStorage } from "jali-layout";
 import { launcherKind, orderKind, ordersKind } from "./kinds";
-import { palette } from "jali/palette";
-import { urlSync } from "jali/url";
+import { palette } from "jali-layout/palette";
+import { urlSync } from "jali-layout/url";
 
 export const jali = createJali({
   panes: [ordersKind, orderKind], // the kinds of pane it can show
@@ -79,7 +79,7 @@ Its listeners (keys, Back and Forward, theme and saving) start with `jali.start(
 
 - **`launcher`** (`PaneKindBase`): What Split and "New tab here" open until the person chooses what to show. It closes quietly and its component reads `useLauncher()`. Without one, those commands and the tab strip's "+" are not offered.
 
-- **`page`** (`Page | null`): A curated page this instance can show, from `definePage` (`jali/page`). A page made any other way is refused: `definePage` gives it the code that runs it, which an app without a page never ships. With one, `jali.page` has its actions.
+- **`page`** (`Page | null`): A curated page this instance can show, from `definePage` (`jali-layout/page`). A page made any other way is refused: `definePage` gives it the code that runs it, which an app without a page never ships. With one, `jali.page` has its actions.
 
 - **`name`** (`string`): Your app's name for the free layout, in command titles such as "Open Data Studio" on a curated page. Without one, the command reads "Leave" and the page's name.
 
@@ -183,7 +183,7 @@ What a kind's refs hold, in its `params`: `Number`, `String`, `Boolean`, `oneOf(
 
 ### optional
 
-*function*, from `jali`
+*function*, from `jali-layout`
 
 ```ts
 optional<T extends ParamType>(type: T, options?: ParamOptions): OptionalParam<T>
@@ -192,8 +192,8 @@ optional<T extends ParamType>(type: T, options?: ParamOptions): OptionalParam<T>
 Example, `ticket.tsx`:
 
 ```tsx
-import { definePane, type PaneProps } from "jali/react";
-import { oneOf, optional } from "jali";
+import { definePane, type PaneProps } from "jali-layout/react";
+import { oneOf, optional } from "jali-layout";
 
 // Declared first, so a component written apart from the kind is typed from it.
 const ticketParams = {
@@ -234,7 +234,7 @@ A param a ref may leave out. The kind's code sees it as optional (`tab?: string`
 
 ### appOnly
 
-*function*, from `jali`
+*function*, from `jali-layout`
 
 ```ts
 appOnly<T extends ParamType>(type: T): AppOnlyParam<T>
@@ -250,7 +250,7 @@ A param only your app sets, never a link: `params: { sql: String, autorun: appOn
 
 ### oneOf
 
-*function*, from `jali`
+*function*, from `jali-layout`
 
 ```ts
 oneOf<const V extends readonly (string | number)[]>(...values: V): OneOf<V[number]>
@@ -268,7 +268,7 @@ A param that is one of a few values: `oneOf("open", "closed")` gives `"open" | "
 
 ### row
 
-*function*, from `jali`
+*function*, from `jali-layout`
 
 ```ts
 row(...children: LayoutInput[]): SplitDraft
@@ -278,7 +278,7 @@ row(options: RowOptions, ...children: LayoutInput[]): SplitDraft
 Example, `layouts.ts`:
 
 ```ts
-import { column, pane, row, tabs } from "jali";
+import { column, pane, row, tabs } from "jali-layout";
 import { orderKind, ordersKind } from "./kinds";
 
 // A child is a ref, a pane(ref, options), or another row, column or tabs. Options come first when there are any.
@@ -306,7 +306,7 @@ Nodes without an `id` are named after what they hold: `"row"`, `"column"`, `"tab
 
 ### column
 
-*function*, from `jali`
+*function*, from `jali-layout`
 
 ```ts
 column(...children: LayoutInput[]): SplitDraft
@@ -317,7 +317,7 @@ Children one above the other. Otherwise the same as `row`.
 
 ### tabs
 
-*function*, from `jali`
+*function*, from `jali-layout`
 
 ```ts
 tabs(...panes: (ObjectRef | PaneDraft)[]): TabsDraft
@@ -328,7 +328,7 @@ Panes as tabs in one place: a stack the person made. `options.active` names the 
 
 ### pane
 
-*function*, from `jali`
+*function*, from `jali-layout`
 
 ```ts
 pane(ref: ObjectRef, options?: PaneNodeOptions): PaneDraft
@@ -368,7 +368,7 @@ A pane showing `ref`, with options. A bare ref in a `row` is the same as `pane(r
 
 ### sameRef
 
-*function*, from `jali`
+*function*, from `jali-layout`
 
 ```ts
 sameRef(a: ObjectRef | undefined, b: ObjectRef | undefined): boolean
@@ -377,7 +377,7 @@ sameRef(a: ObjectRef | undefined, b: ObjectRef | undefined): boolean
 Example, `same-ref.ts`:
 
 ```ts
-import { sameRef } from "jali";
+import { sameRef } from "jali-layout";
 
 sameRef({ kind: "order", params: { id: 1041 } }, { kind: "order", params: { id: 1041 } }); // true
 sameRef({ kind: "order", params: { id: 1041 } }, { kind: "order", params: { id: "1041" } }); // false: 1041 !== "1041"
@@ -399,7 +399,7 @@ Whether two refs are exactly the same: the same kind and the same params, compar
 
 ### memoryLocation
 
-*function*, from `jali`
+*function*, from `jali-layout`
 
 ```ts
 memoryLocation(initial?: string): LocationPort & { entries: string[]; visit(search: string): void }
@@ -408,10 +408,10 @@ memoryLocation(initial?: string): LocationPort & { entries: string[]; visit(sear
 Example, `jali.ts`:
 
 ```ts
-import { createJali, memoryLocation, memoryStorage } from "jali";
+import { createJali, memoryLocation, memoryStorage } from "jali-layout";
 import { launcherKind, orderKind, ordersKind } from "./kinds";
-import { palette } from "jali/palette";
-import { urlSync } from "jali/url";
+import { palette } from "jali-layout/palette";
+import { urlSync } from "jali-layout/url";
 
 export const jali = createJali({
   panes: [ordersKind, orderKind], // the kinds of pane it can show
@@ -450,7 +450,7 @@ An address that lives in memory: for tests, server rendering, and an instance in
 
 ### memoryStorage
 
-*function*, from `jali`
+*function*, from `jali-layout`
 
 ```ts
 memoryStorage(initial?: Record<string, string>): StoragePort
@@ -468,7 +468,7 @@ Storage in a `Map`, for tests, server rendering and embedded instances.
 
 ### listCommands
 
-*function*, from `jali`
+*function*, from `jali-layout`
 
 ```ts
 listCommands(jali: Jali): readonly ListedCommand[]
@@ -477,7 +477,7 @@ listCommands(jali: Jali): readonly ListedCommand[]
 Example, `toolbar.ts`:
 
 ```ts
-import { copyLink, listCommands, runCommand } from "jali";
+import { copyLink, listCommands, runCommand } from "jali-layout";
 import { store } from "./store";
 
 // A toolbar button that runs one of Jali's commands and shows its keys.
@@ -501,7 +501,7 @@ It is worked out on every call, and returns the same array (and the same entries
 
 ### runCommand
 
-*function*, from `jali`
+*function*, from `jali-layout`
 
 ```ts
 runCommand(jali: Jali, id: string): boolean
@@ -518,7 +518,7 @@ Runs a command by id if its check passes. A refusal is not announced here (the k
 
 ### edgeScroll
 
-*function*, from `jali`
+*function*, from `jali-layout`
 
 ```ts
 edgeScroll(jali: Jali, onScroll?: () => void): EdgeScroll
@@ -535,7 +535,7 @@ Scrolls a row that scrolls sideways while a drag is held within 56px of its left
 
 ### EdgeScroll
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface EdgeScroll { move(clientX: number, clientY: number): void; stop(): void }
@@ -545,7 +545,7 @@ What `edgeScroll` returns: tell it where the pointer is, and when the drag ends.
 
 ### copyLink
 
-*function*, from `jali`
+*function*, from `jali-layout`
 
 ```ts
 copyLink(jali: Jali): void
@@ -561,7 +561,7 @@ Writes `jali.href()` to the clipboard and announces "Link copied", or "Couldn't 
 
 ### keyBelongsToContent
 
-*function*, from `jali`
+*function*, from `jali-layout`
 
 ```ts
 keyBelongsToContent(event: KeyboardEvent): boolean
@@ -571,7 +571,7 @@ Whether a key event belongs to the focused content: its target is a text field, 
 
 ### altClick
 
-*function*, from `jali`
+*function*, from `jali-layout`
 
 ```ts
 altClick(platform?: Platform): string
@@ -585,7 +585,7 @@ The words for Jali's modifier-click, for hints in your own text: "⌥-click" on 
 
 ### keyHint
 
-*function*, from `jali`
+*function*, from `jali-layout`
 
 ```ts
 keyHint(text: string, platform?: Platform, words?: KeyWords): string
@@ -594,7 +594,7 @@ keyHint(text: string, platform?: Platform, words?: KeyWords): string
 Example, `hints.ts`:
 
 ```ts
-import { keyHint } from "jali";
+import { keyHint } from "jali-layout";
 import { store } from "./store";
 
 keyHint("Alt+Enter", "mac"); // "⌥↵"
@@ -618,7 +618,7 @@ A binding string printed for the platform: `keyHint("Alt+Enter")` is "⌥↵" on
 
 ### en
 
-*constant*, from `jali`
+*constant*, from `jali-layout`
 
 ```ts
 const en: Messages
@@ -627,7 +627,7 @@ const en: Messages
 Example, `messages.ts`:
 
 ```ts
-import { createJali, en, type MessageOverrides } from "jali";
+import { createJali, en, type MessageOverrides } from "jali-layout";
 import { orderKind } from "./kinds";
 
 const words: MessageOverrides = {

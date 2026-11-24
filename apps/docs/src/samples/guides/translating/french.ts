@@ -1,4 +1,4 @@
-import { en, type Messages } from "jali";
+import { en, type Messages } from "jali-layout";
 
 // A full translation is a `Messages`: leave out a key and the typecheck says which.
 export const fr: Messages = {

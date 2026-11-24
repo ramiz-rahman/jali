@@ -4,7 +4,7 @@
  * Keep it (the header's Keep) to compare two hotels side by side.
  */
 import { MapPinIcon, QuestionIcon } from "@phosphor-icons/react";
-import type { JaliModel, NodeId, PaneCommand } from "jali";
+import type { JaliModel, NodeId, PaneCommand } from "jali-layout";
 import {
   definePane,
   useCommands,
@@ -12,7 +12,7 @@ import {
   useJaliModel,
   usePane,
   type PaneProps,
-} from "jali/react";
+} from "jali-layout/react";
 import { usePlan, useServices } from "../../state/services";
 import { CITY } from "../../trip/cities";
 import { photoOf } from "../../trip/photos";

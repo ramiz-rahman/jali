@@ -8,7 +8,7 @@
  */
 import { useEffect, useMemo, useRef, type KeyboardEvent } from "react";
 import { GraduationCap } from "lucide-react";
-import { definePane, useCommands, useJali, type PaneProps } from "jali/react";
+import { definePane, useCommands, useJali, type PaneProps } from "jali-layout/react";
 import { Alert } from "#src/vendor/cyberspec/components/ui/alert.tsx";
 import { Badge } from "#src/vendor/cyberspec/components/ui/badge.tsx";
 import { Button } from "#src/vendor/cyberspec/components/ui/button.tsx";

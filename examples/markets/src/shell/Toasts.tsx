@@ -1,7 +1,7 @@
 /** Jali's toasts (a closed pane offers Undo), and the app's own (fills, watchlist changes), with Sonner. */
 import { useEffect } from "react";
 import { Toaster, toast } from "sonner";
-import { useJali, useJaliEvent, useJaliTheme } from "jali/react";
+import { useJali, useJaliEvent, useJaliTheme } from "jali-layout/react";
 import { useServices } from "../services";
 import * as f from "../ui/format";
 

@@ -7,8 +7,8 @@
  * so nothing of Jali's needs moving; the app takes Space itself (shell/keys.ts) and names it in `keyboard.reserved`, so a
  * later Jali binding on Space would be refused at start-up rather than fight the transport.
  */
-import { createJali, type Jali, type JaliOptions } from "jali";
-import { defaultFeatures } from "jali/features";
+import { createJali, type Jali, type JaliOptions } from "jali-layout";
+import { defaultFeatures } from "jali-layout/features";
 import { clip } from "../panes/clip";
 import { credits } from "../panes/credits";
 import { launcher } from "../panes/launcher";

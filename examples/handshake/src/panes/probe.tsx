@@ -1,7 +1,7 @@
 /** Domain investigation with URL-owned params and independent DNS, registration, routing and CT sections. */
 import { useState, type ReactNode } from "react";
 import { Globe } from "lucide-react";
-import { definePane, useActivity, useCommands, type PaneProps } from "jali/react";
+import { definePane, useActivity, useCommands, type PaneProps } from "jali-layout/react";
 import { Alert } from "#src/vendor/cyberspec/components/ui/alert.tsx";
 import { Badge } from "#src/vendor/cyberspec/components/ui/badge.tsx";
 import { Button } from "#src/vendor/cyberspec/components/ui/button.tsx";

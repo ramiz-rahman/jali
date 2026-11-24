@@ -1,13 +1,13 @@
 /** Data Studio's workspace: a database browser where the person builds the layout from its pane kinds and presets. */
-import { createJali, type Jali, type JaliOptions, type TabMenu } from "jali";
+import { createJali, type Jali, type JaliOptions, type TabMenu } from "jali-layout";
 import { makerCommand } from "@jali-examples/shared/maker/maker";
 import { reportPaneError } from "@jali-examples/shared/shell/report";
 import { DEFAULT_PRESET, dataStudioKinds, dataStudioLauncher, dataStudioPresets } from "./panes";
 import { queryKind } from "./panes/kinds/query";
 import { structureKind } from "./panes/kinds/structure";
-import { defaultFeatures } from "jali/features";
-import { popOut } from "jali/pop-out";
-import { urlSync } from "jali/url";
+import { defaultFeatures } from "jali-layout/features";
+import { popOut } from "jali-layout/pop-out";
+import { urlSync } from "jali-layout/url";
 
 /** What Data Studio's workspace is made of. */
 export const dataStudioOptions = {

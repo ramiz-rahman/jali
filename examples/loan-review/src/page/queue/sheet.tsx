@@ -1,7 +1,7 @@
 /** Phones have no rail: a "N waiting" button in the header opens the queue as a sheet. Hidden from 768px up. */
 import { useRef, useState } from "react";
 import { FunnelSimpleIcon, XIcon } from "@phosphor-icons/react";
-import { IconButton, useJali } from "jali/react";
+import { IconButton, useJali } from "jali-layout/react";
 import { QueueRail } from "./rail";
 import { useQueue } from "./use-queue";
 

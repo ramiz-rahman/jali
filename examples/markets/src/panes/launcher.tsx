@@ -4,7 +4,7 @@
  */
 import { useState, type KeyboardEvent } from "react";
 import { PlusIcon } from "@phosphor-icons/react";
-import { definePane, useLauncher, type PaneProps } from "jali/react";
+import { definePane, useLauncher, type PaneProps } from "jali-layout/react";
 import { DEFAULT_LISTS } from "../model/lists";
 import { useMarket } from "../market/react";
 import { blotter } from "./blotter";

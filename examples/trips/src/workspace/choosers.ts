@@ -3,7 +3,7 @@
  * plan (`offerPlace`). ⌘K's commands, the panes' buttons and keys all ask through these, so a day and a place read
  * the same, and are offered the same, wherever they are.
  */
-import type { Jali } from "jali";
+import type { Jali } from "jali-layout";
 import type { Services } from "../state/services";
 import { CATEGORY_ONE, isPlannable, PLACES, type Place } from "../trip/places";
 import { CITY, type CityId } from "../trip/cities";

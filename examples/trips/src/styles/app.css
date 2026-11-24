@@ -9,7 +9,7 @@
  */
 /* MapLibre's own styles go in the base layer, so the app's rules for its controls win without !important. */
 @import "maplibre-gl/dist/maplibre-gl.css" layer(base);
-@import "jali/styles.css";
+@import "jali-layout/styles.css";
 @import "./tokens.css";
 @import "./base.css";
 @import "./jali.css";

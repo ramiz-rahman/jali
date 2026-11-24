@@ -1,4 +1,4 @@
-import { column, pane, row, tabs, type PresetOptions } from "jali";
+import { column, pane, row, tabs, type PresetOptions } from "jali-layout";
 import { customerKind, orderKind, orderList } from "../pane-kinds/orders";
 
 export const presets: PresetOptions[] = [

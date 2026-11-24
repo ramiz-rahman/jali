@@ -1,6 +1,6 @@
 /** The selected place, over the bottom of the map, where no place pane says it already: what it is, and the next step. */
 import { XIcon } from "@phosphor-icons/react";
-import { useJali } from "jali/react";
+import { useJali } from "jali-layout/react";
 import { useServices } from "../../state/services";
 import { CITY } from "../../trip/cities";
 import { isPlannable, type Place } from "../../trip/places";

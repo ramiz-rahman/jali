@@ -12,7 +12,7 @@
  * A place the person picks is also a request to see it (`services.reveal`): the maps bring it into view. A layout,
  * a link or Back changes the selection without asking, so the maps keep their framing then.
  */
-import type { Jali, JaliModel, JaliState, NodeId, ObjectRef, PaneOf } from "jali";
+import type { Jali, JaliModel, JaliState, NodeId, ObjectRef, PaneOf } from "jali-layout";
 import type { Services } from "../state/services";
 import { dayNumberOf, dayRef, KIND, placeOf, placeRef } from "./refs";
 

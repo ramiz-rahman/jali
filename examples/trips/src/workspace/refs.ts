@@ -3,7 +3,7 @@
  * …)`), and code that opens or selects something builds its ref here: the workspace's moves (hub.ts) and one pane
  * pointing at another never import a pane, so no pane imports another and nothing imports in a circle.
  */
-import type { ObjectRef } from "jali";
+import type { ObjectRef } from "jali-layout";
 import type { Category } from "../trip/places";
 
 export const KIND = {

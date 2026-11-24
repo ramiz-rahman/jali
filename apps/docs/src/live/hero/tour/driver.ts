@@ -4,7 +4,7 @@
  * clock) stops it all, and the cursor and a drag in progress are put away in one place (`settle`).
  */
 import type { RefObject } from "react";
-import type { JaliActions, JaliStore, Model } from "jali/adapter";
+import type { JaliActions, JaliStore, Model } from "jali-layout/adapter";
 import { dragAt } from "../../workspace/jali-gaps";
 import type { Clock } from "./clock";
 

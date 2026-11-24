@@ -1,9 +1,9 @@
 import { useSyncExternalStore } from "react";
-import { createJali, pane, tabs } from "jali";
-import { definePane, useTitle } from "jali/react";
+import { createJali, pane, tabs } from "jali-layout";
+import { definePane, useTitle } from "jali-layout/react";
 import { ChartBarIcon } from "@phosphor-icons/react";
-import { defaultFeatures } from "jali/features";
-import { rename } from "jali/rename";
+import { defaultFeatures } from "jali-layout/features";
+import { rename } from "jali-layout/rename";
 
 // Your data: saved reports, with the name and pin the person gave each. Jali stores neither.
 interface Report {

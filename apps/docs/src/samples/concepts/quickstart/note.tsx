@@ -1,4 +1,4 @@
-import { definePane } from "jali/react";
+import { definePane } from "jali-layout/react";
 
 // A kind of pane: what it shows (its params), its title, and the component that renders it.
 export const note = definePane("note", {

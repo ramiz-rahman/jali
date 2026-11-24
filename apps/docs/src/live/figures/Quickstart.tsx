@@ -4,10 +4,10 @@
  * building, and on the landing, beside its code.
  */
 import { useState } from "react";
-import { createJali, memoryLocation } from "jali";
-import { chooser } from "jali/chooser";
-import { palette } from "jali/palette";
-import { urlSync } from "jali/url";
+import { createJali, memoryLocation } from "jali-layout";
+import { chooser } from "jali-layout/chooser";
+import { palette } from "jali-layout/palette";
+import { urlSync } from "jali-layout/url";
 import { note } from "../../samples/concepts/quickstart/note-open-beside";
 import { embedded, useEmbeddedId } from "../workspace/embedded";
 import { NamedWorkspace } from "../workspace/LiveWorkspace";

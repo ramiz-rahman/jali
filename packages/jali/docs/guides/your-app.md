@@ -16,9 +16,9 @@ Choose what Jali does beyond laying out panes, feature by feature, and see what 
 Without any features, Jali lays out panes, fits them, folds them, moves focus, undoes, follows a list, and runs every command from its keys. Everything else is a feature: a value you pass in `createJali({ features })`, imported from its own entry. An app ships only the features it imports, their words included.
 
 ```ts
-import { createJali } from "jali";
-import { urlSync } from "jali/url";
-import { palette } from "jali/palette";
+import { createJali } from "jali-layout";
+import { urlSync } from "jali-layout/url";
+import { palette } from "jali-layout/palette";
 
 const jali = createJali({ panes, layout, features: [urlSync(), palette()] });
 ```
@@ -26,9 +26,9 @@ const jali = createJali({ panes, layout, features: [urlSync(), palette()] });
 For Jali's usual set in one line, use `defaultFeatures()`:
 
 ```ts
-import { createJali } from "jali";
-import { defaultFeatures } from "jali/features";
-import { rename } from "jali/rename";
+import { createJali } from "jali-layout";
+import { defaultFeatures } from "jali-layout/features";
+import { rename } from "jali-layout/rename";
 import { saveName } from "./names";
 
 const jali = createJali({
@@ -46,16 +46,16 @@ The sizes are what each feature adds to the floor (one kind of pane, a starting 
 
 | Feature | Import | What the person gets | Adds (gzipped) | In `defaultFeatures()` |
 |---|---|---|---|---|
-| `urlSync()` | `jali/url` | The layout in the address: links reopen it, Back and Forward step through it, a reload keeps it | 3.1 KB | Yes |
-| `palette()` | `jali/palette` | The ⌘K command palette | 1.5 KB | Yes |
-| `settings()` | `jali/settings` | The settings panel: theme, centre drop, pane cap, keys | 1.3 KB | Yes |
-| `chooser()` | `jali/chooser` | "Add to tabs of…", and `jali.dialogs.choose` for your own commands | 1.5 KB | Yes |
-| `pressed()` | `jali/pressed` | `data-pressed` on Jali's controls while they are held, for a theme that draws it | 0.6 KB | Yes |
-| `rename({ run })` | `jali/rename` | Renaming a pane in place: double-click or F2 on a tab | 0.6 KB | No: it needs your `run` |
-| `popOut()` | `jali/pop-out` | A pane in its own floating window (Chrome and Edge on desktop) | 1.3 KB | No |
-| `defaultFeatures()` | `jali/features` | The first five together | 7.1 KB | |
+| `urlSync()` | `jali-layout/url` | The layout in the address: links reopen it, Back and Forward step through it, a reload keeps it | 3.1 KB | Yes |
+| `palette()` | `jali-layout/palette` | The ⌘K command palette | 1.5 KB | Yes |
+| `settings()` | `jali-layout/settings` | The settings panel: theme, centre drop, pane cap, keys | 1.3 KB | Yes |
+| `chooser()` | `jali-layout/chooser` | "Add to tabs of…", and `jali.dialogs.choose` for your own commands | 1.5 KB | Yes |
+| `pressed()` | `jali-layout/pressed` | `data-pressed` on Jali's controls while they are held, for a theme that draws it | 0.6 KB | Yes |
+| `rename({ run })` | `jali-layout/rename` | Renaming a pane in place: double-click or F2 on a tab | 0.6 KB | No: it needs your `run` |
+| `popOut()` | `jali-layout/pop-out` | A pane in its own floating window (Chrome and Edge on desktop) | 1.3 KB | No |
+| `defaultFeatures()` | `jali-layout/features` | The first five together | 7.1 KB | |
 
-A curated page is not a feature but a value you pass as `createJali({ page })`, made with `definePage` from `jali/page`. It adds about 6.1 KB, and an app without one ships none of it.
+A curated page is not a feature but a value you pass as `createJali({ page })`, made with `definePage` from `jali-layout/page`. It adds about 6.1 KB, and an app without one ships none of it.
 
 The floor itself is 57.6 KB of core, 24.1 KB of React parts and 8.3 KB of styles. Without React, the instance alone is 53.0 KB; the layout builders alone (`row`, `column`, `tabs`, `pane`) are 10.9 KB. These are the numbers of 23 Nov 2026; the size gate keeps them from growing unnoticed.
 
@@ -89,7 +89,7 @@ Pass your chrome as children of `<JaliRoot>`, and put `<JaliView />` where the p
 
 ```tsx
 import { useState } from "react";
-import type { Toast } from "jali";
+import type { Toast } from "jali-layout";
 import {
   IconButton,
   JaliRoot,
@@ -100,7 +100,7 @@ import {
   useJaliModel,
   useJaliShortcut,
   useJaliState,
-} from "jali/react";
+} from "jali-layout/react";
 import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react";
 import { jali } from "./jali";
 
@@ -236,14 +236,14 @@ This page puts orders beside notes, each its own instance.
 
 ```tsx
 import { createRoot } from "react-dom/client";
-import { createJali } from "jali";
-import { JaliRoot } from "jali/react";
-import "jali/styles.css";
+import { createJali } from "jali-layout";
+import { JaliRoot } from "jali-layout/react";
+import "jali-layout/styles.css";
 import "./page.css";
 import { orderKinds } from "../pane-kinds/orders";
 import { presets } from "../presets/layouts";
 import { ticketNote } from "../unsaved/note-editor";
-import { urlSync } from "jali/url";
+import { urlSync } from "jali-layout/url";
 
 // Orders: the address's plain params (l, zoom, peek). Its id names its DOM ids ("orders-pane-…")
 // and its localStorage keys ("orders:…").
@@ -353,7 +353,7 @@ This is for a model inside your app. For a coding agent that writes Jali code, s
 `src/agent.ts`
 
 ```tsx
-import type { Allow, Jali, ObjectRef } from "jali";
+import type { Allow, Jali, ObjectRef } from "jali-layout";
 
 // Your model client: anything that takes tools and runs a conversation with them.
 declare function runModel(options: {

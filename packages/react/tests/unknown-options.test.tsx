@@ -41,9 +41,9 @@ describe("options Jali doesn't know", () => {
       'Jali: createJali has no option "keyPrefix": keyPrefix moved to keyboard.prefix',
       'Jali: createJali has no option "reservedKeys": reservedKeys moved to keyboard.reserved',
       'Jali: createJali has no option "keymapOptions": keymapOptions moved to keyboard (keyboard.platform, keyboard.onInvalid, keyboard.words)',
-      'Jali: createJali has no option "palette": palette is a feature: features: [palette()] from "jali/palette" (leave it out for palette: false)',
-      'Jali: createJali has no option "rename": rename is a feature: features: [rename({ can, run })] from "jali/rename"',
-      'Jali: createJali has no option "url": url is a feature: features: [urlSync({ location, prefix, sizes })] from "jali/url" (url takes only a writer of your own)',
+      'Jali: createJali has no option "palette": palette is a feature: features: [palette()] from "jali-layout/palette" (leave it out for palette: false)',
+      'Jali: createJali has no option "rename": rename is a feature: features: [rename({ can, run })] from "jali-layout/rename"',
+      'Jali: createJali has no option "url": url is a feature: features: [urlSync({ location, prefix, sizes })] from "jali-layout/url" (url takes only a writer of your own)',
     ]);
   });
 

@@ -3,7 +3,7 @@
  * property, loan officer, mortgage). A table without one is Data Studio's record.
  */
 import type { ComponentType } from "react";
-import type { PaneProps } from "jali/react";
+import type { PaneProps } from "jali-layout/react";
 import { recordParams, RecordPane } from "@jali-examples/shared/panes/kinds/record";
 import { Paused, useBookRecordQuery } from "../../data";
 import type { BookRows, BookTable } from "../../model/rows";

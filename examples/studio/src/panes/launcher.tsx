@@ -8,8 +8,8 @@ import {
   TextAlignLeftIcon,
   WaveSineIcon,
 } from "@phosphor-icons/react";
-import type { ObjectRef } from "jali";
-import { definePane, useLauncher, type PaneProps } from "jali/react";
+import type { ObjectRef } from "jali-layout";
+import { definePane, useLauncher, type PaneProps } from "jali-layout/react";
 import { useTransport } from "../audio/react";
 import { catalogueOf } from "../sessions/catalog";
 import { FaceKey } from "../ui/molecules/FaceKey";

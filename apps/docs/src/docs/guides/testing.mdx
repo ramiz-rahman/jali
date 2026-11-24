@@ -1,6 +1,6 @@
 ---
 title: Test your layouts
-summary: Test your layouts and pane rules without a browser, by running Jali's actions and reading its state with jali/testing.
+summary: Test your layouts and pane rules without a browser, by running Jali's actions and reading its state with jali-layout/testing.
 ---
 
 import test from "../../samples/guides/testing/workspace.test.ts?raw";
@@ -11,7 +11,7 @@ Most of what Jali does lives in the instance, not in your components. So most of
 
 <Code code={test} filename="src/orders.test.ts" highlight="7-9" />
 
-`createTestJali` from `jali/testing` is `createJali` with what keeps a test apart from the page and from other tests:
+`createTestJali` from `jali-layout/testing` is `createJali` with what keeps a test apart from the page and from other tests:
 
 - **An address in memory** (`location`), through `urlSync`. Jali writes its layout there instead of the browser's address. `search` starts it on a link, to test opening one.
 - **Storage in memory**: saved settings, pane state and dragged sizes never reach `localStorage`.
@@ -34,7 +34,7 @@ Kinds belong to the instance, so every test gets its own: nothing about one test
 
 ## What a rendered pane would report
 
-Some things come from a rendered pane, not from an action: unsaved work (`useUnsaved`), pane state (`usePaneState`), the dialogs a person answers. `jali/testing` reports and reads them without rendering:
+Some things come from a rendered pane, not from an action: unsaved work (`useUnsaved`), pane state (`usePaneState`), the dialogs a person answers. `jali-layout/testing` reports and reads them without rendering:
 
 | Helper | What it stands for |
 |---|---|
@@ -46,7 +46,7 @@ Some things come from a rendered pane, not from an action: unsaved work (`useUns
 | `chooserRequest(jali)` | The chooser's open request (`jali.dialogs.choose`), with the `chooser()` feature |
 | `lastAnnouncement(jali)` | What screen readers last heard |
 
-See [`jali/testing`](/reference/testing) for each one's details.
+See [`jali-layout/testing`](/reference/testing) for each one's details.
 
 ## Test a link
 
@@ -54,7 +54,7 @@ To check that a link opens what it should, make a second instance whose address 
 
 ```ts
 import { expect, it } from "vitest";
-import { createTestJali } from "jali/testing";
+import { createTestJali } from "jali-layout/testing";
 import { orderKinds, presets } from "./panes";
 
 it("a link reopens the same panes", () => {
@@ -99,4 +99,4 @@ Tests without a browser cover rules: what opens where, what folds, what asks fir
 ## Next
 
 - [Unsaved work and pane state](/guides/unsaved-work-and-pane-state)
-- [`jali/testing` reference](/reference/testing)
+- [`jali-layout/testing` reference](/reference/testing)

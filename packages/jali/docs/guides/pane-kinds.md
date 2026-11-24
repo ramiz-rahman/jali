@@ -25,7 +25,7 @@ A ref is plain data, so it fits in a link. Params are text, numbers or `true`/`f
 The first argument is the kind's name; refs and links carry it. `params` says what each pane of the kind needs, and how to read it back from a link, which turns every value into text:
 
 ```tsx
-import { definePane } from "jali/react";
+import { definePane } from "jali-layout/react";
 import { OrderDetail } from "./order-detail";
 
 export const orderKind = definePane("order", {
@@ -91,8 +91,8 @@ A param is required unless it is wrapped in `optional`. For example, a ticket wi
 `src/panes/ticket.tsx`
 
 ```tsx
-import { definePane } from "jali/react";
-import { oneOf, optional } from "jali";
+import { definePane } from "jali-layout/react";
+import { oneOf, optional } from "jali-layout";
 
 export const ticket = definePane("ticket", {
   params: { id: Number, tab: optional(oneOf("thread", "details")), internal: optional(Boolean) },
@@ -112,8 +112,8 @@ The component, `title` and the other options get `{ id: number; tab?: "thread" |
 Declare the params first, and type the component from them with `PaneProps<typeof …>`. The orders file below does this:
 
 ```tsx
-import { oneOf, optional } from "jali";
-import { definePane, type PaneProps } from "jali/react";
+import { oneOf, optional } from "jali-layout";
+import { definePane, type PaneProps } from "jali-layout/react";
 
 const orderParams = { id: Number, tab: optional(oneOf("summary", "history")) };
 
@@ -185,7 +185,7 @@ The last two are covered in [Unsaved work and pane state](unsaved-work-and-pane-
 A control that acts on the whole pane, such as Add, Refresh or a view switch, can sit in the pane's header rather than in a toolbar of your own. Call `useHeaderActions` with the controls, and Jali places them after the title and Following / Kept, before its own buttons:
 
 ```tsx
-import { useCommands, useHeaderActions } from "jali/react";
+import { useCommands, useHeaderActions } from "jali-layout/react";
 import { PlusIcon } from "@phosphor-icons/react";
 import { NoteList, useAddNote } from "./notes";
 
@@ -212,7 +212,7 @@ Each pane's component renders inside its own error boundary and its own Suspense
 **When a component throws,** that pane shows what failed, with a Retry button and a Close button. The layout keeps its shape. Retry mounts the component again, and it is also in ⌘K while the pane is focused. The pane's activity reads `"error"`. Showing another object in the pane clears the failure. Pass `onPaneError` to `createJali` to send the error to your reporting; by default it is logged in development.
 
 ```ts
-import { createJali } from "jali";
+import { createJali } from "jali-layout";
 import { orderKinds, presets } from "./panes";
 import { telemetry } from "./telemetry";
 
@@ -230,7 +230,7 @@ const jali = createJali({
 Params that read can still name nothing: a session that was deleted, an order from another account. Render the same component from `Component`, with no problems, so both cases look alike. In the peek sheet, which has no pane of its own, `openHere` is refused, so offer `close` there:
 
 ```tsx
-import { definePane, useJali, type MissingProps, type PaneProps } from "jali/react";
+import { definePane, useJali, type MissingProps, type PaneProps } from "jali-layout/react";
 import { Session, library, useSession } from "./sessions";
 
 const sessionParams = { id: String };
@@ -273,7 +273,7 @@ export const session = definePane("session", {
 
 ```tsx
 import { use } from "react";
-import { definePane, useTitle, type PaneProps } from "jali/react";
+import { definePane, useTitle, type PaneProps } from "jali-layout/react";
 
 interface Customer {
   id: number;
@@ -322,7 +322,7 @@ Every pane in the layout stays mounted, even when it is folded or behind a tab, 
 
 ```tsx
 import { useEffect } from "react";
-import { usePane } from "jali/react";
+import { usePane } from "jali-layout/react";
 import { refresh } from "./orders";
 
 function OrderStatus() {
@@ -361,7 +361,7 @@ Define it like any kind, usually with `scratch: true`, and pass it as `launcher`
 Pass every kind to `createJali`, and the launcher on its own. Each instance has its own kinds: nothing is shared between instances or tests.
 
 ```ts
-import { createJali } from "jali";
+import { createJali } from "jali-layout";
 import { launcher, orderKinds, presets } from "./panes";
 
 const jali = createJali({ panes: orderKinds, launcher, presets });
@@ -373,8 +373,8 @@ const jali = createJali({ panes: orderKinds, launcher, presets });
 
 ```tsx
 import { useEffect, useState, type KeyboardEvent } from "react";
-import { definePane, useLauncher, type PaneProps } from "jali/react";
-import { oneOf, optional } from "jali";
+import { definePane, useLauncher, type PaneProps } from "jali-layout/react";
+import { oneOf, optional } from "jali-layout";
 import { ClipboardTextIcon, FileTextIcon, NoteIcon, PlusIcon } from "@phosphor-icons/react";
 
 // Your data. Jali never fetches anything: a pane is told which object to show, and shows it.
@@ -535,8 +535,8 @@ A pane can open others, and be closed, tucked, maximised, put full screen, moved
 `src/jali.tsx`
 
 ```tsx
-import { createJali, row } from "jali";
-import { definePane } from "jali/react";
+import { createJali, row } from "jali-layout";
+import { definePane } from "jali-layout/react";
 
 // What the content can handle: a toolbar can't fill a screen, so the kind says so.
 const toolbar = definePane("toolbar", {
@@ -583,7 +583,7 @@ export const jali = createJali({
 With every control that rearranges off, people can look without changing the layout. Links open as a peek, and nothing can be closed, moved, resized or tucked:
 
 ```tsx
-import { createJali } from "jali";
+import { createJali } from "jali-layout";
 
 const viewer = createJali({
   panes,
@@ -602,7 +602,7 @@ Three levels, and each can only take away. A control is allowed when none of the
 2. **The kind**, `definePane("chart", { allow })`, for what its content can handle.
 3. **Every pane**, `createJali({ allow })`: defaults for all panes, and `when`, a function asked for each action, with the pane, the preset the layout came from and the curated page, if one is open.
 
-Everything is allowed by default. Pop out comes with its feature, `popOut()` from `jali/pop-out`. Adding it also adds a Pop out button to the header, before Close, and **Pop out pane** (`pane.pop_out`) to ⌘K. It has no key until you bind one.
+Everything is allowed by default. Pop out comes with its feature, `popOut()` from `jali-layout/pop-out`. Adding it also adds a Pop out button to the header, before Close, and **Pop out pane** (`pane.pop_out`) to ⌘K. It has no key until you bind one.
 
 Because the levels only take away, `createJali({ allow })`'s `true` can't turn back on what a kind turned off. `when` is your code, not part of the layout, so the rule itself never travels in a link. What it reads can: a layout's preset and its panes come from the address. These controls shape what people are offered; they are not a security boundary. A rule that must hold, such as who may delete a record, belongs in your app's own checks too.
 
@@ -626,8 +626,8 @@ You don't have to set `buttons`. Jali's choice is Tuck, Maximise, Pop out (where
 To change them, give a list, which replaces Jali's, or a function, which adjusts them. A kind's `buttons` win over `createJali`'s:
 
 ```tsx
-import { createJali } from "jali";
-import { definePane } from "jali/react";
+import { createJali } from "jali-layout";
+import { definePane } from "jali-layout/react";
 import { Chart } from "./chart-view";
 
 // Charts: Jali's buttons, without Tuck (Tuck stays in the menu).

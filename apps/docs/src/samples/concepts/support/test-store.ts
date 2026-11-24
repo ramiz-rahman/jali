@@ -1,4 +1,4 @@
-import { createTestJali } from "jali/testing";
+import { createTestJali } from "jali-layout/testing";
 import { triage } from "./layouts";
 import { ticket } from "./ticket";
 import { ticketList } from "./ticket-list";

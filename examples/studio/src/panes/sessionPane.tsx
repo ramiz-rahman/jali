@@ -8,8 +8,8 @@
  *    never rendered for a session the library doesn't have: the pane says "no signal" instead.
  */
 import type { ComponentType } from "react";
-import type { ObjectRef } from "jali";
-import { definePane, type PaneOptionsReact, type PaneProps } from "jali/react";
+import type { ObjectRef } from "jali-layout";
+import { definePane, type PaneOptionsReact, type PaneProps } from "jali-layout/react";
 import { useSessionTransport, type SessionTransport } from "../audio/react";
 import { useSessionView } from "../model/react";
 import type { SessionView } from "../model/view";

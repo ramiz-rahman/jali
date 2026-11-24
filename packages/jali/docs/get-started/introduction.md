@@ -4,7 +4,7 @@ What Jali is, the problem it solves for apps where people work on several things
 
 Jali is a layout library for apps where people work on several things at once. Each thing gets a pane, and the panes sit in rows, columns and tabs. You describe the kinds of pane your app has. Jali decides where they go, how they fit the window, and how people move between them.
 
-Its core has no framework and no dependencies. React renders it, from `jali/react`.
+Its core has no framework and no dependencies. React renders it, from `jali-layout/react`.
 
 ## The problem
 
@@ -49,15 +49,15 @@ Everything beyond laying out panes is a feature you pass in: the address, the ‚å
 
 ## One package
 
-`jali` is one package, with an entry for each part:
+`jali-layout` is one package, with an entry for each part:
 
-- [`jali`](../reference/core.md): pane kinds, layouts, `createJali`, actions and events. No framework.
-- [`jali/react`](../reference/react.md): `<JaliRoot>`, `definePane`, the hooks and the parts you place in your own chrome.
-- One entry per feature, such as `jali/url` and `jali/palette`, and [`jali/features`](../reference/features.md) for Jali's usual set.
-- [`jali/testing`](../reference/testing.md) for your tests. To give an AI model your panes as tools, see [Let an agent arrange panes](../guides/your-app.md#let-an-agent-arrange-panes).
+- [`jali-layout`](../reference/core.md): pane kinds, layouts, `createJali`, actions and events. No framework.
+- [`jali-layout/react`](../reference/react.md): `<JaliRoot>`, `definePane`, the hooks and the parts you place in your own chrome.
+- One entry per feature, such as `jali-layout/url` and `jali-layout/palette`, and [`jali-layout/features`](../reference/features.md) for Jali's usual set.
+- [`jali-layout/testing`](../reference/testing.md) for your tests. To give an AI model your panes as tools, see [Let an agent arrange panes](../guides/your-app.md#let-an-agent-arrange-panes).
 
 ```sh
-npm install jali
+npm install jali-layout
 ```
 
 ## When not to use it

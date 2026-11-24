@@ -3,7 +3,7 @@
  * so moving from Mix to Edit and back brings Mix back as it was arranged. Reset (the slab's reset key, or ⌘K "Reset
  * this layout to its design") forgets it and lets Jali build the design again (presets.ts).
  */
-import type { DeepReadonly, Jali, Layout } from "jali";
+import type { DeepReadonly, Jali, Layout } from "jali-layout";
 import { isRecord } from "@jali-examples/shared/store";
 import { recordOf, saved } from "../storage";
 

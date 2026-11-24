@@ -4,7 +4,7 @@
  */
 import { useState } from "react";
 import { BookmarkSimpleIcon, PencilSimpleIcon, PlusIcon, XIcon } from "@phosphor-icons/react";
-import { usePaneState } from "jali/react";
+import { usePaneState } from "jali-layout/react";
 import { usePosition } from "../audio/react";
 import { markerIndexAt } from "../model/markers";
 import { useServices } from "../services";

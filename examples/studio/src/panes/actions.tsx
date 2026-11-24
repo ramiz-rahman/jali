@@ -7,8 +7,8 @@
  * and lets the rest (Space for the transport, ⌘K and the workspace's chords) bubble on.
  */
 import type { KeyboardEvent, ReactNode } from "react";
-import { keyHint } from "jali";
-import { useCommands } from "jali/react";
+import { keyHint } from "jali-layout";
+import { useCommands } from "jali-layout/react";
 import { Key, type KeyProps } from "../ui/atoms/Key";
 import { typingIn } from "../ui/lib/input";
 

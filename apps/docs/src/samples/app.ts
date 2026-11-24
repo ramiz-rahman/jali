@@ -4,8 +4,8 @@
  * typechecked. Never shown on the site.
  */
 import type { ComponentType } from "react";
-import type { LayoutInput, PresetOptions } from "jali";
-import { definePane, type PaneProps } from "jali/react";
+import type { LayoutInput, PresetOptions } from "jali-layout";
+import { definePane, type PaneProps } from "jali-layout/react";
 import { presets as orderPresets } from "./guides/presets/layouts";
 import { orderKinds as kinds } from "./guides/pane-kinds/orders";
 

@@ -4,7 +4,7 @@
  */
 import { useEffect } from "react";
 import { Toaster, toast } from "sonner";
-import { useJali, useJaliEvent, useJaliTheme } from "jali/react";
+import { useJali, useJaliEvent, useJaliTheme } from "jali-layout/react";
 import type { Engine } from "../audio/engine";
 import { useServices, type Notify } from "../services";
 

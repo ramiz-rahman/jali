@@ -1,7 +1,7 @@
 /** Starts an app on the shared sample database and shell: Data Studio and Loan review differ only in their workspace. */
 import { createRoot } from "react-dom/client";
-import type { Jali } from "jali";
-import { storeOf } from "jali/adapter";
+import type { Jali } from "jali-layout";
+import { storeOf } from "jali-layout/adapter";
 import { createDataLayer } from "./data";
 import type { DataLayer } from "./data/types";
 import { App, type AppChrome } from "./shell/App";
@@ -12,7 +12,7 @@ import "@fontsource/atkinson-hyperlegible-next/latin-600.css";
 import "@fontsource/atkinson-hyperlegible-mono/latin-400.css";
 import "@fontsource/atkinson-hyperlegible-mono/latin-500.css";
 import "./shell/styles/index.css";
-import "jali/styles.css";
+import "jali-layout/styles.css";
 
 /**
  * Mounts the app. `chrome` is what its bar says (its name; on a curated page, what one item is called). `data` is the

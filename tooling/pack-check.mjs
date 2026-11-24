@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * The package as an app installs it, not as the workspace links it. Packs `jali` (packages/jali) with `pnpm pack`
+ * The package as an app installs it, not as the workspace links it. Packs `jali-layout` (packages/jali) with `pnpm pack`
  * (which builds it, and writes the published package.json: publishConfig's exports, no workspace: ranges), unpacks it
  * into a throwaway app's node_modules beside React, and then:
  *
@@ -9,8 +9,8 @@
  *     points at a file in the tarball;
  *   - checks "use client" starts every React file (React Server Components hosts) and no framework-free one;
  *   - checks every type a public signature names is exported from an app's entry (tooling/public-types.mjs);
- *   - typechecks a consumer against the packed .d.ts: examples/minimal, `Register` declared on "jali", and a test on
- *     jali/testing;
+ *   - typechecks a consumer against the packed .d.ts: examples/minimal, `Register` declared on "jali-layout", and a test on
+ *     jali-layout/testing;
  *   - builds examples/minimal against the tarball with Vite (no "source" condition, so no workspace source);
  *   - renders a workspace on the server with the packed package and hydrates it in jsdom, with no recoverable error.
  *
@@ -59,12 +59,16 @@ try {
 
   // ---------- pack and unpack ----------
   run("pnpm", ["pack", "--pack-destination", work], join(root, "packages", "jali"));
-  const tgz = readdirSync(work).find((f) => /^jali-\d.*\.tgz$/.test(f));
-  if (!tgz) throw new Error("pnpm pack made no tarball for jali");
-  const pkgDir = join(app, "node_modules", "jali");
+  // The tarball is named for the package (jali-layout-0.1.0.tgz): read the name, so a rename never leaves this behind.
+  const { name } = JSON.parse(readFileSync(join(root, "packages", "jali", "package.json"), "utf8"));
+  const tgz = readdirSync(work).find((f) => f.startsWith(`${name}-`) && /-\d[^/]*\.tgz$/.test(f));
+  if (!tgz) throw new Error(`pnpm pack made no tarball for ${name}`);
+  const pkgDir = join(app, "node_modules", "jali-layout");
   mkdirSync(pkgDir, { recursive: true });
   run("tar", ["-xzf", join(work, tgz), "-C", pkgDir, "--strip-components", "1"], work);
-  console.log(`pack-check: jali ${(statSync(join(work, tgz)).size / 1024).toFixed(1)} KB packed`);
+  console.log(
+    `pack-check: ${name} ${(statSync(join(work, tgz)).size / 1024).toFixed(1)} KB packed`,
+  );
 
   // ---------- the published package.json ----------
   const text = readFileSync(join(pkgDir, "package.json"), "utf8");
@@ -116,15 +120,15 @@ try {
   writeFileSync(join(app, "package.json"), '{ "name": "pack-check-app", "type": "module" }\n');
 
   // ---------- types ----------
-  // `Register` declared on "jali" types the React hooks; jali/testing's helpers take a typed workspace.
+  // `Register` declared on "jali-layout" types the React hooks; jali-layout/testing's helpers take a typed workspace.
   writeFileSync(
     join(app, "src", "register.tsx"),
-    `import { createJali, row } from "jali";
-import { definePane, usePane, useJali } from "jali/react";
-import { createTestJali, reportUnsaved } from "jali/testing";
+    `import { createJali, row } from "jali-layout";
+import { definePane, usePane, useJali } from "jali-layout/react";
+import { createTestJali, reportUnsaved } from "jali-layout/testing";
 const note = definePane("note", { params: { id: Number }, title: "Note", Component: () => null });
 export const jali = createJali({ panes: [note], layout: row(note({ id: 1 })) });
-declare module "jali" {
+declare module "jali-layout" {
   interface Register {
     jali: typeof jali;
   }
@@ -200,10 +204,10 @@ void loc;
 import { createElement as h } from "react";
 import { renderToString } from "react-dom/server";
 import { JSDOM } from "jsdom";
-import { createJali, memoryLocation, memoryStorage, row } from "jali";
-import { JaliRoot, definePane } from "jali/react";
-import { urlSync } from "jali/url";
-import { defaultFeatures } from "jali/features";
+import { createJali, memoryLocation, memoryStorage, row } from "jali-layout";
+import { JaliRoot, definePane } from "jali-layout/react";
+import { urlSync } from "jali-layout/url";
+import { defaultFeatures } from "jali-layout/features";
 
 const note = definePane("note", { params: { id: Number }, title: ({ id }) => "Note " + id,
   Component: ({ params }) => h("p", null, "Note body " + params.id) });

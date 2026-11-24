@@ -9,7 +9,7 @@ import { markdownUrl, pageAt } from "../site/sources";
 
 export const GET: APIRoute = ({ site }) => {
   const parts = [
-    `# Jali\n\n> ${pageAt("/").summary}\n\nThe whole of Jali's docs, one page after another. The same pages ship inside the package as \`node_modules/jali/docs/\`, for the installed version.`,
+    `# Jali\n\n> ${pageAt("/").summary}\n\nThe whole of Jali's docs, one page after another. The same pages ship inside the package as \`node_modules/jali-layout/docs/\`, for the installed version.`,
   ];
   for (const item of readingOrder) {
     const md = toMarkdown(pageAt(item.path), { link: (href) => new URL(href, site).href });

@@ -1,4 +1,4 @@
-/** jali/testing: an instance for tests, and what a rendered pane would report, without the adapter's internals. */
+/** jali-layout/testing: an instance for tests, and what a rendered pane would report, without the adapter's internals. */
 export {
   createTestJali,
   testJaliOptions,

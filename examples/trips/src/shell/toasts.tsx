@@ -3,7 +3,7 @@
  * services' way to tell the person something) and Jali's (a closed pane offers Undo), in one place, worded alike.
  */
 import { toast, Toaster } from "sonner";
-import { useJali, useJaliEvent, useJaliTheme } from "jali/react";
+import { useJali, useJaliEvent, useJaliTheme } from "jali-layout/react";
 import type { Services } from "../state/services";
 
 const undoAction = (onClick: () => void) => ({ label: "Undo", onClick });

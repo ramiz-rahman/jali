@@ -13,8 +13,8 @@ import {
   MoonIcon,
   SunIcon,
 } from "@phosphor-icons/react";
-import { copyLink, keyHint } from "jali";
-import { useJali, useJaliShortcut, useJaliState, useJaliTheme } from "jali/react";
+import { copyLink, keyHint } from "jali-layout";
+import { useJali, useJaliShortcut, useJaliState, useJaliTheme } from "jali-layout/react";
 import { useServices } from "../services";
 import { PlanGlyph, StudioMark } from "../ui/atoms/glyphs";
 import { Lamp } from "../ui/atoms/Lamp";

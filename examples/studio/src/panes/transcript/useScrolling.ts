@@ -1,6 +1,6 @@
 /** What moves the transcript's list: the voice while following, and the cursor when the pane arrives. */
 import { useLayoutEffect, useRef, type RefObject } from "react";
-import { useJaliState } from "jali/react";
+import { useJaliState } from "jali-layout/react";
 import { showRow } from "../../ui/lib/listbox";
 
 /**

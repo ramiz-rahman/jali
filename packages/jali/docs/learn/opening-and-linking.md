@@ -8,7 +8,7 @@ A pane never builds the layout itself. It asks Jali to show an object, with one 
 
 ```tsx
 import type { MouseEvent } from "react";
-import { definePane, type PaneProps } from "jali/react";
+import { definePane, type PaneProps } from "jali-layout/react";
 import { tickets } from "./data";
 import { ticket } from "./ticket";
 

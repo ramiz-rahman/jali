@@ -6,7 +6,7 @@
  * Then the app's, as its code is laid out: the theme, the shell, the shared atoms and molecules (ui/), each pane
  * (panes/), and last the touch sizes, which win over all of them.
  */
-@import "jali/styles.css";
+@import "jali-layout/styles.css";
 @import "./tokens.css";
 @import "./shell.css";
 @import "./atoms.css";

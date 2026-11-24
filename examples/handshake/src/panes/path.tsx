@@ -5,7 +5,7 @@
  * down move between hops.
  */
 import { useId, useMemo, useState, type KeyboardEvent } from "react";
-import { definePane, useCommands, type PaneProps } from "jali/react";
+import { definePane, useCommands, type PaneProps } from "jali-layout/react";
 import { Route } from "lucide-react";
 import { Alert } from "#src/vendor/cyberspec/components/ui/alert.tsx";
 import { Badge, type BadgeTone } from "#src/vendor/cyberspec/components/ui/badge.tsx";

@@ -5,7 +5,7 @@
  * In each layout one pane is the list the others follow (`linkedTo` its id, `follows: true`): the lesson in the
  * course, the packet list in the lab, the Scans pane at home. The lesson is itself a follower of the outline.
  */
-import { column, pane, row, tabs, type PresetOptions } from "jali";
+import { column, pane, row, tabs, type PresetOptions } from "jali-layout";
 import { LESSONS } from "./course/lessons";
 import { resolveTarget } from "./course/refs";
 import { captureMark } from "./packets/captures";

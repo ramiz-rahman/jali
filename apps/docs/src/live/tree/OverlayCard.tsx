@@ -6,7 +6,7 @@ import {
   EyeSlashIcon,
   StackIcon,
 } from "@phosphor-icons/react";
-import type { Model as JaliModel } from "jali/adapter";
+import type { Model as JaliModel } from "jali-layout/adapter";
 import { colourOf } from "./colours";
 
 function Chips({

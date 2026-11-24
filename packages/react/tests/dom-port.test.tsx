@@ -77,7 +77,8 @@ describe("the core's source", () => {
         // comments say what the adapter renders; only code counts
         .replace(/\/\*[\s\S]*?\*\//g, "")
         .replace(/\/\/.*$/gm, "");
-      for (const m of code.matchAll(/["'`.\s(]\.?(jali-[a-z-]+)/g))
+      // A name followed by "/" is a module path in a message ("jali-layout/url"), not a class.
+      for (const m of code.matchAll(/["'`.\s(]\.?(jali-[a-z-]+)(?![a-z-]|\/)/g))
         if (
           !m[1]!.startsWith("jali-gap") &&
           !m[1]!.startsWith("jali-inset") &&

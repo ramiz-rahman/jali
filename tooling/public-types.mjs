@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
- * Every type a public signature names is exported. Reads the built declarations of `jali` (its `dist/*.d.ts`), starts
+ * Every type a public signature names is exported. Reads the built declarations of `jali-layout` (its `dist/*.d.ts`), starts
  * from each name an app can import (every entry's exports, the `layout` namespace's members), and follows the types
  * each declaration names. A type it reaches that no app entry exports is a failure: an app can read it in a hover but
  * can't write it down (DOCS-25: `row` returned a `SplitDraft` nobody could import).
  *
- * `jali/adapter` is for adapter authors and may change in any minor version, so what only it exports doesn't count
+ * `jali-layout/adapter` is for adapter authors and may change in any minor version, so what only it exports doesn't count
  * as exported here, and its own signatures aren't followed.
  *
  *   node tooling/public-types.mjs [dist]   default: packages/jali/dist (run `pnpm build:packages` first)
@@ -36,7 +36,7 @@ export const NOT_EXPORTED = {
   NodeBase: "the fields every LayoutNode shares",
   Node: "helper of layout.find",
   Read: "helper of layout.find",
-  // An adapter's kind registry (`createPaneKinds`, jali/adapter), which `createJali({ panes })` also takes.
+  // An adapter's kind registry (`createPaneKinds`, jali-layout/adapter), which `createJali({ panes })` also takes.
   PaneKinds: "an adapter's kind registry, which createJali({ panes }) also takes",
   PaneKind: "inside an adapter's kind registry",
   KindRegistry: "inside an adapter's kind registry",

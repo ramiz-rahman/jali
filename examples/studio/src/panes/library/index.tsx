@@ -6,8 +6,8 @@
  * After a layout opens, the library comes back to the transport's session (workspace/followTransport.ts).
  */
 import { BooksIcon } from "@phosphor-icons/react";
-import type { Jali, NodeId } from "jali";
-import { definePane, useJali, type PaneProps } from "jali/react";
+import type { Jali, NodeId } from "jali-layout";
+import { definePane, useJali, type PaneProps } from "jali-layout/react";
 import type { Engine } from "../../audio/engine";
 import { useTransport } from "../../audio/react";
 import { useServices } from "../../services";

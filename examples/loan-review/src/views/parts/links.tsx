@@ -4,8 +4,8 @@
  */
 import type { ReactNode } from "react";
 import { ArrowUpRightIcon } from "@phosphor-icons/react";
-import type { ObjectRef } from "jali";
-import { useJaliState, usePane } from "jali/react";
+import type { ObjectRef } from "jali-layout";
+import { useJaliState, usePane } from "jali-layout/react";
 import { useBookRecord } from "../../data";
 import type { BookRows } from "../../model/rows";
 import { counted, pluralOf } from "../../model/words";

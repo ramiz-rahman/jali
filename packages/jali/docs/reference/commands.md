@@ -5,7 +5,7 @@ Every command, its default keys on a Mac and on Windows and Linux, and when it i
 Every command has a stable id. The palette lists them all (greyed while refused); the keyboard runs the one a binding names; `runCommand(jali, id)` runs one from code. Rebind or unbind any of them with `createJali({ keyboard: { keymap } })`:
 
 ```ts
-import { createJali } from "jali";
+import { createJali } from "jali-layout";
 
 createJali({ panes, layout, keyboard: { keymap: { "pane.close": "Mod+K Mod+X", "pane.split.down": null } } });
 ```
@@ -36,7 +36,7 @@ The titles below are for an instance with no curated page. With a curated page, 
 | `pane.focus.9` | Focus pane 9 | none | none | Never refused. Does nothing when there are fewer panes on screen. |
 | `pane.zoom` | Maximise or restore pane | ⇧⌘↵ or ⌘K ⌘M | Ctrl+Shift+Enter or Ctrl+K Ctrl+M | In a curated page in Single, with "Single shows one view: choose it from the tabs…". Silent when no pane is focused, or when only one pane is open and nothing is maximised. |
 | `pane.fullscreen` | Full screen pane, or exit full screen | ⌘K ⌘F | Ctrl+K Ctrl+F | On a curated page in Single view. Puts the focused pane on the whole screen, or takes it off. |
-| `pane.pop_out` | Pop out pane | none | none | Only with the popOut() feature (jali/pop-out). Silent when no pane is focused, or the browser can't pop out (Document Picture-in-Picture: Chrome and Edge on desktop). When the focused pane doesn't allow it, says so. Opens it in a floating window that stays on top. |
+| `pane.pop_out` | Pop out pane | none | none | Only with the popOut() feature (jali-layout/pop-out). Silent when no pane is focused, or the browser can't pop out (Document Picture-in-Picture: Chrome and Edge on desktop). When the focused pane doesn't allow it, says so. Opens it in a floating window that stays on top. |
 | `pane.tuck` | Tuck pane into its neighbour | ⌘K ⌘[ | Ctrl+K Ctrl+[ | In Single, as for maximise. With no pane focused or recently focused: "No pane focused". A pane in a tab group, already tucked, or a tuck's home: "… is already a tab of …". Not on screen: "… is not on screen". The only pane open or on screen, or no neighbour to tuck into: "… can't be tucked". |
 | `pane.putBack` | Put back tucked pane | ⌘K ⌘] | Ctrl+K Ctrl+] | "Nothing is tucked" when no pane is tucked. |
 | `shelf.reveal` | Show a pane from the shelf | none | none | Silent when no pane is behind a tab (tucked, folded or an ordinary tab). |
@@ -53,11 +53,11 @@ The titles below are for an instance with no curated page. With a curated page, 
 | `pane.move.down` | Move pane down | ⌘K ⇧⌘↓ | Ctrl+K Ctrl+Shift+Down | Silent when no pane is focused. With only one pane, or no pane to that side: "… can't move down". |
 | `pane.move.out` | Move pane out of the row | none | none | Silent unless the focused pane is in a row that scrolls sideways (`row({ scroll: "x" }, …)`). Takes it out beside the row, on the side it is nearer on screen: "… moved out of the row". |
 | `pane.swap` | Swap with next pane | none | none | Silent when no pane is focused or only one pane is open. |
-| `pane.merge` | Add to tabs of… | ⌘K ⌘G | Ctrl+K Ctrl+G | Only with the chooser() feature (jali/chooser). Silent when no pane is focused, or there is no other pane or stack on screen to join. Opens the "Add to tabs of…" chooser. |
+| `pane.merge` | Add to tabs of… | ⌘K ⌘G | Ctrl+K Ctrl+G | Only with the chooser() feature (jali-layout/chooser). Silent when no pane is focused, or there is no other pane or stack on screen to join. Opens the "Add to tabs of…" chooser. |
 | `pane.unmerge` | Move out of tabs | ⌘K ⇧⌘G | Ctrl+K Ctrl+Shift+G | Silent unless the focused pane is in a tab group made by the person (not one the layout folded). |
 | `tab.move.left` | Move tab left | ⌘K ⇧PageUp | Ctrl+K Shift+PageUp | Silent unless the focused pane is a tab in a group made by the person or the app. At the start of the strip: "… is already the first tab". |
 | `tab.move.right` | Move tab right | ⌘K ⇧PageDown | Ctrl+K Shift+PageDown | Silent unless the focused pane is a tab in a group made by the person or the app. At the end of the strip: "… is already the last tab". |
-| `pane.rename` | Rename pane | F2 | F2 | Only with the rename() feature (jali/rename). Silent unless its `can` allows the focused pane. Opens the rename field on its tab or title. |
+| `pane.rename` | Rename pane | F2 | F2 | Only with the rename() feature (jali-layout/rename). Silent unless its `can` allows the focused pane. Opens the rename field on its tab or title. |
 | `stack.new-tab` | New tab here | none | none | Silent when no pane is focused, or there is no launcher. Where the pane doesn't allow `open`: "Panes can't be opened from … here". |
 | `layout.preset.<id>` | Layout: Orders | none | none | Never. One command per preset, titled "Layout: <label>". |
 | `layout.reset` | Reset layout | none | none | Silent without presets. Rebuilds the preset last chosen. |
@@ -71,7 +71,7 @@ The titles below are for an instance with no curated page. With a curated page, 
 | `page.leave` | Open Notes | none | none | Silent unless a curated page is open, and in a page-only app (no presets). |
 | `peek.close` | Close peek | none | none | Silent when no peek is open. |
 | `peek.open_beside` | Open peek beside | none | none | Silent when no peek is open. Where the pane the peek came from doesn't allow `open`: "Panes can't be opened from … here". In a curated page's Single view: "Single shows one view: choose it from the tabs…". |
-| `settings.open` | Open settings | none | none | Only with the settings() feature (jali/settings). Never refused there. |
+| `settings.open` | Open settings | none | none | Only with the settings() feature (jali-layout/settings). Never refused there. |
 | `settings.centre_drop.toggle` | Switch centre drop (swap ↔ tab) | none | none | Never. |
 
 ## Keys that are not commands

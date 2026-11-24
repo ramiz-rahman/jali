@@ -8,7 +8,7 @@
  */
 import type { ReactNode } from "react";
 import { QuestionIcon } from "@phosphor-icons/react";
-import type { ObjectRef } from "jali";
+import type { ObjectRef } from "jali-layout";
 import { facts } from "../market/classes";
 import { useMarket } from "../market/react";
 import type { Instrument } from "../market/types";

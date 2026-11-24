@@ -13,8 +13,8 @@ import {
   type JaliOptions,
   type UrlState,
   type UrlWriter,
-} from "jali";
-import { JaliRoot, definePane } from "jali/react";
+} from "jali-layout";
+import { JaliRoot, definePane } from "jali-layout/react";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 

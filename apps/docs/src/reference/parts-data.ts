@@ -1,5 +1,5 @@
 /**
- * The styling contract, from jali/react itself (packages/react/src/parts.ts): every public part, its selector, what
+ * The styling contract, from jali-layout/react itself (packages/react/src/parts.ts): every public part, its selector, what
  * it is, and the state attributes it carries. The page's table (Parts.tsx) and its Markdown (./markdown.ts) are both
  * drawn from here. The sentences write code in backticks.
  */

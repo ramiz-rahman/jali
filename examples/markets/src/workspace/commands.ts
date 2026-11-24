@@ -2,7 +2,7 @@
  * The app's own commands in ⌘K, after Jali's own and under the app's groups. The "…" ones ask for an instrument
  * first, in Jali's chooser (type a symbol or a name).
  */
-import type { Command, Jali, ObjectRef } from "jali";
+import type { Command, Jali, ObjectRef } from "jali-layout";
 import { makerCommand } from "@jali-examples/shared/maker/maker";
 import { themeCommand } from "@jali-examples/shared/theme";
 import { facts, tradable } from "../market/classes";

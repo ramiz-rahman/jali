@@ -6,7 +6,7 @@
  * The layout, the day each pane shows and the place in the place pane are all in the address, so a copied link
  * reopens the same arrangement.
  */
-import { pane, row, type PresetOptions } from "jali";
+import { pane, row, type PresetOptions } from "jali-layout";
 import { DEFAULT_PLAN } from "../trip/plan";
 import { budgetRef, dayRef, exploreRef, mapRef, placeRef, tripRef, WHOLE_TRIP } from "./refs";
 

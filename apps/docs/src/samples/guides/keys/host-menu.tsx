@@ -1,6 +1,6 @@
 import { useState, useSyncExternalStore } from "react";
-import { listCommands } from "jali";
-import { useJali } from "jali/react";
+import { listCommands } from "jali-layout";
+import { useJali } from "jali-layout/react";
 
 /**
  * Jali's commands inside your app's own command menu: a field and a list of buttons, which Tab and Enter reach with

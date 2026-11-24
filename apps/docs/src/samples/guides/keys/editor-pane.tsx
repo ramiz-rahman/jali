@@ -1,4 +1,4 @@
-import { definePane } from "jali/react";
+import { definePane } from "jali-layout/react";
 
 /**
  * An editor needs every key, so it marks itself: inside it, Jali takes only F6 and Shift+F6, so focus can

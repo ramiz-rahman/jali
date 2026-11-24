@@ -1,4 +1,4 @@
-import { useJaliShortcut, useJali } from "jali/react";
+import { useJaliShortcut, useJali } from "jali-layout/react";
 
 /** A button in your own chrome that runs one of Jali's actions and shows its key from the keymap. */
 export function CloseButton() {

@@ -7,7 +7,7 @@
  * a segment of the session the layout was designed on; on another session it would be a dead pane, so it takes this
  * session's first segment.
  */
-import type { Jali } from "jali";
+import type { Jali } from "jali-layout";
 import type { Engine } from "../audio/engine";
 import { clip } from "../panes/clip";
 import { workOn } from "../panes/library";

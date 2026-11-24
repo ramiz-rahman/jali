@@ -1,6 +1,6 @@
 ---
-title: "jali"
-summary: Every function and constant jali exports, with its options, defaults and what it returns.
+title: "jali-layout"
+summary: Every function and constant jali-layout exports, with its options, defaults and what it returns.
 layout: wide
 ---
 
@@ -14,15 +14,15 @@ import readCode from "../../samples/reference/read-store.ts?raw";
 import messagesCode from "../../samples/reference/messages.ts?raw";
 import paramsCode from "../../samples/reference/params.tsx?raw";
 
-The framework-free part of Jali: the instance, the layouts it shows, the address and storage ports, commands and keys. Render it with [jali/react](/reference/react). Types have their own page, [jali types](/reference/core/types).
+The framework-free part of Jali: the instance, the layouts it shows, the address and storage ports, commands and keys. Render it with [jali-layout/react](/reference/react). Types have their own page, [jali-layout types](/reference/core/types).
 
-<Install packages="jali" />
+<Install packages="jali-layout" />
 
-Framework adapters import `jali/adapter`: everything on this page, and, by name, what an adapter needs from inside the package, such as the `DomPort` through which the core finds the adapter's elements, the instance's store (`storeOf`), and the pure layout operations (`layout`). Apps need only what is on this page.
+Framework adapters import `jali-layout/adapter`: everything on this page, and, by name, what an adapter needs from inside the package, such as the `DomPort` through which the core finds the adapter's elements, the instance's store (`storeOf`), and the pure layout operations (`layout`). Apps need only what is on this page.
 
 ## The instance
 
-<Entry name="createJali" kind="function" from="jali" signature={`createJali(options: JaliOptions): Jali<RefOf<kinds>, PageOf<page>>`} example={createCode} exampleFile="jali.ts">
+<Entry name="createJali" kind="function" from="jali-layout" signature={`createJali(options: JaliOptions): Jali<RefOf<kinds>, PageOf<page>>`} example={createCode} exampleFile="jali.ts">
 
 Makes one instance, ready to render: its state, the model derived from it, its actions and its keymap. Each instance has its own; nothing is shared between two on one page.
 
@@ -41,7 +41,7 @@ Its listeners (keys, Back and Forward, theme and saving) start with `jali.start(
 <Param name="presets" type="readonly PresetOptions[]" default="[]">Layouts to start from, in menu order, each `{ id, label, layout }`. Each gets a `layout.preset.<id>` command, titled "Layout: label", and "Reset layout" rebuilds the one in use. `layout` may be a function, to build a fresh one each time. `saved` gives back the layout the person left a preset in.</Param>
 <Param name="preset" type="string" default="the first preset">The preset it opens on when no link says otherwise. An id that is not in `presets` also gives the first.</Param>
 <Param name="launcher" type="PaneKindBase">What Split and "New tab here" open until the person chooses what to show. It closes quietly and its component reads `useLauncher()`. Without one, those commands and the tab strip's "+" are not offered.</Param>
-<Param name="page" type="Page | null" default="null">A curated page this instance can show, from `definePage` (`jali/page`). A page made any other way is refused: `definePage` gives it the code that runs it, which an app without a page never ships. With one, `jali.page` has its actions.</Param>
+<Param name="page" type="Page | null" default="null">A curated page this instance can show, from `definePage` (`jali-layout/page`). A page made any other way is refused: `definePage` gives it the code that runs it, which an app without a page never ships. With one, `jali.page` has its actions.</Param>
 <Param name="name" type="string">Your app's name for the free layout, in command titles such as "Open Data Studio" on a curated page. Without one, the command reads "Leave" and the page's name.</Param>
 <Param name="features" type="readonly Feature[]" default="none">What the instance does beyond laying out panes, each a value from its own entry, so an app ships only what it uses: `[urlSync(), palette(), rename({ run })]`, or `defaultFeatures()` for the address, ⌘K, Settings, the chooser and `data-pressed` at once. A feature given again takes the earlier one's place. See [Features](/reference/features).</Param>
 <Param name="url" type="UrlWriter">A writer of your own for the address (a router's), in place of `urlSync()`: Jali writes through it and reads nothing back. Most apps give `urlSync({ location })` instead. See <Ref to="UrlWriter" page="/reference/core/types" />.</Param>
@@ -99,7 +99,7 @@ The pane comes first, by its id or by the object it shows: `close("order")` and 
 
 What a kind's refs hold, in its `params`: `Number`, `String`, `Boolean`, `oneOf(...)` or your own function, each required unless wrapped in `optional` or `appOnly`. The [Pane kinds guide](/guides/pane-kinds#params) explains what happens to a ref that is missing a required param. 
 
-<Entry name="optional" kind="function" from="jali" signature={`optional<T extends ParamType>(type: T, options?: ParamOptions): OptionalParam<T>`} example={paramsCode} exampleFile="ticket.tsx">
+<Entry name="optional" kind="function" from="jali-layout" signature={`optional<T extends ParamType>(type: T, options?: ParamOptions): OptionalParam<T>`} example={paramsCode} exampleFile="ticket.tsx">
 
 A param a ref may leave out. The kind's code sees it as optional (`tab?: string`), and its ref maker takes it or not. An optional param given as `undefined` is left out of the ref, as a link would leave it.
 
@@ -112,7 +112,7 @@ A param a ref may leave out. The kind's code sees it as optional (`tab?: string`
 
 </Entry>
 
-<Entry name="appOnly" kind="function" from="jali" signature={`appOnly<T extends ParamType>(type: T): AppOnlyParam<T>`} compact>
+<Entry name="appOnly" kind="function" from="jali-layout" signature={`appOnly<T extends ParamType>(type: T): AppOnlyParam<T>`} compact>
 
 A param only your app sets, never a link: `params: { sql: String, autorun: appOnly(Boolean) }`. Use it for anything a link must not be able to turn on, such as a query that runs as it opens. Jali leaves it out of every address it writes (the address bar, Copy link, Back and Forward) and drops it from every link it reads, even when the link holds a value it can't read. What the app gave stays where the app gave it: Back and Forward keep it on a pane that is still open, and a reload keeps what the preset the address names gave a pane, when the pane is exactly the preset's (the same id, showing the same object). A link that changes the pane gets none. It is optional, since a pane opened from a link has none, and it is not part of what the pane shows: `query({ sql, autorun: true })` and `query({ sql })` are the same object.
 
@@ -124,7 +124,7 @@ A param only your app sets, never a link: `params: { sql: String, autorun: appOn
 
 </Entry>
 
-<Entry name="oneOf" kind="function" from="jali" signature={`oneOf<const V extends readonly (string | number)[]>(...values: V): OneOf<V[number]>`} compact>
+<Entry name="oneOf" kind="function" from="jali-layout" signature={`oneOf<const V extends readonly (string | number)[]>(...values: V): OneOf<V[number]>`} compact>
 
 A param that is one of a few values: `oneOf("open", "closed")` gives `"open" | "closed"`. Values are compared as text, so `oneOf(10, 25)` reads `"25"` from a link as `25`. Any other value can't be read, and the ref doesn't open.
 
@@ -138,7 +138,7 @@ A param that is one of a few values: `oneOf("open", "closed")` gives `"open" | "
 
 ## Layouts
 
-<Entry name="row" kind="function" from="jali" signature={`row(...children: LayoutInput[]): SplitDraft\nrow(options: RowOptions, ...children: LayoutInput[]): SplitDraft`} example={builderCode} exampleFile="layouts.ts">
+<Entry name="row" kind="function" from="jali-layout" signature={`row(...children: LayoutInput[]): SplitDraft\nrow(options: RowOptions, ...children: LayoutInput[]): SplitDraft`} example={builderCode} exampleFile="layouts.ts">
 
 Children side by side. A child is a ref (a pane showing it), a `pane(ref, options)`, or another `row`, `column` or `tabs`. Options come first when there are any: `row({ weight: 2 }, a, b)`.
 
@@ -153,19 +153,19 @@ Nodes without an `id` are named after what they hold: `"row"`, `"column"`, `"tab
 
 </Entry>
 
-<Entry name="column" kind="function" from="jali" signature={`column(...children: LayoutInput[]): SplitDraft\ncolumn(options: SizeOptions, ...children: LayoutInput[]): SplitDraft`} compact>
+<Entry name="column" kind="function" from="jali-layout" signature={`column(...children: LayoutInput[]): SplitDraft\ncolumn(options: SizeOptions, ...children: LayoutInput[]): SplitDraft`} compact>
 
 Children one above the other. Otherwise the same as <Ref to="row" />.
 
 </Entry>
 
-<Entry name="tabs" kind="function" from="jali" signature={`tabs(...panes: (ObjectRef | PaneDraft)[]): TabsDraft\ntabs(options: TabsOptions, ...panes: (ObjectRef | PaneDraft)[]): TabsDraft`} compact>
+<Entry name="tabs" kind="function" from="jali-layout" signature={`tabs(...panes: (ObjectRef | PaneDraft)[]): TabsDraft\ntabs(options: TabsOptions, ...panes: (ObjectRef | PaneDraft)[]): TabsDraft`} compact>
 
 Panes as tabs in one place: a stack the person made. `options.active` names the tab shown (default: the first); `id`, `weight` and `px` as for <Ref to="row" />.
 
 </Entry>
 
-<Entry name="pane" kind="function" from="jali" signature={`pane(ref: ObjectRef, options?: PaneNodeOptions): PaneDraft`} compact>
+<Entry name="pane" kind="function" from="jali-layout" signature={`pane(ref: ObjectRef, options?: PaneNodeOptions): PaneDraft`} compact>
 
 A pane showing `ref`, with options. A bare ref in a `row` is the same as `pane(ref)`.
 
@@ -193,7 +193,7 @@ A pane showing `ref`, with options. A bare ref in a `row` is the same as `pane(r
 
 </Entry>
 
-<Entry name="sameRef" kind="function" from="jali" signature={`sameRef(a: ObjectRef | undefined, b: ObjectRef | undefined): boolean`} example={sameRefCode} exampleFile="same-ref.ts">
+<Entry name="sameRef" kind="function" from="jali-layout" signature={`sameRef(a: ObjectRef | undefined, b: ObjectRef | undefined): boolean`} example={sameRefCode} exampleFile="same-ref.ts">
 
 Whether two refs are exactly the same: the same kind and the same params, compared with `===`, in any key order (a layout read back from Postgres `jsonb` shows the same objects). Jali compares refs with this everywhere. `1` and `"1"` differ here; to ask whether two refs show the same object, use `kinds.sameObject`.
 
@@ -210,7 +210,7 @@ Whether two refs are exactly the same: the same kind and the same params, compar
 
 `createJali` makes these for you from its `url` and `storage` options. Pass one yourself for a router, a test or an instance that must not touch the page.
 
-<Entry name="memoryLocation" kind="function" from="jali" signature={`memoryLocation(initial?: string): LocationPort & { entries: string[]; visit(search: string): void }`} example={createCode} exampleFile="jali.ts" exampleHighlight="18,22,28-29">
+<Entry name="memoryLocation" kind="function" from="jali-layout" signature={`memoryLocation(initial?: string): LocationPort & { entries: string[]; visit(search: string): void }`} example={createCode} exampleFile="jali.ts" exampleHighlight="18,22,28-29">
 
 An address that lives in memory: for tests, server rendering, and an instance in a dialog that must not touch the page's address.
 
@@ -222,7 +222,7 @@ An address that lives in memory: for tests, server rendering, and an instance in
 
 </Entry>
 
-<Entry name="memoryStorage" kind="function" from="jali" signature={`memoryStorage(initial?: Record<string, string>): StoragePort`} compact>
+<Entry name="memoryStorage" kind="function" from="jali-layout" signature={`memoryStorage(initial?: Record<string, string>): StoragePort`} compact>
 
 Storage in a `Map`, for tests, server rendering and embedded instances.
 
@@ -236,7 +236,7 @@ Storage in a `Map`, for tests, server rendering and embedded instances.
 
 ## Commands and keys
 
-<Entry name="listCommands" kind="function" from="jali" signature={`listCommands(jali: Jali): readonly ListedCommand[]`} example={commandsCode} exampleFile="toolbar.ts">
+<Entry name="listCommands" kind="function" from="jali-layout" signature={`listCommands(jali: Jali): readonly ListedCommand[]`} example={commandsCode} exampleFile="toolbar.ts">
 
 Every command a person can run from a menu now, in the palette's order: the focused pane's own commands first (keys `pane:<id>`), then the instance's and your own `commands`. Each has its `title`, `group`, `keys` label for this platform, `disabled` and the `reason`, and `run`. For an app with its own command menu (no `palette()` feature).
 
@@ -246,7 +246,7 @@ It is worked out on every call, and returns the same array (and the same entries
 
 </Entry>
 
-<Entry name="runCommand" kind="function" from="jali" signature={`runCommand(jali: Jali, id: string): boolean`} compact>
+<Entry name="runCommand" kind="function" from="jali-layout" signature={`runCommand(jali: Jali, id: string): boolean`} compact>
 
 Runs a command by id if its check passes. A refusal is not announced here (the keyboard and the palette do that).
 
@@ -259,7 +259,7 @@ Runs a command by id if its check passes. A refusal is not announced here (the k
 
 </Entry>
 
-<Entry name="edgeScroll" kind="function" from="jali" signature={`edgeScroll(jali: Jali, onScroll?: () => void): EdgeScroll`} compact>
+<Entry name="edgeScroll" kind="function" from="jali-layout" signature={`edgeScroll(jali: Jali, onScroll?: () => void): EdgeScroll`} compact>
 
 Scrolls a row that scrolls sideways while a drag is held within 56px of its left or right edge, faster the closer it is, so a drag can reach a pane out of view. For an app's own drag; Jali's pane drag (by a header) already does this. Call `move` on every pointer move and `stop` when the drag ends. `onScroll` runs after each step, so the drag can find what is under the pointer again as the panes slide past.
 
@@ -272,13 +272,13 @@ Scrolls a row that scrolls sideways while a drag is held within 56px of its left
 
 </Entry>
 
-<Entry name="EdgeScroll" kind="type" from="jali" signature={`interface EdgeScroll { move(clientX: number, clientY: number): void; stop(): void }`} compact>
+<Entry name="EdgeScroll" kind="type" from="jali-layout" signature={`interface EdgeScroll { move(clientX: number, clientY: number): void; stop(): void }`} compact>
 
 What <Ref to="edgeScroll" /> returns: tell it where the pointer is, and when the drag ends.
 
 </Entry>
 
-<Entry name="copyLink" kind="function" from="jali" signature={`copyLink(jali: Jali): void`} compact>
+<Entry name="copyLink" kind="function" from="jali-layout" signature={`copyLink(jali: Jali): void`} compact>
 
 Writes `jali.href()` to the clipboard and announces "Link copied", or "Couldn't copy the link" when the browser refuses. Where `navigator.clipboard` is missing it does nothing. The `layout.copy_link` command runs it.
 
@@ -290,14 +290,14 @@ Writes `jali.href()` to the clipboard and announces "Link copied", or "Couldn't 
 
 </Entry>
 
-<Entry name="keyBelongsToContent" kind="function" from="jali" signature={`keyBelongsToContent(event: KeyboardEvent): boolean`} compact>
+<Entry name="keyBelongsToContent" kind="function" from="jali-layout" signature={`keyBelongsToContent(event: KeyboardEvent): boolean`} compact>
 
 
 Whether a key event belongs to the focused content: its target is a text field, a contenteditable region, a combobox or search box, inside a dialog, or a control that Space presses (a button, link, tab, checkbox, switch, radio or menu item). Use it in a window-level `keydown` handler that wants a single key such as Space. See [Space in lists](/guides/commands-and-keys).
 
 </Entry>
 
-<Entry name="altClick" kind="function" from="jali" signature={`altClick(platform?: Platform): string`} compact>
+<Entry name="altClick" kind="function" from="jali-layout" signature={`altClick(platform?: Platform): string`} compact>
 
 The words for Jali's modifier-click, for hints in your own text: "⌥-click" on a Mac and "Alt-click" elsewhere, as in `` `${altClick()} a tab to open it beside` ``.
 
@@ -307,7 +307,7 @@ The words for Jali's modifier-click, for hints in your own text: "⌥-click" on 
 
 </Entry>
 
-<Entry name="keyHint" kind="function" from="jali" signature={`keyHint(text: string, platform?: Platform, words?: KeyWords): string`} example={formatCode} exampleFile="hints.ts">
+<Entry name="keyHint" kind="function" from="jali-layout" signature={`keyHint(text: string, platform?: Platform, words?: KeyWords): string`} example={formatCode} exampleFile="hints.ts">
 
 A binding string printed for the platform: `keyHint("Alt+Enter")` is "⌥↵" on a Mac and "Alt+Enter" elsewhere. For keys a pane handles itself, which are not in the keymap. Throws on a key or modifier it doesn't know.
 
@@ -323,7 +323,7 @@ A binding string printed for the platform: `keyHint("Alt+Enter")` is "⌥↵" on
 
 ## Words
 
-<Entry name="en" kind="constant" from="jali" signature={`const en: Messages`} example={messagesCode} exampleFile="messages.ts">
+<Entry name="en" kind="constant" from="jali-layout" signature={`const en: Messages`} example={messagesCode} exampleFile="messages.ts">
 
 Jali's English messages: every word it shows or says, by area (`announcements`, `toasts`, `commands`, `commandGroups`, `keys`, `palette`, `chooser`, `confirmDiscard`, `settings`, `tabs`, `shelf`, `pane`, `peek`, `panes`, `page`, `drop`). An instance made without `messages` says these words. A curated page's own words (the `page` area, and the announcements, commands and toast only a page uses) come with the page from `definePage`, so an instance without a page has none of them in `jali.messages`, and an app that doesn't import `en` doesn't ship them. Spread it to start a translation. A message that needs values is a function, such as `en.announcements.closed(pane)`; a message with a bold part takes `bold` and returns its parts in order.
 

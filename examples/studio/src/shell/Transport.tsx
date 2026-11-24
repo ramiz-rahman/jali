@@ -3,8 +3,8 @@
  * playhead every pane follows. A display with the time, the transport keys in a pocket, and a jog wheel to scrub and
  * a speed selector in a second pocket.
  */
-import { runCommand } from "jali";
-import { useJali } from "jali/react";
+import { runCommand } from "jali-layout";
+import { useJali } from "jali-layout/react";
 import { SPEEDS } from "../audio/engine";
 import { usePosition, useTransport, useTransportSession } from "../audio/react";
 import { useServices } from "../services";

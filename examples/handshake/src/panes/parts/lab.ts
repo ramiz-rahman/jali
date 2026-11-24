@@ -5,13 +5,13 @@
  * front of it anyway, because a source that silently does nothing is worse than one that opens a pane.
  */
 import { useCallback } from "react";
-import type { Jali, JaliModel, NodeId, ObjectRef } from "jali";
-import { storeOf } from "jali/adapter";
-import { useJali, useJaliModel, type PaneProps } from "jali/react";
+import type { Jali, JaliModel, NodeId, ObjectRef } from "jali-layout";
+import { storeOf } from "jali-layout/adapter";
+import { useJali, useJaliModel, type PaneProps } from "jali-layout/react";
 
 /**
  * The kinds' own rules: which kind follows what (`follow`), what a list selects (`selects`), a ref's title. They are
- * the engine's kind registry, which Jali's read API leaves behind `jali/adapter`.
+ * the engine's kind registry, which Jali's read API leaves behind `jali-layout/adapter`.
  */
 export const kindsOf = (jali: Jali) => storeOf(jali).env.kinds;
 

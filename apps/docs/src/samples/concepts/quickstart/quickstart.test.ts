@@ -3,7 +3,7 @@
  * Not shown on the site.
  */
 import { describe, expect, it } from "vitest";
-import { createTestJali } from "jali/testing";
+import { createTestJali } from "jali-layout/testing";
 import { note } from "./note-open-beside";
 
 const start = () => createTestJali({ panes: [note], layout: note({ id: 1 }) }).jali;

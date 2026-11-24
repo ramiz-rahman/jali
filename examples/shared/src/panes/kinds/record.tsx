@@ -1,6 +1,6 @@
 import { FileTextIcon } from "@phosphor-icons/react";
-import { definePane, useActivity, type PaneProps } from "jali/react";
-import type { ParamValue } from "jali";
+import { definePane, useActivity, type PaneProps } from "jali-layout/react";
+import type { ParamValue } from "jali-layout";
 import { copyRaw } from "../shared/copyRaw";
 import { useState } from "react";
 import type { ColumnInfo, Relation, Row, TableName } from "../../data/types";

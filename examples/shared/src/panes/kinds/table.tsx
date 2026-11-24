@@ -1,6 +1,6 @@
 import { TableIcon } from "@phosphor-icons/react";
-import { definePane, type PaneProps } from "jali/react";
-import { keyHint } from "jali";
+import { definePane, type PaneProps } from "jali-layout/react";
+import { keyHint } from "jali-layout";
 import { useMemo, useState } from "react";
 import type { ObjectRef, Row, TableName, ColumnInfo } from "../../data/types";
 import { Grid, type GridColumn } from "../grid/Grid";

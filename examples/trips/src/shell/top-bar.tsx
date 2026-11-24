@@ -9,8 +9,8 @@ import {
   MoonIcon,
   SunIcon,
 } from "@phosphor-icons/react";
-import { copyLink, keyHint, runCommand } from "jali";
-import { useJali, useJaliState, useJaliShortcut, useJaliTheme } from "jali/react";
+import { copyLink, keyHint, runCommand } from "jali-layout";
+import { useJali, useJaliState, useJaliShortcut, useJaliTheme } from "jali-layout/react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/atoms/select";
 import { toggleTheme } from "../workspace/theme";
 import "./top-bar.css";

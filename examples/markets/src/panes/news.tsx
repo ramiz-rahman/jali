@@ -8,8 +8,8 @@
  */
 import { useRef, useState, type KeyboardEvent } from "react";
 import { NewspaperIcon } from "@phosphor-icons/react";
-import { definePane, usePaneState, type PaneProps } from "jali/react";
-import { optional } from "jali";
+import { definePane, usePaneState, type PaneProps } from "jali-layout/react";
+import { optional } from "jali-layout";
 import { oneOf } from "@jali-examples/shared/store";
 import { useMarket, useTopic } from "../market/react";
 import * as f from "../ui/format";

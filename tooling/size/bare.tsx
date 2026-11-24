@@ -1,9 +1,9 @@
 /** Size scenario: the floor. One kind of pane and a starting layout, with no feature at all: what every app ships.
  *  Each feature's scenario (tooling/size.mjs) is this plus that feature. */
 import { createRoot } from "react-dom/client";
-import { createJali, row } from "jali";
-import { JaliRoot, definePane } from "jali/react";
-import "jali/styles.css";
+import { createJali, row } from "jali-layout";
+import { JaliRoot, definePane } from "jali-layout/react";
+import "jali-layout/styles.css";
 
 const note = definePane("note", {
   params: { id: Number },

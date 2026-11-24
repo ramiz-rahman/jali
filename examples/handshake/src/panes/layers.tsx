@@ -4,7 +4,7 @@
  * protocols that don't fit OSI's boxes (TLS, QUIC, ARP), said plainly for the packet in view.
  */
 import type { ReactNode } from "react";
-import { definePane, type PaneProps } from "jali/react";
+import { definePane, type PaneProps } from "jali-layout/react";
 import { Layers as LayersIcon } from "lucide-react";
 import { displayLayer, stackOf } from "#src/packets/fields.ts";
 import type { Capture, Header, Packet, ProtoId } from "#src/packets/types.ts";

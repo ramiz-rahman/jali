@@ -1,6 +1,6 @@
 # Test your layouts
 
-Test your layouts and pane rules without a browser, by running Jali's actions and reading its state with jali/testing.
+Test your layouts and pane rules without a browser, by running Jali's actions and reading its state with jali-layout/testing.
 
 Most of what Jali does lives in the instance, not in your components. So most of it can be tested without rendering anything: make an instance, run actions on it, and read its state. This guide uses Vitest; any test runner works the same way. The test below runs in Jali's own docs suite, so it passes as written.
 
@@ -10,8 +10,8 @@ Most of what Jali does lives in the instance, not in your components. So most of
 
 ```tsx
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { Jali } from "jali";
-import { createTestJali, reportUnsaved, type TestLocation } from "jali/testing";
+import type { Jali } from "jali-layout";
+import { createTestJali, reportUnsaved, type TestLocation } from "jali-layout/testing";
 import { orderKind, orderKinds } from "../pane-kinds/orders";
 import { presets } from "../presets/layouts";
 
@@ -79,7 +79,7 @@ describe("the orders app", () => {
 });
 ```
 
-`createTestJali` from `jali/testing` is `createJali` with what keeps a test apart from the page and from other tests:
+`createTestJali` from `jali-layout/testing` is `createJali` with what keeps a test apart from the page and from other tests:
 
 - **An address in memory** (`location`), through `urlSync`. Jali writes its layout there instead of the browser's address. `search` starts it on a link, to test opening one.
 - **Storage in memory**: saved settings, pane state and dragged sizes never reach `localStorage`.
@@ -102,7 +102,7 @@ Kinds belong to the instance, so every test gets its own: nothing about one test
 
 ## What a rendered pane would report
 
-Some things come from a rendered pane, not from an action: unsaved work (`useUnsaved`), pane state (`usePaneState`), the dialogs a person answers. `jali/testing` reports and reads them without rendering:
+Some things come from a rendered pane, not from an action: unsaved work (`useUnsaved`), pane state (`usePaneState`), the dialogs a person answers. `jali-layout/testing` reports and reads them without rendering:
 
 | Helper | What it stands for |
 |---|---|
@@ -114,7 +114,7 @@ Some things come from a rendered pane, not from an action: unsaved work (`useUns
 | `chooserRequest(jali)` | The chooser's open request (`jali.dialogs.choose`), with the `chooser()` feature |
 | `lastAnnouncement(jali)` | What screen readers last heard |
 
-See [`jali/testing`](../reference/testing.md) for each one's details.
+See [`jali-layout/testing`](../reference/testing.md) for each one's details.
 
 ## Test a link
 
@@ -122,7 +122,7 @@ To check that a link opens what it should, make a second instance whose address 
 
 ```ts
 import { expect, it } from "vitest";
-import { createTestJali } from "jali/testing";
+import { createTestJali } from "jali-layout/testing";
 import { orderKinds, presets } from "./panes";
 
 it("a link reopens the same panes", () => {
@@ -167,4 +167,4 @@ Tests without a browser cover rules: what opens where, what folds, what asks fir
 ## Next
 
 - [Unsaved work and pane state](unsaved-work-and-pane-state.md)
-- [`jali/testing` reference](../reference/testing.md)
+- [`jali-layout/testing` reference](../reference/testing.md)

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { Jali } from "jali";
-import { createTestJali, reportUnsaved, type TestLocation } from "jali/testing";
+import type { Jali } from "jali-layout";
+import { createTestJali, reportUnsaved, type TestLocation } from "jali-layout/testing";
 import { orderKind, orderKinds } from "../pane-kinds/orders";
 import { presets } from "../presets/layouts";
 

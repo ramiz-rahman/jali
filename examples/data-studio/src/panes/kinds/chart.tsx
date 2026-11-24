@@ -1,6 +1,6 @@
 import { ChartBarIcon } from "@phosphor-icons/react";
-import { definePane, type PaneProps } from "jali/react";
-import { optional } from "jali";
+import { definePane, type PaneProps } from "jali-layout/react";
+import { optional } from "jali-layout";
 import type { Row } from "@jali-examples/shared/data/types";
 import { useMemo, useState } from "react";
 import { isLoading } from "@jali-examples/shared/data/hooks";

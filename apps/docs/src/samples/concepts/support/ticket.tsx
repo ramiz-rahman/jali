@@ -1,4 +1,4 @@
-import { definePane } from "jali/react";
+import { definePane } from "jali-layout/react";
 import { customer } from "./customer";
 import { ticketById } from "./data";
 

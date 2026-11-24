@@ -74,7 +74,7 @@ export interface JaliOptions<
   /**
    * What the instance does beyond laying out panes, each a value from its own module, so an app ships only what it
    * uses: `[urlSync(), palette(), settings(), chooser(), rename({ run })]`, or `defaultFeatures()` from
-   * `jali/features` for all of Jali's usual ones at once. Default: none (no address, no palette, no Settings).
+   * `jali-layout/features` for all of Jali's usual ones at once. Default: none (no address, no palette, no Settings).
    */
   features?: readonly Feature[];
   /** A writer of your own for the address (a router's), in place of `urlSync()`: it writes, and Jali reads nothing

@@ -15,13 +15,13 @@ A paragraph with a [link to the introduction](/get-started/introduction), some *
 
 ## Install
 
-<Install packages="jali" />
+<Install packages="jali-layout" />
 
 ## Code
 
 ```tsx filename="src/kinds.tsx" highlight="3-6"
-import { definePane } from "jali/react";
-import { createJali, row } from "jali";
+import { definePane } from "jali-layout/react";
+import { createJali, row } from "jali-layout";
 
 export const order = definePane("order", {
   params: { id: Number },
@@ -54,7 +54,7 @@ const jali = createJali({
 <Tabs group="framework">
   <Tab label="Vite">
     ```tsx
-    import "jali/styles.css";
+    import "jali-layout/styles.css";
     ```
   </Tab>
   <Tab label="Next.js">
@@ -68,7 +68,7 @@ const jali = createJali({
   <Step title="Install the packages">
     Both packages, from your package manager.
 
-    <Install packages="jali" />
+    <Install packages="jali-layout" />
   </Step>
   <Step title="Define a pane kind">
     A kind says what a pane shows and the narrowest it works at.

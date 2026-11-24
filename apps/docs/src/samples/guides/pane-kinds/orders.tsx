@@ -1,6 +1,6 @@
 import { useEffect, useState, type KeyboardEvent } from "react";
-import { definePane, useLauncher, type PaneProps } from "jali/react";
-import { oneOf, optional } from "jali";
+import { definePane, useLauncher, type PaneProps } from "jali-layout/react";
+import { oneOf, optional } from "jali-layout";
 import { ClipboardTextIcon, FileTextIcon, NoteIcon, PlusIcon } from "@phosphor-icons/react";
 
 // Your data. Jali never fetches anything: a pane is told which object to show, and shows it.

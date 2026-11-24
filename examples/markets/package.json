@@ -14,7 +14,7 @@
     "@fontsource/atkinson-hyperlegible-next": "^5.3.0",
     "@jali-examples/shared": "workspace:*",
     "@phosphor-icons/react": "^2.1.10",
-    "jali": "workspace:*",
+    "jali-layout": "workspace:*",
     "radix-ui": "^1.8.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",

@@ -162,13 +162,13 @@ Mixed from `--jali-accent` on `:root` and again on every Jali root (`[data-jali]
 
 ## The Tailwind bridge
 
-`jali/tailwind.css` points Jali's tokens at your Tailwind theme's variables, the same names Chakni reads. Import it after Jali's styles, in the stylesheet Tailwind builds, and declare the layer order so your utilities win:
+`jali-layout/tailwind.css` points Jali's tokens at your Tailwind theme's variables, the same names Chakni reads. Import it after Jali's styles, in the stylesheet Tailwind builds, and declare the layer order so your utilities win:
 
 ```css
 @layer theme, base, jali, components, utilities;
 @import "tailwindcss";
-@import "jali/styles.css";
-@import "jali/tailwind.css";
+@import "jali-layout/styles.css";
+@import "jali-layout/tailwind.css";
 ```
 
 Each token reads the first of your variables that is defined, else Jali's own default for the current theme. Your variables switch with your dark mode, so Jali follows. Tailwind drops theme variables that nothing uses; this file uses them, so keep it in the build Tailwind processes (or mark the theme `@theme static`). Tokens not listed keep Jali's values.

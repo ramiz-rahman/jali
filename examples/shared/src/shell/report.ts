@@ -3,7 +3,7 @@
  * in a folded or tucked pane, or one scrolled out of view, isn't missed (`createJali({ onPaneError })`).
  */
 import { toast } from "sonner";
-import type { Jali, PaneErrorInfo } from "jali";
+import type { Jali, PaneErrorInfo } from "jali-layout";
 
 export const reportPaneError =
   (jali: () => Jali) =>

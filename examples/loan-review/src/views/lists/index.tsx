@@ -5,7 +5,7 @@
  * officer's or a property's as a book. A list without a design is Data Studio's grid.
  */
 import type { ComponentType } from "react";
-import type { PaneProps } from "jali/react";
+import type { PaneProps } from "jali-layout/react";
 import { RelatedPane } from "@jali-examples/shared/panes/kinds/related";
 import { MOST, Paused, useBookQuery } from "../../data";
 import type { BookRows, BookTable } from "../../model/rows";

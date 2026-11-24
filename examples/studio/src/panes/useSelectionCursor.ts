@@ -10,8 +10,8 @@
  * never moves a layout a link has just opened onto another session.
  */
 import { useEffect } from "react";
-import type { ObjectRef } from "jali";
-import { useJali, useJaliState, usePaneState, type PaneProps } from "jali/react";
+import type { ObjectRef } from "jali-layout";
+import { useJali, useJaliState, usePaneState, type PaneProps } from "jali-layout/react";
 import { stringOrNull } from "../storage";
 import { followerOf } from "./links";
 

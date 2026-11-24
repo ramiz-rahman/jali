@@ -5,10 +5,10 @@ The shop demo uses Jali's public API, except where this file says. Each gap belo
 
 ## 1. A provider for parts beside the root
 
-The tree's panels sit beside the workspace and read its model, so they need the root's `JaliProvider`. `jali/react`
+The tree's panels sit beside the workspace and read its model, so they need the root's `JaliProvider`. `jali-layout/react`
 keeps it internal, and `jali-gaps.ts` imports it from the package's source.
 
-**Wanted:** `JaliProvider` exported from `jali/react`, or a component that renders its children in an instance's scope.
+**Wanted:** `JaliProvider` exported from `jali-layout/react`, or a component that renders its children in an instance's scope.
 
 ## 2. A reset
 
@@ -23,7 +23,7 @@ be missed.
 The tour shows a drag as a person makes one: the chip, the drop preview and the drop. `dragAt` copies the rule from
 Jali's `workspace/dnd.ts` to work out what is under the pointer, so the tour can drift from what a real drag does.
 
-**Wanted:** the function Jali's own drag uses, exported from `jali/adapter`: a pane and a point in, the `DndState` out.
+**Wanted:** the function Jali's own drag uses, exported from `jali-layout/adapter`: a pane and a point in, the `DndState` out.
 
 ## 4. The layer for menus
 
@@ -37,7 +37,7 @@ A menu of the app's own (the order row's) belongs in Jali's layer, over the pane
 The order list's row menu (Open, Open beside, the customer) rebuilds Jali's own `Menu`: focus, arrow keys, Esc,
 placement inside the window. It draws with Jali's private menu classes so it looks the same.
 
-**Wanted:** `Menu` exported from `jali/react`. Better still, a menu Jali gives any list item it can open, with Open,
+**Wanted:** `Menu` exported from `jali-layout/react`. Better still, a menu Jali gives any list item it can open, with Open,
 Open beside, Peek and the app's own items: every list-and-detail app needs it, and the shortcut alone (⌥-click) is
 hard to find.
 

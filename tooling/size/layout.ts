@@ -1,6 +1,6 @@
 /** Size scenario: only the pure layout tree (builders and the `layout` namespace), no workspace and no React. */
-import { pane, row, column, tabs } from "jali";
-import { layout, toLayout, type KindRegistry } from "jali/adapter";
+import { pane, row, column, tabs } from "jali-layout";
+import { layout, toLayout, type KindRegistry } from "jali-layout/adapter";
 
 const kind = (k: string) => ({ kind: k, title: () => k, minWidth: 240, minHeight: 160 });
 const kinds: KindRegistry = { list: kind("list"), detail: kind("detail") };

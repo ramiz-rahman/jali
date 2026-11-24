@@ -15,9 +15,9 @@ const MOVED: Record<string, Record<string, string>> = {
     keymapOptions:
       "keymapOptions moved to keyboard (keyboard.platform, keyboard.onInvalid, keyboard.words)",
     palette:
-      'palette is a feature: features: [palette()] from "jali/palette" (leave it out for palette: false)',
-    rename: 'rename is a feature: features: [rename({ can, run })] from "jali/rename"',
-    url: 'url is a feature: features: [urlSync({ location, prefix, sizes })] from "jali/url" (url takes only a writer of your own)',
+      'palette is a feature: features: [palette()] from "jali-layout/palette" (leave it out for palette: false)',
+    rename: 'rename is a feature: features: [rename({ can, run })] from "jali-layout/rename"',
+    url: 'url is a feature: features: [urlSync({ location, prefix, sizes })] from "jali-layout/url" (url takes only a writer of your own)',
   },
   definePane: {
     minWidth: "minWidth moved to width: { min }",

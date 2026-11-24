@@ -1,20 +1,20 @@
-# jali/react
+# jali-layout/react
 
-Every component, hook and type jali/react exports, with its props, defaults and what it returns.
+Every component, hook and type jali-layout/react exports, with its props, defaults and what it returns.
 
-React components and hooks for an instance made with [jali](core.md). React 18.2 or later (18 or 19) is a peer dependency; nothing else is. Jali's icons are in the package. See [Icons](#icons).
+React components and hooks for an instance made with [jali-layout](core.md). React 18.2 or later (18 or 19) is a peer dependency; nothing else is. Jali's icons are in the package. See [Icons](#icons).
 
 ```sh
-npm install jali
+npm install jali-layout
 ```
 
-Styles: `jali/styles.css` is Jali's default theme and the instance's styles; `jali/theme.css` is the theme alone; `jali/tailwind.css` points the tokens at your Tailwind theme. See [Tokens](tokens.md).
+Styles: `jali-layout/styles.css` is Jali's default theme and the instance's styles; `jali-layout/theme.css` is the theme alone; `jali-layout/tailwind.css` points the tokens at your Tailwind theme. See [Tokens](tokens.md).
 
 ## Start here
 
 ### JaliRoot
 
-*component*, from `jali/react`
+*component*, from `jali-layout/react`
 
 ```ts
 <JaliRoot jali={jali} icons? overlays? settingsExtra?>{children?}</JaliRoot>
@@ -23,7 +23,7 @@ Styles: `jali/styles.css` is Jali's default theme and the instance's styles; `ja
 Example, `App.tsx`:
 
 ```tsx
-import { JaliRoot, JaliView, PageBar } from "jali/react";
+import { JaliRoot, JaliView, PageBar } from "jali-layout/react";
 import { store } from "./store";
 
 // <JaliRoot> draws the panes and their dialogs. Your chrome goes inside it, with <JaliView /> where the panes go.
@@ -70,7 +70,7 @@ Two things are yours to render. **The shelf** (tucked panes as chips): put `Shel
 
 ### JaliView
 
-*component*, from `jali/react`
+*component*, from `jali-layout/react`
 
 ```ts
 <JaliView />
@@ -79,7 +79,7 @@ Two things are yours to render. **The shelf** (tucked panes as chips): put `Shel
 Example, `App.tsx`:
 
 ```tsx
-import { JaliRoot, JaliView, Shelf } from "jali/react";
+import { JaliRoot, JaliView, Shelf } from "jali-layout/react";
 import { store } from "./store";
 
 // Chrome of your own: children of <JaliRoot>, with <JaliView /> where the panes go. The root still renders the
@@ -102,7 +102,7 @@ The panes, or the curated page while one is open. Takes no props. `<JaliRoot>` r
 
 ### definePane
 
-*function*, from `jali/react`
+*function*, from `jali-layout/react`
 
 ```ts
 definePane(kind: string, options: PaneOptionsReact): Pane
@@ -111,7 +111,7 @@ definePane(kind: string, options: PaneOptionsReact): Pane
 Example, `kinds.tsx`:
 
 ```tsx
-import { definePane, useLauncher } from "jali/react";
+import { definePane, useLauncher } from "jali-layout/react";
 
 // A list of orders, and one order. Each says what it shows, its title and the narrowest it works at.
 export const ordersKind = definePane("orders", {
@@ -168,7 +168,7 @@ export const launcherKind = definePane("launcher", {
 
 Defines a kind of pane: what it shows (its params), its title and sizes, and the component that renders it. Pass your kinds to `createJali({ panes })`.
 
-The result is also how you name an object of the kind: `orderKind({ id: 1041 })` is the [ref](../get-started/key-concepts.md#ref) `{ kind: "order", params: { id: 1041 } }`, to open, peek, select or put in a layout. When the kind declares `params`, the call is typed: a missing required param, a wrongly typed one or one the kind doesn't declare is a type error. Params are declared with `Number`, `String`, `Boolean`, [`oneOf`](core.md#oneof) and [`optional`](core.md#optional), imported from `jali`.
+The result is also how you name an object of the kind: `orderKind({ id: 1041 })` is the [ref](../get-started/key-concepts.md#ref) `{ kind: "order", params: { id: 1041 } }`, to open, peek, select or put in a layout. When the kind declares `params`, the call is typed: a missing required param, a wrongly typed one or one the kind doesn't declare is a type error. Params are declared with `Number`, `String`, `Boolean`, [`oneOf`](core.md#oneof) and [`optional`](core.md#optional), imported from `jali-layout`.
 
 **Parameters**
 
@@ -192,7 +192,7 @@ Everything in [`PaneOptions`](core/types.md#paneoptions) (`params`, `title`, `wi
 
 ### Pane
 
-*type*, from `jali/react`
+*type*, from `jali-layout/react`
 
 ```ts
 type Pane<P = any> = PaneKindDef & {
@@ -205,7 +205,7 @@ A kind made with `definePane`. `P` is its params' type; `Pane` alone is any kind
 
 ### PaneKindDef
 
-*type*, from `jali/react`
+*type*, from `jali-layout/react`
 
 ```ts
 interface PaneKindDef extends PaneKindBase {
@@ -220,7 +220,7 @@ A kind as an instance keeps it: its options and its React parts. A `Pane` is one
 
 ### PaneOptionsReact
 
-*type*, from `jali/react`
+*type*, from `jali-layout/react`
 
 ```ts
 interface PaneOptionsReact<P> extends PaneOptions<P> {
@@ -235,7 +235,7 @@ The options of `definePane`.
 
 ### MissingProps
 
-*type*, from `jali/react`
+*type*, from `jali-layout/react`
 
 ```ts
 interface MissingProps extends PaneProps<Params> {
@@ -256,7 +256,7 @@ It renders inside the pane, so the pane's hooks (`useTitle`, `useCommands`, `use
 
 ### PaneProps
 
-*type*, from `jali/react`
+*type*, from `jali-layout/react`
 
 ```ts
 interface PaneProps<P = Params>
@@ -266,7 +266,13 @@ Example, `order-note.tsx`:
 
 ```tsx
 import { useState } from "react";
-import { definePane, useActivity, useCommands, useUnsaved, type PaneProps } from "jali/react";
+import {
+  definePane,
+  useActivity,
+  useCommands,
+  useUnsaved,
+  type PaneProps,
+} from "jali-layout/react";
 import { FileTextIcon } from "@phosphor-icons/react";
 
 // Declared before the component, so the component is typed from it: params is { id: number }.
@@ -334,7 +340,7 @@ Keys: content first. Claim the keys you use with `event.preventDefault()` (J and
 
 ### definePage
 
-*function*, from `jali/page`
+*function*, from `jali-layout/page`
 
 ```ts
 definePage(page: Page): Page
@@ -344,9 +350,9 @@ Example, `loan-review.tsx`:
 
 ```tsx
 import { FileTextIcon, UserIcon } from "@phosphor-icons/react";
-import { pane, row } from "jali";
-import { definePage } from "jali/page";
-import { definePane } from "jali/react";
+import { pane, row } from "jali-layout";
+import { definePage } from "jali-layout/page";
+import { definePane } from "jali-layout/react";
 
 const borrower = definePane("borrower", {
   params: { application: Number },
@@ -408,7 +414,7 @@ Defines a curated page: one item at a time (a loan application, a customer), its
 
 ### Page
 
-*type*, from `jali/page`
+*type*, from `jali-layout/page`
 
 ```ts
 interface Page<I extends ItemId = any> extends ProfileBase<PageView, I> {
@@ -421,7 +427,7 @@ A curated page for React: [`ProfileBase`](core/types.md#profilebase) with its he
 
 ### PageView
 
-*type*, from `jali/page`
+*type*, from `jali-layout/page`
 
 ```ts
 interface PageView extends RoleBase { icon: JaliIcon }
@@ -435,7 +441,7 @@ Each of these acts for the pane it is called in, from any depth inside the kind'
 
 ### usePane
 
-*hook*, from `jali/react`
+*hook*, from `jali-layout/react`
 
 ```ts
 usePane(kind?: Pane): PaneProps<params of kind>
@@ -447,7 +453,7 @@ The pane's `PaneProps`, for components below the kind's own: `const { params, op
 
 ### useActivity
 
-*hook*, from `jali/react`
+*hook*, from `jali-layout/react`
 
 ```ts
 useActivity(activity: PaneActivity | undefined): void
@@ -459,7 +465,7 @@ Several components in a pane may each report: the pane shows the most pressing (
 
 ### useUnsaved
 
-*hook*, from `jali/react`
+*hook*, from `jali-layout/react`
 
 ```ts
 useUnsaved(what: string | null | false | undefined): void
@@ -471,7 +477,7 @@ Several components in a pane may each report: the pane has unsaved work while an
 
 ### useTitle
 
-*hook*, from `jali/react`
+*hook*, from `jali-layout/react`
 
 ```ts
 useTitle(title: string | null | undefined): void
@@ -487,7 +493,7 @@ In the peek sheet's own content, it names the sheet, for the object the sheet sh
 
 ### usePaneAttributes
 
-*hook*, from `jali/react`
+*hook*, from `jali-layout/react`
 
 ```ts
 usePaneAttributes(attributes: Record<`data-${string}`, string> | null | undefined): void
@@ -501,7 +507,7 @@ Only `data-*` names are kept, and not the ones Jali's own parts use (`data-pane`
 
 ### useHeaderActions
 
-*hook*, from `jali/react`
+*hook*, from `jali-layout/react`
 
 ```ts
 useHeaderActions(controls: ReactNode): void
@@ -515,7 +521,7 @@ A narrow header gives way before its title gets shorter than a few characters: f
 
 ### useCommands
 
-*hook*, from `jali/react`
+*hook*, from `jali-layout/react`
 
 ```ts
 useCommands(commands: readonly PaneCommand[]): void
@@ -527,7 +533,7 @@ Several components in a pane may each add commands: they are listed in render or
 
 ### useLauncher
 
-*hook*, from `jali/react`
+*hook*, from `jali-layout/react`
 
 ```ts
 useLauncher(): LauncherSources
@@ -539,7 +545,7 @@ For the instance's launcher: what the person can choose from.
 
 ### LauncherSources
 
-*type*, from `jali/react`
+*type*, from `jali-layout/react`
 
 ```ts
 interface LauncherSources {
@@ -553,7 +559,7 @@ Recent (newest first), whether an object is already open in another pane, and an
 
 ### usePaneState
 
-*hook*, from `jali/react`
+*hook*, from `jali-layout/react`
 
 ```ts
 usePaneState<T>(key: string, initial: T, options?: PaneStateOptions<T>): [T, (next: T | ((prev: T) => T)) => void]
@@ -562,7 +568,7 @@ usePaneState<T>(key: string, initial: T, options?: PaneStateOptions<T>): [T, (ne
 Example, `OrdersTable.tsx`:
 
 ```tsx
-import { usePaneState } from "jali/react";
+import { usePaneState } from "jali-layout/react";
 
 type Sort = { column: "id" | "total"; dir: "asc" | "desc" };
 
@@ -594,7 +600,7 @@ In the peek sheet there is no pane, so the state is local and goes with the shee
 
 ### PaneStateOptions
 
-*type*, from `jali/react`
+*type*, from `jali-layout/react`
 
 ```ts
 interface PaneStateOptions<T> {
@@ -608,7 +614,7 @@ How `usePaneState` reads a stored value. Stored state was written by an earlier 
 
 ### useJali
 
-*hook*, from `jali/react`
+*hook*, from `jali-layout/react`
 
 ```ts
 useJali(): Jali
@@ -620,7 +626,7 @@ The instance from the nearest `<JaliRoot>`: its `actions`, `on`, `getLayout` and
 
 ### useJaliState
 
-*hook*, from `jali/react`
+*hook*, from `jali-layout/react`
 
 ```ts
 useJaliState<T>(select: (s: JaliState) => T, isEqual?: (a: T, b: T) => boolean): T
@@ -629,7 +635,7 @@ useJaliState<T>(select: (s: JaliState) => T, isEqual?: (a: T, b: T) => boolean):
 Example, `StatusLine.tsx`:
 
 ```tsx
-import { useJaliShortcut, useJali, useJaliModel, useJaliState } from "jali/react";
+import { useJaliShortcut, useJali, useJaliModel, useJaliState } from "jali-layout/react";
 
 // A status line: reads exactly what it shows, so it re-renders only when that changes.
 export function StatusLine() {
@@ -661,7 +667,7 @@ Subscribes to one value of the state ([`JaliState`](core/types.md#jalistate)). T
 
 ### useJaliModel
 
-*hook*, from `jali/react`
+*hook*, from `jali-layout/react`
 
 ```ts
 useJaliModel(): JaliModel
@@ -671,7 +677,7 @@ useJaliModel<T>(select: (m: JaliModel) => T, isEqual?: (a: T, b: T) => boolean):
 Example, `OpenPanes.tsx`:
 
 ```tsx
-import { Activity, KindIcon, useJaliModel, useJaliState } from "jali/react";
+import { Activity, KindIcon, useJaliModel, useJaliState } from "jali-layout/react";
 
 // Your own list of open panes, with Jali's icon and activity marks.
 export function OpenPanes() {
@@ -695,7 +701,7 @@ The layout as it is on screen, subscribed: every pane, with its title and where 
 
 ### useJaliEvent
 
-*hook*, from `jali/react`
+*hook*, from `jali-layout/react`
 
 ```ts
 useJaliEvent(event: JaliEvent, handler: (e: JaliEvents[event]) => void): void
@@ -705,7 +711,7 @@ Hear one of the instance's events while the component is mounted: `useJaliEvent(
 
 ### useJaliTheme
 
-*hook*, from `jali/react`
+*hook*, from `jali-layout/react`
 
 ```ts
 useJaliTheme(): "light" | "dark"
@@ -715,7 +721,7 @@ The theme in use: the person's setting, or the system's when they chose "System"
 
 ### useJaliShortcut
 
-*hook*, from `jali/react`
+*hook*, from `jali-layout/react`
 
 ```ts
 useJaliShortcut(id: string): string
@@ -735,7 +741,7 @@ Chrome of your own goes inside `<JaliRoot>`, around `<JaliView />`: the root ren
 
 ### PageBar
 
-*component*, from `jali/react`
+*component*, from `jali-layout/react`
 
 ```ts
 <PageBar />
@@ -745,7 +751,7 @@ A curated page's controls, for your top bar: the Single / Split view switch, in 
 
 ### Shelf
 
-*component*, from `jali/react`
+*component*, from `jali-layout/react`
 
 ```ts
 <Shelf />
@@ -755,7 +761,7 @@ The panes the person tucked, as chips grouped by home (with Put back), for a sta
 
 ### KindIcon
 
-*component*, from `jali/react`
+*component*, from `jali-layout/react`
 
 ```ts
 <KindIcon kind={kind} size={16} />
@@ -764,7 +770,7 @@ The panes the person tucked, as chips grouped by home (with Put back), for a sta
 Example, `OpenPanes.tsx`:
 
 ```tsx
-import { Activity, KindIcon, useJaliModel, useJaliState } from "jali/react";
+import { Activity, KindIcon, useJaliModel, useJaliState } from "jali-layout/react";
 
 // Your own list of open panes, with Jali's icon and activity marks.
 export function OpenPanes() {
@@ -794,7 +800,7 @@ A kind's icon at `size`, `aria-hidden`; the `defaultKind` icon (a pane with its 
 
 ### Activity
 
-*component*, from `jali/react`
+*component*, from `jali-layout/react`
 
 ```ts
 <Activity activity={activity} shape? />
@@ -810,7 +816,7 @@ A pane's activity mark. Renders nothing for `idle` or `undefined`.
 
 ### IconButton
 
-*component*, from `jali/react`
+*component*, from `jali-layout/react`
 
 ```ts
 <IconButton label="Copy link" onClick={copy}>{icon}</IconButton>
@@ -819,7 +825,7 @@ A pane's activity mark. Renders nothing for `idle` or `undefined`.
 A button that is only an icon, drawn as Jali's header buttons are (the `iconButton` part, `.jali-icon-btn`): for your top bar, a pane's own controls or a sheet's close, so they match the instance in every theme. It is held down like Jali's controls (`data-pressed`) inside an instance.
 
 ```tsx
-import { IconButton, JaliRoot } from "jali/react";
+import { IconButton, JaliRoot } from "jali-layout/react";
 import { GearSixIcon } from "@phosphor-icons/react";
 
 <IconButton label="Settings" onClick={() => jali.dialogs.openSettings()}>
@@ -843,7 +849,7 @@ import { GearSixIcon } from "@phosphor-icons/react";
 
 ### IconButtonProps
 
-*type*, from `jali/react`
+*type*, from `jali-layout/react`
 
 ```ts
 interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "aria-label" | "children"> { label: string; children: ReactNode }
@@ -853,7 +859,7 @@ The props of `IconButton`.
 
 ### JaliRootProps
 
-*type*, from `jali/react`
+*type*, from `jali-layout/react`
 
 ```ts
 interface JaliRootProps extends HTMLAttributes<HTMLDivElement> {
@@ -877,7 +883,7 @@ Jali draws its own chrome icons from a map of names (`JaliIcons`). Its defaults 
 
 ### JaliIcons
 
-*type*, from `jali/react`
+*type*, from `jali-layout/react`
 
 ```ts
 type JaliIcons = Record<JaliIconName, JaliIcon>
@@ -949,7 +955,7 @@ One icon per name Jali draws. `<JaliRoot icons>` takes any part of it; type your
 
 ### JaliIconName
 
-*type*, from `jali/react`
+*type*, from `jali-layout/react`
 
 ```ts
 type JaliIconName = "close" | "maximise" | "restore" | … | "dropTab"
@@ -959,7 +965,7 @@ The names above.
 
 ### JaliIcon
 
-*type*, from `jali/react`
+*type*, from `jali-layout/react`
 
 ```ts
 type JaliIcon = ComponentType<JaliIconProps>
@@ -969,7 +975,7 @@ An icon Jali can draw: any component that takes `JaliIconProps`. Also the type o
 
 ### JaliIconProps
 
-*type*, from `jali/react`
+*type*, from `jali-layout/react`
 
 ```ts
 interface JaliIconProps {

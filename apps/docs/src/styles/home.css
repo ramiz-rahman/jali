@@ -1201,7 +1201,7 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    /* A short title ("jali") is still a 24px target. */
+    /* A short link is still a 24px target. */
     min-width: 24px;
     padding: 5px 0;
     font-size: 14px;

@@ -3,9 +3,9 @@
  * narrow ones), the theme, and ⌘K. Marked `data-jali-chrome`, so Jali leaves keyboard focus here after a layout
  * change.
  */
-import { keyHint } from "jali";
+import { keyHint } from "jali-layout";
 import { Moon, Sun } from "lucide-react";
-import { useJali, useJaliShortcut, useJaliState, useJaliTheme } from "jali/react";
+import { useJali, useJaliShortcut, useJaliState, useJaliTheme } from "jali-layout/react";
 import { Button } from "#src/vendor/cyberspec/components/ui/button.tsx";
 import { GlitchText } from "#src/vendor/cyberspec/components/ui/glitch-text.tsx";
 import { Micro } from "#src/vendor/cyberspec/components/ui/micro.tsx";

@@ -2,7 +2,7 @@
  * Two ladders side by side (stacked when narrow), by default HTTPS over TCP and TLS 1.3 against HTTP/3 over QUIC,
  * with the difference in round trips spelled out: what it costs on this path, and on slower ones.
  */
-import { definePane, useCommands, type PaneProps } from "jali/react";
+import { definePane, useCommands, type PaneProps } from "jali-layout/react";
 import { Columns2 } from "lucide-react";
 import { Select } from "#src/vendor/cyberspec/components/ui/select.tsx";
 import { CAPTURES, captureTitle, DEFAULT_COMPARISON } from "#src/packets/captures.ts";

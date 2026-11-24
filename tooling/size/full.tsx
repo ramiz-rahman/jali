@@ -2,7 +2,7 @@
  *  commands, hooks and the parts. */
 import { createRoot } from "react-dom/client";
 import { FileTextIcon, UserIcon } from "@phosphor-icons/react";
-import { createJali, pane, row, column, tabs, keyHint, listCommands } from "jali";
+import { createJali, pane, row, column, tabs, keyHint, listCommands } from "jali-layout";
 import {
   JaliRoot,
   definePane,
@@ -14,12 +14,12 @@ import {
   useJali,
   useJaliShortcut,
   useJaliTheme,
-} from "jali/react";
-import { definePage } from "jali/page";
-import { defaultFeatures } from "jali/features";
-import { rename } from "jali/rename";
-import { popOut } from "jali/pop-out";
-import "jali/styles.css";
+} from "jali-layout/react";
+import { definePage } from "jali-layout/page";
+import { defaultFeatures } from "jali-layout/features";
+import { rename } from "jali-layout/rename";
+import { popOut } from "jali-layout/pop-out";
+import "jali-layout/styles.css";
 
 const borrower = definePane("borrower", {
   params: { application: Number },

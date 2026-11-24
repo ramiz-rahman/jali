@@ -3,7 +3,7 @@
  * the top of a scan pane that says whose data it is, where it stays, and how to forget it.
  */
 import type { ReactNode } from "react";
-import type { PaneProps } from "jali/react";
+import type { PaneProps } from "jali-layout/react";
 import { Badge } from "#src/vendor/cyberspec/components/ui/badge.tsx";
 import { Button } from "#src/vendor/cyberspec/components/ui/button.tsx";
 import { formatInfo } from "#src/scans/detect.ts";

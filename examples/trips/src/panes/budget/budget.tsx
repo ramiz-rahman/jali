@@ -13,7 +13,7 @@ import {
   useJaliState,
   usePaneState,
   type PaneProps,
-} from "jali/react";
+} from "jali-layout/react";
 import { stringIn } from "../../state/saved";
 import { useSummary } from "../../state/services";
 import { dayNumber } from "../../trip/plan";

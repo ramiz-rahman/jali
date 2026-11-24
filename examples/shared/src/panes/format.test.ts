@@ -1,4 +1,4 @@
-import { createTestJali } from "jali/testing";
+import { createTestJali } from "jali-layout/testing";
 import { nextSort, orderByString, parseFilter } from "./grid/grid-state";
 import { recordKind } from "./kinds/record";
 import { describe, expect, it } from "vite-plus/test";

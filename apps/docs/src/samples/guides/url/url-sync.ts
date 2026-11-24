@@ -1,7 +1,7 @@
-import { createJali } from "jali";
+import { createJali } from "jali-layout";
 import { orderKinds } from "../pane-kinds/orders";
 import { presets } from "../presets/layouts";
-import { urlSync } from "jali/url";
+import { urlSync } from "jali-layout/url";
 
 export const jali = createJali({
   panes: orderKinds,

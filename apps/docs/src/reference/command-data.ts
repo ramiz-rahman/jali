@@ -20,7 +20,7 @@ import {
   spacingOf,
   type Env,
   type Layout,
-} from "jali/adapter";
+} from "jali-layout/adapter";
 
 const empty = (): Layout => ({
   version: 1,
@@ -112,7 +112,7 @@ export const REFUSED: Record<string, string> = {
   "pane.move.out":
     'Silent unless the focused pane is in a row that scrolls sideways (`row({ scroll: "x" }, …)`). Takes it out beside the row, on the side it is nearer on screen: "… moved out of the row".',
   "pane.merge":
-    'Only with the chooser() feature (jali/chooser). Silent when no pane is focused, or there is no other pane or stack on screen to join. Opens the "Add to tabs of…" chooser.',
+    'Only with the chooser() feature (jali-layout/chooser). Silent when no pane is focused, or there is no other pane or stack on screen to join. Opens the "Add to tabs of…" chooser.',
   "pane.unmerge":
     "Silent unless the focused pane is in a tab group made by the person (not one the layout folded).",
   "tab.move.left":
@@ -120,14 +120,14 @@ export const REFUSED: Record<string, string> = {
   "tab.move.right":
     'Silent unless the focused pane is a tab in a group made by the person or the app. At the end of the strip: "… is already the last tab".',
   "pane.rename":
-    "Only with the rename() feature (jali/rename). Silent unless its `can` allows the focused pane. Opens the rename field on its tab or title.",
+    "Only with the rename() feature (jali-layout/rename). Silent unless its `can` allows the focused pane. Opens the rename field on its tab or title.",
   "stack.new-tab":
     "Silent when no pane is focused, or there is no launcher. Where the pane doesn't allow `open`: \"Panes can't be opened from … here\".",
   [PRESET_PATTERN]: 'Never. One command per preset, titled "Layout: <label>".',
   "pane.fullscreen":
     "On a curated page in Single view. Puts the focused pane on the whole screen, or takes it off.",
   "pane.pop_out":
-    "Only with the popOut() feature (jali/pop-out). Silent when no pane is focused, or the browser can't pop out (Document Picture-in-Picture: Chrome and Edge on desktop). When the focused pane doesn't allow it, says so. Opens it in a floating window that stays on top.",
+    "Only with the popOut() feature (jali-layout/pop-out). Silent when no pane is focused, or the browser can't pop out (Document Picture-in-Picture: Chrome and Edge on desktop). When the focused pane doesn't allow it, says so. Opens it in a floating window that stays on top.",
   "layout.reset": "Silent without presets. Rebuilds the preset last chosen.",
   "layout.auto":
     "On a curated page, on a phone (one pane at a time), or with one pane. Arranges every pane from the room and the kinds' sizes; Back undoes it.",
@@ -143,7 +143,7 @@ export const REFUSED: Record<string, string> = {
   "peek.close": "Silent when no peek is open.",
   "peek.open_beside":
     'Silent when no peek is open. Where the pane the peek came from doesn\'t allow `open`: "Panes can\'t be opened from … here". In a curated page\'s Single view: "Single shows one view: choose it from the tabs…".',
-  "settings.open": "Only with the settings() feature (jali/settings). Never refused there.",
+  "settings.open": "Only with the settings() feature (jali-layout/settings). Never refused there.",
   "settings.centre_drop.toggle": "Never.",
 };
 

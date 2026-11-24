@@ -3,11 +3,11 @@
  * into an address that is not the page's (memory by default), with any keys the demo binds of its own.
  */
 import { useState } from "react";
-import { createJali, memoryLocation, type Jali, type LocationPort } from "jali";
-import type { KeyboardOptions } from "jali/adapter";
-import { chooser } from "jali/chooser";
-import { palette } from "jali/palette";
-import { urlSync } from "jali/url";
+import { createJali, memoryLocation, type Jali, type LocationPort } from "jali-layout";
+import type { KeyboardOptions } from "jali-layout/adapter";
+import { chooser } from "jali-layout/chooser";
+import { palette } from "jali-layout/palette";
+import { urlSync } from "jali-layout/url";
 import {
   buildDemoLayout,
   demoLayouts,

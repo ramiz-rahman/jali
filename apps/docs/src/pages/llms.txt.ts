@@ -12,7 +12,7 @@ export const GET: APIRoute = ({ site }) => {
     "",
     `> ${pageAt("/").summary}`,
     "",
-    "Jali is one package, `jali`. Its framework-free core (the layout tree, fitting, actions and events) is `jali`; React renders it from `jali/react`; each optional feature has its own entry (`jali/url`, `jali/palette`, …). Every page below is Markdown, and all of them together are at /llms-full.txt. The same pages ship inside the package as `node_modules/jali/docs/`, for the installed version.",
+    "Jali is one package, `jali-layout`. Its framework-free core (the layout tree, fitting, actions and events) is `jali-layout`; React renders it from `jali-layout/react`; each optional feature has its own entry (`jali-layout/url`, `jali-layout/palette`, …). Every page below is Markdown, and all of them together are at /llms-full.txt. The same pages ship inside the package as `node_modules/jali-layout/docs/`, for the installed version.",
   ];
   let section = "";
   for (const item of readingOrder) {

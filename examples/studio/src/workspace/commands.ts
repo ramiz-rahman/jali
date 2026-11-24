@@ -1,7 +1,7 @@
 /**
  * The app's own commands in ⌘K, after Jali's, under the app's groups. "…" ones ask first, in Jali's chooser.
  */
-import { copyLink, type Command } from "jali";
+import { copyLink, type Command } from "jali-layout";
 import { makerCommand } from "@jali-examples/shared/maker/maker";
 import { themeCommand } from "@jali-examples/shared/theme";
 import { SPEEDS } from "../audio/engine";

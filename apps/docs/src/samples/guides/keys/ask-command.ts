@@ -1,4 +1,4 @@
-import type { Command } from "jali";
+import type { Command } from "jali-layout";
 import { orderKind } from "../pane-kinds/orders";
 
 interface Customer {

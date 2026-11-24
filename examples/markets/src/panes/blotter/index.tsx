@@ -3,7 +3,7 @@
  * paper book's (model/trading.ts): its totals (Summary.tsx) and its tables (Tables.tsx).
  */
 import { BriefcaseIcon } from "@phosphor-icons/react";
-import { definePane, usePaneState, type PaneProps } from "jali/react";
+import { definePane, usePaneState, type PaneProps } from "jali-layout/react";
 import { oneOf, useStore } from "@jali-examples/shared/store";
 import { useServices } from "../../services";
 import { Segmented } from "../../ui/molecules/Segmented";

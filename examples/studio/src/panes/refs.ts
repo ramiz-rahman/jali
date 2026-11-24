@@ -5,7 +5,7 @@
  * Every Studio ref but the library's and the credits' names a session; the segment detail's also names a segment
  * (`clipOf`, beside its kind in clip/).
  */
-import type { ObjectRef } from "jali";
+import type { ObjectRef } from "jali-layout";
 import { isSession, type SessionId } from "../sessions/ids";
 
 /** The session `ref` names, if it names one in the library. */

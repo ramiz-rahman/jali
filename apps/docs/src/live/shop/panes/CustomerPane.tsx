@@ -1,7 +1,7 @@
 /** A customer: who they are to the shop, what they have spent, and their notes one click away. */
 import { useEffect } from "react";
 import { CaretRightIcon, EnvelopeSimpleIcon, NoteIcon, UserIcon } from "@phosphor-icons/react";
-import { definePane, type PaneProps } from "jali/react";
+import { definePane, type PaneProps } from "jali-layout/react";
 import { customerById, money, notes, ordersOf, totalOf } from "../data";
 import { Avatar } from "../ui/Avatar";
 import { kindIcon } from "../ui/KindIcon";

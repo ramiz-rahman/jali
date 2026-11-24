@@ -1,7 +1,7 @@
 import { defineConfig, defaultClientConditions } from "vite-plus";
 import react from "@vitejs/plugin-react";
 
-// Resolves jali to the packages' source ("source" condition), as the other examples do. CyberSpec's files import
+// Resolves jali-layout to the packages' source ("source" condition), as the other examples do. CyberSpec's files import
 // each other through "#src/*", which package.json's "imports" maps to ./src, so no alias is needed here.
 export default defineConfig({
   root: __dirname,

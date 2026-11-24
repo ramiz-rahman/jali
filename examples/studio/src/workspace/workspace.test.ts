@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
-import { listCommands, type Jali } from "jali";
+import { listCommands, type Jali } from "jali-layout";
 import {
   answerDiscard,
   chooserRequest,
@@ -9,7 +9,7 @@ import {
   reportPaneState,
   reportUnsaved,
   testJaliOptions,
-} from "jali/testing";
+} from "jali-layout/testing";
 import { audible, channelOf } from "../model/mix";
 import { clip } from "../panes/clip";
 import { transcript } from "../panes/transcript";

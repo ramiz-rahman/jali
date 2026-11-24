@@ -4,7 +4,7 @@
  */
 import type { ReactNode } from "react";
 import { CheckIcon, InfoIcon, WarningIcon, WarningOctagonIcon } from "@phosphor-icons/react";
-import { useJaliState } from "jali/react";
+import { useJaliState } from "jali-layout/react";
 import type { Payment } from "../../model/rows";
 import { statusWords, type Status } from "../../model/statuses";
 import type { Tone } from "../../model/signals";

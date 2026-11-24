@@ -2,7 +2,7 @@
  * The app's own commands in ⌘K. The "…" ones ask for a place or a day (choosers.ts), then make the change
  * (`services.changes`) or move the workspace (hub.ts).
  */
-import type { Command } from "jali";
+import type { Command } from "jali-layout";
 import type { Services } from "../state/services";
 import { summarise } from "../trip/summary";
 import * as f from "../ui/format";

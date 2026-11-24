@@ -10,10 +10,10 @@ import {
   type DndState,
   type JaliStore,
   type Layout,
-} from "jali/adapter";
+} from "jali-layout/adapter";
 
 // Gap 1: the tree's side panels read the live workspace beside its root, so they use the root's own provider, which
-// jali/react keeps internal (the docs site lives in this repo).
+// jali-layout/react keeps internal (the docs site lives in this repo).
 export { JaliProvider } from "../../../../../packages/react/src/JaliRoot";
 
 /**

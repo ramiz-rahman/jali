@@ -19,10 +19,10 @@ Everything Jali draws reads `--jali-*` CSS variables, called tokens. Change a to
 ## Load the styles
 
 ```ts
-import "jali/styles.css";
+import "jali-layout/styles.css";
 ```
 
-This brings Jali's default theme and the panes' styles. It is plain CSS: no Tailwind or build step needed. From a stylesheet, `@import "jali/styles.css";` does the same, as the next section does; it works in Vite and any bundler that reads a package's `exports`. `theme.css` and `tailwind.css` import the same way.
+This brings Jali's default theme and the panes' styles. It is plain CSS: no Tailwind or build step needed. From a stylesheet, `@import "jali-layout/styles.css";` does the same, as the next section does; it works in Vite and any bundler that reads a package's `exports`. `theme.css` and `tailwind.css` import the same way.
 
 ## The layer line
 
@@ -247,8 +247,8 @@ Jali's Tailwind bridge reads the token names Chakni reads: `--color-primary`, `-
 ```css
 @layer theme, base, jali, components, utilities;
 @import "tailwindcss";
-@import "jali/styles.css";
-@import "jali/tailwind.css";
+@import "jali-layout/styles.css";
+@import "jali-layout/tailwind.css";
 ```
 
 Jali's dark mode also follows Chakni's `.dark` and `.light` classes. See [Theming](/guides/theming).

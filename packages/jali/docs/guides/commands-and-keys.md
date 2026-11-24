@@ -38,7 +38,7 @@ Pass `keyboard.keymap` to `createJali`. Each entry is a command id and its new b
 `src/jali.ts`
 
 ```tsx
-import { createJali } from "jali";
+import { createJali } from "jali-layout";
 import { orderKinds } from "../pane-kinds/orders";
 import { presets } from "../presets/layouts";
 
@@ -94,8 +94,8 @@ So claim the keys you use and let the rest through. The orders list in [Define a
 
 ```tsx
 import { useEffect, useState, type KeyboardEvent } from "react";
-import { definePane, useLauncher, type PaneProps } from "jali/react";
-import { oneOf, optional } from "jali";
+import { definePane, useLauncher, type PaneProps } from "jali-layout/react";
+import { oneOf, optional } from "jali-layout";
 import { ClipboardTextIcon, FileTextIcon, NoteIcon, PlusIcon } from "@phosphor-icons/react";
 
 // Your data. Jali never fetches anything: a pane is told which object to show, and shows it.
@@ -254,7 +254,7 @@ Single character keys (J, K, Space) must act only while your content has focus. 
 Jali binds no single keys. By convention its lists use Space or Shift+Space to peek, each in its own `onKeyDown`. An app that wants Space for itself (play and pause, say) should listen on `window` in the bubble phase, so content has had its turn, and skip the key when `keyBelongsToContent(event)` is true. That check is true in text fields, editable regions, comboboxes, dialogs, and on buttons, tabs and other controls that Space presses.
 
 ```ts
-import { keyBelongsToContent } from "jali";
+import { keyBelongsToContent } from "jali-layout";
 
 window.addEventListener("keydown", (e) => {
   if (e.key === " " && !e.defaultPrevented && !keyBelongsToContent(e)) togglePlayback();
@@ -270,7 +270,7 @@ An editor or a terminal needs every key, ⌘K included. Mark it `data-pane-keys=
 `src/panes/reply.tsx`
 
 ```tsx
-import { definePane } from "jali/react";
+import { definePane } from "jali-layout/react";
 
 /**
  * An editor needs every key, so it marks itself: inside it, Jali takes only F6 and Shift+F6, so focus can
@@ -297,7 +297,7 @@ Your keymap may differ from the defaults, and the keys print differently on each
 `src/CloseButton.tsx`
 
 ```tsx
-import { useJaliShortcut, useJali } from "jali/react";
+import { useJaliShortcut, useJali } from "jali-layout/react";
 
 /** A button in your own chrome that runs one of Jali's actions and shows its key from the keymap. */
 export function CloseButton() {
@@ -323,7 +323,7 @@ Commands that belong to your app rather than to one pane, such as "Refresh order
 `src/jali.ts`
 
 ```tsx
-import { createJali, type Command } from "jali";
+import { createJali, type Command } from "jali-layout";
 import { launcher, orderKinds } from "../pane-kinds/orders";
 import { presets } from "../presets/layouts";
 
@@ -365,7 +365,7 @@ Some commands need an argument first: "Open chart for…", "Open latest order fo
 `src/commands.ts`
 
 ```tsx
-import type { Command } from "jali";
+import type { Command } from "jali-layout";
 import { orderKind } from "../pane-kinds/orders";
 
 interface Customer {
@@ -409,12 +409,12 @@ Most apps already have a command menu on ⌘K and shortcuts of their own. Three 
 `src/jali.ts`
 
 ```tsx
-import { createJali } from "jali";
+import { createJali } from "jali-layout";
 import { launcher, orderKinds } from "../pane-kinds/orders";
 import { presets } from "../presets/layouts";
-import { chooser } from "jali/chooser";
-import { settings } from "jali/settings";
-import { urlSync } from "jali/url";
+import { chooser } from "jali-layout/chooser";
+import { settings } from "jali-layout/settings";
+import { urlSync } from "jali-layout/url";
 
 export const jali = createJali({
   panes: orderKinds,
@@ -441,8 +441,8 @@ Leaving `palette()` out of `features` tells Jali your app has the command menu. 
 
 ```tsx
 import { useState, useSyncExternalStore } from "react";
-import { listCommands } from "jali";
-import { useJali } from "jali/react";
+import { listCommands } from "jali-layout";
+import { useJali } from "jali-layout/react";
 
 /**
  * Jali's commands inside your app's own command menu: a field and a list of buttons, which Tab and Enter reach with

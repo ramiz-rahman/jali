@@ -1,10 +1,10 @@
 # @jali/react
 
-The React half of [`jali`](../jali): an internal workspace package, never published. Apps install `jali` and import `jali/react`; [its README](../jali/README.md) is the guide for them. This one is for working on the package.
+The React half of [`jali-layout`](../jali): an internal workspace package, never published. Apps install `jali-layout` and import `jali-layout/react`; [its README](../jali/README.md) is the guide for them. This one is for working on the package.
 
 ## Where things are
 
-- `src/index.ts` is the public surface (`jali/react` re-exports it name by name). `src/internal.ts` adds what the published package needs beyond it: the features and `defaultFeatures`.
+- `src/index.ts` is the public surface (`jali-layout/react` re-exports it name by name). `src/internal.ts` adds what the published package needs beyond it: the features and `defaultFeatures`.
 - `src/JaliRoot.tsx`: the root, `<JaliView>` and the dialog layer.
 - `src/state/`: the store's React hooks (`react.tsx`), hydration and the per-instance lifetime (`InstanceScope`).
 - `src/workspace/`: the panes (`Workspace.tsx` composes them), their element's measurement, placement, rows that scroll, stacked view, drags and full screen.

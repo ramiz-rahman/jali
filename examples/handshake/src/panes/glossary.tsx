@@ -5,7 +5,7 @@
  */
 import { useMemo, useState, type KeyboardEvent } from "react";
 import { BookA } from "lucide-react";
-import { definePane, type PaneProps } from "jali/react";
+import { definePane, type PaneProps } from "jali-layout/react";
 import { Badge } from "#src/vendor/cyberspec/components/ui/badge.tsx";
 import { Button } from "#src/vendor/cyberspec/components/ui/button.tsx";
 import { ItemList } from "#src/vendor/cyberspec/components/ui/item-list.tsx";

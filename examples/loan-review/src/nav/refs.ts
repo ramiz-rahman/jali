@@ -12,7 +12,7 @@ import {
   UserIcon,
   type Icon,
 } from "@phosphor-icons/react";
-import { optional, type ObjectRef, type ParamValue } from "jali";
+import { optional, type ObjectRef, type ParamValue } from "jali-layout";
 import { singular } from "@jali-examples/shared/panes/shared/refs";
 import type { BookTable } from "../model/rows";
 

@@ -6,8 +6,8 @@ import {
   LinkSimpleHorizontalIcon,
   SquaresFourIcon,
 } from "@phosphor-icons/react";
-import { IconButton, useJaliShortcut, useJali, useJaliState, PageBar } from "jali/react";
-import { copyLink } from "jali";
+import { IconButton, useJaliShortcut, useJali, useJaliState, PageBar } from "jali-layout/react";
+import { copyLink } from "jali-layout";
 import { JaliLockup } from "./JaliLockup";
 import type { AppChrome } from "./App";
 

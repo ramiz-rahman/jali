@@ -1,4 +1,4 @@
-import type { Allow, Jali, ObjectRef } from "jali";
+import type { Allow, Jali, ObjectRef } from "jali-layout";
 
 // Your model client: anything that takes tools and runs a conversation with them.
 declare function runModel(options: {

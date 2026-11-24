@@ -3,7 +3,7 @@
  * index.html, before any stylesheet loads, so the app's rules win over Jali's and CyberSpec's without !important.
  * CyberSpec's own sheets come in with its components (each imports its CSS).
  */
-@import "jali/styles.css";
+@import "jali-layout/styles.css";
 @import "./tokens.css";
 @import "./light.css";
 @import "./shell.css";

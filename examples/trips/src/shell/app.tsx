@@ -4,8 +4,8 @@
  */
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
-import { runCommand, type Jali } from "jali";
-import { JaliRoot, JaliView, useJali } from "jali/react";
+import { runCommand, type Jali } from "jali-layout";
+import { JaliRoot, JaliView, useJali } from "jali-layout/react";
 import { ServicesProvider, type Services } from "../state/services";
 import { useDrag } from "../ui/drag";
 import { StatusLine } from "./status-line";

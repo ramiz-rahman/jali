@@ -1,5 +1,5 @@
 import { DatabaseIcon } from "@phosphor-icons/react";
-import { definePane, type PaneProps } from "jali/react";
+import { definePane, type PaneProps } from "jali-layout/react";
 import { useState } from "react";
 import { PaneGate } from "@jali-examples/shared/panes/shared/PaneGate";
 import { useFocusWhen } from "@jali-examples/shared/panes/shared/useFocusWhen";

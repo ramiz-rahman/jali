@@ -3,8 +3,8 @@
  * under the reader's pointer, and the panes' rects while a divider is dragged.
  */
 import { createContext } from "react";
-import type { LayoutNode, Rect, Size } from "jali";
-import type { Model as JaliModel } from "jali/adapter";
+import type { LayoutNode, Rect, Size } from "jali-layout";
+import type { Model as JaliModel } from "jali-layout/adapter";
 
 /** The node the reader points at, and where: at its box or JSON in the tree, or at its pane in the workspace. */
 export interface Hover {

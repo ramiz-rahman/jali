@@ -4,8 +4,8 @@
  * unsent.ts). "Buy LMNA" from a quote or ⌘K arrives through the ticket's inbox (model/ticket.ts). ⌘↵ sends it.
  */
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
-import { keyHint } from "jali";
-import { useCommands, usePane, usePaneState, useUnsaved } from "jali/react";
+import { keyHint } from "jali-layout";
+import { useCommands, usePane, usePaneState, useUnsaved } from "jali-layout/react";
 import { isRecord, oneOf, text, useStore } from "@jali-examples/shared/store";
 import { facts } from "../../market/classes";
 import { useQuotes } from "../../market/react";

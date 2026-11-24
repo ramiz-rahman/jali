@@ -1,4 +1,4 @@
-import { createJali } from "jali";
+import { createJali } from "jali-layout";
 import { customer, customerOrders, customerOverview, customerTickets, order } from "./customer";
 import { customerPage } from "./customer-page";
 import { listOnly } from "./layouts";

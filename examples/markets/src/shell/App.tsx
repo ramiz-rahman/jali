@@ -4,8 +4,8 @@
  * commands (workspace/commands.ts).
  */
 import { useEffect } from "react";
-import { runCommand, type Jali } from "jali";
-import { JaliRoot, JaliView, useJali } from "jali/react";
+import { runCommand, type Jali } from "jali-layout";
+import { JaliRoot, JaliView, useJali } from "jali-layout/react";
 import { ServicesProvider, type Services } from "../services";
 import { QuestionDialog } from "./Question";
 import { StatusLine } from "./StatusLine";

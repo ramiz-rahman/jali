@@ -1,7 +1,7 @@
 /**
- * jali/react: `<JaliRoot>`, `definePane`, the hooks and the chrome parts an app places itself. Styles:
- * "jali/styles.css" (Jali's default theme and the panes, in the `jali` cascade layer), "jali/tailwind.css" to take
- * the app's Tailwind theme. A curated page is `jali/page`.
+ * jali-layout/react: `<JaliRoot>`, `definePane`, the hooks and the chrome parts an app places itself. Styles:
+ * "jali-layout/styles.css" (Jali's default theme and the panes, in the `jali` cascade layer), "jali-layout/tailwind.css" to take
+ * the app's Tailwind theme. A curated page is `jali-layout/page`.
  */
 export { JaliRoot, JaliView, type JaliRootProps } from "@jali/react/internal";
 export {

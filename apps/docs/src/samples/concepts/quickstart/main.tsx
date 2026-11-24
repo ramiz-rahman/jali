@@ -1,6 +1,6 @@
 import { createRoot } from "react-dom/client";
-import { JaliRoot } from "jali/react";
-import "jali/styles.css";
+import { JaliRoot } from "jali-layout/react";
+import "jali-layout/styles.css";
 import "./app.css";
 import { jali } from "./jali";
 

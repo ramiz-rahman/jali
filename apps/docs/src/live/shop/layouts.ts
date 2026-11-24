@@ -2,7 +2,7 @@
  * The shop's layouts: what each live part on a page starts from. One entry per layout, its label and how it is built,
  * so adding one is one edit. Layout ids are the contract with pages: <TreeView layout="chain" />.
  */
-import type { Layout, LayoutNode, ObjectRef, PaneNode } from "jali";
+import type { Layout, LayoutNode, ObjectRef, PaneNode } from "jali-layout";
 
 const ref = (kind: string, params: ObjectRef["params"] = {}): ObjectRef => ({ kind, params });
 const pane = (id: string, r: ObjectRef, extra: Partial<PaneNode> = {}): PaneNode => ({

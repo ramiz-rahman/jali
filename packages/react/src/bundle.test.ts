@@ -12,7 +12,7 @@ import { build, defaultClientConditions } from "vite-plus";
 import react from "@vitejs/plugin-react";
 
 const repo = fileURLToPath(new URL("../../..", import.meta.url));
-// The examples import `jali`, which bundles core and React; its dist is the one an app resolves.
+// The examples import `jali-layout`, which bundles core and React; its dist is the one an app resolves.
 const hasDist = ["index.js", "react.js", "icons.js"].every((f) =>
   existsSync(`${repo}/packages/jali/dist/${f}`),
 );

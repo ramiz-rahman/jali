@@ -4,8 +4,8 @@
  * after using it). The instance comes from ./useLiveStore or ./embedded.
  */
 import type { Ref } from "react";
-import type { Jali } from "jali";
-import { JaliRoot, JaliView, Shelf } from "jali/react";
+import type { Jali } from "jali-layout";
+import { JaliRoot, JaliView, Shelf } from "jali-layout/react";
 import { useEngineModel } from "./engine";
 import { ClientOnly } from "./ClientOnly";
 

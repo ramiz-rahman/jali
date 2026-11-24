@@ -1,6 +1,6 @@
 /* app.css, the one stylesheet your app imports. The layer line comes first, before Jali's CSS is loaded. */
 @layer base, jali, components;
-@import "jali/styles.css";
+@import "jali-layout/styles.css";
 @import "./teal.css";
 
 @layer base {

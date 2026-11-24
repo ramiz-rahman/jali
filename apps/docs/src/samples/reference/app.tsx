@@ -1,4 +1,4 @@
-import { JaliRoot, JaliView, PageBar } from "jali/react";
+import { JaliRoot, JaliView, PageBar } from "jali-layout/react";
 import { store } from "./store";
 
 // <JaliRoot> draws the panes and their dialogs. Your chrome goes inside it, with <JaliView /> where the panes go.

@@ -12,8 +12,8 @@ import {
   type RefObject,
 } from "react";
 import { RowsIcon, SquareSplitHorizontalIcon, StackIcon } from "@phosphor-icons/react";
-import type { LayoutNode, PaneNode, StackNode, Model as JaliModel } from "jali/adapter";
-import { KindIcon } from "jali/react";
+import type { LayoutNode, PaneNode, StackNode, Model as JaliModel } from "jali-layout/adapter";
+import { KindIcon } from "jali-layout/react";
 import { useEngineModel } from "../workspace/engine";
 import { PreviewRects, extentOf, panesUnder, sizeText, type Hover } from "./nodes";
 import { colourOf } from "./colours";

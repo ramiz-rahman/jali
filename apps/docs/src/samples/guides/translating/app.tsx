@@ -1,5 +1,5 @@
-import { createJali } from "jali";
-import { JaliRoot } from "jali/react";
+import { createJali } from "jali-layout";
+import { JaliRoot } from "jali-layout/react";
 import { orderKind, ordersKind } from "../../reference/kinds";
 import { fr } from "./french";
 

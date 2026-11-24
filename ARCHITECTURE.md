@@ -16,7 +16,7 @@ packages/core     @jali/core (private)   no framework, no dependencies
   dom/, workspace/  the DOM port and the instance's scope in the DOM, focus and drag, edge scrolling, the phone layouts
   env.ts, profile.ts what an instance is made of; a curated page's types and its engine's contract
   ports.ts          the location and storage ports
-  testing.ts        what an app's tests need (jali/testing)
+  testing.ts        what an app's tests need (jali-layout/testing)
 
 packages/react    @jali/react (private)  React 18.2+ only
   JaliRoot.tsx      the one root: renders the panes, dialogs, live region and full-screen layer; starts the instance
@@ -31,7 +31,7 @@ packages/jali     jali                   the published package: entries that re-
 
 **The core decides; the adapter draws.** Everything about panes (where they go, what folds, what a key does, what an action refuses) is in the core, as plain TypeScript, so it runs in tests and on a server and a second adapter (Solid, Vue) could reuse it. The React adapter renders the core's model, measures the DOM, and turns pointer gestures into actions. It holds no rules of its own.
 
-`definePane` lives in `jali/react` because a kind carries its React component. The layout and its kinds' data are framework-free.
+`definePane` lives in `jali-layout/react` because a kind carries its React component. The layout and its kinds' data are framework-free.
 
 ## Ports
 
@@ -39,7 +39,7 @@ The core reaches the outside world only through small interfaces, so an app or a
 
 - **Location** (`LocationPort`: `search`, `href`, `navigate`, `subscribe`): the address. `browserLocation()` by default, `memoryLocation()` in tests and on a server, or a router adapter. Read and written only by the `urlSync()` feature.
 - **Storage** (`StoragePort`: `get`, `set`): what one person keeps on one device. `localStorage` under the instance's `id` in a browser, memory elsewhere.
-- **DOM** (`DomPort`, in `jali/adapter`): how the core finds the adapter's elements (the panes' box, a tab at a point, the dividers) for focus, drag and drop, and measuring. The React adapter provides it.
+- **DOM** (`DomPort`, in `jali-layout/adapter`): how the core finds the adapter's elements (the panes' box, a tab at a point, the dividers) for focus, drag and drop, and measuring. The React adapter provides it.
 
 ## The action path
 
@@ -55,7 +55,7 @@ The layout itself is a tree of rows, columns and stacks whose leaves are panes. 
 
 ## Features
 
-Everything beyond laying out panes is a feature: a value an app passes in `createJali({ features })`, made by its own entry (`urlSync()` from `jali/url`, `palette()` from `jali/palette`, …). Its code reaches an app only through that import.
+Everything beyond laying out panes is a feature: a value an app passes in `createJali({ features })`, made by its own entry (`urlSync()` from `jali-layout/url`, `palette()` from `jali-layout/palette`, …). Its code reaches an app only through that import.
 
 A feature (`features/feature.ts`, internal: adapters read it, apps never write one) may bring:
 
@@ -68,7 +68,7 @@ A feature (`features/feature.ts`, internal: adapters read it, apps never write o
 
 Steps and commands are not a feature's: the few a feature needs stay in the core's tables, refused as `"unavailable"` and left out of ⌘K without their feature. One of each feature id is kept; a later one replaces an earlier one.
 
-A curated page works the same way without being a feature: `definePage` (from `jali/page`) attaches the page's engine and parts to the page value, so an app without a page ships none of that code.
+A curated page works the same way without being a feature: `definePage` (from `jali-layout/page`) attaches the page's engine and parts to the page value, so an app without a page ships none of that code.
 
 ## State and what is stored
 
@@ -82,10 +82,10 @@ A curated page works the same way without being a feature: `definePage` (from `j
 `packages/jali` holds no code of its own: each entry (`src/index.ts`, `src/react.ts`, `src/url.ts`, …) re-exports `@jali/core`, `@jali/core/adapter` or `@jali/react/internal`. `vp pack` (`packages/jali/vite.config.ts`) builds them into `dist/`:
 
 - **Two chunks hold the code:** `core` (everything from `packages/core`) and `react` (everything from `packages/react`). Each entry imports the chunks it needs, so an app's bundler tree-shakes as before, and the size gate can measure each.
-- **`"use client"`** starts the `react` chunk and every entry that re-exports it, so a React Server Components host loads them on the client. The framework-free entries (`jali`, `jali/url`, `jali/testing`, `jali/adapter`) don't have it.
+- **`"use client"`** starts the `react` chunk and every entry that re-exports it, so a React Server Components host loads them on the client. The framework-free entries (`jali-layout`, `jali-layout/url`, `jali-layout/testing`, `jali-layout/adapter`) don't have it.
 - **The `layout` namespace** is built as a file of its own and re-exported, so bundlers tree-shake it member by member.
 - **React stays an import**, an optional peer. Nothing else is imported at run time.
-- **The internals are bundled.** `@jali/core` and `@jali/react` are dev dependencies of `jali`, never published; an app installs `jali` alone.
+- **The internals are bundled.** `@jali/core` and `@jali/react` are dev dependencies of `jali-layout`, never published; an app installs `jali-layout` alone.
 - **The docs ship inside it.** `pnpm agent-docs` writes every page of the docs site into `packages/jali/docs` as Markdown, so a coding agent reads the docs of the version installed.
 
-In the repo, everything resolves to source through the `"source"` export condition: the examples, the docs site and the tests never read a stale `dist/`. `pnpm pack-check` checks what is actually published: it packs `jali`, builds the minimal app from the tarball, and hydrates a server render.
+In the repo, everything resolves to source through the `"source"` export condition: the examples, the docs site and the tests never read a stale `dist/`. `pnpm pack-check` checks what is actually published: it packs `jali-layout`, builds the minimal app from the tarball, and hydrates a server render.

@@ -1,8 +1,8 @@
 /** Data Studio's workspace, in memory: what a reload brings back, a table's tab menu, and its words. */
 import { describe, expect, it } from "vite-plus/test";
-import { en, memoryLocation, memoryStorage } from "jali";
-import { paneStateOf, reportPaneState } from "jali/testing";
-import { urlSync } from "jali/url";
+import { en, memoryLocation, memoryStorage } from "jali-layout";
+import { paneStateOf, reportPaneState } from "jali-layout/testing";
+import { urlSync } from "jali-layout/url";
 import { tableRef } from "@jali-examples/shared/panes/shared/refs";
 import { createDataStudio, tableMenu } from "./workspace";
 

@@ -1,6 +1,6 @@
 /** The button that collapses the queue or the header, and expands it again: one for both, so they read the same. */
 import { CaretDownIcon, CaretUpIcon, SidebarSimpleIcon } from "@phosphor-icons/react";
-import { IconButton, useJaliShortcut } from "jali/react";
+import { IconButton, useJaliShortcut } from "jali-layout/react";
 import { QUEUE_COMMAND, toggleHeader, toggleQueue } from "./chrome";
 
 const PARTS = {

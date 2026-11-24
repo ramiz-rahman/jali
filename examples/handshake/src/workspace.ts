@@ -3,8 +3,8 @@
  * `createHandshakeJali` takes Jali's usual options, so a test can give it a memory address, memory storage and a
  * fixed size (workspace.test.ts).
  */
-import { createJali, type Jali, type JaliOptions } from "jali";
-import { defaultFeatures } from "jali/features";
+import { createJali, type Jali, type JaliOptions } from "jali-layout";
+import { defaultFeatures } from "jali-layout/features";
 import { makerCommand } from "@jali-examples/shared/maker/maker";
 import { themeCommand } from "@jali-examples/shared/theme";
 import { kinds } from "./kinds";

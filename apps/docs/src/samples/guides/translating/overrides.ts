@@ -1,4 +1,4 @@
-import { createJali } from "jali";
+import { createJali } from "jali-layout";
 import { orderKind, ordersKind } from "../../reference/kinds";
 
 // Only what changes: the rest stays English.

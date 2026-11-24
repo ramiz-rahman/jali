@@ -4,7 +4,7 @@
  * what its model leaves out. Opened from the Scans pane; a Wi-Fi pane linked to it follows the scan selected there.
  */
 import { useState } from "react";
-import { definePane, useCommands, usePaneState, type PaneProps } from "jali/react";
+import { definePane, useCommands, usePaneState, type PaneProps } from "jali-layout/react";
 import { Wifi } from "lucide-react";
 import { Alert } from "#src/vendor/cyberspec/components/ui/alert.tsx";
 import { Badge, type BadgeTone } from "#src/vendor/cyberspec/components/ui/badge.tsx";

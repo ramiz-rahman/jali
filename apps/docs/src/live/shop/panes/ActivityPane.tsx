@@ -1,6 +1,6 @@
 /** The shop's recent activity: orders placed, paid, sent and refunded. */
 import { PulseIcon } from "@phosphor-icons/react";
-import { definePane } from "jali/react";
+import { definePane } from "jali-layout/react";
 import { activity } from "../data";
 import { kindIcon } from "../ui/KindIcon";
 

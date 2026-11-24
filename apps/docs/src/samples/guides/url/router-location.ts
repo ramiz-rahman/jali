@@ -1,4 +1,4 @@
-import type { LocationPort } from "jali";
+import type { LocationPort } from "jali-layout";
 
 /** What a router gives you: read the search string, go to a new one, and hear about changes. */
 export interface RouterHooks {

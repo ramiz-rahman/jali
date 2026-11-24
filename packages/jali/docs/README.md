@@ -1,6 +1,6 @@
 # Jali docs
 
-The docs for this version of Jali (0.0.0), as Markdown, for people and coding agents. Start with
+The docs for this version of Jali (0.1.0), as Markdown, for people and coding agents. Start with
 [Using Jali with coding agents](get-started/coding-agents.md), then the Quickstart and Key concepts.
 Written from the docs site by tooling/agent-docs.mjs; don't edit these files.
 
@@ -31,16 +31,16 @@ Written from the docs site by tooling/agent-docs.mjs; don't edit these files.
 - [Commands and keys](guides/commands-and-keys.md): Rebind Jali's keys, share ⌘K and the keyboard with your app, let your content keep the keys it needs, and show the right shortcut.
 - [Theme and words](guides/theming.md): Make Jali look like your app with its tokens and parts, speak your language, and share one theme with Chakni.
 - [Fit Jali into your app](guides/your-app.md): Choose the features you ship, put your own chrome around the panes, run two instances on one page, and let an agent arrange panes.
-- [Test your layouts](guides/testing.md): Test your layouts and pane rules without a browser, by running Jali's actions and reading its state with jali/testing.
+- [Test your layouts](guides/testing.md): Test your layouts and pane rules without a browser, by running Jali's actions and reading its state with jali-layout/testing.
 - [Troubleshooting](guides/troubleshooting.md): Fixes for the problems people meet first, and Jali's development warnings.
 
 ## Reference
 
-- [jali](reference/core.md): Every function and constant jali exports, with its options, defaults and what it returns.
-- [jali types](reference/core/types.md): Every type jali exports, with its fields, and every instance action: the layout tree, kinds and pages, the instance, the address, commands, keys and words.
-- [jali/react](reference/react.md): Every component, hook and type jali/react exports, with its props, defaults and what it returns.
+- [jali-layout](reference/core.md): Every function and constant jali-layout exports, with its options, defaults and what it returns.
+- [jali-layout types](reference/core/types.md): Every type jali-layout exports, with its fields, and every instance action: the layout tree, kinds and pages, the instance, the address, commands and keys.
+- [jali-layout/react](reference/react.md): Every component, hook and type jali-layout/react exports, with its props, defaults and what it returns.
 - [Features](reference/features.md): What an instance does beyond laying out panes, each a value from its own entry, so an app ships only what it uses.
-- [jali/testing](reference/testing.md): An instance for tests, keys, and what a rendered pane would report, without the adapter's internals.
+- [jali-layout/testing](reference/testing.md): An instance for tests, keys, and what a rendered pane would report, without the adapter's internals.
 - [Tokens](reference/tokens.md): Every public Jali token, what reads it, its light and dark values, and how the Tailwind bridge maps it.
 - [Parts](reference/parts.md): Every part of Jali you can style, its element, its selector, and the attributes that carry its state.
 - [Commands](reference/commands.md): Every command, its default keys on a Mac and on Windows and Linux, and when it is refused.

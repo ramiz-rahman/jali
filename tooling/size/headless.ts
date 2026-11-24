@@ -1,6 +1,6 @@
 /** Size scenario: the workspace without React (a host that renders it some other way, or a test), with no feature:
  *  the address is `urlSync()`'s, measured on its own. */
-import { createJali, listCommands, row } from "jali";
+import { createJali, listCommands, row } from "jali-layout";
 
 const note = { kind: "note", title: "Note" };
 const jali = createJali({ panes: [note], layout: row({ kind: "note", params: { id: 1 } }) });

@@ -4,7 +4,7 @@
  * line that heads a packet, where its data came from, and opening a capture file of your own.
  */
 import { useEffect, useState, type ReactNode } from "react";
-import type { ObjectRef } from "jali";
+import type { ObjectRef } from "jali-layout";
 import { Alert } from "#src/vendor/cyberspec/components/ui/alert.tsx";
 import { Button } from "#src/vendor/cyberspec/components/ui/button.tsx";
 import {

@@ -1,6 +1,6 @@
 import { LinkSimpleHorizontalIcon } from "@phosphor-icons/react";
-import type { Params } from "jali";
-import { definePane, type PaneProps } from "jali/react";
+import type { Params } from "jali-layout";
+import { definePane, type PaneProps } from "jali-layout/react";
 import { useMemo } from "react";
 import type { TableName } from "../../data/types";
 import { TableGrid } from "./table";

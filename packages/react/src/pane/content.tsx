@@ -38,7 +38,7 @@ const hostsOf = new WeakMap<JaliStore, Map<string, ContentHost>>();
 
 /** The hosts of one instance, made as panes first render and dropped with the pane (`keep`). Kept by the instance, not
  *  the component, so the panes moving between the free layout and a curated page keep their content. Another instance
- *  (the root given a new `jali`) has hosts of its own, even for the same pane ids, and mounts its panes afresh
+ *  (the root given a new `jali-layout`) has hosts of its own, even for the same pane ids, and mounts its panes afresh
  *  (InstanceScope). */
 export function useContentHosts(store: JaliStore, on: boolean) {
   // The instance's own, not the component's: nothing changes while rendering, and a memo React might drop would

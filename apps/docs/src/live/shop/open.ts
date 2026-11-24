@@ -2,7 +2,7 @@
  * What opening an order from the list does, in one place: the list's click, Enter and menu use it, and so does the
  * hero's tour, so the tour always shows what a click really does.
  */
-import type { JaliActions } from "jali/adapter";
+import type { JaliActions } from "jali-layout/adapter";
 import { orderKind } from "./panes/OrderPane";
 
 /** A pane as these read it, from Jali's model (the public one or the adapter's): what it is linked to and follows. */

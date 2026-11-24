@@ -2,7 +2,7 @@
  * What is booked ahead: each city's hotel for its nights, and the flight between them, in the order the trip meets
  * them. A hotel opens in the place pane, where a cheaper one can be chosen (Stay); the flight is fixed.
  */
-import { useJali } from "jali/react";
+import { useJali } from "jali-layout/react";
 import { useServices } from "../../state/services";
 import { CITY } from "../../trip/cities";
 import type { Booking, TripBudget } from "../../trip/budget";

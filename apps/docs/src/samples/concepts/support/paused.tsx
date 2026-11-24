@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { definePane, type PaneProps } from "jali/react";
+import { definePane, type PaneProps } from "jali-layout/react";
 
 // A live clock that stops while its pane is out of sight (behind a tab, tucked, folded or covered by a maximised pane).
 function Clock({ paused }: PaneProps) {

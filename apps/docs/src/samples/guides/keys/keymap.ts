@@ -1,4 +1,4 @@
-import { createJali } from "jali";
+import { createJali } from "jali-layout";
 import { orderKinds } from "../pane-kinds/orders";
 import { presets } from "../presets/layouts";
 

@@ -10,7 +10,7 @@ import paused from "../../samples/concepts/support/paused.tsx?raw";
 Jali does a lot for a pane: it places it, folds it, keeps its state and asks before it loses work. It can only do that if the pane's content follows a few rules. This page lists them, with the reason for each. Give it to your agent along with the task.
 
 <Callout type="tip" title="The docs come with the package">
-Every page of these docs is in `jali` as Markdown, for the version you installed: `node_modules/jali/docs/README.md` lists them, and this page is `docs/get-started/coding-agents.md`. An agent that reads them there works from docs that match its code. Each page here is also Markdown from the buttons under its title.
+Every page of these docs is in `jali-layout` as Markdown, for the version you installed: `node_modules/jali-layout/docs/README.md` lists them, and this page is `docs/get-started/coding-agents.md`. An agent that reads them there works from docs that match its code. Each page here is also Markdown from the buttons under its title.
 </Callout>
 
 To give an agent the workflow as well, add Jali's skill, `skills/jali` in Jali's repository. It tells the agent to read these rules and the installed docs first, and to check its work against them.
@@ -77,11 +77,11 @@ With TanStack Query, pass `enabled: !paused` so hidden panes stop fetching, and 
 
 Jali has no Tailwind in it. Its styles are plain CSS on `--jali-*` tokens, in the `jali` cascade layer, so it works the same in apps with and without Tailwind. Don't add Tailwind classes to Jali's parts, don't copy its parts to restyle them, and don't use `!important`. To change how Jali looks, set its tokens, or import the Tailwind bridge (below). The content inside your panes is yours: style it the way your app styles everything else.
 
-Name the layer order once, at the top of your CSS: `@layer base, jali;`, or with Tailwind `@layer theme, base, jali, components, utilities;`. Then set tokens by hand, or import `jali/tailwind.css` to take your Tailwind theme. [Theming](/guides/theming) has the details.
+Name the layer order once, at the top of your CSS: `@layer base, jali;`, or with Tailwind `@layer theme, base, jali, components, utilities;`. Then set tokens by hand, or import `jali-layout/tailwind.css` to take your Tailwind theme. [Theming](/guides/theming) has the details.
 
 ## Before you write code
 
-Turn on only the features the app uses, each from its own entry: `createJali({ features: [urlSync(), palette()] })`, or `defaultFeatures()` from `jali/features` for Jali's usual set. Without `urlSync()` the layout isn't in the address; without `palette()` there is no ⌘K. See [Features](/guides/your-app#choose-features).
+Turn on only the features the app uses, each from its own entry: `createJali({ features: [urlSync(), palette()] })`, or `defaultFeatures()` from `jali-layout/features` for Jali's usual set. Without `urlSync()` the layout isn't in the address; without `palette()` there is no ⌘K. See [Features](/guides/your-app#choose-features).
 
 ## A checklist for a review
 

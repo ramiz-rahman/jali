@@ -9,7 +9,7 @@
  *
  * The top bar draws each as its plan (shell/layoutPlans.ts).
  */
-import { column, pane, row, type PresetOptions } from "jali";
+import { column, pane, row, type PresetOptions } from "jali-layout";
 import { clip } from "../panes/clip";
 import { library } from "../panes/library";
 import { markers } from "../panes/markers";

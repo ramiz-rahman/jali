@@ -1,7 +1,7 @@
 /** Time and sales: every trade as it prints, newest on top. Large prints are marked. */
 import { useMemo } from "react";
 import { ReceiptIcon } from "@phosphor-icons/react";
-import { definePane, type PaneProps } from "jali/react";
+import { definePane, type PaneProps } from "jali-layout/react";
 import { useTopic } from "../market/react";
 import type { Instrument } from "../market/types";
 import { Arrow } from "../ui/atoms/Arrow";

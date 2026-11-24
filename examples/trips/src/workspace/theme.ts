@@ -1,4 +1,4 @@
-import type { Jali } from "jali";
+import type { Jali } from "jali-layout";
 
 /** Light to dark and back, from whichever shows now (the system's, when the setting follows it). */
 export function toggleTheme(jali: Jali) {

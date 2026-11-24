@@ -22,7 +22,7 @@ import {
   useJaliModel,
   useJaliTheme,
   type PaneProps,
-} from "jali/react";
+} from "jali-layout/react";
 import { useServices, useSummary } from "../../state/services";
 import { useStore } from "../../state/store";
 import { CITY } from "../../trip/cities";

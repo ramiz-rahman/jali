@@ -1,5 +1,5 @@
 import { use } from "react";
-import { definePane, useTitle, type PaneProps } from "jali/react";
+import { definePane, useTitle, type PaneProps } from "jali-layout/react";
 
 interface Customer {
   id: number;

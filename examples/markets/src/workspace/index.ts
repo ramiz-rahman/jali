@@ -3,8 +3,8 @@
  * and its question before an unsent order is lost (unsent.ts). `createMarketsJali` takes the app's services and
  * Jali's usual options, so a test can give it a memory address, memory storage and a fixed size (workspace.test.ts).
  */
-import { createJali, type CloseRequest, type Jali, type JaliOptions } from "jali";
-import { defaultFeatures } from "jali/features";
+import { createJali, type CloseRequest, type Jali, type JaliOptions } from "jali-layout";
+import { defaultFeatures } from "jali-layout/features";
 import { blotter } from "../panes/blotter";
 import { book } from "../panes/book";
 import { chart } from "../panes/chart";

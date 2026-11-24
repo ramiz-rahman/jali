@@ -1,5 +1,5 @@
 /**
- * `jali/testing`: what an app's own tests need, without reaching into the adapter's internals.
+ * `jali-layout/testing`: what an app's own tests need, without reaching into the adapter's internals.
  *
  *   const { jali, location } = createTestJali({ panes, presets, features: [chooser()] });
  *   // or, for an app that makes its instance in a function of its own:

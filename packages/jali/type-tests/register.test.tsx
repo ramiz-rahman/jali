@@ -3,8 +3,15 @@
  * typecheck gate (`tsc -p packages/react/type-tests`).
  */
 import { expectTypeOf } from "vite-plus/test";
-import { createJali, optional, row, type Jali, type Ref } from "jali";
-import { definePane, useJali, useJaliEvent, useJaliModel, useJaliState, usePane } from "jali/react";
+import { createJali, optional, row, type Jali, type Ref } from "jali-layout";
+import {
+  definePane,
+  useJali,
+  useJaliEvent,
+  useJaliModel,
+  useJaliState,
+  usePane,
+} from "jali-layout/react";
 
 const note = definePane("note", { params: { id: Number }, title: "Note", Component: () => null });
 const order = definePane("order", {
@@ -14,7 +21,7 @@ const order = definePane("order", {
 });
 export const jali = createJali({ panes: [note, order], layout: row(note({ id: 1 })) });
 
-declare module "jali" {
+declare module "jali-layout" {
   interface Register {
     jali: typeof jali;
   }

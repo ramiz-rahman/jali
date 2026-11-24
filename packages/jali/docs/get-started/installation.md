@@ -5,19 +5,19 @@ Add Jali to a React app with Vite, Next.js or another bundler, render it on the 
 ## Install
 
 ```sh
-npm install jali
+npm install jali-layout
 ```
 
-That is the only package. It holds the framework-free core (`jali`), the React parts (`jali/react`), one entry per feature and the styles.
+That is the only package. It holds the framework-free core (`jali-layout`), the React parts (`jali-layout/react`), one entry per feature and the styles.
 
-- **React:** 18.2 or later, 18 or 19. React is an optional peer dependency: an app that uses only `jali` (no `jali/react`) needs none.
+- **React:** 18.2 or later, 18 or 19. React is an optional peer dependency: an app that uses only `jali-layout` (no `jali-layout/react`) needs none.
 - **Browsers:** Baseline 2024. Chrome and Edge 123, Firefox 120, Safari 17.5, and Electron 30. The colours are `light-dark()` pairs, the newest CSS Jali needs; older browsers show the panes without their colours.
 - **TypeScript:** optional. The types ship in the package. Jali's own code is checked with `strict`.
 - **Dependencies:** none at run time.
 
 ## Add the styles
 
-Import `jali/styles.css` once, and name the order of your CSS cascade layers before it:
+Import `jali-layout/styles.css` once, and name the order of your CSS cascade layers before it:
 
 ```css filename="app.css"
 @layer base, jali;
@@ -33,10 +33,10 @@ Nothing to configure. Import the styles from your entry file, after your own sty
 
 ```tsx filename="src/main.tsx"
 import { createRoot } from "react-dom/client";
-import { createJali, row } from "jali";
-import { JaliRoot, definePane } from "jali/react";
+import { createJali, row } from "jali-layout";
+import { JaliRoot, definePane } from "jali-layout/react";
 import "./app.css";
-import "jali/styles.css";
+import "jali-layout/styles.css";
 
 const note = definePane("note", {
   params: { id: Number },
@@ -53,7 +53,7 @@ The [Quickstart](quickstart.md) builds this app step by step.
 
 ## Next.js (App Router)
 
-`jali/react` starts with `"use client"`, so its components render inside your server components. The instance itself holds functions, so it can't cross from a server component to a client one. Make it in a client component:
+`jali-layout/react` starts with `"use client"`, so its components render inside your server components. The instance itself holds functions, so it can't cross from a server component to a client one. Make it in a client component:
 
 `app/notes/panes.tsx`
 
@@ -62,10 +62,10 @@ The [Quickstart](quickstart.md) builds this app step by step.
 // app/notes/panes.tsx: a client component. The instance is made here, once per render tree, never in a server
 // component (it holds functions and can't be passed from server to client).
 import { useState } from "react";
-import { createJali, memoryLocation, row } from "jali";
-import { JaliRoot, definePane } from "jali/react";
-import { defaultFeatures } from "jali/features";
-import { urlSync } from "jali/url";
+import { createJali, memoryLocation, row } from "jali-layout";
+import { JaliRoot, definePane } from "jali-layout/react";
+import { defaultFeatures } from "jali-layout/features";
+import { urlSync } from "jali-layout/url";
 
 const note = definePane("note", {
   params: { id: Number },
@@ -120,7 +120,7 @@ Import the styles from your root layout, after the stylesheet that names the lay
 
 ```tsx filename="app/layout.tsx" nocheck
 import "./globals.css"; // starts with @layer base, jali;
-import "jali/styles.css";
+import "jali-layout/styles.css";
 ```
 
 - **One instance per render tree.** `useState(() => createJali(...))` makes one per request on the server and one per page in the browser. A module-level instance in a client file would be shared by every request the server handles.
@@ -143,14 +143,14 @@ Other frameworks follow the same rules: React Router's framework mode, Remix and
 Declare your instance once, and the React hooks know its kinds and page:
 
 ```ts filename="src/jali.ts"
-import { createJali } from "jali";
-import { definePane } from "jali/react";
+import { createJali } from "jali-layout";
+import { definePane } from "jali-layout/react";
 
 const order = definePane("order", { params: { id: Number }, title: ({ id }) => `Order ${id}`, Component: () => null });
 
 export const jali = createJali({ panes: [order], layout: order({ id: 1 }) });
 
-declare module "jali" {
+declare module "jali-layout" {
   interface Register {
     jali: typeof jali;
   }

@@ -4,7 +4,7 @@
  */
 import { useMemo } from "react";
 import { InfoIcon } from "@phosphor-icons/react";
-import { definePane, useCommands, useJali, type PaneProps } from "jali/react";
+import { definePane, useCommands, useJali, type PaneProps } from "jali-layout/react";
 import { facts } from "../../market/classes";
 import { useFeed, useTopic } from "../../market/react";
 import type { Instrument, Quote, Side } from "../../market/types";

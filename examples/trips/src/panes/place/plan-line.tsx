@@ -4,7 +4,7 @@
  */
 import type { ComponentType } from "react";
 import { AirplaneTiltIcon, CheckIcon, PlusIcon } from "@phosphor-icons/react";
-import { useJali } from "jali/react";
+import { useJali } from "jali-layout/react";
 import { useServices } from "../../state/services";
 import { CITY } from "../../trip/cities";
 import type { Category, Place } from "../../trip/places";

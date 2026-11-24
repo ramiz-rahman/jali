@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDataLayer } from "../data/react";
-import { Activity, useJali, useJaliModel, useJaliState, Shelf } from "jali/react";
+import { Activity, useJali, useJaliModel, useJaliState, Shelf } from "jali-layout/react";
 import { BuiltWithJali, Maker } from "../maker/maker";
 import { useShowStats } from "./stats-pref";
 

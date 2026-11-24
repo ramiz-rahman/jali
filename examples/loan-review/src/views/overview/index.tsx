@@ -5,7 +5,7 @@
  * view. What it reads is the application assessed (data.ts: `useAssessment`, as the header and the Application view
  * read it) and the officer's book beside it.
  */
-import type { PaneProps } from "jali/react";
+import type { PaneProps } from "jali-layout/react";
 import { Loading } from "@jali-examples/shared/panes/shared/states";
 import { Paused, useAssessment, useOfficerBook } from "../../data";
 import { inFloodZone } from "../../model/underwriting";

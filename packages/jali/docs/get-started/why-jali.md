@@ -46,7 +46,7 @@ Sources: [dockview](https://dockview.dev/), [FlexLayout](https://github.com/capl
 - A link should reopen exactly what someone was looking at, and Back should undo a layout change.
 - A detail pane should follow the selection in a list.
 - You want keyboard access, screen reader announcements and focus handling done for you, and checked by tests.
-- You want to ship only the features you use, and test layouts without a browser (`jali/testing`).
+- You want to ship only the features you use, and test layouts without a browser (`jali-layout/testing`).
 
 ## What it costs
 
@@ -65,11 +65,11 @@ Each feature's own cost is on [Features](../guides/your-app.md#choose-features).
 
 ### Does it work with server rendering and Next.js?
 
-Yes. `jali/react` is marked `"use client"`, and Jali renders on the server and hydrates without a mismatch when both sides get the same inputs. See [Installation](installation.md#next-js-app-router).
+Yes. `jali-layout/react` is marked `"use client"`, and Jali renders on the server and hydrates without a mismatch when both sides get the same inputs. See [Installation](installation.md#next-js-app-router).
 
 ### Does it work with Vue, Svelte or Solid?
 
-Not yet. The core (`jali`) has no framework, and `jali/adapter` holds what an adapter needs, but only the React adapter exists.
+Not yet. The core (`jali-layout`) has no framework, and `jali-layout/adapter` holds what an adapter needs, but only the React adapter exists.
 
 ### Does it work with React Native?
 
@@ -81,4 +81,4 @@ No. Panes tile in rows, columns and tabs. One pane at a time can pop out into a 
 
 ### Which versions are stable?
 
-Jali hasn't reached 1.0 yet. The public entries (`jali`, `jali/react`, the feature entries, `jali/page` and `jali/testing`) are the API being stabilised for 1.0. `jali/adapter`, for framework adapters, is outside that promise: it may change in any minor version.
+Jali hasn't reached 1.0 yet. The public entries (`jali-layout`, `jali-layout/react`, the feature entries, `jali-layout/page` and `jali-layout/testing`) are the API being stabilised for 1.0. `jali-layout/adapter`, for framework adapters, is outside that promise: it may change in any minor version.

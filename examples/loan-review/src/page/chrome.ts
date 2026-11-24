@@ -7,7 +7,7 @@
  * are the commands' own (`keys`), so Jali binds them, prints them in ⌘K and the tooltips, and lets the app rebind them.
  */
 import { useSyncExternalStore } from "react";
-import type { Command } from "jali";
+import type { Command } from "jali-layout";
 
 export interface Chrome {
   /** The queue is a slim strip. */

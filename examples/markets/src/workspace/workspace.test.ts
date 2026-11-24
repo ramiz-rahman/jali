@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
-import { listCommands, type DeepReadonly, type Jali, type LayoutNode } from "jali";
-import { chooserRequest, reportUnsaved, testJaliOptions } from "jali/testing";
+import { listCommands, type DeepReadonly, type Jali, type LayoutNode } from "jali-layout";
+import { chooserRequest, reportUnsaved, testJaliOptions } from "jali-layout/testing";
 import { openFollowing, show } from "./actions";
 import { createSimulator } from "../market/sim";
 import { chart } from "../panes/chart";

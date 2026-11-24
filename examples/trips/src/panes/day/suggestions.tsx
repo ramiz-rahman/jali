@@ -3,7 +3,7 @@
  * there, each one press from being on the day (trip/nearby.ts). "Find a place" asks for anything else in the city.
  */
 import { MagnifyingGlassIcon, PlusIcon } from "@phosphor-icons/react";
-import { useJali, usePane } from "jali/react";
+import { useJali, usePane } from "jali-layout/react";
 import { usePlan, useServices } from "../../state/services";
 import { CITY } from "../../trip/cities";
 import { wordsFor } from "../../trip/modes";

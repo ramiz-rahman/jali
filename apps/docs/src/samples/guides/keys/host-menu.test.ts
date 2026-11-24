@@ -2,8 +2,8 @@
 import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { expect, it } from "vite-plus/test";
-import { createJali, memoryStorage } from "jali";
-import { JaliRoot } from "jali/react";
+import { createJali, memoryStorage } from "jali-layout";
+import { JaliRoot } from "jali-layout/react";
 import { HostCommandMenu } from "./host-menu";
 
 it("renders on the server, listing Jali's commands", () => {

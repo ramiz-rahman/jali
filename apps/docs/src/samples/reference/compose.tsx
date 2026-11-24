@@ -1,4 +1,4 @@
-import { JaliRoot, JaliView, Shelf } from "jali/react";
+import { JaliRoot, JaliView, Shelf } from "jali-layout/react";
 import { store } from "./store";
 
 // Chrome of your own: children of <JaliRoot>, with <JaliView /> where the panes go. The root still renders the

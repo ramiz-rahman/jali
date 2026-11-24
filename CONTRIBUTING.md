@@ -15,7 +15,7 @@ The repo is a pnpm workspace:
 
 | Folder           | What it is                                                                                                                                              |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `packages/jali`  | `jali`, the one published package. Its entries re-export the two below; `vp pack` bundles them.                                                         |
+| `packages/jali`  | `jali-layout`, the one published package. Its entries re-export the two below; `vp pack` bundles them.                                                  |
 | `packages/core`  | `@jali/core` (private): the framework-free core.                                                                                                        |
 | `packages/react` | `@jali/react` (private): the React adapter, its parts and styles.                                                                                       |
 | `apps/docs`      | The docs site (Astro): `pnpm --filter @jali/docs dev`, on :5400. See [apps/docs/AGENTS.md](apps/docs/AGENTS.md).                                        |
@@ -38,21 +38,21 @@ The repo is a pnpm workspace:
 
 `pnpm verify` runs every gate, carries on past a failure, and ends with one line per gate. Any failure exits 1, and each gate's full output is in `node_modules/.verify/<gate>.log`. Every gate must pass before a change merges. The gates without a browser run four at a time (`--jobs=N` to change it), except where one rebuilds what another reads: `size` waits for `unit`, and `pack` for `size`. The browser suites follow, one suite at a time, each running four tests at once (`WORKERS` in `e2e/fixtures/browsers.ts`; `--workers=1` runs a suite one test at a time).
 
-| Gate             | What it checks                                                                                                                                                                              |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `typecheck`      | The packages, the examples, the docs site and its samples, and the type tests                                                                                                               |
-| `lint`, `fmt`    | `vp lint`, and `vp fmt --check` (MDX and the generated Markdown are left as written)                                                                                                        |
-| `case`           | Every tracked path is spelt in git as on disk, and every relative import in its file's own case: names that only work where case is ignored (`tooling/case-check.mjs`)                      |
-| `unit`           | Every package's and example's unit tests                                                                                                                                                    |
-| `docs-reference` | The reference covers every export, command, key and token; the Markdown export; the tests the guides show (the testing guide's, the router adapter's, the Quickstart's walkthrough)         |
-| `docs-check`     | Every code block on the site typechecks, and every reference table matches the type it documents (`tooling/docs-check.mjs`)                                                                 |
-| `agent-docs`     | `packages/jali/docs` is up to date with the site (run `pnpm agent-docs` to write it)                                                                                                        |
-| `consumers`      | Every public name has a consumer: each value an app entry of `jali` exports, each `createJali` and pane-kind option, and each exported type is used by an example (`tooling/consumers.mjs`) |
-| `react18`        | The committed HEAD's tests with React 18                                                                                                                                                    |
-| `size`           | What each scenario ships of Jali, against its budget, and that no feature's code leaks into a scenario without it                                                                           |
-| `pack`           | `jali` packed, every type its signatures name exported (`tooling/public-types.mjs`), `examples/minimal` built from the tarball, and a server render hydrated from it                        |
-| `docs-build`     | The docs site prerenders every page                                                                                                                                                         |
-| `e2e-*`          | The browser suites: Jali's (`e2e/`), each example's, and the docs site's. `e2e-site` builds the public site and opens every hosted app from its folder (`e2e/site`)                         |
+| Gate             | What it checks                                                                                                                                                                                     |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `typecheck`      | The packages, the examples, the docs site and its samples, and the type tests                                                                                                                      |
+| `lint`, `fmt`    | `vp lint`, and `vp fmt --check` (MDX and the generated Markdown are left as written)                                                                                                               |
+| `case`           | Every tracked path is spelt in git as on disk, and every relative import in its file's own case: names that only work where case is ignored (`tooling/case-check.mjs`)                             |
+| `unit`           | Every package's and example's unit tests                                                                                                                                                           |
+| `docs-reference` | The reference covers every export, command, key and token; the Markdown export; the tests the guides show (the testing guide's, the router adapter's, the Quickstart's walkthrough)                |
+| `docs-check`     | Every code block on the site typechecks, and every reference table matches the type it documents (`tooling/docs-check.mjs`)                                                                        |
+| `agent-docs`     | `packages/jali/docs` is up to date with the site (run `pnpm agent-docs` to write it)                                                                                                               |
+| `consumers`      | Every public name has a consumer: each value an app entry of `jali-layout` exports, each `createJali` and pane-kind option, and each exported type is used by an example (`tooling/consumers.mjs`) |
+| `react18`        | The committed HEAD's tests with React 18                                                                                                                                                           |
+| `size`           | What each scenario ships of Jali, against its budget, and that no feature's code leaks into a scenario without it                                                                                  |
+| `pack`           | `jali-layout` packed, every type its signatures name exported (`tooling/public-types.mjs`), `examples/minimal` built from the tarball, and a server render hydrated from it                        |
+| `docs-build`     | The docs site prerenders every page                                                                                                                                                                |
+| `e2e-*`          | The browser suites: Jali's (`e2e/`), each example's, and the docs site's. `e2e-site` builds the public site and opens every hosted app from its folder (`e2e/site`)                                |
 
 - `pnpm verify --quick` skips the browser suites and the React 18 check. Enough while you work; run the full one before a change to `packages/`, or to anything a browser suite covers, is committed.
 - `pnpm verify lint fmt` runs only the gates named.

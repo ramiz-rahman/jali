@@ -9,7 +9,7 @@
  */
 import { useRef } from "react";
 import { SlidersHorizontalIcon } from "@phosphor-icons/react";
-import { useActivity } from "jali/react";
+import { useActivity } from "jali-layout/react";
 import { useServices } from "../../services";
 import { useSize } from "../../ui/lib/canvas";
 import { usePaneActions } from "../actions";

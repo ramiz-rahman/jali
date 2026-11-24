@@ -14,7 +14,7 @@ import {
   useJaliModel,
   usePaneState,
   type PaneProps,
-} from "jali/react";
+} from "jali-layout/react";
 import { useServices, useSummary } from "../../state/services";
 import { idOrNull } from "../../state/saved";
 import { CITY } from "../../trip/cities";

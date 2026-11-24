@@ -1,7 +1,7 @@
 /**
  * Features: what an app passes to `createJali({ features })` to turn a part of Jali on (`urlSync()`, `palette()`,
- * `rename({ run })`). A feature is a value, made by its own module (`jali/url`, `jali/palette`, …), so its code reaches
- * an app only through that import: an app that never imports `jali/palette` ships no palette, words included.
+ * `rename({ run })`). A feature is a value, made by its own module (`jali-layout/url`, `jali-layout/palette`, …), so its code reaches
+ * an app only through that import: an app that never imports `jali-layout/palette` ships no palette, words included.
  *
  * What a feature can bring, and nothing else (internal: adapters read it, apps never write one):
  *

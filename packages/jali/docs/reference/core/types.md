@@ -1,14 +1,14 @@
-# jali types
+# jali-layout types
 
-Every type jali exports, with its fields, and every instance action: the layout tree, kinds and pages, the instance, the address, commands, keys and words.
+Every type jali-layout exports, with its fields, and every instance action: the layout tree, kinds and pages, the instance, the address, commands and keys.
 
-Import any of these with `import type { … } from "jali";`. Functions that use them are on [jali](../core.md).
+Import any of these with `import type { … } from "jali-layout";`. Functions that use them are on [jali-layout](../core.md).
 
 ## The layout tree
 
 ### Layout
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface Layout { version: 1; root: LayoutNode; overlay?: Overlay }
@@ -26,7 +26,7 @@ An instance's arrangement: a tree of rows, columns and tab stacks of panes. The 
 
 ### LayoutNode
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type LayoutNode = PaneNode | StackNode | SplitNode
@@ -36,7 +36,7 @@ One node of the tree. Every node has an `id` (unique in the layout), a `size`, a
 
 ### PaneNode
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface PaneNode { type: "pane"; id; size; ref: ObjectRef; … }
@@ -73,7 +73,7 @@ A pane: one object, shown by its kind's component.
 
 ### SplitNode
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface SplitNode { type: "row" | "column"; id; size; children: LayoutNode[] }
@@ -83,7 +83,7 @@ Children side by side (`"row"`) or one above another (`"column"`), sharing the s
 
 ### StackNode
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface StackNode { type: "stack"; id; size; children: PaneNode[]; active: NodeId; origin?: "user" }
@@ -93,7 +93,7 @@ A tab group the person made (by merging, a centre drop or a new tab). Groups mad
 
 ### Size
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type Size = { px: number } | { weight: number }
@@ -103,7 +103,7 @@ A share of a split (`weight`, relative to the siblings) or a fixed length in pix
 
 ### NodeId
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type NodeId = string
@@ -113,7 +113,7 @@ A node's id: 1 to 128 letters, digits, `_`, `.`, `:` or `-` (`orders`, `pane-3`,
 
 ### ObjectRef
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface ObjectRef { kind: string; params: Record<string, string | number | boolean> }
@@ -123,7 +123,7 @@ What a pane shows: a kind and the params that name the object (`{ kind: "order",
 
 ### Axis
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type Axis = "row" | "column"
@@ -133,7 +133,7 @@ The direction of a split.
 
 ### Edge
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type Edge = "left" | "right" | "top" | "bottom"
@@ -143,7 +143,7 @@ A side of a pane: where to open or drop. In actions and commands it is a side of
 
 ### Direction
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type Direction = "ltr" | "rtl"
@@ -153,7 +153,7 @@ The reading direction an instance lays its panes out in (`createJali({ dir })`, 
 
 ### Overlay
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface Overlay { tucks; folds; shown; hidden? }
@@ -173,7 +173,7 @@ What sits on top of the tree. Written by the operations; read it, don't write it
 
 ### TuckRecord
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface TuckRecord { pane: NodeId; home: NodeId; seq: number }
@@ -183,7 +183,7 @@ One tucked pane in `Overlay`: the pane, the pane it is tucked into (its home), a
 
 ### ViewState
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface ViewState { focused?: NodeId; zoomed?: NodeId; scroll?: Record<NodeId, number>; peek?: ObjectRef; focusHistory: NodeId[] }
@@ -205,7 +205,7 @@ What the person is looking at, apart from the layout.
 
 ### Rect
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface Rect { x: number; y: number; width: number; height: number }
@@ -217,7 +217,7 @@ A box in pixels, relative to the instance's inner area.
 
 ### LayoutInput
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type LayoutInput = Layout | Draft | ObjectRef
@@ -227,7 +227,7 @@ Anything that stands for a layout: a builder's result (`row(...)`), a single ref
 
 ### Draft
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type Draft = PaneDraft | SplitDraft | TabsDraft
@@ -237,7 +237,7 @@ What the builders return: a layout not yet given ids. Pass it wherever a `Layout
 
 ### PaneDraft
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type PaneDraft = { type: "pane"; ref: ObjectRef; options: PaneNodeOptions }
@@ -247,7 +247,7 @@ What [`pane`](../core.md#pane) returns: one pane, with its options.
 
 ### SplitDraft
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type SplitDraft = { type: Axis; options: RowOptions; children: Draft[] }
@@ -257,7 +257,7 @@ What [`row`](../core.md#row) and [`column`](../core.md#column) return: children 
 
 ### TabsDraft
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type TabsDraft = { type: "stack"; options: TabsOptions; children: PaneDraft[] }
@@ -267,7 +267,7 @@ What [`tabs`](../core.md#tabs) returns: panes as tabs of one group.
 
 ### RowOptions
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface RowOptions extends SizeOptions { scroll?: "x" }
@@ -277,7 +277,7 @@ A row's options. `scroll: "x"` makes a row that scrolls sideways: each child kee
 
 ### SizeOptions
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface SizeOptions { id?: NodeId; weight?: number; px?: number }
@@ -287,7 +287,7 @@ A builder node's id and size: a share of its parent (`weight`, default 1) or a f
 
 ### PaneNodeOptions
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface PaneNodeOptions extends SizeOptions {
@@ -299,7 +299,7 @@ The options of [`pane`](../core.md#pane).
 
 ### TabsOptions
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface TabsOptions extends SizeOptions { active?: NodeId }
@@ -311,7 +311,7 @@ The options of [`tabs`](../core.md#tabs).
 
 ### PaneOptions
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface PaneOptions<P = Params> { params?; title; width?; height?; … }
@@ -369,7 +369,7 @@ The same three as `width`, down a column.
 
 ### PaneWidth
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface PaneWidth { min?: number; comfortable?: number; max?: number }
@@ -379,7 +379,7 @@ A kind's widths in px; see `width` under `PaneOptions`.
 
 ### PaneHeight
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface PaneHeight { min?: number; comfortable?: number; max?: number }
@@ -389,7 +389,7 @@ A kind's heights in px; see `height` under `PaneOptions`.
 
 ### PaneDefinition
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type PaneDefinition<P, D> = D & { (params: P): ObjectRef; readonly kind: string }
@@ -399,7 +399,7 @@ A defined kind, callable to make its refs. In React, `Pane<P>`.
 
 ### PaneKindBase
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface PaneKindBase extends PaneOptions { kind: string }
@@ -409,7 +409,7 @@ A kind as an instance keeps it: its name and its options. What `createJali({ pan
 
 ### Params
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type Params = Record<string, ParamValue>
@@ -419,7 +419,7 @@ A ref's params: plain data, so they fit in a link.
 
 ### ParamValue
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type ParamValue = string | number | boolean
@@ -429,7 +429,7 @@ One param's value.
 
 ### ParamType
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type ParamType = (value: ParamValue) => ParamValue | undefined
@@ -439,7 +439,7 @@ How to read one param back: `Number`, `String`, `Boolean`, [`oneOf`](../core.md#
 
 ### ParamTypes
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type ParamTypes = Record<string, ParamReader | OptionalParam>
@@ -449,7 +449,7 @@ A kind's `params`, one by one.
 
 ### ParamReader
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type ParamReader = ParamType | StandardSchemaV1
@@ -459,7 +459,7 @@ How to read one param: one of Jali's (`Number`, `String`, `Boolean`, `oneOf(...)
 
 ### Identity
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type Identity = string | number | boolean | null | readonly Identity[] | { readonly [key: string]: Identity }
@@ -469,7 +469,7 @@ What a kind's `identity` gives for one object: any value JSON writes as it is. T
 
 ### ParamsDeclaration
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type ParamsDeclaration = ParamTypes | StandardSchemaV1
@@ -479,7 +479,7 @@ What `params` takes: params one by one, or one Standard Schema of the whole obje
 
 ### StandardSchemaV1
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface StandardSchemaV1<Input = unknown, Output = Input> { readonly "~standard": StandardSchemaV1.Props<Input, Output> }
@@ -489,7 +489,7 @@ The [Standard Schema](https://standardschema.dev) interface that Zod, Valibot, A
 
 ### OptionalParam
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface OptionalParam<T extends ParamReader = ParamReader> { readonly optional: T; readonly link?: false }
@@ -499,7 +499,7 @@ A param a ref may leave out, made by [`optional`](../core.md#optional). `link: f
 
 ### ParamOptions
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface ParamOptions { link?: false }
@@ -509,7 +509,7 @@ How an optional param travels, the second argument of [`optional`](../core.md#op
 
 ### AppOnlyParam
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface AppOnlyParam<T extends ParamType = ParamType> extends OptionalParam<T> { readonly appOnly: true }
@@ -519,7 +519,7 @@ A param only your app sets, from [`appOnly`](../core.md#apponly): optional, and 
 
 ### OneOf
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type OneOf<V extends string | number> = ((value: ParamValue) => V | undefined) & { readonly values: readonly V[] }
@@ -529,7 +529,7 @@ A param that is one of a few values, made by [`oneOf`](../core.md#oneof).
 
 ### ParamsOf
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type ParamsOf<T extends ParamTypes> = { [K in Required]: Read<T[K]> } & { [K in Optional]?: Read<T[K]> }
@@ -539,7 +539,7 @@ The params a kind's code sees, from its declaration: `ParamsOf<{ id: NumberConst
 
 ### FollowParams
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type FollowParams<P> = { [K in keyof P]?: ParamValue | undefined }
@@ -549,7 +549,7 @@ What a kind's `follow` returns: its params, any of which may be missing. Jali ch
 
 ### ParamProblem
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface ParamProblem { param: string; value?: ParamValue }
@@ -559,7 +559,7 @@ A param a ref is missing (`value` is undefined), or holds a value its type can't
 
 ### PaneCommand
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface PaneCommand { id: string; title: string; run: () => void; keys?: string; disabled?: string | false }
@@ -569,7 +569,7 @@ A command a pane adds to the palette while it is focused (`useCommands`). `keys`
 
 ### ItemId
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type ItemId = string | number
@@ -579,7 +579,7 @@ A curated page's item id: a number, or a string such as a UUID or a slug. See `f
 
 ### PaneActivity
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type PaneActivity = "idle" | "loading" | "working" | "live" | "needs-you" | "error"
@@ -589,7 +589,7 @@ What a pane reports about itself (`useActivity`), shown in its header, its tab, 
 
 ### PaneErrorInfo
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface PaneErrorInfo { pane: NodeId | null; ref: ObjectRef }
@@ -599,7 +599,7 @@ Which pane failed, for `createJali({ onPaneError })`: its id (`null` in the peek
 
 ### ProfileBase
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface ProfileBase<R extends RoleBase = RoleBase, I extends ItemId = ItemId>
@@ -627,7 +627,7 @@ A curated page about one item (a loan application), framework-free. In React, `d
 
 ### RoleBase
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface RoleBase { id: string; label: string; priority: "primary" | "supporting" }
@@ -637,7 +637,7 @@ One view of a curated page. In React, `PageView` adds its icon.
 
 ### ViewMode
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type ViewMode = "single" | "split"
@@ -647,7 +647,7 @@ How a curated page is shown: one view at a time (Single) or side by side (Split 
 
 ### PaneControl
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type PaneControl = "open" | "close" | "tuck" | "maximise" | "fullScreen" | "move" | "resize" | "pin" | "popOut"
@@ -657,7 +657,7 @@ Something that can happen to a pane. `open` covers opening new panes from it (of
 
 ### PaneAllow
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type PaneAllow = Partial<Record<PaneControl, boolean>>
@@ -667,7 +667,7 @@ Controls turned off with `false`. Leaving one out, or `true`, leaves it to the o
 
 ### Allow
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type Allow = PaneAllow & { when?: AllowRule }
@@ -677,7 +677,7 @@ type Allow = PaneAllow & { when?: AllowRule }
 
 ### AllowRule
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type AllowRule = (ctx: AllowContext) => boolean | undefined | void
@@ -687,7 +687,7 @@ Asked before each action on a pane, after the kind's `allow`: `false` refuses it
 
 ### AllowContext
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface AllowContext { action: PaneControl; pane: PaneNode; presetId?: string; page?: { mode: ViewMode; item?: string } | null }
@@ -697,7 +697,7 @@ What `when` is asked about: the action, the pane (its id, kind and params, role,
 
 ### PaneButton
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type PaneButton = "tuck" | "maximise" | "fullScreen" | "popOut" | "close"
@@ -707,7 +707,7 @@ A button a pane's header can show. `maximise` is Restore while the pane is maxim
 
 ### PaneButtons
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type PaneButtons = readonly PaneButton[] | ((defaults: readonly PaneButton[], ctx: ButtonsContext) => readonly PaneButton[])
@@ -717,7 +717,7 @@ A header's buttons, in order: a list that replaces the defaults, or a function t
 
 ### ButtonsContext
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface ButtonsContext { pane: PaneNode; presetId?: string; page?: { mode: ViewMode; item?: string } | null }
@@ -727,7 +727,7 @@ What a `buttons` function is told: the pane, the preset the layout came from, an
 
 ### PhoneOptions
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface PhoneOptions { below?: number; stack?: boolean; stackFloor?: number; fold?: boolean }
@@ -747,7 +747,7 @@ How the instance behaves on a phone (`createJali({ phone })`).
 
 ### PresetOptions
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface PresetOptions { id: string; label: string; layout: LayoutInput | (() => LayoutInput); saved?: () => LayoutInput | undefined }
@@ -759,7 +759,7 @@ A preset, as `createJali({ presets })` takes it. `saved`, if given, is asked eac
 
 ### Jali
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface Jali<R extends ObjectRef = ObjectRef, P = JaliPage | undefined>
@@ -801,7 +801,7 @@ To save a person's layout, listen for `"layout"` and store `getLayout()`. To res
 
 ### JaliEvents
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface JaliEvents<R extends ObjectRef = ObjectRef> { open; close; pin; focus; layout; toast }
@@ -841,7 +841,7 @@ jali.on("layout", ({ action }) => {
 
 ### JaliEventBase
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface JaliEventBase { input: JaliInput }
@@ -851,7 +851,7 @@ What every event in `JaliEvents` carries, beside its own fields.
 
 ### JaliInput
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type JaliInput = "mouse" | "touch" | "pen" | "keyboard" | "virtual" | "code"
@@ -863,7 +863,7 @@ A person's input is noted from the page while the instance is started (`<JaliRoo
 
 ### JaliOptions
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface JaliOptions
@@ -873,7 +873,7 @@ The options of `createJali`. Each one, with its default, is under [`createJali`]
 
 ### JaliState
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface JaliState<R extends ObjectRef = ObjectRef>
@@ -903,7 +903,7 @@ What an instance holds that an app reads, read-only. Read it with `jali.get()` o
 
 ### PageState
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface PageState
@@ -923,7 +923,7 @@ A curated page in use.
 
 ### Selection
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface Selection { ref: ObjectRef; inResults: boolean }
@@ -933,7 +933,7 @@ A list's selected item. `inResults: false`: the list's filter no longer shows it
 
 ### UrlWriter
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface UrlWriter { write(state: () => UrlState, mode: HistoryMode): void; href?(): string; cancel?(): void }
@@ -943,7 +943,7 @@ Where an instance writes its address. Pass one as `url` to write it somewhere of
 
 ### UrlState
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface UrlState { layout: Layout; view: ViewState; presetId: string | undefined; page: PageState | null }
@@ -953,7 +953,7 @@ What a `UrlWriter` reads: the layout on screen, the view (focus, the maximised p
 
 ### JaliModel
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface JaliModel<R extends ObjectRef = ObjectRef>
@@ -978,7 +978,7 @@ else jali.actions.openBeside(jali.get().view.focused ?? "orders", order({ id: 7 
 
 ### ActionResult
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type ActionResult = { ok: true; pane?: NodeId } | Refusal
@@ -988,7 +988,7 @@ What every action and `setLayout` return. `ok: true` when it happened, or when w
 
 ### Done
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface Done { ok: true; pane?: NodeId }
@@ -998,7 +998,7 @@ An action that happened (or was already so): the `ok: true` side of `ActionResul
 
 ### Refusal
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface Refusal { ok: false; reason: RefusalReason; message?: string; settled?: Promise<ActionResult> }
@@ -1018,7 +1018,7 @@ else void result.settled?.then((end) => end.ok && forgetSavedLayouts());
 
 ### RefusalReason
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type RefusalReason = "not-found" | "invalid" | "unavailable" | "single-view" | "not-allowed" | "last-pane" | "blocked" | "nothing-to-do" | "unsaved" | "kept" | "pending"
@@ -1050,7 +1050,7 @@ type RefusalReason = "not-found" | "invalid" | "unavailable" | "single-view" | "
 
 ### BeforeClose
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type BeforeClose = (request: CloseRequest) => boolean | Promise<boolean>
@@ -1062,7 +1062,7 @@ It is asked first. If it says yes and a pane still reports unsaved work (`useUns
 
 ### CloseReason
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type CloseReason = "close" | "show" | "layout" | "address"
@@ -1072,7 +1072,7 @@ Why panes would go, in a `CloseRequest`: its `reason`, listed there.
 
 ### CloseRequest
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface CloseRequest { panes: { pane: NodeId; ref: ObjectRef }[]; reason: CloseReason }
@@ -1092,7 +1092,7 @@ What `beforeClose` is asked about: every pane the change would remove or point a
 
 ### Toast
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface Toast { title: string; description?: string; undo?: boolean; error?: boolean }
@@ -1102,7 +1102,7 @@ A toast for the host to render (`jali.on("toast")`, `useJaliEvent("toast")`). `u
 
 ### HistoryMode
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type HistoryMode = "push" | "replace" | "debounce" | "none"
@@ -1112,7 +1112,7 @@ How a change reaches the address: a new entry, in place, in place 120 ms after t
 
 ### Settings
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface Settings
@@ -1130,7 +1130,7 @@ interface Settings
 
 ### ThemeChoice
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type ThemeChoice = "system" | "light" | "dark"
@@ -1140,7 +1140,7 @@ The theme setting.
 
 ### Theme
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type Theme = "light" | "dark"
@@ -1150,7 +1150,7 @@ The theme shown.
 
 ### OpenPageOptions
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface OpenPageOptions { item?: ItemId; tab?: string }
@@ -1160,7 +1160,7 @@ The options of `jali.page.open`: the item to show (default: the last one, else t
 
 ### OpenBesideOptions
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface OpenBesideOptions { edge?: Edge }
@@ -1177,7 +1177,7 @@ The options of `actions.openBeside` and a pane's `openBeside`. `edge` is the sid
 
 ### UrlSyncOptions
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface UrlSyncOptions { location?; storage?; prefix?; sizes? }
@@ -1187,7 +1187,7 @@ The `url` option of `createJali`: `location` (a `LocationPort`, default the brow
 
 ### LinkSizes
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type LinkSizes = "link" | "local"
@@ -1197,7 +1197,7 @@ What a layout link carries about sizes. `"local"` (the default): the layout as d
 
 ### LocationPort
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface LocationPort {
@@ -1212,7 +1212,7 @@ The address, as a port a router can implement. Jali reads and writes only its ow
 
 ### NavigateMode
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type NavigateMode = "push" | "replace"
@@ -1222,7 +1222,7 @@ A new history entry, or in place.
 
 ### StoragePort
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface StoragePort { get(key: string): string | null; set(key: string, value: string): void }
@@ -1234,7 +1234,7 @@ What one person keeps on one device. Keys Jali uses: `settings`, `pane-state`, a
 
 ### ListedCommand
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface ListedCommand {
@@ -1247,7 +1247,7 @@ One entry of a command menu, from [`listCommands`](../core.md#listcommands). `ke
 
 ### Rename
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface Rename {
@@ -1260,7 +1260,7 @@ Renaming in place, from `createJali({ rename })`. Double-click or F2 on a tab, o
 
 ### TabMenu
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type TabMenu = (pane: { id: NodeId; ref: ObjectRef }) => readonly TabMenuItem[] | undefined
@@ -1270,7 +1270,7 @@ Your items for a tab's menu, from `createJali({ tabMenu })`. Called each time a 
 
 ### TabMenuItem
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface TabMenuItem {
@@ -1283,7 +1283,7 @@ One item in a tab's menu. `disabled` greys it out but keeps it reachable from th
 
 ### Command
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface Command {
@@ -1299,17 +1299,17 @@ A command. `run` gets the instance. Your own commands go in `createJali({ comman
 
 ### Keymap
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface Keymap
 ```
 
-An instance's resolved keys (`jali.keymap`): the defaults with its `keymap` overrides applied, with `platform`, `entries`, `sequences(id)`, `label(id)`, `format(seq)`, `find(match, prefix?)`, `isPrefix(match)` and `forPlatform(platform)`. `label` and `format` print keys in the instance's words (`messages.keys`). `forPlatform` gives the same bindings matched and printed for another platform (the same object for its own), for labels a server prerenders: `jali/react` prints `"other"` until the page has hydrated.
+An instance's resolved keys (`jali.keymap`): the defaults with its `keymap` overrides applied, with `platform`, `entries`, `sequences(id)`, `label(id)`, `format(seq)`, `find(match, prefix?)`, `isPrefix(match)` and `forPlatform(platform)`. `label` and `format` print keys in the instance's words (`messages.keys`). `forPlatform` gives the same bindings matched and printed for another platform (the same object for its own), for labels a server prerenders: `jali-layout/react` prints `"other"` until the page has hydrated.
 
 ### KeymapOverrides
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type KeymapOverrides = Partial<Record<DefaultKeymapId | (string & {}), KeyString | readonly KeyString[] | null>>
@@ -1319,7 +1319,7 @@ A host's key changes: a binding, several, or `null` to unbind.
 
 ### KeymapOptions
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface KeymapOptions {
@@ -1332,7 +1332,7 @@ Part of `createJali`'s `keyboard` (`KeyboardOptions`): `platform` to match and p
 
 ### DefaultKeymapId
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type DefaultKeymapId = "palette.toggle" | "pane.focus.next" | …
@@ -1342,7 +1342,7 @@ The ids bound by default.
 
 ### KeyString
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type KeyString = string
@@ -1352,7 +1352,7 @@ A binding as text: chords separated by a space, keys in a chord by `+` (`Mod+K M
 
 ### Chord
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface Chord { key: string; mod?: boolean; ctrl?: boolean; alt?: boolean; shift?: boolean }
@@ -1362,7 +1362,7 @@ One key press. `key` is `KeyboardEvent.code` (`"KeyM"`, `"Backslash"`) or, for n
 
 ### KeySequence
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type KeySequence = readonly Chord[]
@@ -1372,7 +1372,7 @@ One binding: a chord, or a prefix chord then a second chord (⌘K ⌘M).
 
 ### Platform
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type Platform = "mac" | "other"
@@ -1382,7 +1382,7 @@ The platform keys are matched and printed for.
 
 ### KeyWords
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface KeyWords { ctrl; alt; shift; escape; space; left; right; up; down: string }
@@ -1394,7 +1394,7 @@ The words printed keys use: modifier names elsewhere than a Mac, and Esc, Space 
 
 ### Messages
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type Messages = { announcements: …; toasts: …; commands: …; … }
@@ -1404,7 +1404,7 @@ Every word Jali uses, by area, with the same keys and shapes as [`en`](../core.m
 
 ### MessageOverrides
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type MessageOverrides = { [Area in keyof Messages]?: Partial<Messages[Area]> }
@@ -1414,7 +1414,7 @@ What `createJali({ messages })` takes: any areas, and any keys in them. Keys you
 
 ### ScreenDirection
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type ScreenDirection = "left" | "right" | "up" | "down"
@@ -1426,7 +1426,7 @@ A direction on screen (right to left too), as command ids name it (`pane.focus.l
 
 ### PaneTarget
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type PaneTarget = NodeId | ObjectRef
@@ -1436,7 +1436,7 @@ A pane, by its id or by the object it shows. A ref means the pane showing that o
 
 ### ActionName
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type ActionName = keyof JaliActions | "setLayout"
@@ -1446,7 +1446,7 @@ An action by its name in `JaliActions` (`"openBeside"`, `"resetLayout"`), or `"s
 
 ### ChooseOptions
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface ChooseOptions<T> { title: string; items: readonly T[]; label(item: T): string; hint?(item: T): string; current?: T; placeholder?: string; onChoose(item: T): void }
@@ -1472,7 +1472,7 @@ What `JaliActions` `choose` asks the person for. `T` is whatever your items are.
 
 ### JaliActions
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface JaliActions<R extends ObjectRef = ObjectRef>
@@ -1552,7 +1552,7 @@ What drags, keys and panes report (dividers, drops, focus keys, `useUnsaved`, `u
 
 ### JaliPage
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface JaliPage<I extends ItemId = ItemId>
@@ -1576,7 +1576,7 @@ interface JaliPage<I extends ItemId = ItemId>
 
 ### JaliDialogs
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface JaliDialogs
@@ -1596,7 +1596,7 @@ interface JaliDialogs
 
 ### Ref
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface Ref<K extends string = string, P = Params> { readonly kind: K; readonly params: P }
@@ -1606,7 +1606,7 @@ An object of the kind `K`, with its params typed: what a kind's call returns (`n
 
 ### RefOf
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type RefOf<D>
@@ -1616,7 +1616,7 @@ The refs of kinds `D`: each defined kind's `Ref`, and `ObjectRef` for a kind wit
 
 ### RefsOf
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type RefsOf<J extends AnyJali>
@@ -1626,7 +1626,7 @@ The refs of instance `J`'s kinds.
 
 ### PageOf
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type PageOf<P>
@@ -1636,7 +1636,7 @@ The page's actions an instance made with page `P` has: `JaliPage` for its item t
 
 ### AnyJali
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type AnyJali = Jali<any, any>
@@ -1646,7 +1646,7 @@ Any instance, whatever its kinds and page: for a function that takes one.
 
 ### Register
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface Register { jali?: AnyJali }
@@ -1655,7 +1655,7 @@ interface Register { jali?: AnyJali }
 One declaration types the app's instance everywhere, React's hooks included (the full example is on [Installation](../../get-started/installation.md#typescript-register-your-instance)):
 
 ```ts nocheck
-declare module "jali" {
+declare module "jali-layout" {
   interface Register {
     jali: typeof jali;
   }
@@ -1664,7 +1664,7 @@ declare module "jali" {
 
 ### RegisteredJali
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type RegisteredJali
@@ -1674,7 +1674,7 @@ The app's instance type from `Register`, or any instance when nothing is registe
 
 ### JaliEvent
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type JaliEvent = keyof JaliEvents
@@ -1684,7 +1684,7 @@ The name of an event: `"open"`, `"close"`, `"pin"`, `"focus"`, `"layout"` or `"t
 
 ### DeepReadonly
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type DeepReadonly<T>
@@ -1694,7 +1694,7 @@ type DeepReadonly<T>
 
 ### PaneOf
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface PaneOf<R extends ObjectRef = ObjectRef>
@@ -1734,7 +1734,7 @@ if (detail && detail.where !== "shown") jali.actions.focus(detail.id);
 
 ### KeyboardOptions
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface KeyboardOptions extends KeymapOptions { scope?; keymap? }

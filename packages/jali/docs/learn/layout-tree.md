@@ -9,7 +9,7 @@ Every instance has one layout. It is a plain JSON tree, so it fits in the addres
 A [pane](../get-started/key-concepts.md#pane) node shows one [ref](../get-started/key-concepts.md#ref). It is always a leaf.
 
 ```ts
-import type { PaneNode } from "jali";
+import type { PaneNode } from "jali-layout";
 
 const node: PaneNode = { id: "a", type: "pane", size: { weight: 1 }, ref: { kind: "note", params: { id: 1 } } };
 ```
@@ -46,7 +46,7 @@ A node's size is its length along its parent's direction: its width in a row, it
 `layouts.ts`
 
 ```tsx
-import { column, pane, row, tabs } from "jali";
+import { column, pane, row, tabs } from "jali-layout";
 import { customer, customerOrders } from "./customer";
 import { ticket } from "./ticket";
 import { ticketList } from "./ticket-list";
@@ -79,7 +79,7 @@ Some panes are not shown in their own place. The layout keeps a note about each,
 - **hidden**: a curated page's views that are not on screen, with no slot and no tab.
 
 ```ts
-import type { Overlay } from "jali";
+import type { Overlay } from "jali-layout";
 
 const overlay: Overlay = { tucks: [], folds: [], shown: {}, hidden: ["overview"] };
 ```

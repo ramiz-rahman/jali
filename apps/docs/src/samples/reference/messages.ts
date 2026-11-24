@@ -1,4 +1,4 @@
-import { createJali, en, type MessageOverrides } from "jali";
+import { createJali, en, type MessageOverrides } from "jali-layout";
 import { orderKind } from "./kinds";
 
 const words: MessageOverrides = {

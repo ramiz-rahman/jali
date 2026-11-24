@@ -2,7 +2,7 @@
  * The status line: Jali's shelf (tucked and folded panes, as chips), what has focus, and the keys worth knowing,
  * read from the keymap so they are right on every platform and after any rebinding.
  */
-import { Shelf, useJali, useJaliModel, useJaliState } from "jali/react";
+import { Shelf, useJali, useJaliModel, useJaliState } from "jali-layout/react";
 import { BuiltWithJali, Maker } from "@jali-examples/shared/maker/maker";
 import { useFeed } from "../market/react";
 import type { FeedState } from "../market/types";

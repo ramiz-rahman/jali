@@ -51,7 +51,7 @@ const NAV: NavSection[] = [
     title: "Reference",
     items: [
       { path: "/reference/core" },
-      { path: "/reference/core/types", title: "jali types" },
+      { path: "/reference/core/types", title: "jali-layout types" },
       { path: "/reference/react" },
       { path: "/reference/features" },
       { path: "/reference/testing" },

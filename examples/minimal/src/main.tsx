@@ -1,15 +1,15 @@
 /** The smallest Jali app: one kind of pane, a starting layout, and the workspace filling the window. */
 import { createRoot } from "react-dom/client";
-import { createJali } from "jali";
-import { JaliRoot, definePane } from "jali/react";
+import { createJali } from "jali-layout";
+import { JaliRoot, definePane } from "jali-layout/react";
 // The layer order is declared in index.html. Then the app's styles, Jali's, and its faces: Atkinson Hyperlegible
 // Next and Mono.
 import "./app.css";
-import "jali/styles.css";
+import "jali-layout/styles.css";
 import "@fontsource/atkinson-hyperlegible-next/latin-400.css";
 import "@fontsource/atkinson-hyperlegible-next/latin-600.css";
 import "@fontsource/atkinson-hyperlegible-mono/latin-400.css";
-import { urlSync } from "jali/url";
+import { urlSync } from "jali-layout/url";
 
 // A kind of pane: what it shows (its params), its title, and the component that renders it.
 const note = definePane("note", {
@@ -48,7 +48,7 @@ const launcher = definePane("launcher", {
 //
 // The small path: an app picks the features it uses, and ships only those. This one keeps its layout in the address
 // (`urlSync()`: a link reopens it, Back and Forward step through it) and nothing else, so it has no ⌘K palette,
-// Settings or chooser. `defaultFeatures()` from "jali/features" turns on all of Jali's usual ones in one line.
+// Settings or chooser. `defaultFeatures()` from "jali-layout/features" turns on all of Jali's usual ones in one line.
 const jali = createJali({
   panes: [note],
   launcher,

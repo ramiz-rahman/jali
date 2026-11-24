@@ -1,6 +1,6 @@
 ---
-title: "jali/react"
-summary: Every component, hook and type jali/react exports, with its props, defaults and what it returns.
+title: "jali-layout/react"
+summary: Every component, hook and type jali-layout/react exports, with its props, defaults and what it returns.
 layout: wide
 ---
 
@@ -14,15 +14,15 @@ import composeCode from "../../samples/reference/compose.tsx?raw";
 import profileCode from "../../samples/reference/profile.tsx?raw";
 import iconCode from "../../samples/reference/kind-icon.tsx?raw";
 
-React components and hooks for an instance made with [jali](/reference/core). React 18.2 or later (18 or 19) is a peer dependency; nothing else is. Jali's icons are in the package. See [Icons](#icons).
+React components and hooks for an instance made with [jali-layout](/reference/core). React 18.2 or later (18 or 19) is a peer dependency; nothing else is. Jali's icons are in the package. See [Icons](#icons).
 
-<Install packages="jali" />
+<Install packages="jali-layout" />
 
-Styles: `jali/styles.css` is Jali's default theme and the instance's styles; `jali/theme.css` is the theme alone; `jali/tailwind.css` points the tokens at your Tailwind theme. See [Tokens](/reference/tokens).
+Styles: `jali-layout/styles.css` is Jali's default theme and the instance's styles; `jali-layout/theme.css` is the theme alone; `jali-layout/tailwind.css` points the tokens at your Tailwind theme. See [Tokens](/reference/tokens).
 
 ## Start here
 
-<Entry name="JaliRoot" kind="component" from="jali/react" signature={`<JaliRoot jali={jali} icons? overlays? settingsExtra?>{children?}</JaliRoot>`} example={appCode} exampleFile="App.tsx">
+<Entry name="JaliRoot" kind="component" from="jali-layout/react" signature={`<JaliRoot jali={jali} icons? overlays? settingsExtra?>{children?}</JaliRoot>`} example={appCode} exampleFile="App.tsx">
 
 Draws an instance: its panes, "Discard unsaved changes?", the live region, and the dialogs of the features it has: the command palette (`palette()`), Settings (`settings()`) and the "Add to tabs of…" chooser (`chooser()`). See [Features](/reference/features). While it is mounted, it starts the instance's keys, Back and Forward, theme and saving (<Ref to="Jali" page="/reference/core/types" />'s `start`), and stops them when it unmounts.
 
@@ -46,7 +46,7 @@ Two things are yours to render. **The shelf** (tucked panes as chips): put <Ref 
 
 </Entry>
 
-<Entry name="JaliView" kind="component" from="jali/react" signature={`<JaliView />`} example={composeCode} exampleFile="App.tsx">
+<Entry name="JaliView" kind="component" from="jali-layout/react" signature={`<JaliView />`} example={composeCode} exampleFile="App.tsx">
 
 The panes, or the curated page while one is open. Takes no props. `<JaliRoot>` renders it when it has no children; place it yourself when you add chrome.
 
@@ -54,11 +54,11 @@ The panes, or the curated page while one is open. Takes no props. `<JaliRoot>` r
 
 ## Defining panes and pages
 
-<Entry name="definePane" kind="function" from="jali/react" signature={`definePane(kind: string, options: PaneOptionsReact): Pane`} example={kindsCode} exampleFile="kinds.tsx">
+<Entry name="definePane" kind="function" from="jali-layout/react" signature={`definePane(kind: string, options: PaneOptionsReact): Pane`} example={kindsCode} exampleFile="kinds.tsx">
 
 Defines a kind of pane: what it shows (its params), its title and sizes, and the component that renders it. Pass your kinds to `createJali({ panes })`.
 
-The result is also how you name an object of the kind: `orderKind({ id: 1041 })` is the [ref](/get-started/key-concepts#ref) `{ kind: "order", params: { id: 1041 } }`, to open, peek, select or put in a layout. When the kind declares `params`, the call is typed: a missing required param, a wrongly typed one or one the kind doesn't declare is a type error. Params are declared with `Number`, `String`, `Boolean`, <Ref to="oneOf" page="/reference/core" /> and <Ref to="optional" page="/reference/core" />, imported from `jali`.
+The result is also how you name an object of the kind: `orderKind({ id: 1041 })` is the [ref](/get-started/key-concepts#ref) `{ kind: "order", params: { id: 1041 } }`, to open, peek, select or put in a layout. When the kind declares `params`, the call is typed: a missing required param, a wrongly typed one or one the kind doesn't declare is a type error. Params are declared with `Number`, `String`, `Boolean`, <Ref to="oneOf" page="/reference/core" /> and <Ref to="optional" page="/reference/core" />, imported from `jali-layout`.
 
 <Params>
 <Param name="kind" type="string" required>The kind's name. Every pane of this kind carries it, and links name it.</Param>
@@ -80,25 +80,25 @@ Everything in <Ref to="PaneOptions" page="/reference/core/types" /> (`params`, `
 
 </Entry>
 
-<Entry name="Pane" kind="type" from="jali/react" signature={`type Pane<P = any> = PaneKindDef & {\n  (params: P): ObjectRef;\n  readonly kind: string;\n}`} compact>
+<Entry name="Pane" kind="type" from="jali-layout/react" signature={`type Pane<P = any> = PaneKindDef & {\n  (params: P): ObjectRef;\n  readonly kind: string;\n}`} compact>
 
 A kind made with <Ref to="definePane" />. `P` is its params' type; `Pane` alone is any kind, for a list of them.
 
 </Entry>
 
-<Entry name="PaneKindDef" kind="type" from="jali/react" signature={`interface PaneKindDef extends PaneKindBase {\n  icon?: JaliIcon;\n  Component: ComponentType<PaneProps<any>>;\n  Loading?: ComponentType<PaneProps<any>>;\n  Missing?: ComponentType<MissingProps>;\n}`} compact>
+<Entry name="PaneKindDef" kind="type" from="jali-layout/react" signature={`interface PaneKindDef extends PaneKindBase {\n  icon?: JaliIcon;\n  Component: ComponentType<PaneProps<any>>;\n  Loading?: ComponentType<PaneProps<any>>;\n  Missing?: ComponentType<MissingProps>;\n}`} compact>
 
 A kind as an instance keeps it: its options and its React parts. A <Ref to="Pane" /> is one of these you can call.
 
 </Entry>
 
-<Entry name="PaneOptionsReact" kind="type" from="jali/react" signature={`interface PaneOptionsReact<P> extends PaneOptions<P> {\n  icon?: JaliIcon;\n  Component: ComponentType<PaneProps<P>>;\n  Loading?: ComponentType<PaneProps<P>>;\n  Missing?: ComponentType<MissingProps>;\n}`} compact>
+<Entry name="PaneOptionsReact" kind="type" from="jali-layout/react" signature={`interface PaneOptionsReact<P> extends PaneOptions<P> {\n  icon?: JaliIcon;\n  Component: ComponentType<PaneProps<P>>;\n  Loading?: ComponentType<PaneProps<P>>;\n  Missing?: ComponentType<MissingProps>;\n}`} compact>
 
 The options of <Ref to="definePane" />.
 
 </Entry>
 
-<Entry name="MissingProps" kind="type" from="jali/react" signature={`interface MissingProps extends PaneProps<Params> {\n  problems: readonly ParamProblem[];\n  close: () => void;\n}`} compact>
+<Entry name="MissingProps" kind="type" from="jali-layout/react" signature={`interface MissingProps extends PaneProps<Params> {\n  problems: readonly ParamProblem[];\n  close: () => void;\n}`} compact>
 
 What a kind's `Missing` gets: everything <Ref to="PaneProps" /> has, with `params` as the ref gave them (a value Jali couldn't read stays as it came, a missing one is absent), and:
 
@@ -111,7 +111,7 @@ It renders inside the pane, so the pane's hooks (`useTitle`, `useCommands`, `use
 
 </Entry>
 
-<Entry name="PaneProps" kind="type" from="jali/react" signature={`interface PaneProps<P = Params>`} example={noteCode} exampleFile="order-note.tsx">
+<Entry name="PaneProps" kind="type" from="jali-layout/react" signature={`interface PaneProps<P = Params>`} example={noteCode} exampleFile="order-note.tsx">
 
 What a kind's `Component` gets. Components below it read the same with <Ref to="usePane" />. To type a component written apart from its kind, declare the params first and pass their declaration: `const orderParams = { id: Number }`, then `PaneProps<typeof orderParams>` (`params` is `{ id: number }`). `PaneProps<{ id: number }>`, the params' own type, also works.
 
@@ -132,7 +132,7 @@ Keys: content first. Claim the keys you use with `event.preventDefault()` (J and
 
 </Entry>
 
-<Entry name="definePage" kind="function" from="jali/page" signature={`definePage(page: Page): Page`} example={profileCode} exampleFile="loan-review.tsx">
+<Entry name="definePage" kind="function" from="jali-layout/page" signature={`definePage(page: Page): Page`} example={profileCode} exampleFile="loan-review.tsx">
 
 Defines a curated page: one item at a time (a loan application, a customer), its views as tabs, the item's header above the tabs (`Header`) and, optionally, a list of items at the left (`Rail`, which calls `showItem(item)` to show another). Pass it to `createJali({ page })`. It returns a copy of `page` that carries the code that runs a page and the parts that draw it. That code comes only with `definePage`, so an app without a curated page ships none of it.
 
@@ -140,13 +140,13 @@ Defines a curated page: one item at a time (a loan application, a customer), its
 
 </Entry>
 
-<Entry name="Page" kind="type" from="jali/page" signature={`interface Page<I extends ItemId = any> extends ProfileBase<PageView, I> {\n  Rail?: ComponentType<{ item: I; showItem: (item: I) => void }>;\n  Header: ComponentType<{ item: I }>;\n}`} compact>
+<Entry name="Page" kind="type" from="jali-layout/page" signature={`interface Page<I extends ItemId = any> extends ProfileBase<PageView, I> {\n  Rail?: ComponentType<{ item: I; showItem: (item: I) => void }>;\n  Header: ComponentType<{ item: I }>;\n}`} compact>
 
 A curated page for React: <Ref to="ProfileBase" page="/reference/core/types" /> with its header and, if it has one, its rail. Without a `Rail`, the header, tabs and panes take the whole width. `I` is the item id's type, `number` or `string`, as in `firstItem`.
 
 </Entry>
 
-<Entry name="PageView" kind="type" from="jali/page" signature={`interface PageView extends RoleBase { icon: JaliIcon }`} compact>
+<Entry name="PageView" kind="type" from="jali-layout/page" signature={`interface PageView extends RoleBase { icon: JaliIcon }`} compact>
 
 One of a curated page's views, with the icon for its tab.
 
@@ -156,7 +156,7 @@ One of a curated page's views, with the icon for its tab.
 
 Each of these acts for the pane it is called in, from any depth inside the kind's component.
 
-<Entry name="usePane" kind="hook" from="jali/react" signature={`usePane(kind?: Pane): PaneProps<params of kind>`} compact>
+<Entry name="usePane" kind="hook" from="jali-layout/react" signature={`usePane(kind?: Pane): PaneProps<params of kind>`} compact>
 
 The pane's <Ref to="PaneProps" />, for components below the kind's own: `const { params, openBeside } = usePane(order)`, with `params` typed from the kind, no cast. In development, a component in a pane of another kind is an error. Without a kind, the params are plain values (`Params`), for a component any kind renders. Throws outside a pane.
 
@@ -164,7 +164,7 @@ The pane's <Ref to="PaneProps" />, for components below the kind's own: `const {
 
 </Entry>
 
-<Entry name="useActivity" kind="hook" from="jali/react" signature={`useActivity(activity: PaneActivity | undefined): void`} compact>
+<Entry name="useActivity" kind="hook" from="jali-layout/react" signature={`useActivity(activity: PaneActivity | undefined): void`} compact>
 
 Report what the pane is doing (`"loading"`, `"working"`, `"live"`, `"needs-you"`, `"error"` or `"idle"`), for its header, its tab, the shelf and the status line. `"working"` is work the person waits for; `"live"` is ongoing, healthy work that is meant to go on, such as recording, streaming or playback, and reads "Live" rather than "Working". `undefined` clears it, the same as `"idle"`, and so does the component unmounting. Reported again whenever it changes.
 
@@ -172,7 +172,7 @@ Several components in a pane may each report: the pane shows the most pressing (
 
 </Entry>
 
-<Entry name="useUnsaved" kind="hook" from="jali/react" signature={`useUnsaved(what: string | null | false | undefined): void`} compact>
+<Entry name="useUnsaved" kind="hook" from="jali-layout/react" signature={`useUnsaved(what: string | null | false | undefined): void`} compact>
 
 Report unsaved work in words (`"an unsaved query"`), or a falsy value once it is saved, so `useUnsaved(dirty && "an unsaved note")` works. While a pane has some, closing it, closing others, a preset or showing another object in it asks first; a following detail keeps its object. Moving, tabbing, folding and tucking never ask. Cleared when the component unmounts.
 
@@ -180,7 +180,7 @@ Several components in a pane may each report: the pane has unsaved work while an
 
 </Entry>
 
-<Entry name="useTitle" kind="hook" from="jali/react" signature={`useTitle(title: string | null | undefined): void`} compact>
+<Entry name="useTitle" kind="hook" from="jali-layout/react" signature={`useTitle(title: string | null | undefined): void`} compact>
 
 Name the pane from its data: `useTitle(customer.data?.name)` shows "Acme Ltd" rather than the kind's "Customer 12". While set, it replaces the kind's `title` in the header, the tab, the shelf, the palette, the switcher, announcements and `jali.model().pane(id)?.title`, and the peek sheet while it shows the same object. In a curated page, the view's label still names the pane, and this title is shown beside it. `null` or `undefined` goes back to the kind's title.
 
@@ -192,7 +192,7 @@ In the peek sheet's own content, it names the sheet, for the object the sheet sh
 
 </Entry>
 
-<Entry name="usePaneAttributes" kind="hook" from="jali/react" signature={`usePaneAttributes(attributes: Record<\`data-\${string}\`, string> | null | undefined): void`} compact>
+<Entry name="usePaneAttributes" kind="hook" from="jali-layout/react" signature={`usePaneAttributes(attributes: Record<\`data-\${string}\`, string> | null | undefined): void`} compact>
 
 Mark the pane from its data with `data-*` attributes, so your styles can tell it apart: `usePaneAttributes({ "data-connection": "production" })` on a query pane connected to production. Jali puts them on everything that stands for the pane: its section, its tab in any strip (folded and tucked too), its shelf chip, its entry in the phone's pane switcher, the tab and shelf menus, and the peek sheet while it shows the pane's object. Jali gives them no style of its own.
 
@@ -202,7 +202,7 @@ Only `data-*` names are kept, and not the ones Jali's own parts use (`data-pane`
 
 </Entry>
 
-<Entry name="useHeaderActions" kind="hook" from="jali/react" signature={`useHeaderActions(controls: ReactNode): void`} compact>
+<Entry name="useHeaderActions" kind="hook" from="jali-layout/react" signature={`useHeaderActions(controls: ReactNode): void`} compact>
 
 Put the pane's own controls in its header. Jali places them in `.jali-pane-tools`, in this order: the grip, the title (or tabs), Following / Kept, your controls, then Jali's buttons. Pass them on every render, like any JSX. `null` takes them away, as does the component unmounting. One set shows per pane, chosen as a title is: of calls mounted together, the innermost call's; after that, the latest mounted call's that has controls. Each call is its own, so a component that unmounts takes only its controls away, and the previous call's show again.
 
@@ -212,7 +212,7 @@ A narrow header gives way before its title gets shorter than a few characters: f
 
 </Entry>
 
-<Entry name="useCommands" kind="hook" from="jali/react" signature={`useCommands(commands: readonly PaneCommand[]): void`} compact>
+<Entry name="useCommands" kind="hook" from="jali-layout/react" signature={`useCommands(commands: readonly PaneCommand[]): void`} compact>
 
 The commands this pane lists first in the palette while it is focused. Pass them on every render: they are listed again only when an id, title, keys label or disabled reason changes, and each runs the latest `run` it was given, so `run` can close over current state. Removed when the component unmounts.
 
@@ -220,7 +220,7 @@ Several components in a pane may each add commands: they are listed in render or
 
 </Entry>
 
-<Entry name="useLauncher" kind="hook" from="jali/react" signature={`useLauncher(): LauncherSources`} compact>
+<Entry name="useLauncher" kind="hook" from="jali-layout/react" signature={`useLauncher(): LauncherSources`} compact>
 
 For the instance's launcher: what the person can choose from.
 
@@ -228,13 +228,13 @@ For the instance's launcher: what the person can choose from.
 
 </Entry>
 
-<Entry name="LauncherSources" kind="type" from="jali/react" signature={`interface LauncherSources {\n  recent: ObjectRef[];\n  isOpen(ref: ObjectRef): boolean;\n  titleOf(ref: ObjectRef): string;\n}`} compact>
+<Entry name="LauncherSources" kind="type" from="jali-layout/react" signature={`interface LauncherSources {\n  recent: ObjectRef[];\n  isOpen(ref: ObjectRef): boolean;\n  titleOf(ref: ObjectRef): string;\n}`} compact>
 
 Recent (newest first), whether an object is already open in another pane, and an object's title.
 
 </Entry>
 
-<Entry name="usePaneState" kind="hook" from="jali/react" signature={`usePaneState<T>(key: string, initial: T, options?: PaneStateOptions<T>): [T, (next: T | ((prev: T) => T)) => void]`} example={paneStateCode} exampleFile="OrdersTable.tsx">
+<Entry name="usePaneState" kind="hook" from="jali-layout/react" signature={`usePaneState<T>(key: string, initial: T, options?: PaneStateOptions<T>): [T, (next: T | ((prev: T) => T)) => void]`} example={paneStateCode} exampleFile="OrdersTable.tsx">
 
 State the instance keeps for a pane: it survives the pane being tabbed, folded, tucked or moved, and a reload (saved on this device 400 ms after it changes). It is dropped when the pane closes for good or shows another object, and when the person discards the pane's unsaved work. It belongs to the object the pane shows, not to the pane's id: a pane that shows another object under the same id (after a reload, or a new pane under a closed pane's id) starts from `initial`, and an undo that brings the pane back brings its state back. Use it for what a person expects back (a sort, a draft, a scroll position) and React state for the rest.
 
@@ -250,7 +250,7 @@ In the peek sheet there is no pane, so the state is local and goes with the shee
 
 </Entry>
 
-<Entry name="PaneStateOptions" kind="type" from="jali/react" signature={`interface PaneStateOptions<T> {\n  parse?: (stored: unknown) => T | undefined;\n}`} compact>
+<Entry name="PaneStateOptions" kind="type" from="jali-layout/react" signature={`interface PaneStateOptions<T> {\n  parse?: (stored: unknown) => T | undefined;\n}`} compact>
 
 How <Ref to="usePaneState" /> reads a stored value. Stored state was written by an earlier version of the app, or edited by hand, so it isn't trusted as `T`: `parse` gets what storage held and returns the value to use, or `undefined` to use `initial`. A parse that throws counts as `undefined`. A rejected value stays stored until the pane sets its own. Each stored value is parsed once, so a parse that builds a new object still gives the same value on every render.
 
@@ -258,7 +258,7 @@ How <Ref to="usePaneState" /> reads a stored value. Stored state was written by 
 
 ## The instance in React
 
-<Entry name="useJali" kind="hook" from="jali/react" signature={`useJali(): Jali`} compact>
+<Entry name="useJali" kind="hook" from="jali-layout/react" signature={`useJali(): Jali`} compact>
 
 The instance from the nearest `<JaliRoot>`: its `actions`, `on`, `getLayout` and `setLayout`, `keymap`, `presets` and state. Reading it does not subscribe; use `useJaliState` or `useJaliModel` for values that change. Throws outside `<JaliRoot>`.
 
@@ -266,7 +266,7 @@ The instance from the nearest `<JaliRoot>`: its `actions`, `on`, `getLayout` and
 
 </Entry>
 
-<Entry name="useJaliState" kind="hook" from="jali/react" signature={`useJaliState<T>(select: (s: JaliState) => T, isEqual?: (a: T, b: T) => boolean): T`} example={hooksCode} exampleFile="StatusLine.tsx">
+<Entry name="useJaliState" kind="hook" from="jali-layout/react" signature={`useJaliState<T>(select: (s: JaliState) => T, isEqual?: (a: T, b: T) => boolean): T`} example={hooksCode} exampleFile="StatusLine.tsx">
 
 Subscribes to one value of the state (<Ref to="JaliState" page="/reference/core/types" />). The component re-renders when that value changes, compared with `isEqual` (`Object.is` unless given). The state keeps each field's object while it is the same, so picking `s.view` or `s.selection` re-renders only when that changes. A selector may return a new object or array; pass your own equality function (one that compares its values, say) to re-render only when one of them changed.
 
@@ -279,7 +279,7 @@ Subscribes to one value of the state (<Ref to="JaliState" page="/reference/core/
 
 </Entry>
 
-<Entry name="useJaliModel" kind="hook" from="jali/react" signature={`useJaliModel(): JaliModel
+<Entry name="useJaliModel" kind="hook" from="jali-layout/react" signature={`useJaliModel(): JaliModel
 useJaliModel<T>(select: (m: JaliModel) => T, isEqual?: (a: T, b: T) => boolean): T`} example={iconCode} exampleFile="OpenPanes.tsx">
 
 The layout as it is on screen, subscribed: every pane, with its title and where it is (<Ref to="JaliModel" page="/reference/core/types" />). A new object only when a pane changed, and each pane keeps its object while it is the same. With a selector, only what it picks, re-rendering when that changes by `isEqual`: `useJaliModel((m) => m.pane(id)?.where)` re-renders only when that pane moves.
@@ -288,19 +288,19 @@ The layout as it is on screen, subscribed: every pane, with its title and where 
 
 </Entry>
 
-<Entry name="useJaliEvent" kind="hook" from="jali/react" signature={`useJaliEvent(event: JaliEvent, handler: (e: JaliEvents[event]) => void): void`} compact>
+<Entry name="useJaliEvent" kind="hook" from="jali-layout/react" signature={`useJaliEvent(event: JaliEvent, handler: (e: JaliEvents[event]) => void): void`} compact>
 
 Hear one of the instance's events while the component is mounted: `useJaliEvent("open", ({ ref }) => …)`, `useJaliEvent("toast", show)`. It always calls the latest `handler`, so an inline function is fine, and stops listening on unmount. Typed by the app's instance once it is registered (`Register`). See <Ref to="JaliEvents" page="/reference/core/types" />.
 
 </Entry>
 
-<Entry name="useJaliTheme" kind="hook" from="jali/react" signature={`useJaliTheme(): "light" | "dark"`} compact>
+<Entry name="useJaliTheme" kind="hook" from="jali-layout/react" signature={`useJaliTheme(): "light" | "dark"`} compact>
 
 The theme in use: the person's setting, or the system's when they chose "System". For a toaster or anything else of yours that needs to match.
 
 </Entry>
 
-<Entry name="useJaliShortcut" kind="hook" from="jali/react" signature={`useJaliShortcut(id: string): string`} compact>
+<Entry name="useJaliShortcut" kind="hook" from="jali-layout/react" signature={`useJaliShortcut(id: string): string`} compact>
 
 A command's keys in this instance's keymap, for a tooltip ("⌘K ⌘[" or "Ctrl+K Ctrl+["); `""` when unbound. Safe to prerender: on a server and while the page hydrates it prints keys for `"other"` ("Ctrl+K Ctrl+["), since a server can't know the reader's platform, then React renders it again with the reader's. A page rendered only in the browser gets the reader's keys on its first render.
 
@@ -316,19 +316,19 @@ A command's keys in this instance's keymap, for a tooltip ("⌘K ⌘[" or "Ctrl+
 
 Chrome of your own goes inside `<JaliRoot>`, around `<JaliView />`: the root renders the dialogs, the live region and the full-screen layer for every way of using Jali. These parts are for that chrome; each must be inside `<JaliRoot>`, and none takes props unless shown.
 
-<Entry name="PageBar" kind="component" from="jali/react" signature={`<PageBar />`} compact>
+<Entry name="PageBar" kind="component" from="jali-layout/react" signature={`<PageBar />`} compact>
 
 A curated page's controls, for your top bar: the Single / Split view switch, in Split view the "N opened panes" group with Back to the page, and Reset. Renders nothing while no page is open.
 
 </Entry>
 
-<Entry name="Shelf" kind="component" from="jali/react" signature={`<Shelf />`} compact>
+<Entry name="Shelf" kind="component" from="jali-layout/react" signature={`<Shelf />`} compact>
 
 The panes the person tucked, as chips grouped by home (with Put back), for a status line. Folded panes are not here: they wait behind their tab strip's **N folded** chip. Arrow keys move between chips, Enter shows one, Shift+Enter puts it back. Renders nothing when no pane is tucked.
 
 </Entry>
 
-<Entry name="KindIcon" kind="component" from="jali/react" signature={`<KindIcon kind={kind} size={16} />`} example={iconCode} exampleFile="OpenPanes.tsx">
+<Entry name="KindIcon" kind="component" from="jali-layout/react" signature={`<KindIcon kind={kind} size={16} />`} example={iconCode} exampleFile="OpenPanes.tsx">
 
 A kind's icon at `size`, `aria-hidden`; the `defaultKind` icon (a pane with its title bar, unless you replaced it) for an unknown kind or one without an icon.
 
@@ -340,7 +340,7 @@ A kind's icon at `size`, `aria-hidden`; the `defaultKind` icon (a pane with its 
 
 </Entry>
 
-<Entry name="Activity" kind="component" from="jali/react" signature={`<Activity activity={activity} shape? />`} compact>
+<Entry name="Activity" kind="component" from="jali-layout/react" signature={`<Activity activity={activity} shape? />`} compact>
 
 A pane's activity mark. Renders nothing for `idle` or `undefined`.
 
@@ -351,12 +351,12 @@ A pane's activity mark. Renders nothing for `idle` or `undefined`.
 
 </Entry>
 
-<Entry name="IconButton" kind="component" from="jali/react" signature={`<IconButton label="Copy link" onClick={copy}>{icon}</IconButton>`} compact>
+<Entry name="IconButton" kind="component" from="jali-layout/react" signature={`<IconButton label="Copy link" onClick={copy}>{icon}</IconButton>`} compact>
 
 A button that is only an icon, drawn as Jali's header buttons are (the `iconButton` part, `.jali-icon-btn`): for your top bar, a pane's own controls or a sheet's close, so they match the instance in every theme. It is held down like Jali's controls (`data-pressed`) inside an instance.
 
 ```tsx
-import { IconButton, JaliRoot } from "jali/react";
+import { IconButton, JaliRoot } from "jali-layout/react";
 import { GearSixIcon } from "@phosphor-icons/react";
 
 <IconButton label="Settings" onClick={() => jali.dialogs.openSettings()}>
@@ -375,13 +375,13 @@ import { GearSixIcon } from "@phosphor-icons/react";
 
 </Entry>
 
-<Entry name="IconButtonProps" kind="type" from="jali/react" signature={`interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "aria-label" | "children"> { label: string; children: ReactNode }`} compact>
+<Entry name="IconButtonProps" kind="type" from="jali-layout/react" signature={`interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "aria-label" | "children"> { label: string; children: ReactNode }`} compact>
 
 The props of <Ref to="IconButton" />.
 
 </Entry>
 
-<Entry name="JaliRootProps" kind="type" from="jali/react" signature={`interface JaliRootProps extends HTMLAttributes<HTMLDivElement> {\n  jali: Jali; children?: ReactNode; overlays?: ReactNode;\n  settingsExtra?: ReactNode; icons?: Partial<JaliIcons>;\n  onError?: (error: unknown) => void;\n  "aria-label"?: string; "aria-labelledby"?: string;\n}`} compact>
+<Entry name="JaliRootProps" kind="type" from="jali-layout/react" signature={`interface JaliRootProps extends HTMLAttributes<HTMLDivElement> {\n  jali: Jali; children?: ReactNode; overlays?: ReactNode;\n  settingsExtra?: ReactNode; icons?: Partial<JaliIcons>;\n  onError?: (error: unknown) => void;\n  "aria-label"?: string; "aria-labelledby"?: string;\n}`} compact>
 
 The props of <Ref to="JaliRoot" />.
 
@@ -396,7 +396,7 @@ Jali draws its own chrome icons from a map of names (`JaliIcons`). Its defaults 
  // Jali's full set, to spread under your own
 ```
 
-<Entry name="JaliIcons" kind="type" from="jali/react" signature={`type JaliIcons = Record<JaliIconName, JaliIcon>`}>
+<Entry name="JaliIcons" kind="type" from="jali-layout/react" signature={`type JaliIcons = Record<JaliIconName, JaliIcon>`}>
 
 One icon per name Jali draws. `<JaliRoot icons>` takes any part of it; type your own set as `JaliIcons` to have the types check it names every icon.
 
@@ -436,19 +436,19 @@ One icon per name Jali draws. `<JaliRoot icons>` takes any part of it; type your
 
 </Entry>
 
-<Entry name="JaliIconName" kind="type" from="jali/react" signature={`type JaliIconName = "close" | "maximise" | "restore" | … | "dropTab"`} compact>
+<Entry name="JaliIconName" kind="type" from="jali-layout/react" signature={`type JaliIconName = "close" | "maximise" | "restore" | … | "dropTab"`} compact>
 
 The names above.
 
 </Entry>
 
-<Entry name="JaliIcon" kind="type" from="jali/react" signature={`type JaliIcon = ComponentType<JaliIconProps>`} compact>
+<Entry name="JaliIcon" kind="type" from="jali-layout/react" signature={`type JaliIcon = ComponentType<JaliIconProps>`} compact>
 
 An icon Jali can draw: any component that takes <Ref to="JaliIconProps" />. Also the type of a kind's `icon`.
 
 </Entry>
 
-<Entry name="JaliIconProps" kind="type" from="jali/react" signature={`interface JaliIconProps {\n  size?: number;\n  className?: string;\n  "aria-hidden"?: boolean;\n}`} compact>
+<Entry name="JaliIconProps" kind="type" from="jali-layout/react" signature={`interface JaliIconProps {\n  size?: number;\n  className?: string;\n  "aria-hidden"?: boolean;\n}`} compact>
 
 What Jali passes an icon: its default size in pixels, the class that sizes it from its place's token (`--jali-icon-header`, `-tab`, `-menu` or `-shelf`; put it on the icon's element), and `aria-hidden` (a label always sits beside it, or on its button).
 

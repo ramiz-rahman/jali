@@ -5,7 +5,7 @@
  */
 import { useRef, useState, type KeyboardEvent } from "react";
 import { ListNumbersIcon } from "@phosphor-icons/react";
-import { definePane, useJali, useJaliModel, useJaliState, type PaneProps } from "jali/react";
+import { definePane, useJali, useJaliModel, useJaliState, type PaneProps } from "jali-layout/react";
 import { customerById, money, orderById, orders, totalOf } from "../data";
 import { followerOf, openOrder } from "../open";
 import { Avatar } from "../ui/Avatar";

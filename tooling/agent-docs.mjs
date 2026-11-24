@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Writes the docs into the published package as Markdown (packages/jali/docs/), so a coding agent reads the docs of
- * the version that is installed: node_modules/jali/docs/README.md lists every page. The pages are the docs site's own, in
+ * the version that is installed: node_modules/jali-layout/docs/README.md lists every page. The pages are the docs site's own, in
  * reading order, through the same `toMarkdown` as "View as Markdown", with links made relative to the files.
  *
  *   pnpm agent-docs           write them

@@ -3,7 +3,7 @@
  * Every public name has a consumer. A name nothing in the repo uses is a name nobody has tried: its shape, its words
  * and its docs are guesses. So each name an app can reach must be used by an app in the repo:
  *
- * - every runtime value an app entry of `jali` exports (the entries come from packages/jali/package.json's exports,
+ * - every runtime value an app entry of `jali-layout` exports (the entries come from packages/jali/package.json's exports,
  *   followed through aliases and re-exports to what they declare), used for real by an example: called, rendered as
  *   a JSX element, read or passed. An import, a re-export, a comment or a type position isn't a use.
  * - every `createJali` option and every pane-kind option (`definePane`), given a value by an example: a property of an
@@ -14,7 +14,7 @@
  * - every type an app entry exports, named by an example (in a type, too) or reachable from a public value's
  *   signature: what a function takes and returns, an un-annotated constant's shape, and the types those name in turn.
  *
- * The app entries are every entry but `jali/adapter`: that one is for people writing a framework adapter, may change in
+ * The app entries are every entry but `jali-layout/adapter`: that one is for people writing a framework adapter, may change in
  * any minor version, and no app imports it (tooling/public-types.mjs leaves it out the same way).
  *
  * The examples are examples/* (their unit tests included). The docs site and the packages' own tests are not
@@ -105,7 +105,7 @@ const entries = Object.entries(pkg.exports)
   .filter(([, e]) => typeof e === "object" && /\.tsx?$/.test(e.source ?? ""))
   .filter(([sub]) => sub !== "./adapter")
   .map(([sub, e]) => ({
-    name: sub === "." ? "jali" : `jali/${sub.slice(2)}`,
+    name: sub === "." ? pkg.name : `${pkg.name}/${sub.slice(2)}`,
     file: join(root, "packages/jali", e.source),
   }));
 
@@ -290,7 +290,7 @@ const reached = new Set();
 
 // ---------- Real Data Studio, an extra witness ----------
 // Read as text (it is its own program, with its own copy of Jali): a value counts where a file that imports it from a
-// `jali` entry uses it outside the import; an option, where a file that calls `createJali` or `definePane` gives it.
+// `jali-layout` entry uses it outside the import; an option, where a file that calls `createJali` or `definePane` gives it.
 const dataStudio = existsSync(DATA_STUDIO) ? [] : null;
 if (dataStudio) {
   const read = (dir) => {

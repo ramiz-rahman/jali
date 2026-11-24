@@ -1,6 +1,6 @@
 import { defineConfig } from "vite-plus";
 
-// `vp pack` builds the published package, `jali`, from the workspace packages @jali/core and @jali/react (private):
+// `vp pack` builds the published package, `jali-layout`, from the workspace packages @jali/core and @jali/react (private):
 // ESM, declarations and source maps, one entry per subpath. The code comes from their source (the "source"
 // condition); the declarations from their dist/, so build them first (`pnpm build:packages` does, in order).
 //
@@ -8,8 +8,8 @@ import { defineConfig } from "vite-plus";
 //   An app's bundler tree-shakes each, as it did @jali/core's and @jali/react's dist, and the size gate measures
 //   each as before (tooling/size.mjs).
 // - "use client" starts the `react` chunk and every entry that re-exports it, so a React Server Components host
-//   (Next.js's App Router) loads them on the client. The framework-free entries (`jali`, `jali/url`,
-//   `jali/testing`, `jali/adapter`) and the `core` chunk don't have it.
+//   (Next.js's App Router) loads them on the client. The framework-free entries (`jali-layout`, `jali-layout/url`,
+//   `jali-layout/testing`, `jali-layout/adapter`) and the `core` chunk don't have it.
 // - `layout` is a namespace (`export * as layout`). Bundled, it becomes an object of getters an app can't tree-shake,
 //   so it is built as a file of its own and re-exported from it (`export * as layout from "./layout.js"`), which
 //   bundlers tree-shake member by member. `dist/layout.js` is not an entry of the package.

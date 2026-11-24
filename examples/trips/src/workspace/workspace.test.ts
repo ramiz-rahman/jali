@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
-import { listCommands, type Jali } from "jali";
-import { chooserRequest, testJaliOptions } from "jali/testing";
+import { listCommands, type Jali } from "jali-layout";
+import { chooserRequest, testJaliOptions } from "jali-layout/testing";
 import { createServices } from "../state/services";
 import { DEFAULT_PLAN, dayOf } from "../trip/plan";
 import { currentPlace, selectPlace, showDay } from "./hub";

@@ -11,7 +11,7 @@
  * The cursor is the pane's own (`usePaneState`, or Jali's selection): the list is told it and says where it moves.
  */
 import { useCallback, useEffect, useRef, type KeyboardEvent } from "react";
-import { keyHint, type PaneCommand } from "jali";
+import { keyHint, type PaneCommand } from "jali-layout";
 
 /** Something to do on the cursor's row. */
 export interface ListAction {

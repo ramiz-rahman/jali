@@ -1,5 +1,5 @@
 import type { MouseEvent } from "react";
-import { definePane, type PaneProps } from "jali/react";
+import { definePane, type PaneProps } from "jali-layout/react";
 import { tickets } from "./data";
 import { ticket } from "./ticket";
 

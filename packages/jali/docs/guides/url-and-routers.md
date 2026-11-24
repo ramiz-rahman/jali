@@ -6,15 +6,15 @@ With the layout in the address, a person can send a link to what they are lookin
 
 ## Turn it on
 
-Pass `urlSync()`, from `jali/url`, in `features`. It is in `defaultFeatures()` too.
+Pass `urlSync()`, from `jali-layout/url`, in `features`. It is in `defaultFeatures()` too.
 
 `src/jali.ts`
 
 ```tsx
-import { createJali } from "jali";
+import { createJali } from "jali-layout";
 import { orderKinds } from "../pane-kinds/orders";
 import { presets } from "../presets/layouts";
-import { urlSync } from "jali/url";
+import { urlSync } from "jali-layout/url";
 
 export const jali = createJali({
   panes: orderKinds,
@@ -77,7 +77,7 @@ A link reopens the same panes, showing the same objects, in the same arrangement
 | A curated page's item and view, when the link leaves them out | | The reader's last, else `firstItem` and `home` |
 | Params a kind keeps out of links (`appOnly`, `link: false`) | Never written | Your app sets them again |
 
-**Copy link** (in ⌘K, and `copyLink(jali)` from `jali`) copies the address as Jali writes it, so it follows these rules already.
+**Copy link** (in ⌘K, and `copyLink(jali)` from `jali-layout`) copies the address as Jali writes it, so it follows these rules already.
 
 ## Sizes: "local" or "link"
 
@@ -112,7 +112,7 @@ interface LocationPort {
 `src/router-location.ts`
 
 ```tsx
-import type { LocationPort } from "jali";
+import type { LocationPort } from "jali-layout";
 
 /** What a router gives you: read the search string, go to a new one, and hear about changes. */
 export interface RouterHooks {

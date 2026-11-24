@@ -13,7 +13,7 @@ import {
   usePaneState,
   useUnsaved,
   type PaneProps,
-} from "jali/react";
+} from "jali-layout/react";
 import { ScanSearch } from "lucide-react";
 import { Alert } from "#src/vendor/cyberspec/components/ui/alert.tsx";
 import { Badge } from "#src/vendor/cyberspec/components/ui/badge.tsx";

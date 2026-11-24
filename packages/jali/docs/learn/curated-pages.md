@@ -10,14 +10,14 @@ Much work is about one item at a time: a customer, a case, a loan application. F
 
 ## `definePage` describes the page
 
-`definePage`, from `jali/page`, makes the [curated page](../get-started/key-concepts.md#curated-page)'s definition. Pass it to `createJali` as `page`, beside your kinds. An app that never imports `jali/page` ships none of a page's code.
+`definePage`, from `jali-layout/page`, makes the [curated page](../get-started/key-concepts.md#curated-page)'s definition. Pass it to `createJali` as `page`, beside your kinds. An app that never imports `jali-layout/page` ships none of a page's code.
 
 `customer-page.tsx`
 
 ```tsx
 import { LayoutIcon, LifebuoyIcon, ShoppingCartIcon, UserIcon } from "@phosphor-icons/react";
-import { pane, row } from "jali";
-import { definePage, type PageView } from "jali/page";
+import { pane, row } from "jali-layout";
+import { definePage, type PageView } from "jali-layout/page";
 import { customer, customerOrders, customerOverview, customerTickets } from "./customer";
 import { customers } from "./data";
 
@@ -102,8 +102,8 @@ An item id is a number or a string, such as a UUID or a slug. A link carries it 
 When a view shows another object that only your data knows (the borrower of an application, say), read those ids before you call `createJali`, keep them, and let `bind` look them up:
 
 ```ts
-import { createJali, type ObjectRef } from "jali";
-import { definePage, type Page } from "jali/page";
+import { createJali, type ObjectRef } from "jali-layout";
+import { definePage, type Page } from "jali-layout/page";
 
 // Your app's: the page as written, its kinds, and the borrower ids read ahead.
 declare const loanPage: Page<number>;
@@ -132,7 +132,7 @@ While a page is open, `<JaliView>` renders it: your rail, your header, the tabs,
 `jali.ts`
 
 ```tsx
-import { createJali } from "jali";
+import { createJali } from "jali-layout";
 import { customer, customerOrders, customerOverview, customerTickets, order } from "./customer";
 import { customerPage } from "./customer-page";
 import { listOnly } from "./layouts";

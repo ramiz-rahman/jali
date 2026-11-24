@@ -6,7 +6,7 @@
  * Drop targets are marked in the DOM: `data-drop-day="2"` on a day's list (its rows carry `data-stop-index`), or on
  * an overview row, which takes the stop at the end of that day.
  */
-import { edgeScroll, type Jali } from "jali";
+import { edgeScroll, type Jali } from "jali-layout";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { createStore, useStore } from "../state/store";
 

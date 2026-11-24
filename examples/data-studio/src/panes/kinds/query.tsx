@@ -1,5 +1,5 @@
 import { ChartBarIcon, TerminalWindowIcon } from "@phosphor-icons/react";
-import { appOnly, optional, keyHint } from "jali";
+import { appOnly, optional, keyHint } from "jali-layout";
 import {
   definePane,
   IconButton,
@@ -10,7 +10,7 @@ import {
   usePaneState,
   useUnsaved,
   type PaneProps,
-} from "jali/react";
+} from "jali-layout/react";
 import { useEffect, useRef, useState } from "react";
 import { resultFormat } from "@jali-examples/shared/data/labels";
 import { text } from "@jali-examples/shared/store";

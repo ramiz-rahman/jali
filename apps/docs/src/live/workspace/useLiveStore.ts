@@ -1,8 +1,8 @@
 /** A store for one figure on the shop, embedded in the page as every workspace is (./embedded.ts). */
 import { useState } from "react";
-import { createPaneKinds, createJaliStore, type JaliStore } from "jali/adapter";
-import { chooser } from "jali/chooser";
-import { palette } from "jali/palette";
+import { createPaneKinds, createJaliStore, type JaliStore } from "jali-layout/adapter";
+import { chooser } from "jali-layout/chooser";
+import { palette } from "jali-layout/palette";
 import { buildDemoLayout, type DemoLayoutId } from "../shop/layouts";
 import { shopKinds } from "../shop/kinds";
 import { embedded, useEmbeddedId } from "./embedded";

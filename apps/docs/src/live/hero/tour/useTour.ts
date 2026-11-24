@@ -7,7 +7,7 @@
  *  - it pauses while the hero is out of view or the tab is hidden, and everything is torn down on unmount.
  */
 import { useEffect, useRef, useState, type RefObject } from "react";
-import type { JaliStore } from "jali/adapter";
+import type { JaliStore } from "jali-layout/adapter";
 import { readStored, STORAGE_KEYS, writeStored } from "../../../ui/lib/storage";
 import { createClock, Stopped, type Clock } from "./clock";
 import { createDriver, settle, type TourPanel } from "./driver";

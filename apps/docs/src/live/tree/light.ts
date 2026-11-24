@@ -3,7 +3,7 @@
  * which panes are lit from the tree. Both run again when `model` changes, since Jali may re-create a pane, tab or chip.
  */
 import { useLayoutEffect, type RefObject } from "react";
-import type { Model } from "jali/adapter";
+import type { Model } from "jali-layout/adapter";
 
 const LIT = ["data-live-lit", "data-live-dim"] as const;
 

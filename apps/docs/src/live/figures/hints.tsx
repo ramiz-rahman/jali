@@ -13,7 +13,7 @@ import {
   TreeStructureIcon,
   XIcon,
 } from "@phosphor-icons/react";
-import type { LayoutNode, PaneNode } from "jali";
+import type { LayoutNode, PaneNode } from "jali-layout";
 import { buildDemoLayout, type DemoLayoutId } from "../shop/layouts";
 
 export interface Hint {

@@ -1,7 +1,7 @@
-import { createJali, memoryLocation, memoryStorage } from "jali";
+import { createJali, memoryLocation, memoryStorage } from "jali-layout";
 import { launcherKind, orderKind, ordersKind } from "./kinds";
-import { palette } from "jali/palette";
-import { urlSync } from "jali/url";
+import { palette } from "jali-layout/palette";
+import { urlSync } from "jali-layout/url";
 
 export const jali = createJali({
   panes: [ordersKind, orderKind], // the kinds of pane it can show

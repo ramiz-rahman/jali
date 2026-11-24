@@ -2,7 +2,7 @@
  * The status line: Jali's shelf (tucked and folded panes, as chips), the keys worth knowing, read from the keymap,
  * and a plain note that the businesses and prices are made up.
  */
-import { Shelf, useJali, useJaliState } from "jali/react";
+import { Shelf, useJali, useJaliState } from "jali-layout/react";
 import { BuiltWithJali, Maker } from "@jali-examples/shared/maker/maker";
 import "./status-line.css";
 

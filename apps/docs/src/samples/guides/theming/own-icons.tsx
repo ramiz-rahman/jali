@@ -1,5 +1,5 @@
-import type { Jali } from "jali";
-import { JaliRoot } from "jali/react";
+import type { Jali } from "jali-layout";
+import { JaliRoot } from "jali-layout/react";
 import { sprite } from "./my-icons";
 
 // Three of Jali's icons, yours; the rest stay Phosphor's.

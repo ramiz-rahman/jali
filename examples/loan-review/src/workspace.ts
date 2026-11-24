@@ -3,8 +3,8 @@
  * page and stays in it, so there is no free workspace to leave to. It is made once the parties are read (parties.ts),
  * since the page binds its views from them.
  */
-import { createJali, type Jali, type JaliOptions } from "jali";
-import { defaultFeatures } from "jali/features";
+import { createJali, type Jali, type JaliOptions } from "jali-layout";
+import { defaultFeatures } from "jali-layout/features";
 import { makerCommand } from "@jali-examples/shared/maker/maker";
 import { loanReviewKinds } from "./kinds";
 import { chromeCommands } from "./page/chrome";

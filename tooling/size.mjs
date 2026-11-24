@@ -76,18 +76,21 @@ const without = (...have) =>
 // The per-feature scenarios: the floor (bare.tsx) and one feature, written as they
 // run (tooling/size/.entries/). Each one's budget is set from what it ships (BUDGETS).
 const FEATURE_SCENARIOS = {
-  url: { imports: 'import { urlSync } from "jali/url";', features: "[urlSync()]" },
-  palette: { imports: 'import { palette } from "jali/palette";', features: "[palette()]" },
-  settings: { imports: 'import { settings } from "jali/settings";', features: "[settings()]" },
-  chooser: { imports: 'import { chooser } from "jali/chooser";', features: "[chooser()]" },
+  url: { imports: 'import { urlSync } from "jali-layout/url";', features: "[urlSync()]" },
+  palette: { imports: 'import { palette } from "jali-layout/palette";', features: "[palette()]" },
+  settings: {
+    imports: 'import { settings } from "jali-layout/settings";',
+    features: "[settings()]",
+  },
+  chooser: { imports: 'import { chooser } from "jali-layout/chooser";', features: "[chooser()]" },
   rename: {
-    imports: 'import { rename } from "jali/rename";',
+    imports: 'import { rename } from "jali-layout/rename";',
     features: "[rename({ run: () => {} })]",
   },
-  popOut: { imports: 'import { popOut } from "jali/pop-out";', features: "[popOut()]" },
-  pressed: { imports: 'import { pressed } from "jali/pressed";', features: "[pressed()]" },
+  popOut: { imports: 'import { popOut } from "jali-layout/pop-out";', features: "[popOut()]" },
+  pressed: { imports: 'import { pressed } from "jali-layout/pressed";', features: "[pressed()]" },
   defaults: {
-    imports: 'import { defaultFeatures } from "jali/features";',
+    imports: 'import { defaultFeatures } from "jali-layout/features";',
     features: "defaultFeatures()",
   },
 };
@@ -136,7 +139,7 @@ const SCENARIOS = {
       },
     ]),
   ),
-  // A curated page over the floor (definePage, from jali/page).
+  // A curated page over the floor (definePage, from jali-layout/page).
   "+page": { entry: "page.tsx", budget: BUDGETS["+page"], mustNotShip: without("page") },
 };
 
@@ -151,7 +154,7 @@ function featureEntry(name) {
   writeFileSync(
     file,
     bare
-      .replace('import "jali/styles.css";', `${imports}\nimport "jali/styles.css";`)
+      .replace('import "jali-layout/styles.css";', `${imports}\nimport "jali-layout/styles.css";`)
       .replace(
         "  layout: row(note({ id: 1 }), note({ id: 2 })),\n",
         `  layout: row(note({ id: 1 }), note({ id: 2 })),\n  features: ${features},\n`,

@@ -8,7 +8,7 @@
  */
 import { useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { WaveSineIcon } from "@phosphor-icons/react";
-import { useActivity, useJaliState } from "jali/react";
+import { useActivity, useJaliState } from "jali-layout/react";
 import { useFrame, useTransport } from "../../audio/react";
 import { clamp } from "../../ui/lib/numbers";
 import { useServices } from "../../services";

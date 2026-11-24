@@ -12,7 +12,7 @@
   "dependencies": {
     "@jali-examples/shared": "workspace:*",
     "@phosphor-icons/react": "^2.1.10",
-    "jali": "workspace:*",
+    "jali-layout": "workspace:*",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },

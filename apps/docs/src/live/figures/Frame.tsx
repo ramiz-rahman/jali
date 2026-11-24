@@ -28,8 +28,8 @@ import {
   type Layout,
   type JaliStore,
   type Model,
-} from "jali/adapter";
-import { KindIcon } from "jali/react";
+} from "jali-layout/adapter";
+import { KindIcon } from "jali-layout/react";
 import { demoLayouts, type DemoLayoutId } from "../shop/layouts";
 import { colourOf } from "../tree/colours";
 import { JaliProvider } from "../workspace/jali-gaps";

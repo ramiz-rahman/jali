@@ -1,7 +1,7 @@
 /**
- * @jali/react's public surface: what `jali/react` re-exports (packages/jali/src/react.ts lists it name by name).
+ * @jali/react's public surface: what `jali-layout/react` re-exports (packages/jali/src/react.ts lists it name by name).
  * Components and hooks for a Jali instance, with Jali's own icons (`<JaliRoot icons>` replaces any). Styles come from
- * `jali/styles.css`. internal.ts adds what the published package needs beyond this (the features).
+ * `jali-layout/styles.css`. internal.ts adds what the published package needs beyond this (the features).
  */
 
 // ---------- start here ----------

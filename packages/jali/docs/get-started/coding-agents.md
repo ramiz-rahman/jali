@@ -4,7 +4,7 @@ The rules a coding agent, or a person, should follow when adding Jali to an app.
 
 Jali does a lot for a pane: it places it, folds it, keeps its state and asks before it loses work. It can only do that if the pane's content follows a few rules. This page lists them, with the reason for each. Give it to your agent along with the task.
 
-> **Tip: The docs come with the package.** Every page of these docs is in `jali` as Markdown, for the version you installed: `node_modules/jali/docs/README.md` lists them, and this page is `docs/get-started/coding-agents.md`. An agent that reads them there works from docs that match its code. Each page here is also Markdown from the buttons under its title.
+> **Tip: The docs come with the package.** Every page of these docs is in `jali-layout` as Markdown, for the version you installed: `node_modules/jali-layout/docs/README.md` lists them, and this page is `docs/get-started/coding-agents.md`. An agent that reads them there works from docs that match its code. Each page here is also Markdown from the buttons under its title.
 
 To give an agent the workflow as well, add Jali's skill, `skills/jali` in Jali's repository. It tells the agent to read these rules and the installed docs first, and to check its work against them.
 
@@ -32,7 +32,7 @@ Keys reach the pane's content first. Handle the keys your content uses and call 
 
 ```tsx
 import { useState, type KeyboardEvent } from "react";
-import { definePane, type PaneProps } from "jali/react";
+import { definePane, type PaneProps } from "jali-layout/react";
 import { tickets } from "./data";
 import { ticket } from "./ticket";
 
@@ -118,8 +118,14 @@ A draft, a sort, a scroll position: keep these with `usePaneState(key, initial)`
 
 ```tsx
 import { useState } from "react";
-import { keyHint } from "jali";
-import { definePane, useCommands, usePaneState, useUnsaved, type PaneProps } from "jali/react";
+import { keyHint } from "jali-layout";
+import {
+  definePane,
+  useCommands,
+  usePaneState,
+  useUnsaved,
+  type PaneProps,
+} from "jali-layout/react";
 import { noteBody, saveNote } from "./data";
 
 const noteParams = { id: Number };
@@ -183,7 +189,7 @@ A pane gets `paused: true` while it is out of sight: behind a tab, tucked, folde
 
 ```tsx
 import { useEffect, useState } from "react";
-import { definePane, type PaneProps } from "jali/react";
+import { definePane, type PaneProps } from "jali-layout/react";
 
 // A live clock that stops while its pane is out of sight (behind a tab, tucked, folded or covered by a maximised pane).
 function Clock({ paused }: PaneProps) {
@@ -214,11 +220,11 @@ With TanStack Query, pass `enabled: !paused` so hidden panes stop fetching, and 
 
 Jali has no Tailwind in it. Its styles are plain CSS on `--jali-*` tokens, in the `jali` cascade layer, so it works the same in apps with and without Tailwind. Don't add Tailwind classes to Jali's parts, don't copy its parts to restyle them, and don't use `!important`. To change how Jali looks, set its tokens, or import the Tailwind bridge (below). The content inside your panes is yours: style it the way your app styles everything else.
 
-Name the layer order once, at the top of your CSS: `@layer base, jali;`, or with Tailwind `@layer theme, base, jali, components, utilities;`. Then set tokens by hand, or import `jali/tailwind.css` to take your Tailwind theme. [Theming](../guides/theming.md) has the details.
+Name the layer order once, at the top of your CSS: `@layer base, jali;`, or with Tailwind `@layer theme, base, jali, components, utilities;`. Then set tokens by hand, or import `jali-layout/tailwind.css` to take your Tailwind theme. [Theming](../guides/theming.md) has the details.
 
 ## Before you write code
 
-Turn on only the features the app uses, each from its own entry: `createJali({ features: [urlSync(), palette()] })`, or `defaultFeatures()` from `jali/features` for Jali's usual set. Without `urlSync()` the layout isn't in the address; without `palette()` there is no ⌘K. See [Features](../guides/your-app.md#choose-features).
+Turn on only the features the app uses, each from its own entry: `createJali({ features: [urlSync(), palette()] })`, or `defaultFeatures()` from `jali-layout/features` for Jali's usual set. Without `urlSync()` the layout isn't in the address; without `palette()` there is no ⌘K. See [Features](../guides/your-app.md#choose-features).
 
 ## A checklist for a review
 

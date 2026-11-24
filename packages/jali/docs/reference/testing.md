@@ -1,4 +1,4 @@
-# jali/testing
+# jali-layout/testing
 
 An instance for tests, keys, and what a rendered pane would report, without the adapter's internals.
 
@@ -8,7 +8,7 @@ What your app's own tests need. See [Test an instance](../guides/testing.md).
 
 ### createTestJali
 
-*function*, from `jali/testing`
+*function*, from `jali-layout/testing`
 
 ```ts
 createTestJali(options: TestJaliOptions): { jali: Jali; location: TestLocation }
@@ -18,7 +18,7 @@ createTestJali(options: TestJaliOptions): { jali: Jali; location: TestLocation }
 
 ### testJaliOptions
 
-*function*, from `jali/testing`
+*function*, from `jali-layout/testing`
 
 ```ts
 testJaliOptions(options?: { search?: string; size?: { width: number; height: number } }): { options: Partial<JaliOptions>; location: TestLocation }
@@ -30,7 +30,7 @@ The same options, for an app that makes its instance in a function of its own: p
 
 ### reportUnsaved
 
-*function*, from `jali/testing`
+*function*, from `jali-layout/testing`
 
 ```ts
 reportUnsaved(jali: AnyJali, pane: string, what: string | null): ActionResult
@@ -40,7 +40,7 @@ What a rendered pane's `useUnsaved` reports: `what` is unsaved in `pane`, or not
 
 ### reportPaneState
 
-*function*, from `jali/testing`
+*function*, from `jali-layout/testing`
 
 ```ts
 reportPaneState(jali: AnyJali, pane: string, key: string, value: unknown): ActionResult
@@ -50,7 +50,7 @@ What a rendered pane's `usePaneState` keeps: `value` under `key`, for the object
 
 ### paneStateOf
 
-*function*, from `jali/testing`
+*function*, from `jali-layout/testing`
 
 ```ts
 paneStateOf(jali: AnyJali, pane: string): Record<string, unknown> | undefined
@@ -60,7 +60,7 @@ A pane's own state, for the object it shows now.
 
 ### discardQuestion
 
-*function*, from `jali/testing`
+*function*, from `jali-layout/testing`
 
 ```ts
 discardQuestion(jali: AnyJali): { panes: readonly string[] } | null
@@ -70,7 +70,7 @@ discardQuestion(jali: AnyJali): { panes: readonly string[] } | null
 
 ### answerDiscard
 
-*function*, from `jali/testing`
+*function*, from `jali-layout/testing`
 
 ```ts
 answerDiscard(jali: AnyJali, answer: "discard" | "keep"): ActionResult
@@ -80,7 +80,7 @@ Answers the question as the person would: Discard makes the change it held, Keep
 
 ### chooserRequest
 
-*function*, from `jali/testing`
+*function*, from `jali-layout/testing`
 
 ```ts
 chooserRequest(jali: AnyJali): ChooseOptions<unknown> | null
@@ -90,7 +90,7 @@ What `jali.dialogs.choose` is asking the person now, or `null`. Choose by callin
 
 ### lastAnnouncement
 
-*function*, from `jali/testing`
+*function*, from `jali-layout/testing`
 
 ```ts
 lastAnnouncement(jali: AnyJali): string
@@ -102,7 +102,7 @@ The last thing the instance said to assistive technology.
 
 ### TestJaliOptions
 
-*type*, from `jali/testing`
+*type*, from `jali-layout/testing`
 
 ```ts
 interface TestJaliOptions extends JaliOptions { search?: string }
@@ -112,7 +112,7 @@ interface TestJaliOptions extends JaliOptions { search?: string }
 
 ### TestLocation
 
-*type*, from `jali/testing`
+*type*, from `jali-layout/testing`
 
 ```ts
 type TestLocation = LocationPort & { entries: string[]; visit(search: string): void }

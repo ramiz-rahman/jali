@@ -1,6 +1,6 @@
 /** Notes on a customer, by the shop's staff. */
 import { NoteIcon } from "@phosphor-icons/react";
-import { definePane, type PaneProps } from "jali/react";
+import { definePane, type PaneProps } from "jali-layout/react";
 import { customerById, notes } from "../data";
 import { kindIcon } from "../ui/KindIcon";
 

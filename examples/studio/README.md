@@ -1,6 +1,6 @@
 # Studio: a Jali example
 
-An audio session editor for short multitrack recordings. A library of sessions, a transcript that lights up word by word as it plays, a timeline of the tracks, a mixer on the real audio graph, a detail for each segment and a list of markers. One transport, in the app's own top bar, plays the session; every pane follows its playhead. It is built on `jali` alone, with a hardware-inspired look: each pane is a device on a desk.
+An audio session editor for short multitrack recordings. A library of sessions, a transcript that lights up word by word as it plays, a timeline of the tracks, a mixer on the real audio graph, a detail for each segment and a list of markers. One transport, in the app's own top bar, plays the session; every pane follows its playhead. It is built on `jali-layout` alone, with a hardware-inspired look: each pane is a device on a desk.
 
 ```sh
 vp install              # at the repository's root

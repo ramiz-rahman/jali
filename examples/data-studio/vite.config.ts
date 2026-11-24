@@ -1,7 +1,7 @@
 import { defineConfig, defaultClientConditions } from "vite-plus";
 import react from "@vitejs/plugin-react";
 
-// Resolves jali to the packages' source ("source" condition), so the app runs them without a build.
+// Resolves jali-layout to the packages' source ("source" condition), so the app runs them without a build.
 export default defineConfig({
   root: __dirname,
   // "./": every asset is linked relative to the page, so the built site works from any path. The layout lives in

@@ -3,7 +3,7 @@
  * `beforeClose`, index.ts), so it can speak of orders, not "unsaved changes". The dialog that asks it is the shell's
  * (shell/Question.tsx); a test answers it directly.
  */
-import type { CloseRequest } from "jali";
+import type { CloseRequest } from "jali-layout";
 
 export interface Question {
   title: string;

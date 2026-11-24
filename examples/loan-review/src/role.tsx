@@ -4,7 +4,7 @@
  * comes from the address (`?role=processor`, `?role=underwriter`, default underwriter), read once when the app makes
  * its instance; the switch in the header goes to the other persona's address, which makes the instance again.
  */
-import type { Allow } from "jali";
+import type { Allow } from "jali-layout";
 
 export type Role = "underwriter" | "processor";
 

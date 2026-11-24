@@ -5,7 +5,7 @@
  */
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { ChartLineIcon } from "@phosphor-icons/react";
-import { definePane, useCommands, usePaneState, type PaneProps } from "jali/react";
+import { definePane, useCommands, usePaneState, type PaneProps } from "jali-layout/react";
 import { isRecord, oneOf } from "@jali-examples/shared/store";
 import { useTopic } from "../../market/react";
 import { RANGES, type Bar, type Instrument, type Quote, type Range } from "../../market/types";

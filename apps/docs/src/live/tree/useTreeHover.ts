@@ -3,7 +3,7 @@
  * pane under the pointer lights its box, every pane wears its identity colour, and the map follows a divider drag.
  */
 import { useMemo, useState, useSyncExternalStore, type PointerEvent, type RefObject } from "react";
-import { layout as jl, type JaliStore, type LayoutNode } from "jali/adapter";
+import { layout as jl, type JaliStore, type LayoutNode } from "jali-layout/adapter";
 import { colourOf } from "./colours";
 import { useLitPanes, usePaneColours } from "./light";
 import { panesUnder, type Hover } from "./nodes";

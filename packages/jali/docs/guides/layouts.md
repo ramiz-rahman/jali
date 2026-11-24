@@ -33,7 +33,7 @@ A pane opened from a list can follow it. Give it `linkedTo` (the list's pane id)
 `src/layouts.ts`
 
 ```tsx
-import { column, pane, row, tabs, type PresetOptions } from "jali";
+import { column, pane, row, tabs, type PresetOptions } from "jali-layout";
 import { customerKind, orderKind, orderList } from "../pane-kinds/orders";
 
 export const presets: PresetOptions[] = [
@@ -79,7 +79,7 @@ A list that is in both presets keeps its selection. When the new preset puts a f
 `src/jali.ts`
 
 ```tsx
-import { createJali } from "jali";
+import { createJali } from "jali-layout";
 import { orderKinds } from "../pane-kinds/orders";
 import { presets } from "./layouts";
 
@@ -110,7 +110,7 @@ Jali lists presets in ⌘K. If you want them in your top bar too, read them from
 `src/PresetMenu.tsx`
 
 ```tsx
-import { useJali, useJaliState } from "jali/react";
+import { useJali, useJaliState } from "jali-layout/react";
 
 /** The presets as buttons in your own top bar. Render it inside <JaliRoot>. */
 export function PresetMenu() {
@@ -133,7 +133,7 @@ export function PresetMenu() {
 To keep each person's layout on your server, save it when it changes and give it back when you make the instance:
 
 ```ts
-import { createJali } from "jali";
+import { createJali } from "jali-layout";
 import { api, presets, user } from "./app";
 
 const saved = await api.loadLayout(user.id); // what you saved last time, or null
@@ -162,7 +162,7 @@ jali.on("layout", ({ layout, source }) => {
 By default, choosing a preset builds its layout afresh, so a person who rearranges one preset, moves to another and comes back finds their changes gone. To bring each preset back as it was left, keep its layout as it changes and give it back with `saved`:
 
 ```ts
-import { createJali, type LayoutInput } from "jali";
+import { createJali, type LayoutInput } from "jali-layout";
 import { presets } from "./presets";
 
 const left = new Map<string, LayoutInput>(); // or localStorage, or your server
@@ -195,7 +195,7 @@ An app that doesn't need presets passes one `layout`. It needs one or the other:
 `src/jali.ts`
 
 ```tsx
-import { createJali } from "jali";
+import { createJali } from "jali-layout";
 import { orderKinds, orderList } from "../pane-kinds/orders";
 
 // With no presets, Jali opens on one layout: here, the order list alone.
@@ -231,11 +231,11 @@ The rest of this guide sets up an app of saved reports, where people name and pi
 
 ```tsx
 import { useSyncExternalStore } from "react";
-import { createJali, pane, tabs } from "jali";
-import { definePane, useTitle } from "jali/react";
+import { createJali, pane, tabs } from "jali-layout";
+import { definePane, useTitle } from "jali-layout/react";
 import { ChartBarIcon } from "@phosphor-icons/react";
-import { defaultFeatures } from "jali/features";
-import { rename } from "jali/rename";
+import { defaultFeatures } from "jali-layout/features";
+import { rename } from "jali-layout/rename";
 
 // Your data: saved reports, with the name and pin the person gave each. Jali stores neither.
 interface Report {
@@ -336,7 +336,7 @@ Close other tabs and Close tabs to the right are one change. `beforeClose` is as
 Give `createJali` a `tabMenu`: a function of the tab's pane. It's called each time a menu opens, and its items come after Jali's, below a line:
 
 ```tsx
-import { createJali } from "jali";
+import { createJali } from "jali-layout";
 
 const jali = createJali({
   panes,
@@ -383,11 +383,11 @@ A tab is as wide as its title, up to `--jali-tab-max-width` (default 20rem), and
 
 ### Rename in place
 
-Jali doesn't store names. Your app saves the name, and the pane shows it, usually with [`useTitle`](../reference/react.md#usetitle). Turn renaming on with the `rename()` feature, from `jali/rename`, and give it a `run` function:
+Jali doesn't store names. Your app saves the name, and the pane shows it, usually with [`useTitle`](../reference/react.md#usetitle). Turn renaming on with the `rename()` feature, from `jali-layout/rename`, and give it a `run` function:
 
 ```tsx
-import { createJali } from "jali";
-import { rename } from "jali/rename";
+import { createJali } from "jali-layout";
+import { rename } from "jali-layout/rename";
 
 const jali = createJali({
   panes,
@@ -441,7 +441,7 @@ Jali's root is the size its page gives it. When panes don't fit, Jali folds some
 *Live demo on the site: Six orders in a row that scrolls, beside the list they came from. Swipe sideways over them, or hold Shift and use the wheel.*
 
 ```ts
-import { row } from "jali";
+import { row } from "jali-layout";
 import { stage } from "./pipeline";
 
 row({ scroll: "x" }, stage({ name: "Lead" }), stage({ name: "Qualified" }), stage({ name: "Demo" }));
@@ -452,8 +452,8 @@ The panes in it are ordinary panes, of any kind: headers, menus, tabs, following
 `src/jali.tsx`
 
 ```tsx
-import { column, createJali, pane, row } from "jali";
-import { definePane } from "jali/react";
+import { column, createJali, pane, row } from "jali-layout";
+import { definePane } from "jali-layout/react";
 
 // A sales pipeline: every stage is a pane, side by side at a width you can read, in a row that scrolls.
 const STAGES = ["Lead", "Qualified", "Demo", "Proposal", "Negotiation", "Won"] as const;
@@ -531,7 +531,7 @@ Moving a pane in is the same in reverse: drag it onto a pane in the row, or move
 If your app has its own drag, a card or a list row, give it the same edge scrolling with `edgeScroll`:
 
 ```ts
-import { edgeScroll } from "jali";
+import { edgeScroll } from "jali-layout";
 
 let last = { x: 0, y: 0 };
 // Runs after each step of scrolling, so your drag can find what is under the pointer again.

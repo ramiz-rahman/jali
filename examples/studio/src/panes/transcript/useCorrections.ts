@@ -5,7 +5,7 @@
  * library's other followers move on; once saved or discarded it catches up).
  */
 import { useMemo, useState } from "react";
-import { usePaneState, useUnsaved } from "jali/react";
+import { usePaneState, useUnsaved } from "jali-layout/react";
 import type { SessionView } from "../../model/view";
 import { segmentById } from "../../sessions/derive";
 import type { SegmentData } from "../../sessions/types";

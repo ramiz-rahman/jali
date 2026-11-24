@@ -1,4 +1,4 @@
-import { copyLink, listCommands, runCommand } from "jali";
+import { copyLink, listCommands, runCommand } from "jali-layout";
 import { store } from "./store";
 
 // A toolbar button that runs one of Jali's commands and shows its keys.

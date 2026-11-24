@@ -3,7 +3,7 @@
  * mark is looked up through the packets area's `captureMark`, and a mark that does not exist is reported, not
  * guessed, so the pane can say so.
  */
-import type { ObjectRef } from "jali";
+import type { ObjectRef } from "jali-layout";
 import type { Target } from "./types";
 
 export type Resolved = { ok: true; ref: ObjectRef } | { ok: false; why: string };

@@ -7,10 +7,10 @@ Everything Jali draws reads `--jali-*` CSS variables, called tokens. Change a to
 ## Load the styles
 
 ```ts
-import "jali/styles.css";
+import "jali-layout/styles.css";
 ```
 
-This brings Jali's default theme and the panes' styles. It is plain CSS: no Tailwind or build step needed. From a stylesheet, `@import "jali/styles.css";` does the same, as the next section does; it works in Vite and any bundler that reads a package's `exports`. `theme.css` and `tailwind.css` import the same way.
+This brings Jali's default theme and the panes' styles. It is plain CSS: no Tailwind or build step needed. From a stylesheet, `@import "jali-layout/styles.css";` does the same, as the next section does; it works in Vite and any bundler that reads a package's `exports`. `theme.css` and `tailwind.css` import the same way.
 
 ## The layer line
 
@@ -21,7 +21,7 @@ Cascade layers are ordered by where each name first appears. Declare yours, with
 ```tsx
 /* app.css, the one stylesheet your app imports. The layer line comes first, before Jali's CSS is loaded. */
 @layer base, jali, components;
-@import "jali/styles.css";
+@import "jali-layout/styles.css";
 @import "./teal.css";
 
 @layer base {
@@ -111,7 +111,7 @@ Jali also has its own theme setting (System, Light or Dark, in its settings pane
 `src/theme.ts`
 
 ```tsx
-import type { ThemeChoice, Jali } from "jali";
+import type { ThemeChoice, Jali } from "jali-layout";
 
 /**
  * Your app's own light/dark switch. Jali has a theme setting too (System, Light or Dark in its settings panel), and
@@ -135,8 +135,8 @@ If your app uses Tailwind, import the bridge after Jali's styles. It points Jali
 /* app.css: the stylesheet Tailwind builds. */
 @layer theme, base, jali, components, utilities;
 @import "tailwindcss";
-@import "jali/styles.css";
-@import "jali/tailwind.css";
+@import "jali-layout/styles.css";
+@import "jali-layout/tailwind.css";
 
 /* Your theme. Jali reads these names (the same ones Chakni reads), each with a fallback to its own default. */
 @theme {
@@ -202,8 +202,8 @@ Jali comes with its own icons, so you install no icon library for them. They are
 `src/App.tsx`
 
 ```tsx
-import type { Jali } from "jali";
-import { JaliRoot } from "jali/react";
+import type { Jali } from "jali-layout";
+import { JaliRoot } from "jali-layout/react";
 import { sprite } from "./my-icons";
 
 // Three of Jali's icons, yours; the rest stay Phosphor's.
@@ -223,7 +223,7 @@ To replace them all, type your set as `JaliIcons`, and the types tell you when o
 `src/my-icons.tsx`
 
 ```tsx
-import type { JaliIcon, JaliIcons } from "jali/react";
+import type { JaliIcon, JaliIcons } from "jali-layout/react";
 
 /** Your design system's icons: one SVG sprite, a symbol per icon. */
 export const sprite = (id: string): JaliIcon =>
@@ -326,7 +326,7 @@ Pass `messages` to `createJali`. Give only the words you want to change. Everyth
 `src/jali.ts`
 
 ```tsx
-import { createJali } from "jali";
+import { createJali } from "jali-layout";
 import { orderKind, ordersKind } from "../../reference/kinds";
 
 // Only what changes: the rest stays English.
@@ -360,7 +360,7 @@ Start from `en`, Jali's English messages, and give the type `Messages`. A `Messa
 `src/jali-fr.ts`
 
 ```tsx
-import { en, type Messages } from "jali";
+import { en, type Messages } from "jali-layout";
 
 // A full translation is a `Messages`: leave out a key and the typecheck says which.
 export const fr: Messages = {
@@ -408,8 +408,8 @@ The words belong to the instance: choose them when you call `createJali`. To cha
 `src/App.tsx`
 
 ```tsx
-import { createJali } from "jali";
-import { JaliRoot } from "jali/react";
+import { createJali } from "jali-layout";
+import { JaliRoot } from "jali-layout/react";
 import { orderKind, ordersKind } from "../../reference/kinds";
 import { fr } from "./french";
 
@@ -453,8 +453,8 @@ Jali's Tailwind bridge reads the token names Chakni reads: `--color-primary`, `-
 ```css
 @layer theme, base, jali, components, utilities;
 @import "tailwindcss";
-@import "jali/styles.css";
-@import "jali/tailwind.css";
+@import "jali-layout/styles.css";
+@import "jali-layout/tailwind.css";
 ```
 
 Jali's dark mode also follows Chakni's `.dark` and `.light` classes. See [Theming](theming.md).

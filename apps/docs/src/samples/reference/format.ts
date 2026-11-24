@@ -1,4 +1,4 @@
-import { keyHint } from "jali";
+import { keyHint } from "jali-layout";
 import { store } from "./store";
 
 keyHint("Alt+Enter", "mac"); // "⌥↵"

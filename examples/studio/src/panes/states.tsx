@@ -2,8 +2,8 @@
  * The states a pane shows instead of its object: the object is gone (a link from another copy of Studio), or its
  * session isn't the one in the transport.
  */
-import type { ObjectRef } from "jali";
-import type { MissingProps } from "jali/react";
+import type { ObjectRef } from "jali-layout";
+import type { MissingProps } from "jali-layout/react";
 import { PlayIcon } from "@phosphor-icons/react";
 import { useTransport } from "../audio/react";
 import { useServices } from "../services";

@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { definePane, useActivity, useCommands, useUnsaved, type PaneProps } from "jali/react";
+import {
+  definePane,
+  useActivity,
+  useCommands,
+  useUnsaved,
+  type PaneProps,
+} from "jali-layout/react";
 import { FileTextIcon } from "@phosphor-icons/react";
 
 // Declared before the component, so the component is typed from it: params is { id: number }.

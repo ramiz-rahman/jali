@@ -1,12 +1,12 @@
 import { createRoot } from "react-dom/client";
-import { createJali } from "jali";
-import { JaliRoot } from "jali/react";
-import "jali/styles.css";
+import { createJali } from "jali-layout";
+import { JaliRoot } from "jali-layout/react";
+import "jali-layout/styles.css";
 import "./page.css";
 import { orderKinds } from "../pane-kinds/orders";
 import { presets } from "../presets/layouts";
 import { ticketNote } from "../unsaved/note-editor";
-import { urlSync } from "jali/url";
+import { urlSync } from "jali-layout/url";
 
 // Orders: the address's plain params (l, zoom, peek). Its id names its DOM ids ("orders-pane-…")
 // and its localStorage keys ("orders:…").

@@ -218,7 +218,7 @@ describe("C2b: stored sizes", () => {
 });
 
 /**
- * `jali`'s layout with node `from` renamed `to`, written past every check: ids like these can't enter any way Jali
+ * `jali-layout`'s layout with node `from` renamed `to`, written past every check: ids like these can't enter any way Jali
  * checks (tests/unsafe-ids.test.ts), and reads stay safe if one ever did.
  */
 const smuggle = (jali: ReturnType<typeof make>, from: string, to: string) => {

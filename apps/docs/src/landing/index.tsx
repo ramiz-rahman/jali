@@ -43,7 +43,7 @@ export function Opening({ title, lead }: { title: string; lead: string }) {
         <p className="landing-sub">{lead}</p>
       </div>
       <div className="landing-opening-actions">
-        <Install packages="jali" />
+        <Install packages="jali-layout" />
         <div className="landing-buttons landing-buttons-hero">
           <a className="button button-primary" href="/get-started/quickstart">
             Start the quickstart
@@ -184,7 +184,7 @@ export function Close({
           {title}
         </h2>
         <p className="landing-lead">{lead}</p>
-        <Install packages="jali" />
+        <Install packages="jali-layout" />
         <div className="landing-buttons">
           <a className="button button-primary" href="/get-started/quickstart">
             Start the quickstart
@@ -208,8 +208,10 @@ export function Imports({ children }: { children?: ReactNode }) {
   return (
     <div className="landing-imports">
       <div className="landing-imports-bar">
-        <span className="landing-imports-name">jali</span>
-        <span className="landing-imports-note">No dependencies. jali/react needs React 18.2+.</span>
+        <span className="landing-imports-name">jali-layout</span>
+        <span className="landing-imports-note">
+          No dependencies. jali-layout/react needs React 18.2+.
+        </span>
       </div>
       <ul className="landing-imports-list">{children}</ul>
     </div>

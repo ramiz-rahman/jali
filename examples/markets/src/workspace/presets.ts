@@ -6,7 +6,7 @@
  * Sell (or ⌘K ⌘B); the FX desk keeps it on screen. A pane with the same id in two desks keeps its state across a
  * switch, so a half-written ticket comes along from one desk with a blotter to another.
  */
-import { column, pane, row, type PresetOptions } from "jali";
+import { column, pane, row, type PresetOptions } from "jali-layout";
 import { blotter } from "../panes/blotter";
 import { book } from "../panes/book";
 import { chart } from "../panes/chart";

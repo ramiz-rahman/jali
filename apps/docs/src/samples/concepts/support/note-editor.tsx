@@ -1,6 +1,12 @@
 import { useState } from "react";
-import { keyHint } from "jali";
-import { definePane, useCommands, usePaneState, useUnsaved, type PaneProps } from "jali/react";
+import { keyHint } from "jali-layout";
+import {
+  definePane,
+  useCommands,
+  usePaneState,
+  useUnsaved,
+  type PaneProps,
+} from "jali-layout/react";
 import { noteBody, saveNote } from "./data";
 
 const noteParams = { id: Number };

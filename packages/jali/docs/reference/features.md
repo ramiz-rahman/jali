@@ -2,12 +2,12 @@
 
 What an instance does beyond laying out panes, each a value from its own entry, so an app ships only what it uses.
 
-An instance lays out panes, fits them, focuses, undoes and follows on its own. Everything else is a feature: a value you pass in `createJali({ features })`, imported from its own entry. An app that never imports `jali/palette` ships no palette, its words included.
+An instance lays out panes, fits them, focuses, undoes and follows on its own. Everything else is a feature: a value you pass in `createJali({ features })`, imported from its own entry. An app that never imports `jali-layout/palette` ships no palette, its words included.
 
 ```ts
-import { createJali } from "jali";
-import { defaultFeatures } from "jali/features";
-import { rename } from "jali/rename";
+import { createJali } from "jali-layout";
+import { defaultFeatures } from "jali-layout/features";
+import { rename } from "jali-layout/rename";
 import { saveName } from "./names";
 
 const jali = createJali({ panes, layout, features: [...defaultFeatures(), rename({ run: ({ ref }, text) => saveName(ref, text) })] });
@@ -19,7 +19,7 @@ A feature given again takes the earlier one's place, so `[...defaultFeatures(), 
 
 ### defaultFeatures
 
-*function*, from `jali/features`
+*function*, from `jali-layout/features`
 
 ```ts
 defaultFeatures(): Feature[]
@@ -29,7 +29,7 @@ Jali's usual set, in one call: the address (`urlSync()`), ⌘K (`palette()`), Se
 
 ### urlSync
 
-*function*, from `jali/url`
+*function*, from `jali-layout/url`
 
 ```ts
 urlSync(options?: { location?: LocationPort; prefix?: string; sizes?: LinkSizes }): Feature
@@ -47,7 +47,7 @@ The layout lives in the address: a link reopens it, Back and Forward step throug
 
 ### palette
 
-*function*, from `jali/palette`
+*function*, from `jali-layout/palette`
 
 ```ts
 palette(): Feature
@@ -57,7 +57,7 @@ Jali's command palette, on ⌘K (`keyboard.prefix`). Leave it out when your app'
 
 ### settings
 
-*function*, from `jali/settings`
+*function*, from `jali-layout/settings`
 
 ```ts
 settings(): Feature
@@ -67,7 +67,7 @@ The settings panel (theme, centre drop, pane cap, the keys) and **Open settings*
 
 ### chooser
 
-*function*, from `jali/chooser`
+*function*, from `jali-layout/chooser`
 
 ```ts
 chooser(): Feature
@@ -77,7 +77,7 @@ The chooser: **Add to tabs of…** (⌘K ⌘G) and `jali.dialogs.choose`, an ite
 
 ### rename
 
-*function*, from `jali/rename`
+*function*, from `jali-layout/rename`
 
 ```ts
 rename(options: Rename): Feature
@@ -87,7 +87,7 @@ Renaming a pane in place: double-click or F2 on a tab, or on a lone pane's title
 
 ### popOut
 
-*function*, from `jali/pop-out`
+*function*, from `jali-layout/pop-out`
 
 ```ts
 popOut(): Feature
@@ -101,7 +101,7 @@ The browser's rules apply: Chrome keeps one floating window at a time across all
 
 ### pressed
 
-*function*, from `jali/pressed`
+*function*, from `jali-layout/pressed`
 
 ```ts
 pressed(): Feature
@@ -113,7 +113,7 @@ pressed(): Feature
 
 ### Feature
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 interface Feature { readonly id: FeatureId }
@@ -123,7 +123,7 @@ A feature, made by its entry's function. Pass it in `createJali({ features })`; 
 
 ### FeatureId
 
-*type*, from `jali`
+*type*, from `jali-layout`
 
 ```ts
 type FeatureId = "urlSync" | "palette" | "settings" | "chooser" | "rename" | "popOut" | "pressed"

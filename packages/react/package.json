@@ -2,7 +2,7 @@
   "name": "@jali/react",
   "version": "0.0.0",
   "private": true,
-  "description": "Jali's React components and hooks, as a workspace package: published as `jali/react` and the feature entries (packages/jali). Kept for Data Studio's link until it moves to `jali`.",
+  "description": "Jali's React components and hooks, as a workspace package: published as `jali-layout/react` and the feature entries (packages/jali). Kept for Data Studio's link until it moves to `jali-layout`.",
   "license": "Apache-2.0",
   "author": "Ramiz Rahman (https://ramizrahman.com/)",
   "files": [

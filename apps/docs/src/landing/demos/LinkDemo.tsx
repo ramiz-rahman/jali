@@ -6,7 +6,7 @@
  */
 import { useState, useSyncExternalStore } from "react";
 import { ArrowLeftIcon, ArrowRightIcon } from "@phosphor-icons/react";
-import type { LocationPort } from "jali";
+import type { LocationPort } from "jali-layout";
 import { NamedWorkspace } from "../../live/embed";
 import { useShopDemo } from "./useShopDemo";
 

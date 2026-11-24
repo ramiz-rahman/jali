@@ -1,6 +1,6 @@
 # @jali/core
 
-The framework-free half of [`jali`](../jali): an internal workspace package, never published. Apps install `jali` (this package is its root entry, `jali`, and `jali/adapter` for framework adapters); [its README](../jali/README.md) is the guide for them. This one is for working on the package.
+The framework-free half of [`jali-layout`](../jali): an internal workspace package, never published. Apps install `jali-layout` (this package is its root entry, `jali-layout`, and `jali-layout/adapter` for framework adapters); [its README](../jali/README.md) is the guide for them. This one is for working on the package.
 
 A layout of panes that fits the space it has, with no framework:
 
@@ -13,4 +13,4 @@ An adapter (`@jali/react` is the one Jali ships) draws what the core decides: it
 
 ## Docs
 
-The docs live with the published package: [`packages/jali/docs`](../jali/docs/README.md) (installed, `node_modules/jali/docs/README.md`). A coding agent should read [`get-started/coding-agents.md`](../jali/docs/get-started/coding-agents.md) before writing Jali code.
+The docs live with the published package: [`packages/jali/docs`](../jali/docs/README.md) (installed, `node_modules/jali-layout/docs/README.md`). A coding agent should read [`get-started/coding-agents.md`](../jali/docs/get-started/coding-agents.md) before writing Jali code.

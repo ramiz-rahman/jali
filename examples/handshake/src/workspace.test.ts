@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
-import { listCommands } from "jali";
-import { testJaliOptions } from "jali/testing";
+import { listCommands } from "jali-layout";
+import { testJaliOptions } from "jali-layout/testing";
 import { kinds } from "./kinds";
 import { presets } from "./presets";
 import { createHandshakeJali } from "./workspace";

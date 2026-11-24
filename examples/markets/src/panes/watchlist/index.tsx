@@ -4,7 +4,7 @@
  */
 import { useEffect, useMemo, useRef, type KeyboardEvent } from "react";
 import { ListBulletsIcon } from "@phosphor-icons/react";
-import { keyHint } from "jali";
+import { keyHint } from "jali-layout";
 import {
   definePane,
   useCommands,
@@ -12,7 +12,7 @@ import {
   useJaliState,
   usePaneState,
   type PaneProps,
-} from "jali/react";
+} from "jali-layout/react";
 import { text } from "@jali-examples/shared/store";
 import { isBond } from "../../market/classes";
 import { useMarket, useQuotes } from "../../market/react";

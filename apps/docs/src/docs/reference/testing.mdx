@@ -1,5 +1,5 @@
 ---
-title: "jali/testing"
+title: "jali-layout/testing"
 summary: An instance for tests, keys, and what a rendered pane would report, without the adapter's internals.
 layout: wide
 ---
@@ -10,13 +10,13 @@ What your app's own tests need. See [Test an instance](/guides/testing).
 
 ## Make an instance
 
-<Entry name="createTestJali" kind="function" from="jali/testing" signature={`createTestJali(options: TestJaliOptions): { jali: Jali; location: TestLocation }`}>
+<Entry name="createTestJali" kind="function" from="jali-layout/testing" signature={`createTestJali(options: TestJaliOptions): { jali: Jali; location: TestLocation }`}>
 
 `createJali`, kept apart from the page and from other tests: its address in memory (`location`), storage in memory, a size of 1440 by 900 unless `size` says otherwise, keys as on a Mac, and no DOM focus moved. `search` opens it on a link. Its features are the ones you give, with the address always in memory.
 
 </Entry>
 
-<Entry name="testJaliOptions" kind="function" from="jali/testing" signature={`testJaliOptions(options?: { search?: string; size?: { width: number; height: number } }): { options: Partial<JaliOptions>; location: TestLocation }`}>
+<Entry name="testJaliOptions" kind="function" from="jali-layout/testing" signature={`testJaliOptions(options?: { search?: string; size?: { width: number; height: number } }): { options: Partial<JaliOptions>; location: TestLocation }`}>
 
 The same options, for an app that makes its instance in a function of its own: pass `options` to it, and put your own features before its `features` (`[...defaultFeatures(), ...(options.features ?? [])]`), so its memory address takes the place of `urlSync()`.
 
@@ -24,43 +24,43 @@ The same options, for an app that makes its instance in a function of its own: p
 
 ## Report, read and answer
 
-<Entry name="reportUnsaved" kind="function" from="jali/testing" signature={`reportUnsaved(jali: AnyJali, pane: string, what: string | null): ActionResult`} compact>
+<Entry name="reportUnsaved" kind="function" from="jali-layout/testing" signature={`reportUnsaved(jali: AnyJali, pane: string, what: string | null): ActionResult`} compact>
 
 What a rendered pane's `useUnsaved` reports: `what` is unsaved in `pane`, or nothing is (`null`).
 
 </Entry>
 
-<Entry name="reportPaneState" kind="function" from="jali/testing" signature={`reportPaneState(jali: AnyJali, pane: string, key: string, value: unknown): ActionResult`} compact>
+<Entry name="reportPaneState" kind="function" from="jali-layout/testing" signature={`reportPaneState(jali: AnyJali, pane: string, key: string, value: unknown): ActionResult`} compact>
 
 What a rendered pane's `usePaneState` keeps: `value` under `key`, for the object the pane shows.
 
 </Entry>
 
-<Entry name="paneStateOf" kind="function" from="jali/testing" signature={`paneStateOf(jali: AnyJali, pane: string): Record<string, unknown> | undefined`} compact>
+<Entry name="paneStateOf" kind="function" from="jali-layout/testing" signature={`paneStateOf(jali: AnyJali, pane: string): Record<string, unknown> | undefined`} compact>
 
 A pane's own state, for the object it shows now.
 
 </Entry>
 
-<Entry name="discardQuestion" kind="function" from="jali/testing" signature={`discardQuestion(jali: AnyJali): { panes: readonly string[] } | null`} compact>
+<Entry name="discardQuestion" kind="function" from="jali-layout/testing" signature={`discardQuestion(jali: AnyJali): { panes: readonly string[] } | null`} compact>
 
 "Discard unsaved changes?", while it is asked: the panes that would lose work.
 
 </Entry>
 
-<Entry name="answerDiscard" kind="function" from="jali/testing" signature={`answerDiscard(jali: AnyJali, answer: "discard" | "keep"): ActionResult`} compact>
+<Entry name="answerDiscard" kind="function" from="jali-layout/testing" signature={`answerDiscard(jali: AnyJali, answer: "discard" | "keep"): ActionResult`} compact>
 
 Answers the question as the person would: Discard makes the change it held, Keep editing doesn't.
 
 </Entry>
 
-<Entry name="chooserRequest" kind="function" from="jali/testing" signature={`chooserRequest(jali: AnyJali): ChooseOptions<unknown> | null`} compact>
+<Entry name="chooserRequest" kind="function" from="jali-layout/testing" signature={`chooserRequest(jali: AnyJali): ChooseOptions<unknown> | null`} compact>
 
 What `jali.dialogs.choose` is asking the person now, or `null`. Choose by calling its `onChoose`.
 
 </Entry>
 
-<Entry name="lastAnnouncement" kind="function" from="jali/testing" signature={`lastAnnouncement(jali: AnyJali): string`} compact>
+<Entry name="lastAnnouncement" kind="function" from="jali-layout/testing" signature={`lastAnnouncement(jali: AnyJali): string`} compact>
 
 The last thing the instance said to assistive technology.
 
@@ -68,13 +68,13 @@ The last thing the instance said to assistive technology.
 
 ## Types
 
-<Entry name="TestJaliOptions" kind="type" from="jali/testing" signature={`interface TestJaliOptions extends JaliOptions { search?: string }`} compact>
+<Entry name="TestJaliOptions" kind="type" from="jali-layout/testing" signature={`interface TestJaliOptions extends JaliOptions { search?: string }`} compact>
 
 `createTestJali`'s options: an instance's, and the link it opens on.
 
 </Entry>
 
-<Entry name="TestLocation" kind="type" from="jali/testing" signature={`type TestLocation = LocationPort & { entries: string[]; visit(search: string): void }`} compact>
+<Entry name="TestLocation" kind="type" from="jali-layout/testing" signature={`type TestLocation = LocationPort & { entries: string[]; visit(search: string): void }`} compact>
 
 An address in memory: `entries` lists every address written, and `visit` changes it as Back or a router link would.
 

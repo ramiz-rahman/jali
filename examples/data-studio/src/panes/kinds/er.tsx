@@ -1,5 +1,5 @@
 import { GitForkIcon } from "@phosphor-icons/react";
-import { definePane, type PaneProps } from "jali/react";
+import { definePane, type PaneProps } from "jali-layout/react";
 import type { TableName } from "@jali-examples/shared/data/types";
 import { useCatalog } from "@jali-examples/shared/data/hooks";
 import { erRef, tableInfoOf } from "@jali-examples/shared/panes/shared/refs";

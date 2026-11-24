@@ -14,8 +14,8 @@ import {
   usePaneState,
   useTitle,
   type PaneProps,
-} from "jali/react";
-import { keyHint, type ObjectRef } from "jali";
+} from "jali-layout/react";
+import { keyHint, type ObjectRef } from "jali-layout";
 import { Rows3 } from "lucide-react";
 import { Collapsible } from "#src/vendor/cyberspec/components/ui/collapsible.tsx";
 import { Select } from "#src/vendor/cyberspec/components/ui/select.tsx";

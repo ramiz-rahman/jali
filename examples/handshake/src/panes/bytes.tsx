@@ -5,7 +5,7 @@
  * wire or as plaintext.
  */
 import { useLayoutEffect, useRef, useState, type KeyboardEvent } from "react";
-import { definePane, type PaneProps } from "jali/react";
+import { definePane, type PaneProps } from "jali-layout/react";
 import { Binary } from "lucide-react";
 import { SegmentedControl } from "#src/vendor/cyberspec/components/ui/segmented-control.tsx";
 import { printable } from "#src/packets/bytes.ts";

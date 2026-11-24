@@ -1,5 +1,5 @@
 /** Data Studio's layouts to start from (the bar's presets and ⌘K "Layout: …"). */
-import { column, pane, row, type PresetOptions } from "jali";
+import { column, pane, row, type PresetOptions } from "jali-layout";
 import { auditKind } from "./kinds/audit";
 import { catalogKind } from "./kinds/catalog";
 import { chartKind } from "./kinds/chart";

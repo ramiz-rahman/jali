@@ -29,13 +29,13 @@ Each problem below starts with what you see, then says why and how to fix it. Qu
 
 **Why:** the palette is a feature, and it isn't on.
 
-**Fix:** add `palette()` from `jali/palette` to `features`, or use `defaultFeatures()`. If your app has its own command menu, leave it out on purpose and list Jali's commands with `listCommands(jali)`.
+**Fix:** add `palette()` from `jali-layout/palette` to `features`, or use `defaultFeatures()`. If your app has its own command menu, leave it out on purpose and list Jali's commands with `listCommands(jali)`.
 
 ## The address doesn't change, and links don't reopen the layout
 
 **Why:** the address is the `urlSync()` feature, and it isn't on.
 
-**Fix:** add `urlSync()` from `jali/url` to `features` (it is in `defaultFeatures()`). With a router, pass `urlSync({ location })`: see [Keep the layout in the URL](/guides/url-and-routers).
+**Fix:** add `urlSync()` from `jali-layout/url` to `features` (it is in `defaultFeatures()`). With a router, pass `urlSync({ location })`: see [Keep the layout in the URL](/guides/url-and-routers).
 
 ## An action returns `{ ok: false, reason: "unavailable" }`
 
@@ -97,9 +97,9 @@ In development, Jali warns once for each mistake it can catch early. A productio
 | `createJali({ keyPrefix })` | `keyPrefix moved to keyboard.prefix` |
 | `createJali({ reservedKeys })` | `reservedKeys moved to keyboard.reserved` |
 | `createJali({ keymapOptions })` | `keymapOptions moved to keyboard (keyboard.platform, keyboard.onInvalid, keyboard.words)` |
-| `createJali({ palette })` | `palette is a feature: features: [palette()] from "jali/palette" (leave it out for palette: false)` |
-| `createJali({ rename })` | `rename is a feature: features: [rename({ can, run })] from "jali/rename"` |
-| `createJali({ url })`, not a writer | `url is a feature: features: [urlSync({ location, prefix, sizes })] from "jali/url" (url takes only a writer of your own)` |
+| `createJali({ palette })` | `palette is a feature: features: [palette()] from "jali-layout/palette" (leave it out for palette: false)` |
+| `createJali({ rename })` | `rename is a feature: features: [rename({ can, run })] from "jali-layout/rename"` |
+| `createJali({ url })`, not a writer | `url is a feature: features: [urlSync({ location, prefix, sizes })] from "jali-layout/url" (url takes only a writer of your own)` |
 | `definePane({ minWidth })`, `maxWidth`, `comfortableWidth` | `minWidth moved to width: { min }` (and `{ max }`, `{ comfortable }`) |
 | `definePane({ minHeight })`, `maxHeight`, `comfortableHeight` | `minHeight moved to height: { min }` (and `{ max }`, `{ comfortable }`) |
 | `createJali({ messages: { workspace } })` | `moved to messages.panes` |
@@ -117,5 +117,5 @@ In development, Jali warns once for each mistake it can catch early. A productio
 | `Jali: two presets have the id` | Give each preset its own `id` |
 | `Jali: there is no preset` | `preset` must name one of `presets` |
 | `Jali: usePane(…) is called in a pane of kind` | Call `usePane(kind)` with the kind of the pane it renders in, or `usePane()` |
-| `Jali: this page has no parts to render it` | Make the page with `definePage` from `jali/page` |
+| `Jali: this page has no parts to render it` | Make the page with `definePage` from `jali-layout/page` |
 | `Jali: pane … failed` | A pane's component threw; pass `onPaneError` to report it |

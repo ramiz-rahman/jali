@@ -9,7 +9,7 @@ import { CommandTable } from "../../reference";
 Every command has a stable id. The palette lists them all (greyed while refused); the keyboard runs the one a binding names; `runCommand(jali, id)` runs one from code. Rebind or unbind any of them with `createJali({ keyboard: { keymap } })`:
 
 ```ts
-import { createJali } from "jali";
+import { createJali } from "jali-layout";
 
 createJali({ panes, layout, keyboard: { keymap: { "pane.close": "Mod+K Mod+X", "pane.split.down": null } } });
 ```

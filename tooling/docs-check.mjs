@@ -3,7 +3,7 @@
  * Checks what the docs show against the package's real types, with the TypeScript compiler:
  *
  * 1. **Code samples.** Every ```ts and ```tsx block in a page under apps/docs/src/docs is written out as a module and
- *    typechecked against `jali` (the samples imported with `?raw` are checked by `tsc -p apps/docs` already). A block
+ *    typechecked against `jali-layout` (the samples imported with `?raw` are checked by `tsc -p apps/docs` already). A block
  *    may use the names in apps/docs/src/samples/prelude.d.ts without declaring them (`jali`, `order`, …), so a short
  *    excerpt still checks, and a relative import (`./panes`) stands for a module of the reader's app: it resolves to
  *    apps/docs/src/samples/app.ts. A block that can't stand alone (a fragment of an object, a sketch with "…") says so with
@@ -106,29 +106,29 @@ const SKIP = {
 const FIELDS_OF_PARAM = { urlSync: 0, "layout.arrange": 2 };
 /** A table that lists only what an entry adds to another type: those keys are left out of the comparison. */
 const BEYOND = {
-  "definePane:options": "$jali.PaneOptions<any>",
-  MissingProps: "$jali_react.PaneProps<any>",
+  "definePane:options": "$jali_layout.PaneOptions<any>",
+  MissingProps: "$jali_layout_react.PaneProps<any>",
 };
 /** Type arguments for a generic type with no defaults. */
 const TYPE_ARGS = { ChooseOptions: "<any>" };
 /** A table that lists the values of one field of a type: `CloseRequest`'s "reason" table is `CloseRequest["reason"]`. */
 const FIELD_VALUES = { CloseRequest: "reason" };
 
-/** The module an entry's `from` names first: "jali, jali/react" → "jali/react"? No: the first one, "jali". */
-const moduleOf = (from) => /jali(?:\/[\w-]+)?/.exec(from ?? "")?.[0] ?? "jali";
+/** The module an entry's `from` names first: "jali-layout, jali-layout/react" → "jali-layout/react"? No: the first one, "jali-layout". */
+const moduleOf = (from) => /jali-layout(?:\/[\w-]+)?/.exec(from ?? "")?.[0] ?? "jali-layout";
 const MODULES = [
-  "jali",
-  "jali/react",
-  "jali/page",
-  "jali/testing",
-  "jali/features",
-  "jali/url",
-  "jali/palette",
-  "jali/settings",
-  "jali/chooser",
-  "jali/rename",
-  "jali/pop-out",
-  "jali/pressed",
+  "jali-layout",
+  "jali-layout/react",
+  "jali-layout/page",
+  "jali-layout/testing",
+  "jali-layout/features",
+  "jali-layout/url",
+  "jali-layout/palette",
+  "jali-layout/settings",
+  "jali-layout/chooser",
+  "jali-layout/rename",
+  "jali-layout/pop-out",
+  "jali-layout/pressed",
 ];
 const alias = (mod) => `$${mod.replace(/[^a-z]/g, "_")}`;
 
@@ -239,7 +239,7 @@ for (const page of pages.filter((p) => relative(pagesDir, p).startsWith("referen
     if (list) console.log(`table   ${rel}:${t.line} ${t.entry} (${t.title})`);
     const mod = moduleOf(t.from);
     const dotted = t.entry.includes(".");
-    // A value: the entry's own path in its module (`layout.open` is `$jali_v.layout.open`).
+    // A value: the entry's own path in its module (`layout.open` is `$jali_layout_v.layout.open`).
     const value = `typeof ${alias(mod)}_v.${t.entry}`;
     const type = `${alias(mod)}.${t.entry}`;
     const top = t.params.filter((p) => p.name && !p.name.startsWith("..."));

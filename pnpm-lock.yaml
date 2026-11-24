@@ -218,7 +218,7 @@ importers:
       '@phosphor-icons/react':
         specifier: ^2.1.10
         version: 2.1.10(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
-      jali:
+      jali-layout:
         specifier: workspace:*
         version: link:../../packages/jali
       react:
@@ -288,7 +288,7 @@ importers:
       '@phosphor-icons/react':
         specifier: ^2.1.10
         version: 2.1.10(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
-      jali:
+      jali-layout:
         specifier: workspace:*
         version: link:../../packages/jali
       react:
@@ -325,7 +325,7 @@ importers:
       '@ui-sdk/react':
         specifier: 0.1.0-beta.5
         version: 0.1.0-beta.5(@types/react@19.3.0)(@ui-sdk/core@0.1.0-beta.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
-      jali:
+      jali-layout:
         specifier: workspace:*
         version: link:../../packages/jali
       lucide-react:
@@ -359,7 +359,7 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.107.1
         version: 5.107.1(@types/react@19.3.0)(react@19.3.1)
-      jali:
+      jali-layout:
         specifier: workspace:*
         version: link:../../packages/jali
       react:
@@ -390,7 +390,7 @@ importers:
       '@phosphor-icons/react':
         specifier: ^2.1.10
         version: 2.1.10(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
-      jali:
+      jali-layout:
         specifier: workspace:*
         version: link:../../packages/jali
       radix-ui:
@@ -421,7 +421,7 @@ importers:
       '@fontsource/atkinson-hyperlegible-next':
         specifier: ^5.3.0
         version: 5.3.0
-      jali:
+      jali-layout:
         specifier: workspace:*
         version: link:../../packages/jali
       react:
@@ -440,7 +440,7 @@ importers:
 
   examples/own-icons:
     dependencies:
-      jali:
+      jali-layout:
         specifier: workspace:*
         version: link:../../packages/jali
       react:
@@ -474,7 +474,7 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.107.1
         version: 5.107.1(@types/react@19.3.0)(react@19.3.1)
-      jali:
+      jali-layout:
         specifier: workspace:*
         version: link:../../packages/jali
       react:
@@ -505,7 +505,7 @@ importers:
       '@phosphor-icons/react':
         specifier: ^2.1.10
         version: 2.1.10(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
-      jali:
+      jali-layout:
         specifier: workspace:*
         version: link:../../packages/jali
       react:
@@ -545,7 +545,7 @@ importers:
       '@phosphor-icons/react':
         specifier: ^2.1.10
         version: 2.1.10(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
-      jali:
+      jali-layout:
         specifier: workspace:*
         version: link:../../packages/jali
       maplibre-gl:
@@ -615,7 +615,7 @@ importers:
       '@phosphor-icons/react':
         specifier: ^2.1.10
         version: 2.1.10(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
-      jali:
+      jali-layout:
         specifier: workspace:*
         version: link:../packages/jali
       react:

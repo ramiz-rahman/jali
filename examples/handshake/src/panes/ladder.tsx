@@ -5,8 +5,8 @@
  * marked. Picking an arrow selects its packet, so the dissection and bytes beside it follow. Narrow, it grows down,
  * never sideways.
  */
-import type { ObjectRef } from "jali";
-import { definePane, useCommands, useJali, useJaliState, type PaneProps } from "jali/react";
+import type { ObjectRef } from "jali-layout";
+import { definePane, useCommands, useJali, useJaliState, type PaneProps } from "jali-layout/react";
 import { ArrowRightLeft } from "lucide-react";
 import { captureTitle, counterpart } from "#src/packets/captures.ts";
 import { ladderOf } from "#src/packets/ladder.ts";

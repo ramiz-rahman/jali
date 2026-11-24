@@ -14,7 +14,7 @@
     "@fontsource-variable/figtree": "5.3.0",
     "@jali-examples/shared": "workspace:*",
     "@phosphor-icons/react": "^2.1.10",
-    "jali": "workspace:*",
+    "jali-layout": "workspace:*",
     "maplibre-gl": "^6.19.0",
     "radix-ui": "^1.8.1",
     "react": "^19.3.1",

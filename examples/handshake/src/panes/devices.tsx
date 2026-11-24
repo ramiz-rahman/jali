@@ -4,7 +4,7 @@
  * most common mistake is reading it as "every device on the network".
  */
 import { useMemo } from "react";
-import { definePane, useCommands, usePaneState, type PaneProps } from "jali/react";
+import { definePane, useCommands, usePaneState, type PaneProps } from "jali-layout/react";
 import { Network } from "lucide-react";
 import { Badge } from "#src/vendor/cyberspec/components/ui/badge.tsx";
 import { Collapsible } from "#src/vendor/cyberspec/components/ui/collapsible.tsx";

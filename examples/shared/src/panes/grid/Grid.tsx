@@ -7,7 +7,7 @@ import { copyRaw } from "../shared/copyRaw";
 import { useFocusWhen } from "../shared/useFocusWhen";
 import { useListKeys } from "../shared/useListKeys";
 import { RowMenu } from "./RowMenu";
-import { keyHint, type ObjectRef } from "jali";
+import { keyHint, type ObjectRef } from "jali-layout";
 import type { Row } from "../../data/types";
 import { cellKind, columnLabel, formatCell, isNumericType, rawText } from "../format";
 import type { SortState } from "./grid-state";

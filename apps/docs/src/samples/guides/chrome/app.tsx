@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Toast } from "jali";
+import type { Toast } from "jali-layout";
 import {
   IconButton,
   JaliRoot,
@@ -10,7 +10,7 @@ import {
   useJaliModel,
   useJaliShortcut,
   useJaliState,
-} from "jali/react";
+} from "jali-layout/react";
 import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react";
 import { jali } from "./jali";
 

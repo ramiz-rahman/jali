@@ -76,7 +76,7 @@ Jali lists presets in ⌘K. If you want them in your top bar too, read them from
 To keep each person's layout on your server, save it when it changes and give it back when you make the instance:
 
 ```ts
-import { createJali } from "jali";
+import { createJali } from "jali-layout";
 import { api, presets, user } from "./app";
 
 const saved = await api.loadLayout(user.id); // what you saved last time, or null
@@ -105,7 +105,7 @@ jali.on("layout", ({ layout, source }) => {
 By default, choosing a preset builds its layout afresh, so a person who rearranges one preset, moves to another and comes back finds their changes gone. To bring each preset back as it was left, keep its layout as it changes and give it back with `saved`:
 
 ```ts
-import { createJali, type LayoutInput } from "jali";
+import { createJali, type LayoutInput } from "jali-layout";
 import { presets } from "./presets";
 
 const left = new Map<string, LayoutInput>(); // or localStorage, or your server
@@ -195,7 +195,7 @@ Close other tabs and Close tabs to the right are one change. `beforeClose` is as
 Give `createJali` a `tabMenu`: a function of the tab's pane. It's called each time a menu opens, and its items come after Jali's, below a line:
 
 ```tsx
-import { createJali } from "jali";
+import { createJali } from "jali-layout";
 
 const jali = createJali({
   panes,
@@ -242,11 +242,11 @@ A tab is as wide as its title, up to `--jali-tab-max-width` (default 20rem), and
 
 ### Rename in place
 
-Jali doesn't store names. Your app saves the name, and the pane shows it, usually with [`useTitle`](/reference/react#useTitle). Turn renaming on with the `rename()` feature, from `jali/rename`, and give it a `run` function:
+Jali doesn't store names. Your app saves the name, and the pane shows it, usually with [`useTitle`](/reference/react#useTitle). Turn renaming on with the `rename()` feature, from `jali-layout/rename`, and give it a `run` function:
 
 ```tsx
-import { createJali } from "jali";
-import { rename } from "jali/rename";
+import { createJali } from "jali-layout";
+import { rename } from "jali-layout/rename";
 
 const jali = createJali({
   panes,
@@ -305,7 +305,7 @@ Jali's root is the size its page gives it. When panes don't fit, Jali folds some
 />
 
 ```ts
-import { row } from "jali";
+import { row } from "jali-layout";
 import { stage } from "./pipeline";
 
 row({ scroll: "x" }, stage({ name: "Lead" }), stage({ name: "Qualified" }), stage({ name: "Demo" }));
@@ -352,7 +352,7 @@ Moving a pane in is the same in reverse: drag it onto a pane in the row, or move
 If your app has its own drag, a card or a list row, give it the same edge scrolling with `edgeScroll`:
 
 ```ts
-import { edgeScroll } from "jali";
+import { edgeScroll } from "jali-layout";
 
 let last = { x: 0, y: 0 };
 // Runs after each step of scrolling, so your drag can find what is under the pointer again.

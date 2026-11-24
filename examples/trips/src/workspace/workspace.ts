@@ -3,9 +3,9 @@
  * (commands.ts). `createTripsJali` takes the app's services and Jali's usual options, so a test can give it a memory
  * address, memory storage and a fixed size.
  */
-import { createJali, type Jali, type JaliOptions } from "jali";
-import { defaultFeatures } from "jali/features";
-import { popOut } from "jali/pop-out";
+import { createJali, type Jali, type JaliOptions } from "jali-layout";
+import { defaultFeatures } from "jali-layout/features";
+import { popOut } from "jali-layout/pop-out";
 import { makerCommand } from "@jali-examples/shared/maker/maker";
 import { budget } from "../panes/budget/budget";
 import { day } from "../panes/day/day";

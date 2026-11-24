@@ -1,6 +1,6 @@
 import { LayoutIcon, LifebuoyIcon, ShoppingCartIcon, UserIcon } from "@phosphor-icons/react";
-import { pane, row } from "jali";
-import { definePage, type PageView } from "jali/page";
+import { pane, row } from "jali-layout";
+import { definePage, type PageView } from "jali-layout/page";
 import { customer, customerOrders, customerOverview, customerTickets } from "./customer";
 import { customers } from "./data";
 

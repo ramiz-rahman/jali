@@ -1,16 +1,16 @@
 ---
-title: "jali types"
-summary: "Every type jali exports, with its fields, and every instance action: the layout tree, kinds and pages, the instance, the address, commands, keys and words."
+title: "jali-layout types"
+summary: "Every type jali-layout exports, with its fields, and every instance action: the layout tree, kinds and pages, the instance, the address, commands and keys."
 layout: wide
 ---
 
 import { Entry, Params, Param, ChildParams, Returns, Members, Member, Ref } from "../../../reference";
 
-Import any of these with `import type { … } from "jali";`. Functions that use them are on [jali](/reference/core).
+Import any of these with `import type { … } from "jali-layout";`. Functions that use them are on [jali-layout](/reference/core).
 
 ## The layout tree
 
-<Entry name="Layout" kind="type" from="jali" signature={`interface Layout { version: 1; root: LayoutNode; overlay?: Overlay }`} compact>
+<Entry name="Layout" kind="type" from="jali-layout" signature={`interface Layout { version: 1; root: LayoutNode; overlay?: Overlay }`} compact>
 
 An instance's arrangement: a tree of rows, columns and tab stacks of panes. The tree is the arrangement the person made; folds, tucks, tab choices and hidden panes are recorded in `overlay`, so they can be undone without losing a slot. This is what `?l=` holds.
 
@@ -22,13 +22,13 @@ An instance's arrangement: a tree of rows, columns and tab stacks of panes. The 
 
 </Entry>
 
-<Entry name="LayoutNode" kind="type" from="jali" signature={`type LayoutNode = PaneNode | StackNode | SplitNode`} compact>
+<Entry name="LayoutNode" kind="type" from="jali-layout" signature={`type LayoutNode = PaneNode | StackNode | SplitNode`} compact>
 
 One node of the tree. Every node has an `id` (unique in the layout), a `size`, and optionally `userSized` (the person dragged it) and `base` (the size a divider reset returns to).
 
 </Entry>
 
-<Entry name="PaneNode" kind="type" from="jali" signature={`interface PaneNode { type: "pane"; id; size; ref: ObjectRef; … }`} compact>
+<Entry name="PaneNode" kind="type" from="jali-layout" signature={`interface PaneNode { type: "pane"; id; size; ref: ObjectRef; … }`} compact>
 
 A pane: one object, shown by its kind's component.
 
@@ -50,55 +50,55 @@ A pane: one object, shown by its kind's component.
 
 </Entry>
 
-<Entry name="SplitNode" kind="type" from="jali" signature={`interface SplitNode { type: "row" | "column"; id; size; children: LayoutNode[] }`} compact>
+<Entry name="SplitNode" kind="type" from="jali-layout" signature={`interface SplitNode { type: "row" | "column"; id; size; children: LayoutNode[] }`} compact>
 
 Children side by side (`"row"`) or one above another (`"column"`), sharing the space by their sizes. Splits nobody sized share by the panes' comfortable and maximum widths; once the person sizes a child, the split keeps its proportions exactly.
 
 </Entry>
 
-<Entry name="StackNode" kind="type" from="jali" signature={`interface StackNode { type: "stack"; id; size; children: PaneNode[]; active: NodeId; origin?: "user" }`} compact>
+<Entry name="StackNode" kind="type" from="jali-layout" signature={`interface StackNode { type: "stack"; id; size; children: PaneNode[]; active: NodeId; origin?: "user" }`} compact>
 
 A tab group the person made (by merging, a centre drop or a new tab). Groups made by folding are not in the tree; they exist in `overlay`. `active` is the shown tab; `origin` is optional (`"user"` when set); leave it out in hand-written layouts.
 
 </Entry>
 
-<Entry name="Size" kind="type" from="jali" signature={`type Size = { px: number } | { weight: number }`} compact>
+<Entry name="Size" kind="type" from="jali-layout" signature={`type Size = { px: number } | { weight: number }`} compact>
 
 A share of a split (`weight`, relative to the siblings) or a fixed length in pixels. Divider drags store weights, scaled so the ones a drag sets average 1.
 
 </Entry>
 
-<Entry name="NodeId" kind="type" from="jali" signature={`type NodeId = string`} compact>
+<Entry name="NodeId" kind="type" from="jali-layout" signature={`type NodeId = string`} compact>
 
 A node's id: 1 to 128 letters, digits, `_`, `.`, `:` or `-` (`orders`, `pane-3`, `detail:7`). Every id Jali and the builders make fits; a layout from outside with any other id is refused. So are `__proto__`, `constructor` and `prototype`, which name something on every object: `pane(ref, { id })` throws in development, `setLayout` answers `"invalid"`, and a saved layout, a preset or a link holding one is not used (a link is unreadable, and the instance opens its fallback).
 
 </Entry>
 
-<Entry name="ObjectRef" kind="type" from="jali" signature={`interface ObjectRef { kind: string; params: Record<string, string | number | boolean> }`} compact>
+<Entry name="ObjectRef" kind="type" from="jali-layout" signature={`interface ObjectRef { kind: string; params: Record<string, string | number | boolean> }`} compact>
 
 What a pane shows: a kind and the params that name the object (`{ kind: "order", params: { id: 1041 } }`). Params must be strings, finite numbers or booleans.
 
 </Entry>
 
-<Entry name="Axis" kind="type" from="jali" signature={`type Axis = "row" | "column"`} compact>
+<Entry name="Axis" kind="type" from="jali-layout" signature={`type Axis = "row" | "column"`} compact>
 
 The direction of a split.
 
 </Entry>
 
-<Entry name="Edge" kind="type" from="jali" signature={`type Edge = "left" | "right" | "top" | "bottom"`} compact>
+<Entry name="Edge" kind="type" from="jali-layout" signature={`type Edge = "left" | "right" | "top" | "bottom"`} compact>
 
 A side of a pane: where to open or drop. In actions and commands it is a side of the screen, in either reading direction.
 
 </Entry>
 
-<Entry name="Direction" kind="type" from="jali" signature={`type Direction = "ltr" | "rtl"`} compact>
+<Entry name="Direction" kind="type" from="jali-layout" signature={`type Direction = "ltr" | "rtl"`} compact>
 
 The reading direction an instance lays its panes out in (`createJali({ dir })`, else the page's). Right to left, a row's first child is at the right: the same tree, mirrored on screen.
 
 </Entry>
 
-<Entry name="Overlay" kind="type" from="jali" signature={`interface Overlay { tucks; folds; shown; hidden? }`} compact>
+<Entry name="Overlay" kind="type" from="jali-layout" signature={`interface Overlay { tucks; folds; shown; hidden? }`} compact>
 
 What sits on top of the tree. Written by the operations; read it, don't write it.
 
@@ -111,13 +111,13 @@ What sits on top of the tree. Written by the operations; read it, don't write it
 
 </Entry>
 
-<Entry name="TuckRecord" kind="type" from="jali" signature={`interface TuckRecord { pane: NodeId; home: NodeId; seq: number }`} compact>
+<Entry name="TuckRecord" kind="type" from="jali-layout" signature={`interface TuckRecord { pane: NodeId; home: NodeId; seq: number }`} compact>
 
 One tucked pane in <Ref to="Overlay" />: the pane, the pane it is tucked into (its home), and its place in the order it was tucked. Every tucked pane is here, shown or not; `jali.model()` says where each pane is now.
 
 </Entry>
 
-<Entry name="ViewState" kind="type" from="jali" signature={`interface ViewState { focused?: NodeId; zoomed?: NodeId; scroll?: Record<NodeId, number>; peek?: ObjectRef; focusHistory: NodeId[] }`} compact>
+<Entry name="ViewState" kind="type" from="jali-layout" signature={`interface ViewState { focused?: NodeId; zoomed?: NodeId; scroll?: Record<NodeId, number>; peek?: ObjectRef; focusHistory: NodeId[] }`} compact>
 
 What the person is looking at, apart from the layout.
 
@@ -131,7 +131,7 @@ What the person is looking at, apart from the layout.
 
 </Entry>
 
-<Entry name="Rect" kind="type" from="jali" signature={`interface Rect { x: number; y: number; width: number; height: number }`} compact>
+<Entry name="Rect" kind="type" from="jali-layout" signature={`interface Rect { x: number; y: number; width: number; height: number }`} compact>
 
 A box in pixels, relative to the instance's inner area.
 
@@ -139,55 +139,55 @@ A box in pixels, relative to the instance's inner area.
 
 ## Writing a layout
 
-<Entry name="LayoutInput" kind="type" from="jali" signature={`type LayoutInput = Layout | Draft | ObjectRef`} compact>
+<Entry name="LayoutInput" kind="type" from="jali-layout" signature={`type LayoutInput = Layout | Draft | ObjectRef`} compact>
 
 Anything that stands for a layout: a builder's result (`row(...)`), a single ref (a one-pane layout), or a whole `Layout`. `createJali({ layout })`, a preset's `layout` and a page's `build` all take one.
 
 </Entry>
 
-<Entry name="Draft" kind="type" from="jali" signature={`type Draft = PaneDraft | SplitDraft | TabsDraft`} compact>
+<Entry name="Draft" kind="type" from="jali-layout" signature={`type Draft = PaneDraft | SplitDraft | TabsDraft`} compact>
 
 What the builders return: a layout not yet given ids. Pass it wherever a <Ref to="LayoutInput" /> goes; Jali turns it into a `Layout`. Name it in a function of your own that builds part of a layout.
 
 </Entry>
 
-<Entry name="PaneDraft" kind="type" from="jali" signature={`type PaneDraft = { type: "pane"; ref: ObjectRef; options: PaneNodeOptions }`} compact>
+<Entry name="PaneDraft" kind="type" from="jali-layout" signature={`type PaneDraft = { type: "pane"; ref: ObjectRef; options: PaneNodeOptions }`} compact>
 
 What <Ref to="pane" page="/reference/core" /> returns: one pane, with its options.
 
 </Entry>
 
-<Entry name="SplitDraft" kind="type" from="jali" signature={`type SplitDraft = { type: Axis; options: RowOptions; children: Draft[] }`} compact>
+<Entry name="SplitDraft" kind="type" from="jali-layout" signature={`type SplitDraft = { type: Axis; options: RowOptions; children: Draft[] }`} compact>
 
 What <Ref to="row" page="/reference/core" /> and <Ref to="column" page="/reference/core" /> return: children side by side (`"row"`) or one above the other (`"column"`).
 
 </Entry>
 
-<Entry name="TabsDraft" kind="type" from="jali" signature={`type TabsDraft = { type: "stack"; options: TabsOptions; children: PaneDraft[] }`} compact>
+<Entry name="TabsDraft" kind="type" from="jali-layout" signature={`type TabsDraft = { type: "stack"; options: TabsOptions; children: PaneDraft[] }`} compact>
 
 What <Ref to="tabs" page="/reference/core" /> returns: panes as tabs of one group.
 
 </Entry>
 
-<Entry name="RowOptions" kind="type" from="jali" signature={`interface RowOptions extends SizeOptions { scroll?: "x" }`} compact>
+<Entry name="RowOptions" kind="type" from="jali-layout" signature={`interface RowOptions extends SizeOptions { scroll?: "x" }`} compact>
 
 A row's options. `scroll: "x"` makes a row that scrolls sideways: each child keeps its own width (its comfortable width until the person sizes it) and the row scrolls to the rest, so nothing folds. To its parent it needs one child's room; to the pane cap it is one slot. Focusing a pane in it scrolls it into view.
 
 </Entry>
 
-<Entry name="SizeOptions" kind="type" from="jali" signature={`interface SizeOptions { id?: NodeId; weight?: number; px?: number }`} compact>
+<Entry name="SizeOptions" kind="type" from="jali-layout" signature={`interface SizeOptions { id?: NodeId; weight?: number; px?: number }`} compact>
 
 A builder node's id and size: a share of its parent (`weight`, default 1) or a fixed length (`px`). See <Ref to="row" page="/reference/core" />.
 
 </Entry>
 
-<Entry name="PaneNodeOptions" kind="type" from="jali" signature={`interface PaneNodeOptions extends SizeOptions {\n  linkedTo?; follows?; kept?; pinned?; role?; priority?; hidden?: boolean;\n}`} compact>
+<Entry name="PaneNodeOptions" kind="type" from="jali-layout" signature={`interface PaneNodeOptions extends SizeOptions {\n  linkedTo?; follows?; kept?; pinned?; role?; priority?; hidden?: boolean;\n}`} compact>
 
 The options of <Ref to="pane" page="/reference/core" />.
 
 </Entry>
 
-<Entry name="TabsOptions" kind="type" from="jali" signature={`interface TabsOptions extends SizeOptions { active?: NodeId }`} compact>
+<Entry name="TabsOptions" kind="type" from="jali-layout" signature={`interface TabsOptions extends SizeOptions { active?: NodeId }`} compact>
 
 The options of <Ref to="tabs" page="/reference/core" />.
 
@@ -195,7 +195,7 @@ The options of <Ref to="tabs" page="/reference/core" />.
 
 ## Kinds and pages
 
-<Entry name="PaneOptions" kind="type" from="jali" signature={`interface PaneOptions<P = Params> { params?; title; width?; height?; … }`} compact>
+<Entry name="PaneOptions" kind="type" from="jali-layout" signature={`interface PaneOptions<P = Params> { params?; title; width?; height?; … }`} compact>
 
 What a kind says about itself, apart from how it renders. In React, `definePane(kind, options)` takes these with `Component` and `icon`.
 
@@ -236,133 +236,133 @@ The same three as `width`, down a column.
 
 </Entry>
 
-<Entry name="PaneWidth" kind="type" from="jali" signature={`interface PaneWidth { min?: number; comfortable?: number; max?: number }`} compact>
+<Entry name="PaneWidth" kind="type" from="jali-layout" signature={`interface PaneWidth { min?: number; comfortable?: number; max?: number }`} compact>
 
 A kind's widths in px; see `width` under <Ref to="PaneOptions" />.
 
 </Entry>
 
-<Entry name="PaneHeight" kind="type" from="jali" signature={`interface PaneHeight { min?: number; comfortable?: number; max?: number }`} compact>
+<Entry name="PaneHeight" kind="type" from="jali-layout" signature={`interface PaneHeight { min?: number; comfortable?: number; max?: number }`} compact>
 
 A kind's heights in px; see `height` under <Ref to="PaneOptions" />.
 
 </Entry>
 
-<Entry name="PaneDefinition" kind="type" from="jali" signature={`type PaneDefinition<P, D> = D & { (params: P): ObjectRef; readonly kind: string }`} compact>
+<Entry name="PaneDefinition" kind="type" from="jali-layout" signature={`type PaneDefinition<P, D> = D & { (params: P): ObjectRef; readonly kind: string }`} compact>
 
 A defined kind, callable to make its refs. In React, `Pane<P>`.
 
 </Entry>
 
-<Entry name="PaneKindBase" kind="type" from="jali" signature={`interface PaneKindBase extends PaneOptions { kind: string }`} compact>
+<Entry name="PaneKindBase" kind="type" from="jali-layout" signature={`interface PaneKindBase extends PaneOptions { kind: string }`} compact>
 
 A kind as an instance keeps it: its name and its options. What `createJali({ panes })` takes.
 
 </Entry>
 
-<Entry name="Params" kind="type" from="jali" signature={`type Params = Record<string, ParamValue>`} compact>
+<Entry name="Params" kind="type" from="jali-layout" signature={`type Params = Record<string, ParamValue>`} compact>
 
 A ref's params: plain data, so they fit in a link.
 
 </Entry>
 
-<Entry name="ParamValue" kind="type" from="jali" signature={`type ParamValue = string | number | boolean`} compact>One param's value.</Entry>
+<Entry name="ParamValue" kind="type" from="jali-layout" signature={`type ParamValue = string | number | boolean`} compact>One param's value.</Entry>
 
-<Entry name="ParamType" kind="type" from="jali" signature={`type ParamType = (value: ParamValue) => ParamValue | undefined`} compact>
+<Entry name="ParamType" kind="type" from="jali-layout" signature={`type ParamType = (value: ParamValue) => ParamValue | undefined`} compact>
 
 How to read one param back: `Number`, `String`, `Boolean`, <Ref to="oneOf" page="/reference/core" />, or your own function. `Number` reads text that is a finite number; `Boolean` reads `true`, `false`, `"true"`, `"false"`, `1` and `0`. Your function says it can't read a value by returning `undefined` or `NaN`, or by throwing.
 
 </Entry>
 
-<Entry name="ParamTypes" kind="type" from="jali" signature={`type ParamTypes = Record<string, ParamReader | OptionalParam>`} compact>A kind's `params`, one by one.</Entry>
+<Entry name="ParamTypes" kind="type" from="jali-layout" signature={`type ParamTypes = Record<string, ParamReader | OptionalParam>`} compact>A kind's `params`, one by one.</Entry>
 
-<Entry name="ParamReader" kind="type" from="jali" signature={`type ParamReader = ParamType | StandardSchemaV1`} compact>
+<Entry name="ParamReader" kind="type" from="jali-layout" signature={`type ParamReader = ParamType | StandardSchemaV1`} compact>
 
 How to read one param: one of Jali's (`Number`, `String`, `Boolean`, `oneOf(...)`, a function), or a Standard Schema of the value from any library that implements it (`z.number()`, `v.picklist([...])`). A schema whose output may be `undefined` (`v.optional(…)`) lets a ref leave the param out, as `optional` does.
 
 </Entry>
 
-<Entry name="Identity" kind="type" from="jali" signature={`type Identity = string | number | boolean | null | readonly Identity[] | { readonly [key: string]: Identity }`} compact>What a kind's `identity` gives for one object: any value JSON writes as it is. Two panes show the same object when their kinds' `shows` and these values, written as JSON, match.</Entry>
+<Entry name="Identity" kind="type" from="jali-layout" signature={`type Identity = string | number | boolean | null | readonly Identity[] | { readonly [key: string]: Identity }`} compact>What a kind's `identity` gives for one object: any value JSON writes as it is. Two panes show the same object when their kinds' `shows` and these values, written as JSON, match.</Entry>
 
-<Entry name="ParamsDeclaration" kind="type" from="jali" signature={`type ParamsDeclaration = ParamTypes | StandardSchemaV1`} compact>
+<Entry name="ParamsDeclaration" kind="type" from="jali-layout" signature={`type ParamsDeclaration = ParamTypes | StandardSchemaV1`} compact>
 
 What `params` takes: params one by one, or one Standard Schema of the whole object (`v.object({ id: v.number() })`). A schema decides what is valid, and its output is what the pane gets (`ParamsOf` infers it); Jali's codec still decides how values are written in a link, and a value a link carries as text is read as a number or a flag when the schema wants one. A value the schema refuses is a <Ref to="ParamProblem" />, as for Jali's own types. A schema may transform values, but its output must still be params (text, numbers and flags): a field it gives as anything else (an object, a list, a date) is a problem of that param, and the ref keeps what it was given. A schema must validate synchronously. `appOnly` and `link: false` are Jali's own: declare params one by one to use them.
 
 </Entry>
 
-<Entry name="StandardSchemaV1" kind="type" from="jali" signature={`interface StandardSchemaV1<Input = unknown, Output = Input> { readonly "~standard": StandardSchemaV1.Props<Input, Output> }`} compact>
+<Entry name="StandardSchemaV1" kind="type" from="jali-layout" signature={`interface StandardSchemaV1<Input = unknown, Output = Input> { readonly "~standard": StandardSchemaV1.Props<Input, Output> }`} compact>
 
 The [Standard Schema](https://standardschema.dev) interface that Zod, Valibot, ArkType and Effect Schema implement, copied into Jali as the spec asks, so Jali depends on none of them.
 
 </Entry>
 
-<Entry name="OptionalParam" kind="type" from="jali" signature={`interface OptionalParam<T extends ParamReader = ParamReader> { readonly optional: T; readonly link?: false }`} compact>
+<Entry name="OptionalParam" kind="type" from="jali-layout" signature={`interface OptionalParam<T extends ParamReader = ParamReader> { readonly optional: T; readonly link?: false }`} compact>
 
 A param a ref may leave out, made by <Ref to="optional" page="/reference/core" />. `link: false` when it stays out of the address.
 
 </Entry>
 
-<Entry name="ParamOptions" kind="type" from="jali" signature={`interface ParamOptions { link?: false }`} compact>
+<Entry name="ParamOptions" kind="type" from="jali-layout" signature={`interface ParamOptions { link?: false }`} compact>
 
 How an optional param travels, the second argument of <Ref to="optional" page="/reference/core" />. `link: false` keeps it out of the address while it stays part of what the pane shows.
 
 </Entry>
 
-<Entry name="AppOnlyParam" kind="type" from="jali" signature={`interface AppOnlyParam<T extends ParamType = ParamType> extends OptionalParam<T> { readonly appOnly: true }`} compact>
+<Entry name="AppOnlyParam" kind="type" from="jali-layout" signature={`interface AppOnlyParam<T extends ParamType = ParamType> extends OptionalParam<T> { readonly appOnly: true }`} compact>
 
 A param only your app sets, from <Ref to="appOnly" page="/reference/core" />: optional, and never carried or set by a link.
 
 </Entry>
 
-<Entry name="OneOf" kind="type" from="jali" signature={`type OneOf<V extends string | number> = ((value: ParamValue) => V | undefined) & { readonly values: readonly V[] }`} compact>
+<Entry name="OneOf" kind="type" from="jali-layout" signature={`type OneOf<V extends string | number> = ((value: ParamValue) => V | undefined) & { readonly values: readonly V[] }`} compact>
 
 A param that is one of a few values, made by <Ref to="oneOf" page="/reference/core" />.
 
 </Entry>
 
-<Entry name="ParamsOf" kind="type" from="jali" signature={`type ParamsOf<T extends ParamTypes> = { [K in Required]: Read<T[K]> } & { [K in Optional]?: Read<T[K]> }`} compact>
+<Entry name="ParamsOf" kind="type" from="jali-layout" signature={`type ParamsOf<T extends ParamTypes> = { [K in Required]: Read<T[K]> } & { [K in Optional]?: Read<T[K]> }`} compact>
 
 The params a kind's code sees, from its declaration: `ParamsOf<{ id: NumberConstructor; tab: OptionalParam<StringConstructor> }>` is `{ id: number; tab?: string }`. Use it as `ParamsOf<typeof orderParams>` to name the type of params declared apart from the kind. Without a declaration, `Params`.
 
 </Entry>
 
-<Entry name="FollowParams" kind="type" from="jali" signature={`type FollowParams<P> = { [K in keyof P]?: ParamValue | undefined }`} compact>
+<Entry name="FollowParams" kind="type" from="jali-layout" signature={`type FollowParams<P> = { [K in keyof P]?: ParamValue | undefined }`} compact>
 
 What a kind's `follow` returns: its params, any of which may be missing. Jali checks them against the kind's `params` before the pane shows them.
 
 </Entry>
 
-<Entry name="ParamProblem" kind="type" from="jali" signature={`interface ParamProblem { param: string; value?: ParamValue }`} compact>
+<Entry name="ParamProblem" kind="type" from="jali-layout" signature={`interface ParamProblem { param: string; value?: ParamValue }`} compact>
 
 A param a ref is missing (`value` is undefined), or holds a value its type can't read. A ref with one never reaches the component: a layout link or saved layout holding it opens as broken, a page's opened pane with it is left out of the link, and a pane your code opens with it shows a message naming the param.
 
 </Entry>
 
-<Entry name="PaneCommand" kind="type" from="jali" signature={`interface PaneCommand { id: string; title: string; run: () => void; keys?: string; disabled?: string | false }`} compact>
+<Entry name="PaneCommand" kind="type" from="jali-layout" signature={`interface PaneCommand { id: string; title: string; run: () => void; keys?: string; disabled?: string | false }`} compact>
 
 A command a pane adds to the palette while it is focused (`useCommands`). `keys` is only a label: the content handles its own keys. `disabled` greys it out; its text is the reason.
 
 </Entry>
 
-<Entry name="ItemId" kind="type" from="jali" signature={`type ItemId = string | number`} compact>
+<Entry name="ItemId" kind="type" from="jali-layout" signature={`type ItemId = string | number`} compact>
 
 A curated page's item id: a number, or a string such as a UUID or a slug. See `firstItem` under <Ref to="ProfileBase" />.
 
 </Entry>
 
-<Entry name="PaneActivity" kind="type" from="jali" signature={`type PaneActivity = "idle" | "loading" | "working" | "live" | "needs-you" | "error"`} compact>
+<Entry name="PaneActivity" kind="type" from="jali-layout" signature={`type PaneActivity = "idle" | "loading" | "working" | "live" | "needs-you" | "error"`} compact>
 
 What a pane reports about itself (`useActivity`), shown in its header, its tab, the shelf and the status line. On the shelf, loading reads as working. `"live"` is ongoing, healthy work meant to go on (recording, streaming, playback): a dot rather than a spinner, read as "Live", and the least pressing on the "N folded" chip.
 
 </Entry>
 
-<Entry name="PaneErrorInfo" kind="type" from="jali" signature={`interface PaneErrorInfo { pane: NodeId | null; ref: ObjectRef }`} compact>
+<Entry name="PaneErrorInfo" kind="type" from="jali-layout" signature={`interface PaneErrorInfo { pane: NodeId | null; ref: ObjectRef }`} compact>
 
 Which pane failed, for `createJali({ onPaneError })`: its id (`null` in the peek sheet) and the ref it was showing.
 
 </Entry>
 
-<Entry name="ProfileBase" kind="type" from="jali" signature={`interface ProfileBase<R extends RoleBase = RoleBase, I extends ItemId = ItemId>`} compact>
+<Entry name="ProfileBase" kind="type" from="jali-layout" signature={`interface ProfileBase<R extends RoleBase = RoleBase, I extends ItemId = ItemId>`} compact>
 
 A curated page about one item (a loan application), framework-free. In React, `definePage` makes a `Page`, which adds the rail and header.
 
@@ -379,67 +379,67 @@ A curated page about one item (a loan application), framework-free. In React, `d
 
 </Entry>
 
-<Entry name="RoleBase" kind="type" from="jali" signature={`interface RoleBase { id: string; label: string; priority: "primary" | "supporting" }`} compact>
+<Entry name="RoleBase" kind="type" from="jali-layout" signature={`interface RoleBase { id: string; label: string; priority: "primary" | "supporting" }`} compact>
 
 One view of a curated page. In React, `PageView` adds its icon.
 
 </Entry>
 
-<Entry name="ViewMode" kind="type" from="jali" signature={`type ViewMode = "single" | "split"`} compact>
+<Entry name="ViewMode" kind="type" from="jali-layout" signature={`type ViewMode = "single" | "split"`} compact>
 
 How a curated page is shown: one view at a time (Single) or side by side (Split view). The person's choice, kept on their device and never in a link.
 
 </Entry>
 
-<Entry name="PaneControl" kind="type" from="jali" signature={`type PaneControl = "open" | "close" | "tuck" | "maximise" | "fullScreen" | "move" | "resize" | "pin" | "popOut"`} compact>
+<Entry name="PaneControl" kind="type" from="jali-layout" signature={`type PaneControl = "open" | "close" | "tuck" | "maximise" | "fullScreen" | "move" | "resize" | "pin" | "popOut"`} compact>
 
 Something that can happen to a pane. `open` covers opening new panes from it (off, a link opens in the peek sheet instead); `move` covers dragging it, the move keys, swapping, merging into tabs, pulling a tab out and reordering tabs; `resize` the dividers beside it. Restoring a maximised pane and leaving full screen are always allowed.
 
 </Entry>
 
-<Entry name="PaneAllow" kind="type" from="jali" signature={`type PaneAllow = Partial<Record<PaneControl, boolean>>`} compact>
+<Entry name="PaneAllow" kind="type" from="jali-layout" signature={`type PaneAllow = Partial<Record<PaneControl, boolean>>`} compact>
 
 Controls turned off with `false`. Leaving one out, or `true`, leaves it to the other levels. A kind's `allow` and an instance's are both one.
 
 </Entry>
 
-<Entry name="Allow" kind="type" from="jali" signature={`type Allow = PaneAllow & { when?: AllowRule }`} compact>
+<Entry name="Allow" kind="type" from="jali-layout" signature={`type Allow = PaneAllow & { when?: AllowRule }`} compact>
 
 `createJali({ allow })`: the instance's defaults, and `when` for rules that depend on context. `popOut` is off until this says `true`.
 
 </Entry>
 
-<Entry name="AllowRule" kind="type" from="jali" signature={`type AllowRule = (ctx: AllowContext) => boolean | undefined | void`} compact>
+<Entry name="AllowRule" kind="type" from="jali-layout" signature={`type AllowRule = (ctx: AllowContext) => boolean | undefined | void`} compact>
 
 Asked before each action on a pane, after the kind's `allow`: `false` refuses it; anything else allows it.
 
 </Entry>
 
-<Entry name="AllowContext" kind="type" from="jali" signature={`interface AllowContext { action: PaneControl; pane: PaneNode; presetId?: string; page?: { mode: ViewMode; item?: string } | null }`} compact>
+<Entry name="AllowContext" kind="type" from="jali-layout" signature={`interface AllowContext { action: PaneControl; pane: PaneNode; presetId?: string; page?: { mode: ViewMode; item?: string } | null }`} compact>
 
 What `when` is asked about: the action, the pane (its id, kind and params, role, pins and links), the preset the layout came from, and the curated page while one is open.
 
 </Entry>
 
-<Entry name="PaneButton" kind="type" from="jali" signature={`type PaneButton = "tuck" | "maximise" | "fullScreen" | "popOut" | "close"`} compact>
+<Entry name="PaneButton" kind="type" from="jali-layout" signature={`type PaneButton = "tuck" | "maximise" | "fullScreen" | "popOut" | "close"`} compact>
 
 A button a pane's header can show. `maximise` is Restore while the pane is maximised; `fullScreen` is Exit full screen while it is full screen; `popOut` is Bring back while it is popped out.
 
 </Entry>
 
-<Entry name="PaneButtons" kind="type" from="jali" signature={`type PaneButtons = readonly PaneButton[] | ((defaults: readonly PaneButton[], ctx: ButtonsContext) => readonly PaneButton[])`} compact>
+<Entry name="PaneButtons" kind="type" from="jali-layout" signature={`type PaneButtons = readonly PaneButton[] | ((defaults: readonly PaneButton[], ctx: ButtonsContext) => readonly PaneButton[])`} compact>
 
 A header's buttons, in order: a list that replaces the defaults, or a function that adjusts them (`(defaults) => defaults.filter((b) => b !== "tuck")`). Jali's defaults are `["tuck", "maximise", "popOut", "close"]` (Pop out only where `allow.popOut` turns it on), with `fullScreen` in Maximise's place on a lone pane. `allow` and Jali's own rules still filter the list, and Restore and Exit full screen always show while the pane is in that state. A ⋯ button opens the pane's menu whenever it offers more than the buttons do.
 
 </Entry>
 
-<Entry name="ButtonsContext" kind="type" from="jali" signature={`interface ButtonsContext { pane: PaneNode; presetId?: string; page?: { mode: ViewMode; item?: string } | null }`} compact>
+<Entry name="ButtonsContext" kind="type" from="jali-layout" signature={`interface ButtonsContext { pane: PaneNode; presetId?: string; page?: { mode: ViewMode; item?: string } | null }`} compact>
 
 What a `buttons` function is told: the pane, the preset the layout came from, and the curated page while one is open.
 
 </Entry>
 
-<Entry name="PhoneOptions" kind="type" from="jali" signature={`interface PhoneOptions { below?: number; stack?: boolean; stackFloor?: number; fold?: boolean }`} compact>
+<Entry name="PhoneOptions" kind="type" from="jali-layout" signature={`interface PhoneOptions { below?: number; stack?: boolean; stackFloor?: number; fold?: boolean }`} compact>
 
 How the instance behaves on a phone (`createJali({ phone })`).
 
@@ -452,7 +452,7 @@ How the instance behaves on a phone (`createJali({ phone })`).
 
 </Entry>
 
-<Entry name="PresetOptions" kind="type" from="jali" signature={`interface PresetOptions { id: string; label: string; layout: LayoutInput | (() => LayoutInput); saved?: () => LayoutInput | undefined }`} compact>
+<Entry name="PresetOptions" kind="type" from="jali-layout" signature={`interface PresetOptions { id: string; label: string; layout: LayoutInput | (() => LayoutInput); saved?: () => LayoutInput | undefined }`} compact>
 
 A preset, as `createJali({ presets })` takes it. `saved`, if given, is asked each time the preset is chosen: a layout it returns is shown instead of `layout`, so the preset comes back as the person left it. "Reset layout" always builds `layout`. See [Start from presets](/guides/layouts#keep-each-preset-as-it-was-left).
 
@@ -460,7 +460,7 @@ A preset, as `createJali({ presets })` takes it. `saved`, if given, is asked eac
 
 ## The instance
 
-<Entry name="Jali" kind="type" from="jali" signature={`interface Jali<R extends ObjectRef = ObjectRef, P = JaliPage | undefined>`} compact>
+<Entry name="Jali" kind="type" from="jali-layout" signature={`interface Jali<R extends ObjectRef = ObjectRef, P = JaliPage | undefined>`} compact>
 
 An instance, from <Ref to="createJali" page="/reference/core" />. It is frozen: these members are all it has. `R` is the refs of its kinds (from `createJali`), so `actions`, events and the model are typed by kind; `P` is its page's actions, or `undefined` without a page.
 
@@ -486,7 +486,7 @@ To save a person's layout, listen for `"layout"` and store `getLayout()`. To res
 
 </Entry>
 
-<Entry name="JaliEvents" kind="type" from="jali" signature={`interface JaliEvents<R extends ObjectRef = ObjectRef> { open; close; pin; focus; layout; toast }`} compact>
+<Entry name="JaliEvents" kind="type" from="jali-layout" signature={`interface JaliEvents<R extends ObjectRef = ObjectRef> { open; close; pin; focus; layout; toast }`} compact>
 
 What `jali.on` (and `useJaliEvent` in React) tells you. `ref.kind` says which of the instance's kinds, and narrows `ref.params`. Each fires once per change, after the change is made, and never for the steps inside one action (a drag before it drops, the steps of a preset switch). In one change they come in this order: `close`, `open`, `pin`, `focus`, `layout`.
 
@@ -517,13 +517,13 @@ jali.on("layout", ({ action }) => {
 
 </Entry>
 
-<Entry name="JaliEventBase" kind="type" from="jali" signature={`interface JaliEventBase { input: JaliInput }`} compact>
+<Entry name="JaliEventBase" kind="type" from="jali-layout" signature={`interface JaliEventBase { input: JaliInput }`} compact>
 
 What every event in <Ref to="JaliEvents" /> carries, beside its own fields.
 
 </Entry>
 
-<Entry name="JaliInput" kind="type" from="jali" signature={`type JaliInput = "mouse" | "touch" | "pen" | "keyboard" | "virtual" | "code"`} compact>
+<Entry name="JaliInput" kind="type" from="jali-layout" signature={`type JaliInput = "mouse" | "touch" | "pen" | "keyboard" | "virtual" | "code"`} compact>
 
 Where a change came from. `mouse`, `touch` and `pen` are a person's pointer; `keyboard` a key; `virtual` a click with no pointer or key behind it, as a screen reader sends; `code` your own code, with nothing a person did behind it.
 
@@ -531,13 +531,13 @@ A person's input is noted from the page while the instance is started (`<JaliRoo
 
 </Entry>
 
-<Entry name="JaliOptions" kind="type" from="jali" signature={`interface JaliOptions`} compact>
+<Entry name="JaliOptions" kind="type" from="jali-layout" signature={`interface JaliOptions`} compact>
 
 The options of `createJali`. Each one, with its default, is under <Ref to="createJali" page="/reference/core" />.
 
 </Entry>
 
-<Entry name="JaliState" kind="type" from="jali" signature={`interface JaliState<R extends ObjectRef = ObjectRef>`} compact>
+<Entry name="JaliState" kind="type" from="jali-layout" signature={`interface JaliState<R extends ObjectRef = ObjectRef>`} compact>
 
 What an instance holds that an app reads, read-only. Read it with `jali.get()` or `useJaliState(select)`; change it through `actions`. It is the same object until one of its fields changes, and each field keeps its object while it is the same, so a selector re-renders only for what it picked.
 
@@ -555,7 +555,7 @@ What an instance holds that an app reads, read-only. Read it with `jali.get()` o
 
 </Entry>
 
-<Entry name="PageState" kind="type" from="jali" signature={`interface PageState`} compact>
+<Entry name="PageState" kind="type" from="jali-layout" signature={`interface PageState`} compact>
 
 A curated page in use.
 
@@ -568,25 +568,25 @@ A curated page in use.
 
 </Entry>
 
-<Entry name="Selection" kind="type" from="jali" signature={`interface Selection { ref: ObjectRef; inResults: boolean }`} compact>
+<Entry name="Selection" kind="type" from="jali-layout" signature={`interface Selection { ref: ObjectRef; inResults: boolean }`} compact>
 
 A list's selected item. `inResults: false`: the list's filter no longer shows it; the following detail keeps it.
 
 </Entry>
 
-<Entry name="UrlWriter" kind="type" from="jali" signature={`interface UrlWriter { write(state: () => UrlState, mode: HistoryMode): void; href?(): string; cancel?(): void }`} compact>
+<Entry name="UrlWriter" kind="type" from="jali-layout" signature={`interface UrlWriter { write(state: () => UrlState, mode: HistoryMode): void; href?(): string; cancel?(): void }`} compact>
 
 Where an instance writes its address. Pass one as `url` to write it somewhere of your own. `write` gets a function, so a debounced write reads the latest state: the address's share of it (<Ref to="UrlState" />), as a link carries it, without params only your app sets (`appOnly`). `cancel`, when given, drops a write still waiting: `jali.destroy()` calls it.
 
 </Entry>
 
-<Entry name="UrlState" kind="type" from="jali" signature={`interface UrlState { layout: Layout; view: ViewState; presetId: string | undefined; page: PageState | null }`} compact>
+<Entry name="UrlState" kind="type" from="jali-layout" signature={`interface UrlState { layout: Layout; view: ViewState; presetId: string | undefined; page: PageState | null }`} compact>
 
 What a <Ref to="UrlWriter" /> reads: the layout on screen, the view (focus, the maximised pane, where rows that scroll came to rest; never the peek), the preset the layout came from, and the curated page open, if any. Refs in it are as a link carries them: without `appOnly` params.
 
 </Entry>
 
-<Entry name="JaliModel" kind="type" from="jali" signature={`interface JaliModel<R extends ObjectRef = ObjectRef>`} compact>
+<Entry name="JaliModel" kind="type" from="jali-layout" signature={`interface JaliModel<R extends ObjectRef = ObjectRef>`} compact>
 
 The layout as it is on screen (`jali.model()`, `useJaliModel()`): every pane, with its title and where it is. Read-only. It is the same object until a pane changes, and each pane keeps its object while it is the same, so `useJaliModel((m) => m.pane(id))` re-renders only for that pane. A title is read again each time, since a kind's title can read your own data.
 
@@ -605,19 +605,19 @@ else jali.actions.openBeside(jali.get().view.focused ?? "orders", order({ id: 7 
 
 </Entry>
 
-<Entry name="ActionResult" kind="type" from="jali" signature={`type ActionResult = { ok: true; pane?: NodeId } | Refusal`} compact>
+<Entry name="ActionResult" kind="type" from="jali-layout" signature={`type ActionResult = { ok: true; pane?: NodeId } | Refusal`} compact>
 
 What every action and `setLayout` return. `ok: true` when it happened, or when what it asks for is already so. `pane` is the pane it opened, else the pane it acted on. `pane` is undefined on a refusal, and `reason`, `message` and `settled` are undefined on success, so `result.pane` and `result.reason` read without checking `ok` first.
 
 </Entry>
 
-<Entry name="Done" kind="type" from="jali" signature={`interface Done { ok: true; pane?: NodeId }`} compact>
+<Entry name="Done" kind="type" from="jali-layout" signature={`interface Done { ok: true; pane?: NodeId }`} compact>
 
 An action that happened (or was already so): the `ok: true` side of <Ref to="ActionResult" />. Its `reason`, `message` and `settled` are always undefined.
 
 </Entry>
 
-<Entry name="Refusal" kind="type" from="jali" signature={`interface Refusal { ok: false; reason: RefusalReason; message?: string; settled?: Promise<ActionResult> }`} compact>
+<Entry name="Refusal" kind="type" from="jali-layout" signature={`interface Refusal { ok: false; reason: RefusalReason; message?: string; settled?: Promise<ActionResult> }`} compact>
 
 An action that did not happen. `message` is what Jali read out to screen readers, when it said anything; a refusal it did not say is silent, as before.
 
@@ -633,7 +633,7 @@ else void result.settled?.then((end) => end.ok && forgetSavedLayouts());
 
 </Entry>
 
-<Entry name="RefusalReason" kind="type" from="jali" signature={`type RefusalReason = "not-found" | "invalid" | "unavailable" | "single-view" | "not-allowed" | "last-pane" | "blocked" | "nothing-to-do" | "unsaved" | "kept" | "pending"`} compact>
+<Entry name="RefusalReason" kind="type" from="jali-layout" signature={`type RefusalReason = "not-found" | "invalid" | "unavailable" | "single-view" | "not-allowed" | "last-pane" | "blocked" | "nothing-to-do" | "unsaved" | "kept" | "pending"`} compact>
 
 <Params title="Reasons">
 <Param name="not-found" type="">The pane (by id or by what it shows), preset or view named is not there.</Param>
@@ -651,7 +651,7 @@ else void result.settled?.then((end) => end.ok && forgetSavedLayouts());
 
 </Entry>
 
-<Entry name="BeforeClose" kind="type" from="jali" signature={`type BeforeClose = (request: CloseRequest) => boolean | Promise<boolean>`} compact>
+<Entry name="BeforeClose" kind="type" from="jali-layout" signature={`type BeforeClose = (request: CloseRequest) => boolean | Promise<boolean>`} compact>
 
 The host's close guard, `createJali({ beforeClose })`. Jali asks it before a change removes panes or makes a pane show another object. `true` lets the change happen; `false` keeps the panes (`reason: "kept"`). A promise holds the change (`reason: "pending"`) until it answers; a yes makes it against the state then, and asks again if it would now remove or replace other panes. Nothing of the change is written while the guard decides, so an action the guard runs meanwhile happens at once, with its real result. A guard that throws or rejects keeps the panes.
 
@@ -659,13 +659,13 @@ It is asked first. If it says yes and a pane still reports unsaved work (`useUns
 
 </Entry>
 
-<Entry name="CloseReason" kind="type" from="jali" signature={`type CloseReason = "close" | "show" | "layout" | "address"`} compact>
+<Entry name="CloseReason" kind="type" from="jali-layout" signature={`type CloseReason = "close" | "show" | "layout" | "address"`} compact>
 
 Why panes would go, in a <Ref to="CloseRequest" />: its `reason`, listed there.
 
 </Entry>
 
-<Entry name="CloseRequest" kind="type" from="jali" signature={`interface CloseRequest { panes: { pane: NodeId; ref: ObjectRef }[]; reason: CloseReason }`} compact>
+<Entry name="CloseRequest" kind="type" from="jali-layout" signature={`interface CloseRequest { panes: { pane: NodeId; ref: ObjectRef }[]; reason: CloseReason }`} compact>
 
 What `beforeClose` is asked about: every pane the change would remove or point at another object, with what it shows now.
 
@@ -678,19 +678,19 @@ What `beforeClose` is asked about: every pane the change would remove or point a
 
 </Entry>
 
-<Entry name="Toast" kind="type" from="jali" signature={`interface Toast { title: string; description?: string; undo?: boolean; error?: boolean }`} compact>
+<Entry name="Toast" kind="type" from="jali-layout" signature={`interface Toast { title: string; description?: string; undo?: boolean; error?: boolean }`} compact>
 
 A toast for the host to render (`jali.on("toast")`, `useJaliEvent("toast")`). `undo`: offer Undo (run `jali.actions.undo()`).
 
 </Entry>
 
-<Entry name="HistoryMode" kind="type" from="jali" signature={`type HistoryMode = "push" | "replace" | "debounce" | "none"`} compact>
+<Entry name="HistoryMode" kind="type" from="jali-layout" signature={`type HistoryMode = "push" | "replace" | "debounce" | "none"`} compact>
 
 How a change reaches the address: a new entry, in place, in place 120 ms after the last call, or not at all. An action's parts make one write, the strongest of their modes (push, then replace, then debounce).
 
 </Entry>
 
-<Entry name="Settings" kind="type" from="jali" signature={`interface Settings`} compact>
+<Entry name="Settings" kind="type" from="jali-layout" signature={`interface Settings`} compact>
 
 <Params title="Fields">
 <Param name="centreDrop" type={`"swap" | "tab"`} default={`"swap"`} required>What a drop on a pane's centre does.</Param>
@@ -701,17 +701,17 @@ How a change reaches the address: a new entry, in place, in place 120 ms after t
 
 </Entry>
 
-<Entry name="ThemeChoice" kind="type" from="jali" signature={`type ThemeChoice = "system" | "light" | "dark"`} compact>The theme setting.</Entry>
+<Entry name="ThemeChoice" kind="type" from="jali-layout" signature={`type ThemeChoice = "system" | "light" | "dark"`} compact>The theme setting.</Entry>
 
-<Entry name="Theme" kind="type" from="jali" signature={`type Theme = "light" | "dark"`} compact>The theme shown.</Entry>
+<Entry name="Theme" kind="type" from="jali-layout" signature={`type Theme = "light" | "dark"`} compact>The theme shown.</Entry>
 
-<Entry name="OpenPageOptions" kind="type" from="jali" signature={`interface OpenPageOptions { item?: ItemId; tab?: string }`} compact>
+<Entry name="OpenPageOptions" kind="type" from="jali-layout" signature={`interface OpenPageOptions { item?: ItemId; tab?: string }`} compact>
 
 The options of `jali.page.open`: the item to show (default: the last one, else the page's `firstItem`) and the view Single view shows (a role id; default: the last one, else the home view).
 
 </Entry>
 
-<Entry name="OpenBesideOptions" kind="type" from="jali" signature={`interface OpenBesideOptions { edge?: Edge }`} compact>
+<Entry name="OpenBesideOptions" kind="type" from="jali-layout" signature={`interface OpenBesideOptions { edge?: Edge }`} compact>
 
 The options of `actions.openBeside` and a pane's `openBeside`. `edge` is the side of the source pane the new pane opens on: `"left"`, `"right"`, `"top"` or `"bottom"`. Default: after the source in reading order (its right, or its left right to left).
 
@@ -725,27 +725,27 @@ The options of `actions.openBeside` and a pane's `openBeside`. `edge` is the sid
 ## The address and storage
 
 
-<Entry name="UrlSyncOptions" kind="type" from="jali" signature={`interface UrlSyncOptions { location?; storage?; prefix?; sizes? }`} compact>
+<Entry name="UrlSyncOptions" kind="type" from="jali-layout" signature={`interface UrlSyncOptions { location?; storage?; prefix?; sizes? }`} compact>
 
 The `url` option of `createJali`: `location` (a <Ref to="LocationPort" />, default the browser's history), `prefix` (for two instances in one address: `"b."` writes `b.l`, `b.zoom`), `sizes` (<Ref to="LinkSizes" />) and `storage` (default: the instance's own).
 
 </Entry>
 
-<Entry name="LinkSizes" kind="type" from="jali" signature={`type LinkSizes = "link" | "local"`} compact>
+<Entry name="LinkSizes" kind="type" from="jali-layout" signature={`type LinkSizes = "link" | "local"`} compact>
 
 What a layout link carries about sizes. `"local"` (the default): the layout as designed, with the sizes the person dragged kept on their device (for up to 12 layouts), so a colleague opens the link at the designed proportions. `"link"`: everything, so the link reopens exactly.
 
 </Entry>
 
-<Entry name="LocationPort" kind="type" from="jali" signature={`interface LocationPort {\n  search(): string;\n  href(): string;\n  navigate(search: string, mode: NavigateMode): void;\n  subscribe(fn: () => void): () => void;\n}`} compact>
+<Entry name="LocationPort" kind="type" from="jali-layout" signature={`interface LocationPort {\n  search(): string;\n  href(): string;\n  navigate(search: string, mode: NavigateMode): void;\n  subscribe(fn: () => void): () => void;\n}`} compact>
 
 The address, as a port a router can implement. Jali reads and writes only its own search params. `navigate` goes to the same address with a new search string; `subscribe` hears changes made any other way. An adapter for React Router calls `navigate({ search }, { replace: mode === "replace" })`; for TanStack Router, `router.navigate` and `router.subscribe("onResolved", fn)`.
 
 </Entry>
 
-<Entry name="NavigateMode" kind="type" from="jali" signature={`type NavigateMode = "push" | "replace"`} compact>A new history entry, or in place.</Entry>
+<Entry name="NavigateMode" kind="type" from="jali-layout" signature={`type NavigateMode = "push" | "replace"`} compact>A new history entry, or in place.</Entry>
 
-<Entry name="StoragePort" kind="type" from="jali" signature={`interface StoragePort { get(key: string): string | null; set(key: string, value: string): void }`} compact>
+<Entry name="StoragePort" kind="type" from="jali-layout" signature={`interface StoragePort { get(key: string): string | null; set(key: string, value: string): void }`} compact>
 
 What one person keeps on one device. Keys Jali uses: `settings`, `pane-state`, a curated page's preferences, `broken-layout`, and (from the address) `sizes`.
 
@@ -753,57 +753,57 @@ What one person keeps on one device. Keys Jali uses: `settings`, `pane-state`, a
 
 ## Commands and keys
 
-<Entry name="ListedCommand" kind="type" from="jali" signature={`interface ListedCommand {\n  key: string; id?: string; title: string; group: string;\n  keys: string; disabled: boolean; reason?: string; run(): void;\n}`} compact>
+<Entry name="ListedCommand" kind="type" from="jali-layout" signature={`interface ListedCommand {\n  key: string; id?: string; title: string; group: string;\n  keys: string; disabled: boolean; reason?: string; run(): void;\n}`} compact>
 
 One entry of a command menu, from <Ref to="listCommands" page="/reference/core" />. `key` is unique in the list; `id` is the command id, undefined for a pane's own commands. `group` is the pane's title for those. Close your menu before `run`: some commands move focus.
 
 </Entry>
 
-<Entry name="Rename" kind="type" from="jali" signature={`interface Rename {\n  can?(pane: { id: NodeId; ref: ObjectRef }): boolean;\n  run(pane: { id: NodeId; ref: ObjectRef }, text: string): void | false | Promise<void | false>;\n}`} compact>
+<Entry name="Rename" kind="type" from="jali-layout" signature={`interface Rename {\n  can?(pane: { id: NodeId; ref: ObjectRef }): boolean;\n  run(pane: { id: NodeId; ref: ObjectRef }, text: string): void | false | Promise<void | false>;\n}`} compact>
 
 Renaming in place, from `createJali({ rename })`. Double-click or F2 on a tab, or on a lone pane's title, the tab menu's Rename…, or `actions.startRename` opens a field there with the title selected. Enter or leaving the field calls `run` with the trimmed text, for the object the field was opened on; the field closes, text dropped, if its pane shows another object; Esc keeps the old name, and an empty or unchanged name calls nothing. Jali stores no name: your app saves it and the pane shows it, usually with `useTitle`. Return `false`, throw or reject to keep the field open with the text, marked invalid; a promise keeps it busy until it settles. `can` says which panes may be renamed; leave it out for all.
 
 </Entry>
 
-<Entry name="TabMenu" kind="type" from="jali" signature={`type TabMenu = (pane: { id: NodeId; ref: ObjectRef }) => readonly TabMenuItem[] | undefined`} compact>
+<Entry name="TabMenu" kind="type" from="jali-layout" signature={`type TabMenu = (pane: { id: NodeId; ref: ObjectRef }) => readonly TabMenuItem[] | undefined`} compact>
 
 Your items for a tab's menu, from `createJali({ tabMenu })`. Called each time a tab's menu opens (right-click, Shift+F10 or the menu key on the tab), with that tab's pane. They come after Jali's own, after a separator. Return `undefined` or `[]` for a pane that has none.
 
 </Entry>
 
-<Entry name="TabMenuItem" kind="type" from="jali" signature={`interface TabMenuItem {\n  id: string; title: string; run(pane: { id: NodeId; ref: ObjectRef }): void;\n  disabled?: boolean | string; checked?: boolean; keys?: string;\n}`} compact>
+<Entry name="TabMenuItem" kind="type" from="jali-layout" signature={`interface TabMenuItem {\n  id: string; title: string; run(pane: { id: NodeId; ref: ObjectRef }): void;\n  disabled?: boolean | string; checked?: boolean; keys?: string;\n}`} compact>
 
 One item in a tab's menu. `disabled` greys it out but keeps it reachable from the keyboard; give a reason as text and screen readers read it. `checked` makes it a checkbox item, ticked when true. `keys` is a hint shown beside the title, such as `keyHint("Mod+D")`; the key itself is yours to handle. The menu closes, and focus returns to the tab, before `run` runs. `run` gets the pane as it is when the item is chosen, which may show another object than when the menu opened; once the pane has closed, it isn't called. Act on that pane, not on what the menu was built from: Jali's own items do (Move right moves the tab one place from where it is now; Pin pins, never toggles).
 
 </Entry>
 
-<Entry name="Command" kind="type" from="jali" signature={`interface Command {\n  id: string; title: string;\n  group: "Focus" | "Pane" | "Move" | "Tabs" | "Layout" | "Peek" | "Settings";\n  run: (jali: Jali) => void;\n  keys?: KeyString | readonly KeyString[];\n  disabled?: (jali: Jali) => boolean | string;\n}`} compact>
+<Entry name="Command" kind="type" from="jali-layout" signature={`interface Command {\n  id: string; title: string;\n  group: "Focus" | "Pane" | "Move" | "Tabs" | "Layout" | "Peek" | "Settings";\n  run: (jali: Jali) => void;\n  keys?: KeyString | readonly KeyString[];\n  disabled?: (jali: Jali) => boolean | string;\n}`} compact>
 
 A command. `run` gets the instance. Your own commands go in `createJali({ commands })`, with a group of your own if you like. `keys` binds your command, written as `keyboard.keymap` writes keys (`"Mod+B"`, or several). They are bound as written, and `keyboard.keymap` can rebind or unbind them. `disabled` is asked each time ⌘K lists commands and each time the command's key is pressed: return `true` while it can't run, or the reason as text. Whether any command can run now is in <Ref to="listCommands" page="/reference/core" /> (`disabled`, `reason`).
 
 </Entry>
 
-<Entry name="Keymap" kind="type" from="jali" signature={`interface Keymap`} compact>
+<Entry name="Keymap" kind="type" from="jali-layout" signature={`interface Keymap`} compact>
 
-An instance's resolved keys (`jali.keymap`): the defaults with its `keymap` overrides applied, with `platform`, `entries`, `sequences(id)`, `label(id)`, `format(seq)`, `find(match, prefix?)`, `isPrefix(match)` and `forPlatform(platform)`. `label` and `format` print keys in the instance's words (`messages.keys`). `forPlatform` gives the same bindings matched and printed for another platform (the same object for its own), for labels a server prerenders: `jali/react` prints `"other"` until the page has hydrated.
+An instance's resolved keys (`jali.keymap`): the defaults with its `keymap` overrides applied, with `platform`, `entries`, `sequences(id)`, `label(id)`, `format(seq)`, `find(match, prefix?)`, `isPrefix(match)` and `forPlatform(platform)`. `label` and `format` print keys in the instance's words (`messages.keys`). `forPlatform` gives the same bindings matched and printed for another platform (the same object for its own), for labels a server prerenders: `jali-layout/react` prints `"other"` until the page has hydrated.
 
 </Entry>
 
-<Entry name="KeymapOverrides" kind="type" from="jali" signature={`type KeymapOverrides = Partial<Record<DefaultKeymapId | (string & {}), KeyString | readonly KeyString[] | null>>`} compact>
+<Entry name="KeymapOverrides" kind="type" from="jali-layout" signature={`type KeymapOverrides = Partial<Record<DefaultKeymapId | (string & {}), KeyString | readonly KeyString[] | null>>`} compact>
 
 A host's key changes: a binding, several, or `null` to unbind.
 
 </Entry>
 
-<Entry name="KeymapOptions" kind="type" from="jali" signature={`interface KeymapOptions {\n  platform?: Platform; prefix?: KeyString; reserved?: readonly KeyString[];\n  onInvalid?: (id: string, binding: KeyString, reason: string) => void; words?: KeyWords;\n}`} compact>
+<Entry name="KeymapOptions" kind="type" from="jali-layout" signature={`interface KeymapOptions {\n  platform?: Platform; prefix?: KeyString; reserved?: readonly KeyString[];\n  onInvalid?: (id: string, binding: KeyString, reason: string) => void; words?: KeyWords;\n}`} compact>
 
 Part of `createJali`'s `keyboard` (<Ref to="KeyboardOptions" />): `platform` to match and print keys for, `prefix` and `reserved`, and `onInvalid`, called for each refused binding (default `console.warn`). `words` defaults to the instance's `messages.keys`.
 
 </Entry>
 
-<Entry name="DefaultKeymapId" kind="type" from="jali" signature={`type DefaultKeymapId = "palette.toggle" | "pane.focus.next" | …`} compact>The ids bound by default.</Entry>
+<Entry name="DefaultKeymapId" kind="type" from="jali-layout" signature={`type DefaultKeymapId = "palette.toggle" | "pane.focus.next" | …`} compact>The ids bound by default.</Entry>
 
-<Entry name="KeyString" kind="type" from="jali" signature={`type KeyString = string`} compact>
+<Entry name="KeyString" kind="type" from="jali-layout" signature={`type KeyString = string`} compact>
 
 A binding as text: chords separated by a space, keys in a chord by `+` (`Mod+K Mod+ArrowLeft`, `F6`, `Mod+\`). Modifiers: `Mod` (⌘ on a Mac, Ctrl elsewhere; `Cmd` and `Meta` mean the same), `Ctrl`, `Alt` (`Option`), `Shift`. Keys: a letter, a digit, punctuation, `F1` to `F24`, or a name (`Enter`, `Esc`, `Space`, `Tab`, `Backspace`, `Delete`, `Home`, `End`, `PageUp`, `PageDown`, the arrows). Letters, digits and punctuation match the physical key.
 
@@ -811,49 +811,49 @@ A binding as text: chords separated by a space, keys in a chord by `+` (`Mod+K M
 
 
 
-<Entry name="Chord" kind="type" from="jali" signature={`interface Chord { key: string; mod?: boolean; ctrl?: boolean; alt?: boolean; shift?: boolean }`} compact>
+<Entry name="Chord" kind="type" from="jali-layout" signature={`interface Chord { key: string; mod?: boolean; ctrl?: boolean; alt?: boolean; shift?: boolean }`} compact>
 
 One key press. `key` is `KeyboardEvent.code` (`"KeyM"`, `"Backslash"`) or, for named keys, `KeyboardEvent.key` (`"ArrowLeft"`, `"F6"`). `mod` is ⌘ on a Mac and Ctrl elsewhere; `ctrl` is the Control key itself.
 
 </Entry>
 
-<Entry name="KeySequence" kind="type" from="jali" signature={`type KeySequence = readonly Chord[]`} compact>One binding: a chord, or a prefix chord then a second chord (⌘K ⌘M).</Entry>
+<Entry name="KeySequence" kind="type" from="jali-layout" signature={`type KeySequence = readonly Chord[]`} compact>One binding: a chord, or a prefix chord then a second chord (⌘K ⌘M).</Entry>
 
-<Entry name="Platform" kind="type" from="jali" signature={`type Platform = "mac" | "other"`} compact>The platform keys are matched and printed for.</Entry>
+<Entry name="Platform" kind="type" from="jali-layout" signature={`type Platform = "mac" | "other"`} compact>The platform keys are matched and printed for.</Entry>
 
-<Entry name="KeyWords" kind="type" from="jali" signature={`interface KeyWords { ctrl; alt; shift; escape; space; left; right; up; down: string }`} compact>The words printed keys use: modifier names elsewhere than a Mac, and Esc, Space and the arrows. `messages.keys` is one.</Entry>
+<Entry name="KeyWords" kind="type" from="jali-layout" signature={`interface KeyWords { ctrl; alt; shift; escape; space; left; right; up; down: string }`} compact>The words printed keys use: modifier names elsewhere than a Mac, and Esc, Space and the arrows. `messages.keys` is one.</Entry>
 
 ## Words
 
-<Entry name="Messages" kind="type" from="jali" signature={`type Messages = { announcements: …; toasts: …; commands: …; … }`} compact>
+<Entry name="Messages" kind="type" from="jali-layout" signature={`type Messages = { announcements: …; toasts: …; commands: …; … }`} compact>
 
 Every word Jali uses, by area, with the same keys and shapes as <Ref to="en" page="/reference/core" />. A full translation is a `Messages`: a missing area or key, or a message of the wrong shape, is a type error. See [Translate Jali](/guides/theming#translate-jali).
 
 </Entry>
 
-<Entry name="MessageOverrides" kind="type" from="jali" signature={`type MessageOverrides = { [Area in keyof Messages]?: Partial<Messages[Area]> }`} compact>
+<Entry name="MessageOverrides" kind="type" from="jali-layout" signature={`type MessageOverrides = { [Area in keyof Messages]?: Partial<Messages[Area]> }`} compact>
 
 What `createJali({ messages })` takes: any areas, and any keys in them. Keys you leave out stay English. A misspelt key is a type error.
 
 </Entry>
 
-<Entry name="ScreenDirection" kind="type" from="jali" signature={`type ScreenDirection = "left" | "right" | "up" | "down"`} compact>A direction on screen (right to left too), as command ids name it (`pane.focus.left`), passed to `commands.focusDirection` and `commands.moveDirection`.</Entry>
+<Entry name="ScreenDirection" kind="type" from="jali-layout" signature={`type ScreenDirection = "left" | "right" | "up" | "down"`} compact>A direction on screen (right to left too), as command ids name it (`pane.focus.left`), passed to `commands.focusDirection` and `commands.moveDirection`.</Entry>
 
 ## Actions
 
-<Entry name="PaneTarget" kind="type" from="jali" signature={`type PaneTarget = NodeId | ObjectRef`} compact>
+<Entry name="PaneTarget" kind="type" from="jali-layout" signature={`type PaneTarget = NodeId | ObjectRef`} compact>
 
 A pane, by its id or by the object it shows. A ref means the pane showing that object: the focused pane if it does, else the first in the layout. `close(order({ id: 7 }))` closes the pane showing order 7, whatever its id.
 
 </Entry>
 
-<Entry name="ActionName" kind="type" from="jali" signature={`type ActionName = keyof JaliActions | "setLayout"`} compact>
+<Entry name="ActionName" kind="type" from="jali-layout" signature={`type ActionName = keyof JaliActions | "setLayout"`} compact>
 
 An action by its name in <Ref to="JaliActions" /> (`"openBeside"`, `"resetLayout"`), or `"setLayout"`. The `layout` event names the action that made a change with it. A person's click, key or ⌘K command counts as the action it is a form of: a click on a tab is `"focus"`, Split is `"split"`, Close on a tab is `"close"`.
 
 </Entry>
 
-<Entry name="ChooseOptions" kind="type" from="jali" signature={`interface ChooseOptions<T> { title: string; items: readonly T[]; label(item: T): string; hint?(item: T): string; current?: T; placeholder?: string; onChoose(item: T): void }`} compact>
+<Entry name="ChooseOptions" kind="type" from="jali-layout" signature={`interface ChooseOptions<T> { title: string; items: readonly T[]; label(item: T): string; hint?(item: T): string; current?: T; placeholder?: string; onChoose(item: T): void }`} compact>
 
 What <Ref to="JaliActions" /> `choose` asks the person for. `T` is whatever your items are.
 
@@ -869,7 +869,7 @@ What <Ref to="JaliActions" /> `choose` asks the person for. `T` is whatever your
 
 </Entry>
 
-<Entry name="JaliActions" kind="type" from="jali" signature={`interface JaliActions<R extends ObjectRef = ObjectRef>`} compact>
+<Entry name="JaliActions" kind="type" from="jali-layout" signature={`interface JaliActions<R extends ObjectRef = ObjectRef>`} compact>
 
 `jali.actions` (in React, `useJali().actions`): panes and layouts. A curated page's actions are <Ref to="JaliPage" />, the dialogs' <Ref to="JaliDialogs" />. `R` is the refs of the instance's kinds: a ref of another kind is a type error. Each one reads the state now, makes its change once and returns an <Ref to="ActionResult" />. They follow one rule:
 
@@ -932,7 +932,7 @@ What drags, keys and panes report (dividers, drops, focus keys, `useUnsaved`, `u
 
 </Entry>
 
-<Entry name="JaliPage" kind="type" from="jali" signature={`interface JaliPage<I extends ItemId = ItemId>`} compact>
+<Entry name="JaliPage" kind="type" from="jali-layout" signature={`interface JaliPage<I extends ItemId = ItemId>`} compact>
 
 `jali.page`: the curated page's actions, there (and typed) only when `createJali({ page })` was given one. `I` is the page's item type, its `firstItem`'s.
 
@@ -948,7 +948,7 @@ What drags, keys and panes report (dividers, drops, focus keys, `useUnsaved`, `u
 
 </Entry>
 
-<Entry name="JaliDialogs" kind="type" from="jali" signature={`interface JaliDialogs`} compact>
+<Entry name="JaliDialogs" kind="type" from="jali-layout" signature={`interface JaliDialogs`} compact>
 
 `jali.dialogs`: Jali's palette, settings and chooser.
 
@@ -962,42 +962,42 @@ What drags, keys and panes report (dividers, drops, focus keys, `useUnsaved`, `u
 
 </Entry>
 
-<Entry name="Ref" kind="type" from="jali" signature={`interface Ref<K extends string = string, P = Params> { readonly kind: K; readonly params: P }`} compact>
+<Entry name="Ref" kind="type" from="jali-layout" signature={`interface Ref<K extends string = string, P = Params> { readonly kind: K; readonly params: P }`} compact>
 
 An object of the kind `K`, with its params typed: what a kind's call returns (`note({ id: 2 })` is a `Ref<"note", { id: number }>`). It is an <Ref to="ObjectRef" /> too, the wide type links and agents use; `kind` tells one kind's refs from another's, so checking it narrows `params`.
 
 </Entry>
 
-<Entry name="RefOf" kind="type" from="jali" signature={`type RefOf<D>`} compact>
+<Entry name="RefOf" kind="type" from="jali-layout" signature={`type RefOf<D>`} compact>
 
 The refs of kinds `D`: each defined kind's `Ref`, and `ObjectRef` for a kind without a call. `createJali` uses it to type the instance.
 
 </Entry>
 
-<Entry name="RefsOf" kind="type" from="jali" signature={`type RefsOf<J extends AnyJali>`} compact>
+<Entry name="RefsOf" kind="type" from="jali-layout" signature={`type RefsOf<J extends AnyJali>`} compact>
 
 The refs of instance `J`'s kinds.
 
 </Entry>
 
-<Entry name="PageOf" kind="type" from="jali" signature={`type PageOf<P>`} compact>
+<Entry name="PageOf" kind="type" from="jali-layout" signature={`type PageOf<P>`} compact>
 
 The page's actions an instance made with page `P` has: `JaliPage` for its item type, or `undefined`.
 
 </Entry>
 
-<Entry name="AnyJali" kind="type" from="jali" signature={`type AnyJali = Jali<any, any>`} compact>
+<Entry name="AnyJali" kind="type" from="jali-layout" signature={`type AnyJali = Jali<any, any>`} compact>
 
 Any instance, whatever its kinds and page: for a function that takes one.
 
 </Entry>
 
-<Entry name="Register" kind="type" from="jali" signature={`interface Register { jali?: AnyJali }`} compact>
+<Entry name="Register" kind="type" from="jali-layout" signature={`interface Register { jali?: AnyJali }`} compact>
 
 One declaration types the app's instance everywhere, React's hooks included (the full example is on [Installation](/get-started/installation#typescript-register-your-instance)):
 
 ```ts nocheck
-declare module "jali" {
+declare module "jali-layout" {
   interface Register {
     jali: typeof jali;
   }
@@ -1006,25 +1006,25 @@ declare module "jali" {
 
 </Entry>
 
-<Entry name="RegisteredJali" kind="type" from="jali" signature={`type RegisteredJali`} compact>
+<Entry name="RegisteredJali" kind="type" from="jali-layout" signature={`type RegisteredJali`} compact>
 
 The app's instance type from <Ref to="Register" />, or any instance when nothing is registered. The React hooks default to it.
 
 </Entry>
 
-<Entry name="JaliEvent" kind="type" from="jali" signature={`type JaliEvent = keyof JaliEvents`} compact>
+<Entry name="JaliEvent" kind="type" from="jali-layout" signature={`type JaliEvent = keyof JaliEvents`} compact>
 
 The name of an event: `"open"`, `"close"`, `"pin"`, `"focus"`, `"layout"` or `"toast"`.
 
 </Entry>
 
-<Entry name="DeepReadonly" kind="type" from="jali" signature={`type DeepReadonly<T>`} compact>
+<Entry name="DeepReadonly" kind="type" from="jali-layout" signature={`type DeepReadonly<T>`} compact>
 
 `T`, read-only all the way down: what an instance gives an app to read (its state, layout, model and events). An edit would change the instance behind its back, with no history and no event; in development it throws. Refs and params in it are frozen too. `structuredClone` gives a copy to edit; a read-only layout goes back into `setLayout` and `createJali({ layout })` as it is.
 
 </Entry>
 
-<Entry name="PaneOf" kind="type" from="jali" signature={`interface PaneOf<R extends ObjectRef = ObjectRef>`} compact>
+<Entry name="PaneOf" kind="type" from="jali-layout" signature={`interface PaneOf<R extends ObjectRef = ObjectRef>`} compact>
 
 A pane as the model gives it, read-only, with its `ref` typed by the instance's kinds.
 
@@ -1050,7 +1050,7 @@ if (detail && detail.where !== "shown") jali.actions.focus(detail.id);
 
 </Entry>
 
-<Entry name="KeyboardOptions" kind="type" from="jali" signature={`interface KeyboardOptions extends KeymapOptions { scope?; keymap? }`} compact>
+<Entry name="KeyboardOptions" kind="type" from="jali-layout" signature={`interface KeyboardOptions extends KeymapOptions { scope?; keymap? }`} compact>
 
 `createJali({ keyboard })`: Jali's keys in one place. `scope` (`"page"` or `"local"`), `keymap`, and the <Ref to="KeymapOptions" /> `prefix`, `reserved`, `platform`, `onInvalid` and `words`. See <Ref to="createJali" page="/reference/core" />.
 

@@ -325,7 +325,7 @@ export function JaliView() {
       if (process.env.NODE_ENV !== "production" && profile && !Page)
         console.error(
           "Jali: this page has no parts to render it, so <JaliView> shows bare panes. Make it with definePage from " +
-            "jali/page.",
+            "jali-layout/page.",
         );
     } catch {
       /* no `process`: production */

@@ -4,8 +4,8 @@
  * scope, so an excerpt such as `jali.actions.focus("a")` still checks. A block that declares or imports one of these
  * names uses its own.
  */
-import type { Jali, LayoutInput, ObjectRef, PaneKindBase } from "jali";
-import type { Pane } from "jali/react";
+import type { Jali, LayoutInput, ObjectRef, PaneKindBase } from "jali-layout";
+import type { Pane } from "jali-layout/react";
 
 declare global {
   /** The app's instance, from `createJali`. */

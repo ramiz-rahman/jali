@@ -3,8 +3,8 @@
  * application is one page: a header, then tabs (nav/roles.ts). Split view starts from Overview's sections as panes: the
  * application, with the borrower and their mortgages beside.
  */
-import { column, pane, row, type ObjectRef } from "jali";
-import { definePage } from "jali/page";
+import { column, pane, row, type ObjectRef } from "jali-layout";
+import { definePage } from "jali-layout/page";
 import type { Parties } from "../parties";
 import { PAGE_VIEWS, ROLES, type Role } from "../nav/roles";
 import { ApplicationHeader } from "./header";

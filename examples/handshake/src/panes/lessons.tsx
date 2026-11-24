@@ -4,7 +4,7 @@
  */
 import { useEffect, type KeyboardEvent } from "react";
 import { GraduationCap } from "lucide-react";
-import { definePane, useJaliState, type PaneProps } from "jali/react";
+import { definePane, useJaliState, type PaneProps } from "jali-layout/react";
 import { ItemList } from "#src/vendor/cyberspec/components/ui/item-list.tsx";
 import { Progress } from "#src/vendor/cyberspec/components/ui/progress.tsx";
 import { LESSONS, lessonById } from "#src/course/lessons/index.ts";

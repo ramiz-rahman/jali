@@ -1,6 +1,6 @@
 /** A place's neighbours in its own city (trip/nearby.ts): stays, food and sights, the three nearest of each. */
 import { useMemo, type KeyboardEvent } from "react";
-import { useJali, usePane } from "jali/react";
+import { useJali, usePane } from "jali-layout/react";
 import { usePlan, useServices } from "../../state/services";
 import { CITY } from "../../trip/cities";
 import { wordsFor } from "../../trip/modes";

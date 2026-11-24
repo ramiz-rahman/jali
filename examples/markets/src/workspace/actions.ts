@@ -1,5 +1,5 @@
 /** The app's own moves on the workspace, shared by panes and ⌘K commands. */
-import type { Jali, NodeId, ObjectRef } from "jali";
+import type { Jali, NodeId, ObjectRef } from "jali-layout";
 import type { TicketInbox, TicketRequest } from "../model/ticket";
 import { blotter } from "../panes/blotter";
 import { news } from "../panes/news";

@@ -4,7 +4,7 @@
  */
 import { useMemo, useSyncExternalStore } from "react";
 import { AnchorSimpleIcon, LinkSimpleHorizontalIcon } from "@phosphor-icons/react";
-import type { Jali } from "jali";
+import type { Jali } from "jali-layout";
 import { NamedWorkspace } from "../../live/embed";
 import { useShopDemo } from "./useShopDemo";
 

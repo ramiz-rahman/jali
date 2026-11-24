@@ -4,7 +4,7 @@
  */
 import { useRef, useState, type KeyboardEvent } from "react";
 import { ChartLineUpIcon } from "@phosphor-icons/react";
-import { definePane, type PaneProps } from "jali/react";
+import { definePane, type PaneProps } from "jali-layout/react";
 import { isBond } from "../market/classes";
 import { useMarket, useQuotes } from "../market/react";
 import type { Bond } from "../market/types";

@@ -15,8 +15,8 @@ import {
   type KeyboardEvent,
 } from "react";
 import { KeyboardIcon } from "@phosphor-icons/react";
-import type { Jali } from "jali";
-import { PALETTE_ID, formatKeys, matchChord, runCommand } from "jali/adapter";
+import type { Jali } from "jali-layout";
+import { PALETTE_ID, formatKeys, matchChord, runCommand } from "jali-layout/adapter";
 import { NamedWorkspace, useHydrated } from "../../live/embed";
 import { useShopDemo } from "./useShopDemo";
 

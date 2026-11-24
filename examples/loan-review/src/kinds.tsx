@@ -1,6 +1,6 @@
 /** The review's pane kinds: Overview, and the record and list views the tabs and links open. */
 import { FileTextIcon, LayoutIcon, LinkSimpleHorizontalIcon } from "@phosphor-icons/react";
-import { definePane, type Pane } from "jali/react";
+import { definePane, type Pane } from "jali-layout/react";
 import { recordParams } from "@jali-examples/shared/panes/kinds/record";
 import { relatedIdentity } from "@jali-examples/shared/panes/kinds/related";
 import { KIND, listParams, recordTitle } from "./nav/refs";

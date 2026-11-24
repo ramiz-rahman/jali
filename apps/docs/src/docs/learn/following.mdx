@@ -33,7 +33,7 @@ Focus stays in the list the whole time, so the person keeps moving with J and K.
 One list can drive details of several kinds. A watchlist selects a quote, and beside it a chart, an order book and the news follow the same instrument. A follower of the selected object's kind shows that object. A follower of another kind shows what its kind says it shows for it, with `follow`:
 
 ```tsx filename="src/panes/chart.tsx"
-import { definePane } from "jali/react";
+import { definePane } from "jali-layout/react";
 import { Chart } from "./chart-view";
 
 export const chart = definePane("chart", {
@@ -80,7 +80,7 @@ With no following detail, or one that is out of sight (folded, behind a tab, tuc
 A list with no selection yet, beside a follower that already shows something, would otherwise start on its first row and move the follower straight away. Say what the list selects with `selects`, and it starts on what its follower of that kind shows instead:
 
 ```tsx
-import { definePane } from "jali/react";
+import { definePane } from "jali-layout/react";
 import { Watchlist } from "./watchlist-view";
 
 const watchlist = definePane("watchlist", {

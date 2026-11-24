@@ -2,10 +2,10 @@
 // app/notes/panes.tsx: a client component. The instance is made here, once per render tree, never in a server
 // component (it holds functions and can't be passed from server to client).
 import { useState } from "react";
-import { createJali, memoryLocation, row } from "jali";
-import { JaliRoot, definePane } from "jali/react";
-import { defaultFeatures } from "jali/features";
-import { urlSync } from "jali/url";
+import { createJali, memoryLocation, row } from "jali-layout";
+import { JaliRoot, definePane } from "jali-layout/react";
+import { defaultFeatures } from "jali-layout/features";
+import { urlSync } from "jali-layout/url";
 
 const note = definePane("note", {
   params: { id: Number },

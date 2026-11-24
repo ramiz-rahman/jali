@@ -9,7 +9,7 @@ import {
   PauseIcon,
   PlayIcon,
 } from "@phosphor-icons/react";
-import { buildSearch, type JaliStore } from "jali/adapter";
+import { buildSearch, type JaliStore } from "jali-layout/adapter";
 import type { Tour } from "./useTour";
 
 /** What the address would say for this layout: the same search string Jali writes into a real one. */

@@ -44,7 +44,7 @@ test("the install line: the menu picks the package manager, from the pointer or 
   const trigger = install.getByRole("button", { name: "Package manager: npm" });
   const menu = install.getByRole("listbox", { name: "Package manager" });
   const command = install.locator(".install-command:visible");
-  await expect(command).toHaveText("npm install jali");
+  await expect(command).toHaveText("npm install jali-layout");
   await expect(menu).toBeHidden();
 
   // The pointer: open, choose pnpm.
@@ -54,7 +54,7 @@ test("the install line: the menu picks the package manager, from the pointer or 
   await expect(menu.getByRole("option")).toHaveText(["npm", "pnpm", "yarn", "bun", "vp"]);
   await menu.getByRole("option", { name: "pnpm" }).click();
   await expect(menu).toBeHidden();
-  await expect(command).toHaveText("pnpm add jali");
+  await expect(command).toHaveText("pnpm add jali-layout");
   await expect(install.getByRole("button", { name: "Package manager: pnpm" })).toBeFocused();
 
   // The keys: open on the chosen one, End goes to vp, Enter chooses it; Escape closes without choosing.
@@ -63,12 +63,12 @@ test("the install line: the menu picks the package manager, from the pointer or 
   await expect(menu.getByRole("option", { name: "pnpm" })).toHaveAttribute("data-active", "");
   await page.keyboard.press("End");
   await page.keyboard.press("Enter");
-  await expect(command).toHaveText("vp add jali");
+  await expect(command).toHaveText("vp add jali-layout");
   await page.keyboard.press("Enter");
   await page.keyboard.press("y");
   await page.keyboard.press("Escape");
   await expect(menu).toBeHidden();
-  await expect(command).toHaveText("vp add jali");
+  await expect(command).toHaveText("vp add jali-layout");
 
   // A click elsewhere closes it.
   await install.getByRole("button", { name: "Package manager: vp" }).click();
@@ -78,7 +78,7 @@ test("the install line: the menu picks the package manager, from the pointer or 
   await page.goto("/");
   const hero = page.locator("figure.install").first();
   await expect(hero.getByRole("button", { name: "Package manager: vp" })).toBeVisible();
-  await expect(hero.locator(".install-command:visible")).toHaveText("vp add jali");
+  await expect(hero.locator(".install-command:visible")).toHaveText("vp add jali-layout");
 });
 
 test("the landing takes the page's width at every window width, with nothing past the edge", async ({
@@ -252,7 +252,7 @@ test("copy buttons copy the code as written", async ({ page }) => {
   await block.getByRole("button", { name: "Copy code" }).click();
   await expect(block.getByRole("button", { name: "Copied" })).toBeVisible();
   const text = (await copied()).at(-1)!;
-  expect(text).toContain('import { createJali } from "jali";');
+  expect(text).toContain('import { createJali } from "jali-layout";');
   expect(text).not.toContain("​");
 
   await page.getByRole("button", { name: "Copy page" }).click();
@@ -293,7 +293,7 @@ test("llms-full.txt holds every page as Markdown", async ({ request }) => {
   const text = await (await request.get("/llms-full.txt")).text();
   expect(text).toContain("# Quickstart");
   expect(text).toContain("# How a layout fits");
-  expect(text).toContain('import { createJali, row } from "jali";');
+  expect(text).toContain('import { createJali, row } from "jali-layout";');
 });
 
 test("headings are read as their words, without their link", async ({ page }) => {

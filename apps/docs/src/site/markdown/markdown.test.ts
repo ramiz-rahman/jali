@@ -6,7 +6,7 @@ import { mdxToMarkdown, toMarkdown } from "./index";
 describe("mdxToMarkdown", () => {
   it("writes a reference entry as a heading, its signature and a list of params", () => {
     const md =
-      mdxToMarkdown(`<Entry name="tuck" kind="action" from="jali" signature={\`tuck(pane): ActionResult\`} compact>
+      mdxToMarkdown(`<Entry name="tuck" kind="action" from="jali-layout" signature={\`tuck(pane): ActionResult\`} compact>
 
 Tucks a pane. See <Ref to="Shelf" page="/reference/react" />.
 
@@ -16,7 +16,7 @@ Tucks a pane. See <Ref to="Shelf" page="/reference/react" />.
 
 </Entry>`);
     expect(md).toContain("### tuck");
-    expect(md).toContain("*action*, from `jali`");
+    expect(md).toContain("*action*, from `jali-layout`");
     expect(md).toContain("```ts\ntuck(pane): ActionResult\n```");
     expect(md).toContain("[`Shelf`](/reference/react#Shelf)");
     expect(md).toContain("- **`pane`** (`PaneTarget`, required): The pane.");
@@ -75,19 +75,19 @@ describe("toMarkdown", () => {
   it("drops the page's imports and keeps the imports inside its code blocks", () => {
     const md = toMarkdown(
       page(
-        'import { Frame } from "../../live";\n\nText.\n\n```ts\nimport { createJali } from "jali";\nimport { order } from "./panes";\n```\n',
+        'import { Frame } from "../../live";\n\nText.\n\n```ts\nimport { createJali } from "jali-layout";\nimport { order } from "./panes";\n```\n',
       ),
     );
     expect(md).not.toContain("../../live");
     expect(md).toContain(
-      '```ts\nimport { createJali } from "jali";\nimport { order } from "./panes";\n```',
+      '```ts\nimport { createJali } from "jali-layout";\nimport { order } from "./panes";\n```',
     );
   });
 
   it("writes a reference entry's example, from the sample the page imports, after its signature", () => {
     const md = toMarkdown(
       page(
-        'import code from "../../samples/reference/create-workspace.ts?raw";\n\n<Entry name="createJali" kind="function" from="jali" signature={`createJali(options)`} example={code} exampleFile="jali.ts">\n\nMakes one.\n\n</Entry>',
+        'import code from "../../samples/reference/create-workspace.ts?raw";\n\n<Entry name="createJali" kind="function" from="jali-layout" signature={`createJali(options)`} example={code} exampleFile="jali.ts">\n\nMakes one.\n\n</Entry>',
       ),
     );
     expect(md).toMatch(/```ts\ncreateJali\(options\)\n```\n\nExample, `jali.ts`:\n\n```ts\n\S/);

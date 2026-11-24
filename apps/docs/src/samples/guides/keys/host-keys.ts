@@ -1,9 +1,9 @@
-import { createJali } from "jali";
+import { createJali } from "jali-layout";
 import { launcher, orderKinds } from "../pane-kinds/orders";
 import { presets } from "../presets/layouts";
-import { chooser } from "jali/chooser";
-import { settings } from "jali/settings";
-import { urlSync } from "jali/url";
+import { chooser } from "jali-layout/chooser";
+import { settings } from "jali-layout/settings";
+import { urlSync } from "jali-layout/url";
 
 export const jali = createJali({
   panes: orderKinds,

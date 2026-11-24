@@ -5,7 +5,7 @@
  * reading stays open in the next one.
  */
 import { useMemo, useState } from "react";
-import { definePane, useCommands, type PaneProps } from "jali/react";
+import { definePane, useCommands, type PaneProps } from "jali-layout/react";
 import { ScanSearch } from "lucide-react";
 import { Alert } from "#src/vendor/cyberspec/components/ui/alert.tsx";
 import { Badge } from "#src/vendor/cyberspec/components/ui/badge.tsx";

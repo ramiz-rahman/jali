@@ -3,8 +3,8 @@
  * and draw a divider drag as it happens.
  */
 import type { ReactNode } from "react";
-import type { JaliStore } from "jali/adapter";
-import type { Rect } from "jali";
+import type { JaliStore } from "jali-layout/adapter";
+import type { Rect } from "jali-layout";
 import { ClientOnly } from "../workspace/ClientOnly";
 import { JaliProvider } from "../workspace/jali-gaps";
 import { PreviewRects } from "./nodes";

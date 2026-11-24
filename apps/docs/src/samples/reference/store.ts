@@ -1,4 +1,4 @@
-import { createJali, pane, row } from "jali";
+import { createJali, pane, row } from "jali-layout";
 import { launcherKind, orderKind, ordersKind } from "./kinds";
 
 export const store = createJali({

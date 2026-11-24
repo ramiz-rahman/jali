@@ -7,8 +7,14 @@ A pane that holds work needs three things from Jali. It should ask before the wo
 `src/panes/ticket-note.tsx`
 
 ```tsx
-import { keyHint } from "jali";
-import { definePane, useCommands, usePaneState, useUnsaved, type PaneProps } from "jali/react";
+import { keyHint } from "jali-layout";
+import {
+  definePane,
+  useCommands,
+  usePaneState,
+  useUnsaved,
+  type PaneProps,
+} from "jali-layout/react";
 import { NotePencilIcon } from "@phosphor-icons/react";
 
 // Your own save, for example a fetch to your API.
@@ -73,7 +79,7 @@ export const ticketNote = definePane("ticket-note", {
 Call `useUnsaved` with a few words about the work while there is some, and anything falsy once it is saved or gone:
 
 ```tsx
-import { useUnsaved } from "jali/react";
+import { useUnsaved } from "jali-layout/react";
 
 function TicketNote({ edited }: { edited: boolean }) {
   useUnsaved(edited && "an unsaved note");
@@ -116,7 +122,7 @@ Two more cases:
 `usePaneState(key, initial)` works like `useState`, but Jali keeps the value for this pane:
 
 ```tsx
-import { usePaneState } from "jali/react";
+import { usePaneState } from "jali-layout/react";
 
 function Draft() {
   const [draft, setDraft] = usePaneState("draft", "");
@@ -137,8 +143,8 @@ In the peek sheet there is no pane, so `usePaneState` is plain React state there
 `useCommands(list)` adds commands to the palette while this pane is focused. They come first, under the pane's title, and go when the component unmounts.
 
 ```tsx
-import { keyHint } from "jali";
-import { useCommands } from "jali/react";
+import { keyHint } from "jali-layout";
+import { useCommands } from "jali-layout/react";
 
 function NoteCommands({ edited, save }: { edited: boolean; save: () => void }) {
   useCommands([
@@ -159,7 +165,7 @@ Pass the list on every render. The palette is updated only when an id, title, la
 Your app may know more than a pane does: a draft saved on the server, a write that is still running. Give `createJali` a `beforeClose`, and Jali asks it before any change removes panes or makes one show something else: a close, close others, a preset, `jali.setLayout`, Back and Forward, a pane showing another object.
 
 ```ts
-import { createJali } from "jali";
+import { createJali } from "jali-layout";
 import { drafts } from "./drafts";
 
 const jali = createJali({
@@ -183,7 +189,7 @@ const jali = createJali({
 An app with its own "Save changes?" dialog asks from `beforeClose`. Pass `confirmDiscard: false`, and Jali's question never follows: your yes stands. Panes still report their work with `useUnsaved`, so the dot still shows; the browser's prompt on leaving the page is yours to add too.
 
 ```ts
-import { createJali } from "jali";
+import { createJali } from "jali-layout";
 import { askToSave } from "./save-dialog";
 
 const jali = createJali({
@@ -198,11 +204,11 @@ A following detail with unsaved work still keeps its object when the list's curs
 
 ## Test it
 
-The rules can be tested without rendering. What `useUnsaved` reports from a rendered pane is reported with `reportUnsaved` from `jali/testing`:
+The rules can be tested without rendering. What `useUnsaved` reports from a rendered pane is reported with `reportUnsaved` from `jali-layout/testing`:
 
 ```ts
 import { expect, it } from "vitest";
-import { createTestJali, reportUnsaved } from "jali/testing";
+import { createTestJali, reportUnsaved } from "jali-layout/testing";
 import { orderKinds, presets } from "./panes";
 
 it("asks before closing a pane with unsaved work", () => {

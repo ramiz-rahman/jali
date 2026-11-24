@@ -1,9 +1,9 @@
-/** Size scenario: the floor and a curated page (`definePage` from jali/page), with no feature. */
+/** Size scenario: the floor and a curated page (`definePage` from jali-layout/page), with no feature. */
 import { createRoot } from "react-dom/client";
-import { createJali, pane, row } from "jali";
-import { JaliRoot, definePane } from "jali/react";
-import { definePage } from "jali/page";
-import "jali/styles.css";
+import { createJali, pane, row } from "jali-layout";
+import { JaliRoot, definePane } from "jali-layout/react";
+import { definePage } from "jali-layout/page";
+import "jali-layout/styles.css";
 
 const note = definePane("note", {
   params: { id: Number },

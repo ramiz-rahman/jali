@@ -3,7 +3,7 @@
  * activity; once the data is there, the view renders with it.
  */
 import type { ReactNode } from "react";
-import { useActivity } from "jali/react";
+import { useActivity } from "jali-layout/react";
 import { PaneGate } from "@jali-examples/shared/panes/shared/PaneGate";
 import type { Read } from "../../data";
 

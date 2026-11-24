@@ -1,10 +1,10 @@
 /** Size scenario: examples/minimal without its fonts. One kind of pane, a starting layout, the address
  *  (`urlSync()`), no curated page, no launcher. */
 import { createRoot } from "react-dom/client";
-import { createJali, row } from "jali";
-import { JaliRoot, definePane } from "jali/react";
-import { urlSync } from "jali/url";
-import "jali/styles.css";
+import { createJali, row } from "jali-layout";
+import { JaliRoot, definePane } from "jali-layout/react";
+import { urlSync } from "jali-layout/url";
+import "jali-layout/styles.css";
 
 const note = definePane("note", {
   params: { id: Number },

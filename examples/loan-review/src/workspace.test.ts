@@ -1,6 +1,6 @@
 /** Loan review's workspace: the page's views are the objects a reviewer's links name, whatever the link calls them. */
 import { describe, expect, it } from "vite-plus/test";
-import { createTestJali } from "jali/testing";
+import { createTestJali } from "jali-layout/testing";
 import { reviewListKind } from "./kinds";
 import type { Parties } from "./parties";
 import { loanReviewOptions } from "./workspace";

@@ -4,7 +4,7 @@
  * does.
  */
 import { useEffect, useId, useRef } from "react";
-import { useJaliState } from "jali/react";
+import { useJaliState } from "jali-layout/react";
 import { createStore, useStore } from "@jali-examples/shared/store";
 import type { Question } from "../workspace/unsent";
 

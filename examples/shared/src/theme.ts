@@ -1,5 +1,5 @@
 /** The examples' ⌘K "Switch between light and dark": the other theme from the one on screen, as a Jali setting. */
-import type { Command, Jali } from "jali";
+import type { Command, Jali } from "jali-layout";
 
 /** Changes Jali's theme setting to the one not on screen now (which, under "system", is the system's). */
 export function switchTheme(jali: Jali) {

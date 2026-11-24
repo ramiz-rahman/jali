@@ -1,4 +1,4 @@
-import { createJali } from "jali";
+import { createJali } from "jali-layout";
 import { orderKinds, orderList } from "../pane-kinds/orders";
 
 // With no presets, Jali opens on one layout: here, the order list alone.

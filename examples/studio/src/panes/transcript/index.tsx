@@ -17,8 +17,8 @@ import {
   TextAlignLeftIcon,
   UserIcon,
 } from "@phosphor-icons/react";
-import { keyHint, type Jali, type ObjectRef } from "jali";
-import { useJali, usePaneState } from "jali/react";
+import { keyHint, type Jali, type ObjectRef } from "jali-layout";
+import { useJali, usePaneState } from "jali-layout/react";
 import { usePosition } from "../../audio/react";
 import { useServices } from "../../services";
 import { catalogueOf } from "../../sessions/catalog";

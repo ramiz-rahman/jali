@@ -2,7 +2,7 @@
  * The hub (hub.ts) for components: the place selected on the map, and the day the map shows, each re-rendering only
  * when it changes. Reading the model inside a state selector is cheap: Jali caches it per change.
  */
-import { useJali, useJaliState } from "jali/react";
+import { useJali, useJaliState } from "jali-layout/react";
 import { hubOf, selectedPlace } from "./hub";
 import { WHOLE_TRIP } from "./refs";
 

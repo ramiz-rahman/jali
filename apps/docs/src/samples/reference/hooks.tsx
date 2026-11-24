@@ -1,4 +1,4 @@
-import { useJaliShortcut, useJali, useJaliModel, useJaliState } from "jali/react";
+import { useJaliShortcut, useJali, useJaliModel, useJaliState } from "jali-layout/react";
 
 // A status line: reads exactly what it shows, so it re-renders only when that changes.
 export function StatusLine() {

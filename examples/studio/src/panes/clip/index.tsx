@@ -8,7 +8,7 @@
  */
 import { useId } from "react";
 import { PauseIcon, PlayIcon, WaveformIcon } from "@phosphor-icons/react";
-import { keyHint, type ObjectRef } from "jali";
+import { keyHint, type ObjectRef } from "jali-layout";
 import {
   definePane,
   useJaliState,
@@ -16,7 +16,7 @@ import {
   useTitle,
   useUnsaved,
   type PaneProps,
-} from "jali/react";
+} from "jali-layout/react";
 import { useSessionTransport } from "../../audio/react";
 import { useSessionView } from "../../model/react";
 import type { SessionView } from "../../model/view";

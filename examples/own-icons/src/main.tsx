@@ -8,16 +8,16 @@
  */
 import { use } from "react";
 import { createRoot } from "react-dom/client";
-import { createJali, row, tabs } from "jali";
-import { JaliRoot, definePane, type JaliIconProps, type JaliIcons } from "jali/react";
+import { createJali, row, tabs } from "jali-layout";
+import { JaliRoot, definePane, type JaliIconProps, type JaliIcons } from "jali-layout/react";
 import "./app.css";
-import "jali/styles.css";
-import { urlSync } from "jali/url";
-import { palette } from "jali/palette";
-import { settings } from "jali/settings";
-import { chooser } from "jali/chooser";
-import { pressed } from "jali/pressed";
-import { rename } from "jali/rename";
+import "jali-layout/styles.css";
+import { urlSync } from "jali-layout/url";
+import { palette } from "jali-layout/palette";
+import { settings } from "jali-layout/settings";
+import { chooser } from "jali-layout/chooser";
+import { pressed } from "jali-layout/pressed";
+import { rename } from "jali-layout/rename";
 
 /** One stroked icon from a path on a 16px grid. */
 const stroke = (d: string) =>

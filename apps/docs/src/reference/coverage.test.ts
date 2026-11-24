@@ -1,5 +1,5 @@
 /**
- * The reference stays true (docs/DOCS-PLAN.md): every name `jali` exports, from every entry an app imports, has an entry, and so does
+ * The reference stays true (docs/DOCS-PLAN.md): every name `jali-layout` exports, from every entry an app imports, has an entry, and so does
  * every command, default key binding and public token. An entry is an <Entry name="…"> or <Member name="…"> in an MDX
  * page under src/docs/reference. A new export, command or token fails here until it is written up; a removed one
  * fails until its entry goes.
@@ -8,20 +8,20 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vite-plus/test";
-import * as core from "jali";
-import { DEFAULT_KEYMAP } from "jali/adapter";
+import * as core from "jali-layout";
+import { DEFAULT_KEYMAP } from "jali-layout/adapter";
 import { defaultIcons } from "./jali-sources";
-import * as react from "jali/react";
-import * as page from "jali/page";
-import * as testing from "jali/testing";
-import * as features from "jali/features";
-import * as url from "jali/url";
-import * as palette from "jali/palette";
-import * as settings from "jali/settings";
-import * as chooser from "jali/chooser";
-import * as rename from "jali/rename";
-import * as popOut from "jali/pop-out";
-import * as pressed from "jali/pressed";
+import * as react from "jali-layout/react";
+import * as page from "jali-layout/page";
+import * as testing from "jali-layout/testing";
+import * as features from "jali-layout/features";
+import * as url from "jali-layout/url";
+import * as palette from "jali-layout/palette";
+import * as settings from "jali-layout/settings";
+import * as chooser from "jali-layout/chooser";
+import * as rename from "jali-layout/rename";
+import * as popOut from "jali-layout/pop-out";
+import * as pressed from "jali-layout/pressed";
 import { COMMANDS, REFUSED, displayId } from "./command-data";
 import { TOKEN_PURPOSE, inPlaceTokensOf, publicTokensOf, readsOf } from "./token-data";
 
@@ -78,11 +78,11 @@ function typeExports(file: string): string[] {
 const missing = (expected: string[]) => expected.filter((n) => !documented.has(n));
 
 describe("the reference covers the public API", () => {
-  it("every value `jali` exports has an entry", () => {
+  it("every value `jali-layout` exports has an entry", () => {
     expect(missing(Object.keys(core))).toEqual([]);
   });
 
-  it("every value jali/react, jali/page and jali/testing export has an entry", () => {
+  it("every value jali-layout/react, jali-layout/page and jali-layout/testing export has an entry", () => {
     expect(missing([react, page, testing].flatMap((entry) => Object.keys(entry)))).toEqual([]);
   });
 

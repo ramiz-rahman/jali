@@ -6,8 +6,8 @@
  */
 import { useEffect, useId, useMemo, useRef } from "react";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react";
-import { oneOf, optional } from "jali";
-import { definePane, useCommands, useJali, usePaneState, type PaneProps } from "jali/react";
+import { oneOf, optional } from "jali-layout";
+import { definePane, useCommands, useJali, usePaneState, type PaneProps } from "jali-layout/react";
 import { usePlan, useServices, type Results } from "../../state/services";
 import { idOrNull } from "../../state/saved";
 import { CITIES, CITY } from "../../trip/cities";

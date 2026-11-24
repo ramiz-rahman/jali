@@ -1,7 +1,7 @@
 /** One order: its amount and where it is, its customer, and its lines. */
 import { useEffect } from "react";
 import { CaretRightIcon, ReceiptIcon } from "@phosphor-icons/react";
-import { definePane, type PaneProps } from "jali/react";
+import { definePane, type PaneProps } from "jali-layout/react";
 import { customerById, money, orderById, totalOf, type OrderStatus } from "../data";
 import { Avatar } from "../ui/Avatar";
 import { kindIcon } from "../ui/KindIcon";

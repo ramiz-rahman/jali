@@ -15,7 +15,7 @@
  * The peek, which Jali's lists put on Space by convention, moved to Shift+Space in Studio's lists.
  */
 import { useEffect } from "react";
-import { keyBelongsToContent, runCommand, type Jali } from "jali";
+import { keyBelongsToContent, runCommand, type Jali } from "jali-layout";
 import type { Engine } from "../audio/engine";
 import { plain } from "../ui/lib/input";
 

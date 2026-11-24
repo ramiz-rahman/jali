@@ -13,7 +13,7 @@ Each [kind](../get-started/key-concepts.md#kind) can give three widths. Each has
 `ticket.tsx`
 
 ```tsx
-import { definePane } from "jali/react";
+import { definePane } from "jali-layout/react";
 import { customer } from "./customer";
 import { ticketById } from "./data";
 

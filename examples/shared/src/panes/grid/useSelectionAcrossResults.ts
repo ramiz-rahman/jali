@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import type { ObjectRef, Row } from "../../data/types";
-import type { PaneProps } from "jali/react";
-import { sameRef } from "jali";
+import type { PaneProps } from "jali-layout/react";
+import { sameRef } from "jali-layout";
 
 interface Results {
   q: { data?: unknown };

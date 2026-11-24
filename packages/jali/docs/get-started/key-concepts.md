@@ -21,7 +21,7 @@ A kind is one sort of pane: its name, what it shows, its title, the smallest siz
 `ticket.tsx`
 
 ```tsx
-import { definePane } from "jali/react";
+import { definePane } from "jali-layout/react";
 import { customer } from "./customer";
 import { ticketById } from "./data";
 
@@ -72,7 +72,7 @@ A layout is a tree. Its leaves are panes. Its other nodes are a **row** (childre
 `layouts.ts`
 
 ```tsx
-import { column, pane, row, tabs } from "jali";
+import { column, pane, row, tabs } from "jali-layout";
 import { customer, customerOrders } from "./customer";
 import { ticket } from "./ticket";
 import { ticketList } from "./ticket-list";
@@ -152,7 +152,7 @@ A kept pane stays on its object: it never follows and is never reused for anothe
 
 <h3 id="curated-page">Curated page</h3>
 
-A curated page is a designed layout about one item, such as a customer: a list of items at the left, a header, and tabs of views. You describe it with `definePage` (from `jali/page`): its views, what each shows for an item, and its designed layout.
+A curated page is a designed layout about one item, such as a customer: a list of items at the left, a header, and tabs of views. You describe it with `definePage` (from `jali-layout/page`): its views, what each shows for an item, and its designed layout.
 
 Without a curated page, the person builds the layout. With one, the page's design leads and the person adjusts it. [Curated pages](../learn/curated-pages.md) builds one.
 
@@ -199,7 +199,7 @@ Every action is a pure function from one state to the next. Jali commits the res
 A preset is a layout the person can switch to, by id and label. The first opens by default, ⌘K lists them as "Layout: …", and Reset layout rebuilds the last one chosen.
 
 ```ts
-import { createJali, row } from "jali";
+import { createJali, row } from "jali-layout";
 
 const triage = row(ticket({ id: 101 }), customer({ id: 7 }));
 const jali = createJali({ panes, presets: [{ id: "triage", label: "Triage", layout: triage }] });
@@ -215,7 +215,7 @@ A port is a small interface for something outside Jali, so your app or a test ca
 `jali.ts`
 
 ```tsx
-import { createJali } from "jali";
+import { createJali } from "jali-layout";
 import { customer, customerOrders, order } from "./customer";
 import { listOnly, triage } from "./layouts";
 import { ticket } from "./ticket";
@@ -255,7 +255,7 @@ Moving, tabbing, folding and tucking never ask: the pane's content stays mounted
 `usePaneState(key, initial)` is like `useState`, but Jali keeps the value through folds, tabs, tucks and reloads. It goes when the pane closes for good or shows another object. Values must be JSON.
 
 ```tsx
-import { usePaneState } from "jali/react";
+import { usePaneState } from "jali-layout/react";
 
 function OrderList() {
   const [sort, setSort] = usePaneState("sort", { column: "id", dir: "asc" });

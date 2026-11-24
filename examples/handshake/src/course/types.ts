@@ -3,7 +3,7 @@
  * at a capture, mark, term or scan that exists, so the panes need no parsing of their own.
  */
 
-import type { ObjectRef } from "jali";
+import type { ObjectRef } from "jali-layout";
 
 /** A packet of a bundled capture, named by its mark ("syn-ack"), so a regenerated capture keeps the lesson right. */
 export interface PacketMark {

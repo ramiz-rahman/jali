@@ -6,8 +6,8 @@
  * Overview and the tests can name the views without importing the page.
  */
 import { LayoutIcon, type Icon } from "@phosphor-icons/react";
-import type { ObjectRef } from "jali";
-import type { PageView } from "jali/page";
+import type { ObjectRef } from "jali-layout";
+import type { PageView } from "jali-layout/page";
 import type { BookTable } from "../model/rows";
 import { pluralOf } from "../model/words";
 import type { ApplicationParties } from "../parties";

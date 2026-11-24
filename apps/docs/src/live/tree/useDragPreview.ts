@@ -3,7 +3,7 @@
  * the sizes only on release). Null when no divider is being dragged.
  */
 import { useEffect, useState, type RefObject } from "react";
-import type { Rect } from "jali";
+import type { Rect } from "jali-layout";
 import { dividerDragRects } from "../workspace/jali-gaps";
 
 export function useDragPreview(wrap: RefObject<HTMLElement | null>): Record<string, Rect> | null {

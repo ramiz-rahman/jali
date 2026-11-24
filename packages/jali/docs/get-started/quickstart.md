@@ -16,10 +16,10 @@ cd notes
 ### Install Jali
 
 ```sh
-npm install jali
+npm install jali-layout
 ```
 
-One package: `jali` holds the model (the layout, the panes and their commands) and has no framework; `jali/react` renders it. If your app links Jali from a checkout or a monorepo, see [Installation](installation.md#linked-or-in-a-monorepo).
+One package: `jali-layout` holds the model (the layout, the panes and their commands) and has no framework; `jali-layout/react` renders it. If your app links Jali from a checkout or a monorepo, see [Installation](installation.md#linked-or-in-a-monorepo).
 
 ### Define a pane
 
@@ -28,7 +28,7 @@ A [pane kind](key-concepts.md#kind) says what one kind of pane shows and how. Th
 `note.tsx`
 
 ```tsx
-import { definePane } from "jali/react";
+import { definePane } from "jali-layout/react";
 
 // A kind of pane: what it shows (its params), its title, and the component that renders it.
 export const note = definePane("note", {
@@ -57,8 +57,8 @@ export const note = definePane("note", {
 `jali.ts`
 
 ```tsx
-import { createJali } from "jali";
-import { defaultFeatures } from "jali/features";
+import { createJali } from "jali-layout";
+import { defaultFeatures } from "jali-layout/features";
 import { note } from "./note";
 
 export const jali = createJali({
@@ -80,8 +80,8 @@ The layout here is one pane, note 1. Several are written the same way: `row(note
 
 ```tsx
 import { createRoot } from "react-dom/client";
-import { JaliRoot } from "jali/react";
-import "jali/styles.css";
+import { JaliRoot } from "jali-layout/react";
+import "jali-layout/styles.css";
 import "./app.css";
 import { jali } from "./jali";
 
@@ -137,7 +137,7 @@ A pane opens another with `openBeside`. Pass it the ref of what to open.
 `note.tsx`
 
 ```tsx
-import { definePane } from "jali/react";
+import { definePane } from "jali-layout/react";
 
 export const note = definePane("note", {
   params: { id: Number },

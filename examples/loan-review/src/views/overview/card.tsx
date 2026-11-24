@@ -1,8 +1,8 @@
 /** One card of Overview: a section placed in the grid by its view, with a lead line and a way to the full view. */
 import type { ReactNode } from "react";
 import { CaretRightIcon } from "@phosphor-icons/react";
-import { altClick } from "jali";
-import { useJali } from "jali/react";
+import { altClick } from "jali-layout";
+import { useJali } from "jali-layout/react";
 import type { Role } from "../../nav/roles";
 
 /** Where a card sits in Overview's grid (overview.css: `grid-template-areas`). */

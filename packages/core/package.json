@@ -2,7 +2,7 @@
   "name": "@jali/core",
   "version": "0.0.0",
   "private": true,
-  "description": "Jali's framework-free core, as a workspace package: published as `jali` (packages/jali). Kept for Data Studio's link until it moves to `jali`.",
+  "description": "Jali's framework-free core, as a workspace package: published as `jali-layout` (packages/jali). Kept for Data Studio's link until it moves to `jali-layout`.",
   "license": "Apache-2.0",
   "author": "Ramiz Rahman (https://ramizrahman.com/)",
   "files": [

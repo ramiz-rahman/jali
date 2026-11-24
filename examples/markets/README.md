@@ -1,6 +1,6 @@
 # Markets: a Jali example
 
-A market terminal for shares, bonds, currencies, indices and crypto, built on `jali` alone. The crypto prices are real; everything else runs on a simulated market, so it needs no keys or licences: every company, ticker and price outside crypto is made up.
+A market terminal for shares, bonds, currencies, indices and crypto, built on `jali-layout` alone. The crypto prices are real; everything else runs on a simulated market, so it needs no keys or licences: every company, ticker and price outside crypto is made up.
 
 ```sh
 vp install              # at the repository's root

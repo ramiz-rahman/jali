@@ -6,7 +6,7 @@
  * followers (transcript, timeline, mixer, markers) show that session; the transcript selects a segment
  * (`clip({ session, segment })`) and the segment detail that follows it shows that segment.
  */
-import type { Jali, NodeId, ObjectRef } from "jali";
+import type { Jali, NodeId, ObjectRef } from "jali-layout";
 import type { SessionId } from "../sessions/ids";
 import { sessionOf } from "./refs";
 
