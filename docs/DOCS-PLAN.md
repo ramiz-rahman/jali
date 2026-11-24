@@ -21,7 +21,7 @@ Guides            one page per question a reader asks (18 pages merged into 9, 2
   Define a pane kind (and what people may do with panes) · Lay out panes (presets, tabs, rows that      done
   scroll, auto layout) · Keep the layout in the URL · Unsaved work and pane state · Commands and keys
   Theme and words (theming, translating, Chakni) · Fit Jali into your app (features, your own chrome,   done
-  two instances, agents) · Test your layouts · Troubleshooting and FAQ
+  two instances, agents) · Test your layouts · Troubleshooting
 Reference
   jali · jali types · the layout namespace · jali/react · Features · jali/testing · jali/agent          done
   Tokens · Parts · Commands                                                                              done

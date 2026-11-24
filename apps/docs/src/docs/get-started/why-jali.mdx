@@ -1,6 +1,6 @@
 ---
 title: Why Jali
-summary: How Jali compares with dockview, FlexLayout, react-mosaic, Golden Layout and react-resizable-panels, and when one of them is the better choice.
+summary: How Jali compares with dockview, FlexLayout, react-mosaic, Golden Layout and react-resizable-panels, when one of them is the better choice, and what Jali costs and works with.
 ---
 
 Several good libraries lay out panes on the web. They solve different problems. This page says what Jali does differently, and where another library fits better. Every claim about another library comes from its own README or site (read on 22 Nov 2026); where its docs don't say, the table says "not stated", not "no".
@@ -61,3 +61,25 @@ Jali does more than a splitter, and it weighs more. Measured with `pnpm size` in
 | Only the layout tree (`row`, `column`, the `layout` namespace) | 10.3 KB | | |
 
 Each feature's own cost is on [Features](/guides/your-app#choose-features).
+
+## Before you choose
+
+### Does it work with server rendering and Next.js?
+
+Yes. `jali/react` is marked `"use client"`, and Jali renders on the server and hydrates without a mismatch when both sides get the same inputs. See [Installation](/get-started/installation#next-js-app-router).
+
+### Does it work with Vue, Svelte or Solid?
+
+Not yet. The core (`jali`) has no framework, and `jali/adapter` holds what an adapter needs, but only the React adapter exists.
+
+### Does it work with React Native?
+
+No. Jali renders to the DOM.
+
+### Can panes float and overlap?
+
+No. Panes tile in rows, columns and tabs. One pane at a time can pop out into a window of its own with `popOut()` (Chrome and Edge on desktop).
+
+### Which versions are stable?
+
+Jali hasn't reached 1.0 yet. The public entries (`jali`, `jali/react`, the feature entries, `jali/page` and `jali/testing`) are the API being stabilised for 1.0. `jali/adapter`, for framework adapters, is outside that promise: it may change in any minor version.

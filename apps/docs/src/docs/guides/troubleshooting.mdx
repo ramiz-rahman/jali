@@ -1,9 +1,9 @@
 ---
-title: Troubleshooting and FAQ
-summary: Fixes for the problems people meet first, Jali's development warnings, and answers to common questions.
+title: Troubleshooting
+summary: Fixes for the problems people meet first, and Jali's development warnings.
 ---
 
-Each problem below starts with what you see, then says why and how to fix it. Jali's own messages start with `Jali:`, and the development-only ones are left out of production builds.
+Each problem below starts with what you see, then says why and how to fix it. Questions to ask before choosing Jali (server rendering, other frameworks, stability) are on [Why Jali](/get-started/why-jali#before-you-choose); its size is under [What it costs](/get-started/why-jali#what-it-costs). Jali's own messages start with `Jali:`, and the development-only ones are left out of production builds.
 
 ## Nothing shows, or every pane is collapsed
 
@@ -119,37 +119,3 @@ In development, Jali warns once for each mistake it can catch early. A productio
 | `Jali: usePane(…) is called in a pane of kind` | Call `usePane(kind)` with the kind of the pane it renders in, or `usePane()` |
 | `Jali: this page has no parts to render it` | Make the page with `definePage` from `jali/page` |
 | `Jali: pane … failed` | A pane's component threw; pass `onPaneError` to report it |
-
-## FAQ
-
-### How big is it?
-
-With React and the default features, about 90 KB gzipped: 55.4 KB of core, 26.2 KB of React parts and 8.3 KB of styles. The floor, with no features, is about 84 KB. Each feature's cost is on [Features](/guides/your-app#choose-features).
-
-### Does it work with server rendering and Next.js?
-
-Yes. `jali/react` is marked `"use client"`, and Jali renders on the server and hydrates without a mismatch when both sides get the same inputs. See [Installation](/get-started/installation#next-js-app-router).
-
-### Can panes float and overlap?
-
-No. Panes tile in rows, columns and tabs. One pane at a time can pop out into a window of its own with `popOut()` (Chrome and Edge on desktop).
-
-### Does it work with Vue, Svelte or Solid?
-
-Not yet. The core (`jali`) has no framework, and `jali/adapter` holds what an adapter needs, but only the React adapter exists. `jali/adapter` may change in any minor version.
-
-### React Native?
-
-No. Jali renders to the DOM.
-
-### How do I save a person's layout on my server?
-
-Listen for the `layout` event with `source: "action"`, save in order, and give it back as `layout`, or per preset with `saved`. See [Start from presets](/guides/layouts#save-a-persons-layout).
-
-### What licence is it under?
-
-Apache-2.0, as the package's `package.json` says.
-
-### Which versions are stable?
-
-Jali hasn't reached 1.0 yet. The public entries (`jali`, `jali/react`, the feature entries, `jali/page` and `jali/testing`) are the API being stabilised for 1.0. `jali/adapter`, for framework adapters, is outside that promise: it may change in any minor version.

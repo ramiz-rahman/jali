@@ -7,7 +7,7 @@ Written from the docs site by tooling/agent-docs.mjs; don't edit these files.
 ## Get started
 
 - [Introduction](get-started/introduction.md): What Jali is, the problem it solves, and when not to use it.
-- [Why Jali](get-started/why-jali.md): How Jali compares with dockview, FlexLayout, react-mosaic, Golden Layout and react-resizable-panels, and when one of them is the better choice.
+- [Why Jali](get-started/why-jali.md): How Jali compares with dockview, FlexLayout, react-mosaic, Golden Layout and react-resizable-panels, when one of them is the better choice, and what Jali costs and works with.
 - [Installation](get-started/installation.md): Add Jali to a React app with Vite, Next.js or another bundler, render it on the server, and set up TypeScript.
 - [Quickstart](get-started/quickstart.md): Build the smallest Jali app, a note whose button opens the next note beside it.
 - [Key concepts](get-started/key-concepts.md): Every word Jali uses, defined in a sentence or two, most with an example or a picture.
@@ -32,7 +32,7 @@ Written from the docs site by tooling/agent-docs.mjs; don't edit these files.
 - [Theme and words](guides/theming.md): Make Jali look like your app with its tokens and parts, speak your language, and share one theme with Chakni.
 - [Fit Jali into your app](guides/your-app.md): Choose the features you ship, put your own chrome around the panes, run two instances on one page, and let an agent arrange panes.
 - [Test your layouts](guides/testing.md): Test your layouts and pane rules without a browser, by running Jali's actions and reading its state with jali/testing.
-- [Troubleshooting and FAQ](guides/troubleshooting.md): Fixes for the problems people meet first, Jali's development warnings, and answers to common questions.
+- [Troubleshooting](guides/troubleshooting.md): Fixes for the problems people meet first, and Jali's development warnings.
 
 ## Reference
 
