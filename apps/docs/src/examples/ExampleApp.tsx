@@ -168,16 +168,14 @@ export function ExampleShowcase() {
                 className="leaf-spine"
                 aria-expanded={i === 0}
                 aria-controls={`shelf-${app.id}`}
-                aria-label={app.name}
                 tabIndex={i === 0 ? 0 : -1}
                 data-key={i + 1}
               >
                 <span className="leaf-number" aria-hidden>
                   {String(i + 1).padStart(2, "0")}
                 </span>
-                <span className="leaf-name" aria-hidden>
-                  {app.name}
-                </span>
+                {/* The name is the spine's name too: what it says is what a screen reader reads. */}
+                <span className="leaf-name">{app.name}</span>
               </button>
               <span className="leaf-progress" aria-hidden />
             </div>
