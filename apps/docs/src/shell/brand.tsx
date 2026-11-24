@@ -5,7 +5,6 @@
  * The mark is an arched window: a frame holding three panes (one tall, two stacked) filled with a finer lattice.
  * Each is one even-odd path: the arch, the panes cut from it, the bars filled back in.
  */
-import type { CSSProperties } from "react";
 
 /** The small mark (16–48px): a heavier frame, one bar in the tall pane, one flat bar below the transom. */
 const MARK_SMALL =
@@ -39,15 +38,6 @@ export function Lockup({ className, full }: { className?: string; full?: boolean
         d={WORDMARK}
         transform={full ? "translate(-5.3 0)" : undefined}
       />
-    </svg>
-  );
-}
-
-/** The full mark, on its own, as an ornament: always faint, in the colour the caller sets. */
-export function Lattice({ className, style }: { className?: string; style?: CSSProperties }) {
-  return (
-    <svg className={className} style={style} viewBox="12 2 76 92" aria-hidden focusable="false">
-      <path fillRule="evenodd" d={MARK} />
     </svg>
   );
 }

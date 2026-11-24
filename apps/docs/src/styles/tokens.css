@@ -28,8 +28,14 @@
     --d-code-bg: #fcfbf8;
     --d-code-head: #f3f0ea;
     --d-inline-code: #efebe3;
-    --d-lattice: var(--jali-brand);
-    --d-lattice-opacity: 0.075;
+    /*
+     * The landing's grid (styles/home.css): its dividers and splits, and the lattice of Jali's mark in the panes they
+     * close, hairlines a pitch apart in columns (as in the mark's tall pane and the pane above its transom) or rows (as
+     * in the pane below it). One ink for all of it, so a bar meets its frame without a seam; a pane's bars stand a
+     * pitch apart from its edges, and its far edge is its last bar, never drawn twice.
+     */
+    --d-grid: color-mix(in srgb, var(--jali-text) 13%, transparent);
+    --d-lattice-pitch: 12px;
 
     /* Code: one Shiki theme of CSS variables (shell/mdx/highlight.ts). Nil for keywords, Cha for constants. */
     --shiki-foreground: #2b2721;
@@ -89,7 +95,6 @@
     --d-code-bg: #181613;
     --d-code-head: #1d1b17;
     --d-inline-code: #24211c;
-    --d-lattice-opacity: 0.11;
 
     --shiki-foreground: #e8e2d8;
     --shiki-token-keyword: #a3aff2;
@@ -126,7 +131,6 @@
       --d-code-bg: #181613;
       --d-code-head: #1d1b17;
       --d-inline-code: #24211c;
-      --d-lattice-opacity: 0.11;
       color-scheme: dark;
     }
   }

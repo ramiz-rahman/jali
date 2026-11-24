@@ -2490,3 +2490,15 @@ who has read one example finds their way in another, and can tell what a part ma
 - **Kept:** the footer still reads the examples' Maker from its folder (`examples/shared`), as adding it as a workspace
   dependency needs a network install; the landing demos' styles stay in `styles/home.css` (moving them into the
   `live` layer would change which rules win).
+
+## 24 Nov 2026 · The landing's texture is the mark's lattice
+
+- **Why:** the landing's empty panes (behind the opening, in the footer, the 404's pane) were hatched with diagonals,
+  which say nothing about Jali; the mark's lattice (columns in its upper panes, rows below its transom) does.
+- **Now:** each empty pane holds hairlines a pitch (12px) apart: columns where the mark has them (the footer's tall
+  left pane, the opening's upper right), rows below a transom (the opening's lower left, the footer's lower right). The
+  splits are solid, so each pane is a box; the bars stand a pitch from its edges, and the rows' box is a whole number
+  of pitches tall (`round()`), so its last row is its bottom edge. Frame and lattice share one ink (`--d-grid`) and
+  every pixel is drawn once, so crossings carry no seams. On a phone the footer's narrow left tile has one bar down
+  its middle, as the small mark has one bar in its tall pane. The opening's columns pane is taller (56%).
+- **Kept:** the live parts' hatching for room a figure gave up (Frame, the tour) stays diagonal: it means something else.

@@ -365,10 +365,11 @@
   }
   .not-found-pane-body {
     flex: 1;
+    /* An empty pane: the mark's lattice, in columns. */
     background: repeating-linear-gradient(
-      -45deg,
-      color-mix(in srgb, var(--jali-text) 10%, transparent) 0 1px,
-      transparent 1px 11px
+      to right,
+      transparent 0 calc(var(--d-lattice-pitch) - 1px),
+      var(--d-grid) 0 var(--d-lattice-pitch)
     );
   }
   .not-found-links {

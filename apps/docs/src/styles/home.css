@@ -192,18 +192,20 @@
   }
 
   /*
-   * Behind the opening, the full width of the window: a layout's dividers. Two solid dividers frame the words, a
-   * dashed split crosses each side column, and one tile on each side is hatched, as a pane that is still empty.
+   * Behind the opening, the full width of the window: a layout's dividers. Two dividers frame the words, a split
+   * crosses each side column, and the pane each split closes holds the mark's lattice, as a pane that is still empty:
+   * columns at the upper right (as in the mark's upper panes), rows at the lower left (as below its transom). Every
+   * line is solid, so each pane is a box; the rows' box is a whole number of pitches tall, so its last row is the
+   * opening's bottom edge.
    */
   .landing-backdrop {
     /* The dividers stand on the page's edges (its gutter) until the words need less room than that. */
     --hero-half: min(31rem, calc(50% - var(--l-gutter, 16px)));
     --hero-left: calc(50% - var(--hero-half));
     --hero-right: calc(50% + var(--hero-half));
-    --hero-split-top: 34%;
-    --hero-split-bottom: 72%;
-    --hero-line: color-mix(in srgb, var(--jali-text) 13%, transparent);
-    --hero-hatch: color-mix(in srgb, var(--jali-text) 10%, transparent);
+    /* How tall the columns' box is, from the top; and the rows' box, from the bottom. */
+    --hero-columns: 56%;
+    --hero-rows: 28%;
     position: absolute;
     z-index: 0;
     inset: 0 auto 0 calc(50% - 50vw);
@@ -215,11 +217,13 @@
   .hero-split {
     position: absolute;
   }
+  /* Every pixel of the grid is drawn once, so a crossing is no brighter than a line: each divider stops at the bottom
+     divider, and each split starts past the divider it meets. */
   .hero-divider {
     top: 0;
-    bottom: 0;
+    bottom: 1px;
     width: 1px;
-    background: var(--hero-line);
+    background: var(--d-grid);
   }
   .hero-divider-left {
     left: var(--hero-left);
@@ -227,41 +231,54 @@
   .hero-divider-right {
     left: var(--hero-right);
   }
+  @supports (height: round(down, 28%, 12px)) {
+    .landing-backdrop {
+      --hero-rows: round(down, 28%, var(--d-lattice-pitch));
+    }
+  }
   .hero-split {
     height: 1px;
-    background: repeating-linear-gradient(to right, var(--hero-line) 0 6px, transparent 6px 12px);
+    background: var(--d-grid);
   }
   /* The opening ends on a divider the full width of the window, as a row of panes does. */
   .hero-split-base {
     bottom: 0;
     left: 0;
     right: 0;
-    background: var(--hero-line);
   }
   .hero-split-top {
-    top: var(--hero-split-top);
-    left: var(--hero-right);
+    top: var(--hero-columns);
+    left: calc(var(--hero-right) + 1px);
     right: 0;
   }
   .hero-split-bottom {
-    top: var(--hero-split-bottom);
+    bottom: var(--hero-rows);
     left: 0;
     width: var(--hero-left);
   }
-  .hero-tile {
-    background: repeating-linear-gradient(-45deg, var(--hero-hatch) 0 1px, transparent 1px 11px);
-  }
+  /* Columns, hung from the right divider, running the box's height down to its split. */
   .hero-tile-top {
     top: 0;
     left: calc(var(--hero-right) + 1px);
     right: 0;
-    height: var(--hero-split-top);
+    height: var(--hero-columns);
+    background: repeating-linear-gradient(
+      to right,
+      transparent 0 calc(var(--d-lattice-pitch) - 1px),
+      var(--d-grid) 0 var(--d-lattice-pitch)
+    );
   }
+  /* Rows, a pitch apart from the split above, down to the bottom divider, which is the last (so the box stops short). */
   .hero-tile-bottom {
-    top: calc(var(--hero-split-bottom) + 1px);
-    bottom: 0;
+    bottom: 1px;
     left: 0;
     width: var(--hero-left);
+    height: calc(var(--hero-rows) - 1px);
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0 calc(var(--d-lattice-pitch) - 1px),
+      var(--d-grid) 0 var(--d-lattice-pitch)
+    );
   }
 
   /* The hero enters once, on load. */
@@ -807,10 +824,10 @@
 
   /* ---------- the site footer: the opening's bookend ---------- */
   .site-footer {
-    /* The opening's grid: the same dividers, the same hairlines and hatching. */
+    /* The opening's grid: the same dividers and hairlines, and the mark's lattice laid out as the mark lays it. */
     --footer-half: min(31rem, 50%);
-    --footer-line: color-mix(in srgb, var(--jali-text) 13%, transparent);
-    --footer-hatch: color-mix(in srgb, var(--jali-text) 10%, transparent);
+    /* The rows' box at the right, from the bottom: half the sign-off, in whole pitches when the browser can round. */
+    --footer-rows: 50%;
     --footer-bleed: calc(50% - 50vw);
     position: relative;
     margin-top: 144px;
@@ -824,7 +841,7 @@
     left: var(--footer-bleed);
     width: 100vw;
     height: 1px;
-    background: var(--footer-line);
+    background: var(--d-grid);
   }
 
   /* What Jali is, then a cell per column of links, split as panes are. */
@@ -850,7 +867,7 @@
     padding-left: 0;
   }
   .site-footer-col {
-    border-left: 1px solid var(--footer-line);
+    border-left: 1px solid var(--d-grid);
   }
   .site-footer-line {
     margin: 0;
@@ -903,7 +920,7 @@
     content: "";
     position: absolute;
     inset: 0 calc(50% - var(--footer-half));
-    border-inline: 1px solid var(--footer-line);
+    border-inline: 1px solid var(--d-grid);
     pointer-events: none;
   }
   .site-footer-signoff::after {
@@ -914,24 +931,40 @@
     position: absolute;
     width: calc(50vw - var(--footer-half) - 1px);
   }
-  .site-footer-tile {
-    background: repeating-linear-gradient(-45deg, var(--footer-hatch) 0 1px, transparent 1px 11px);
-  }
+  /* The mark's tall pane: columns the full height, hung from the divider at its right. */
   .site-footer-tile-left {
     top: 0;
     bottom: 0;
     left: var(--footer-bleed);
+    background: repeating-linear-gradient(
+      to left,
+      transparent 0 calc(var(--d-lattice-pitch) - 1px),
+      var(--d-grid) 0 var(--d-lattice-pitch)
+    );
   }
+  @supports (height: round(down, 50%, 12px)) {
+    .site-footer-signoff {
+      --footer-rows: round(down, 50%, var(--d-lattice-pitch));
+    }
+  }
+  /* The pane below its transom: rows a pitch apart from the split above, down to the hairline under the sign-off, which
+     is the last. */
   .site-footer-tile-right {
-    top: calc(50% + 1px);
     bottom: 0;
+    height: calc(var(--footer-rows) - 1px);
     left: calc(50% + var(--footer-half) + 1px);
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0 calc(var(--d-lattice-pitch) - 1px),
+      var(--d-grid) 0 var(--d-lattice-pitch)
+    );
   }
+  /* The transom: solid, so the rows' pane is a box. */
   .site-footer-split {
-    top: 50%;
+    bottom: calc(var(--footer-rows) - 1px);
     left: calc(50% + var(--footer-half) + 1px);
     height: 1px;
-    background: repeating-linear-gradient(to right, var(--footer-line) 0 6px, transparent 6px 12px);
+    background: var(--d-grid);
   }
   .site-footer-home {
     position: relative;
@@ -1046,7 +1079,7 @@
       left: var(--footer-bleed);
       width: 100vw;
       height: 1px;
-      background: var(--footer-line);
+      background: var(--d-grid);
     }
     .site-footer-col:first-child {
       border-left: 0;
@@ -1076,6 +1109,17 @@
     .landing-close,
     .site-footer {
       margin-top: 112px;
+    }
+    /* A phone's side tile is a gutter, a pitch or so wide: one bar down its middle, as the small mark has one bar in
+       its tall pane. */
+    .site-footer-tile-left {
+      background: linear-gradient(
+          to right,
+          transparent calc(50% - 0.5px),
+          var(--d-grid) 0 calc(50% + 0.5px),
+          transparent 0
+        )
+        no-repeat;
     }
     .prose .landing-section-title,
     .prose .landing-close-title {
@@ -1115,7 +1159,7 @@
       border-left: 0;
     }
     .site-footer-col:nth-child(n + 3) {
-      border-top: 1px solid var(--footer-line);
+      border-top: 1px solid var(--d-grid);
     }
   }
 }
