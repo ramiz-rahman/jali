@@ -97,7 +97,12 @@ export function paneMenuOf(store: JaliStore, id: NodeId): PaneMenuItem[][] {
   const group = () => items.splice(0);
   const always = () => false;
 
-  offer(can(store, "close", id), { id: "close", title: t.closeTab, run: () => void a.close(id) });
+  offer(can(store, "close", id), {
+    id: "close",
+    title: t.closeTab,
+    keys: keys("pane.close"),
+    run: () => void a.close(id),
+  });
   // Closing other tabs needs tabs: a pane on its own (its header's menu) has none.
   if (st) {
     for (const which of ["others", "after"] as const)
