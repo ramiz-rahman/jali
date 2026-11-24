@@ -10,7 +10,6 @@ import { Children, isValidElement, type ReactNode } from "react";
 import { ArrowRightIcon, GithubLogoIcon } from "@phosphor-icons/react";
 import { QuickstartApp } from "../../live";
 import { REPO_URL } from "../../site/config";
-import { Lattice } from "../brand";
 import { island } from "../island";
 import { Code, Install, Tab, Tabs } from "../mdx";
 import { KeysDemo as KeysDemoPart, LinkDemo as LinkDemoPart } from "./demos";
@@ -33,8 +32,15 @@ export function Opening({
 }) {
   return (
     <header className="landing-opening" data-toc-skip="" data-enter="">
+      {/* A layout's dividers behind the opening: the centre is clear for the words, the sides split into tiles. */}
       <div className="landing-backdrop" aria-hidden>
-        <Lattice className="landing-backdrop-mark" />
+        <span className="hero-tile hero-tile-top" />
+        <span className="hero-tile hero-tile-bottom" />
+        <span className="hero-divider hero-divider-left" />
+        <span className="hero-divider hero-divider-right" />
+        <span className="hero-split hero-split-top" />
+        <span className="hero-split hero-split-bottom" />
+        <span className="hero-split hero-split-base" />
       </div>
       <div className="landing-opening-text">
         <h1 className="landing-title" id="landing-title">
