@@ -125,7 +125,7 @@ Two faces: Chakra Petch for everything printed, IBM Plex Mono for numbers that t
 
 ### Controls at the top or the bottom
 
-⌘K "Controls: move to the bottom / top" moves the control slab to the window's bottom edge, like a console's front panel under the work, and the status line up to the top in its place (`src/settings.ts`, `data-controls` on `<html>`). The choice is remembered on this device. Only the look moves: the slab stays first in the page for the keyboard and for screen readers.
+The control slab stands on the window's bottom edge, like a console's front panel under the work, with the status line at the top. ⌘K "Controls: move to the top / bottom" swaps them (`src/settings.ts`, `data-controls` on `<html>`). The choice is remembered on this device. Only the look moves: the slab stays first in the page for the keyboard and for screen readers.
 
 ### Feel
 

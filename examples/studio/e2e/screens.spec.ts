@@ -198,7 +198,7 @@ for (const [name, width, height, dark] of [
     const box = (await page.locator(".topbar").boundingBox())!;
     await page.screenshot({
       path: shot(name),
-      clip: { x: 0, y: 0, width: box.width, height: box.height + 16 },
+      clip: { x: 0, y: Math.max(0, box.y - 16), width: box.width, height: box.height + 16 },
     });
   });
 }
@@ -217,7 +217,7 @@ for (const dark of [false, true]) {
     const box = (await page.locator(".topbar").boundingBox())!;
     await page.screenshot({
       path: shot(`toprow-wide${dark ? "-dark" : ""}@2x`),
-      clip: { x: 0, y: 0, width: box.width, height: box.height + 16 },
+      clip: { x: 0, y: Math.max(0, box.y - 16), width: box.width, height: box.height + 16 },
     });
     await context.close();
   });

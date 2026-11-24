@@ -12,7 +12,8 @@ import { setFeelSounds } from "./ui/lib/feel";
 export type ControlsPlace = "top" | "bottom";
 
 export interface Settings {
-  /** Where the control slab (layouts, transport, tools) sits; the status line takes the other edge. */
+  /** Where the control slab (layouts, transport, tools) sits; the status line takes the other edge. Bottom unless the
+   * person moved it up. */
   controls: ControlsPlace;
   /** Key and dial sounds (ui/lib/feel.ts). On unless the person turned them off. */
   sounds: boolean;
@@ -28,8 +29,8 @@ export type SettingsStore = Store<Settings> & {
 export function createSettings(persist = true): SettingsStore {
   const store = createStore<Settings>({
     controls: persist
-      ? saved.read(KEYS.controls, (v) => (v === "bottom" ? "bottom" : "top"))
-      : "top",
+      ? saved.read(KEYS.controls, (v) => (v === "top" ? "top" : "bottom"))
+      : "bottom",
     sounds: persist ? saved.read(KEYS.sounds, (v) => v !== false) : true,
   });
   const change = <K extends keyof Settings>(key: K, value: Settings[K]) => {
