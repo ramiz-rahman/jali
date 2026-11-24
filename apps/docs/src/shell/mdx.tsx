@@ -132,7 +132,7 @@ const trimCode = (code: string) => code.replace(/\n+$/, "");
 const isOneLineShell = (code: string, lang: string) =>
   langOf(lang) === "sh" && !trimCode(code).includes("\n");
 
-function CodeBody({
+export function CodeBody({
   code,
   lang,
   highlight,

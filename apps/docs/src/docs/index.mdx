@@ -5,7 +5,7 @@ summary: A new layout primitive for React apps. Split any part of your app into 
 
 import { TreeView, Frame, Spotlight } from "../live";
 import { ExampleShowcase } from "../examples/ExampleApp";
-import { Opening, Stage, Section, MinimalApp, Path, Proof, LinkDemo, KeysDemo, Close, Package, Theming, SiteFooter } from "../shell/landing";
+import { Opening, Stage, Section, MinimalApp, Path, Proof, LinkDemo, KeysDemo, Close, Imports, Import, SiteFooter } from "../shell/landing";
 
 <Opening title="A new layout primitive for React apps" lead="Split any part of your app into adaptive tiling panes, from two side by side to over a dozen in rows, columns and tabs. You describe each pane once; your users arrange them the way they work, on any screen.">
 </Opening>
@@ -39,16 +39,18 @@ import { Opening, Stage, Section, MinimalApp, Path, Proof, LinkDemo, KeysDemo, C
   <ExampleShowcase />
 </Section>
 
-<Close title="One package: jali" lead="One install. The core has no framework; jali/react renders it, and each feature has its own entry.">
-  <Package name="jali" href="/reference/core" exports="createJali, row, column, tabs, pane, layout">
-    The layout tree and every change to it, fitting, focus, undo, follow and unsaved work.
-  </Package>
-  <Package name="jali/react" href="/reference/react" exports="JaliRoot, definePane, usePane, useUnsaved, useCommands, usePaneState">
-    Panes, dividers, tabs, the shelf and the command palette, with a default theme.
-  </Package>
-  <Theming href="/guides/theming">
-    Jali's styles read `--jali-*` tokens and sit in their own cascade layer, so your Tailwind theme or your own CSS wins without `!important`.
-  </Theming>
+<Close title="One package: jali" lead="One install. The core has no framework, jali/react renders it, and the styles come in a layer of their own.">
+  <Imports>
+    <Import code={`import { createJali, row, column, tabs } from "jali";`} href="/reference/core" more="jali">
+      The layout tree and every change to it: fitting, focus, undo, following and unsaved work.
+    </Import>
+    <Import code={`import { JaliRoot, definePane, usePane } from "jali/react";`} href="/reference/react" more="jali/react">
+      Panes, dividers, tabs, the shelf and the command palette, as components and hooks.
+    </Import>
+    <Import code={`import "jali/styles.css";`} href="/guides/theming" more="Theming">
+      A default theme read from `--jali-*` tokens, in its own cascade layer, so your Tailwind or CSS wins without `!important`.
+    </Import>
+  </Imports>
 </Close>
 
 <SiteFooter />

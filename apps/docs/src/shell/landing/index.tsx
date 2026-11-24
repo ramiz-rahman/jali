@@ -3,7 +3,7 @@
  *   the opening (what Jali is, install, the two actions) over the live workspace;
  *   the whole quickstart app beside what it renders;
  *   the four reasons, each live, on one numbered path;
- *   the close (the two packages, install, next steps); the site footer.
+ *   the close (install, next steps, and the package's entries as a pane); the site footer.
  * Words stay in pages/index.mdx; the parts here are layout and the small live pieces only the landing needs.
  */
 import { Children, isValidElement, type ReactNode } from "react";
@@ -11,7 +11,7 @@ import { ArrowRightIcon, GithubLogoIcon } from "@phosphor-icons/react";
 import { QuickstartApp } from "../../live";
 import { REPO_URL } from "../../site/config";
 import { island } from "../island";
-import { Code, Install, Tab, Tabs } from "../mdx";
+import { Code, CodeBody, Install, Tab, Tabs } from "../mdx";
 import { KeysDemo as KeysDemoPart, LinkDemo as LinkDemoPart } from "./demos";
 import noteCode from "../../samples/concepts/quickstart/note-open-beside.tsx?raw";
 import jaliCode from "../../samples/concepts/quickstart/jali.ts?raw";
@@ -206,41 +206,42 @@ export function Close({
   );
 }
 
-export function Package({
-  name,
-  href,
-  exports,
-  children,
-}: {
-  name: string;
-  href: string;
-  exports: string;
-  children?: ReactNode;
-}) {
+/**
+ * The package, as a pane: its name and what it needs in the title bar, then one row per entry, each the line that
+ * imports it (highlighted as code) beside what it gives you and a link to more.
+ */
+export function Imports({ children }: { children?: ReactNode }) {
   return (
-    <div className="landing-package">
-      <h3 className="landing-package-name">
-        <a className="landing-package-link" href={href}>
-          {name}
-        </a>
-      </h3>
-      <div className="landing-package-text">{children}</div>
-      <p className="landing-package-exports">
-        {exports.split(",").map((e) => (
-          <code key={e}>{e.trim()}</code>
-        ))}
-      </p>
+    <div className="landing-imports">
+      <div className="landing-imports-bar">
+        <span className="landing-imports-name">jali</span>
+        <span className="landing-imports-note">No dependencies. jali/react needs React 18.3+.</span>
+      </div>
+      <ul className="landing-imports-list">{children}</ul>
     </div>
   );
 }
-export function Theming({ href, children }: { href: string; children?: ReactNode }) {
+export function Import({
+  code,
+  href,
+  more,
+  children,
+}: {
+  code: string;
+  href: string;
+  more: string;
+  children?: ReactNode;
+}) {
   return (
-    <div className="landing-theming">
-      <div className="landing-theming-text">{children}</div>
-      <a className="landing-more" href={href}>
-        Theming
+    <li className="landing-import">
+      <div className="landing-import-code">
+        <CodeBody code={code} lang="ts" numbers={false} />
+      </div>
+      <div className="landing-import-text">{children}</div>
+      <a className="landing-more landing-import-more" href={href}>
+        {more}
         <ArrowRightIcon aria-hidden size={15} />
       </a>
-    </div>
+    </li>
   );
 }

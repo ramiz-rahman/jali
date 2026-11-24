@@ -186,6 +186,11 @@ function opening(tag: Tag, opts: MarkdownOptions, link: (h: string) => string): 
     case "Tab":
       if (str(a, "href")) return `\n- [${str(a, "title") ?? ""}](${link(str(a, "href")!)}): `;
       return `\n\n### ${str(a, "title") ?? str(a, "label") ?? ""}\n\n`;
+    case "Import": {
+      // The landing's package entries: the import line, then what it gives you.
+      const href = str(a, "href");
+      return `\n\n\`\`\`ts\n${str(a, "code") ?? ""}\n\`\`\`\n\n${href ? `[${str(a, "more") ?? href}](${link(href)}): ` : ""}`;
+    }
     case "Install":
       return `\n\n\`\`\`sh\nnpm install ${str(a, "packages") ?? ""}\n\`\`\`\n\n`;
     default:
