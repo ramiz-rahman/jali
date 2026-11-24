@@ -1,6 +1,6 @@
 {
   "name": "jali",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "A new layout primitive for React apps. Split any part of your app into adaptive tiling panes, from two side by side to over a dozen in rows, columns and tabs. You describe each pane once; your users arrange them the way they work, on any screen. A framework-free core, with React components and hooks.",
   "keywords": [
     "docking-layout",
