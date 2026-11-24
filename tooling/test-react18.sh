@@ -21,7 +21,7 @@ node -e '
   const fs = require("fs");
   const f = "pnpm-workspace.yaml";
   fs.writeFileSync(f, fs.readFileSync(f, "utf8").replace("overrides:\n",
-    "overrides:\n  react: 18.3.1\n  react-dom: 18.3.1\n  \"@types/react\": 18.3.12\n  \"@types/react-dom\": 18.3.1\n"));
+    "overrides:\n  react: 18.2.0\n  react-dom: 18.2.0\n  \"@types/react\": 18.2.79\n  \"@types/react-dom\": 18.2.25\n"));
   const t = "tsconfig.json";
   const config = JSON.parse(fs.readFileSync(t, "utf8"));
   config.include = config.include.filter((p) => !p.startsWith("examples/"));

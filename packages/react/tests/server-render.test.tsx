@@ -1,7 +1,8 @@
 // @vitest-environment node
 /** A workspace renders on a server (Next.js, Astro, any renderToString): no window, no DOM, same markup to hydrate. */
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
-import { act } from "react";
+// From Testing Library, as the other tests do: React exports `act` itself only from 18.3, and Jali supports 18.2.
+import { act } from "@testing-library/react";
 import { renderToString } from "react-dom/server";
 import { createJali, memoryLocation, memoryStorage, row, type JaliOptions } from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
