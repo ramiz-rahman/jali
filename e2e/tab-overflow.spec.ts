@@ -25,7 +25,8 @@ test.describe("tab overflow and marks", () => {
 
     await chip.click();
     const menu = page.getByRole("menu", { name: "Folded panes" });
-    await expect(menu).toContainText("No room to show these side by side");
+    await expect(menu).toContainText("Folded for room");
+    await expect(menu).toHaveAttribute("aria-description", /No room to show these side by side/);
     const items = menu.getByRole("menuitem");
     await expect(items).toHaveCount(n);
     await page.keyboard.press("Escape");

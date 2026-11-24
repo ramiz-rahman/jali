@@ -115,14 +115,17 @@ export function TabOverflow({
           onClose={close}
           trigger={btn}
           initial={(items) => items.find((el) => el.dataset.item === active)}
-          className="jali-tab-menu"
+          className={folded ? "jali-tab-menu jali-tab-menu-folded" : "jali-tab-menu"}
           aria-label={folded ? words.shelf.menuFolded : tw.menuLabel}
           aria-description={folded ? tw.foldedNote : undefined}
         >
+          {/* Folded: a quiet heading naming what these are, the panes, then a foot saying nothing needs doing. The
+              description above says the same for assistive technology, so these are hidden from it. Divs, not
+              paragraphs: an app's own paragraph styles (a reset, a prose margin) never reach Jali's menu. */}
           {folded ? (
-            <p className="jali-tab-menu-note" aria-hidden>
-              {tw.foldedNote}
-            </p>
+            <div className="jali-tab-menu-heading" aria-hidden>
+              {tw.foldedHeading}
+            </div>
           ) : null}
           {tabs.map(({ node: t, tucked, folded: isFolded }) => {
             const folded = isFolded;
@@ -144,9 +147,12 @@ export function TabOverflow({
                 tabIndex={-1}
                 onClick={() => choose(t.id)}
               >
-                <span className="jali-tab-menu-check" aria-hidden>
-                  {t.id === active ? <icon.current {...ICON.menuMark} /> : null}
-                </span>
+                {/* The folded menu lists only panes not shown: no mark, so no column for one. */}
+                {chip ? null : (
+                  <span className="jali-tab-menu-check" aria-hidden>
+                    {t.id === active ? <icon.current {...ICON.menuMark} /> : null}
+                  </span>
+                )}
                 {role ? (
                   <role.icon {...ICON.menu} aria-hidden />
                 ) : (
@@ -166,9 +172,20 @@ export function TabOverflow({
                     {tw.tucked}
                   </small>
                 ) : null}
+                {chip ? (
+                  <span className="jali-tab-menu-hint" aria-hidden>
+                    {tw.foldedShow}
+                  </span>
+                ) : null}
               </button>
             );
           })}
+          {folded ? (
+            <div className="jali-tab-menu-foot" aria-hidden>
+              <icon.fold {...ICON.menuSmall} aria-hidden />
+              <span>{tw.foldedFoot}</span>
+            </div>
+          ) : null}
         </Menu>
       ) : null}
     </>

@@ -90,7 +90,7 @@ A tab group is as wide as its widest tab needs. So a fold can make the group it 
 
 *Live demo on the site: Folded panes wait behind one chip at the end of the tab strip: the layout put them there, and they return on their own.*
 
-The tab strip is for the tabs the person made. Folded panes don't appear as tabs: they wait behind one **N folded** chip at the end of the strip. Its menu lists them and says why ("No room to show these side by side"), and picking one shows it in that place, where it is a tab marked with a fold icon. A folded pane is still mounted, so it goes on working: the chip shows the most pressing activity of the panes behind it, and each one's entry in the menu has its activity dot. The person doesn't need to do anything with them. That is what tells them apart from a tab they made or a pane they [tucked](../get-started/key-concepts.md#tuck): tucked panes are on the shelf, and folded ones never are.
+The tab strip is for the tabs the person made. Folded panes don't appear as tabs: they wait behind one **N folded** chip at the end of the strip. Its menu lists them under "Folded for room", and picking one shows it in that place, where it is a tab marked with a fold icon. A folded pane is still mounted, so it goes on working: the chip shows the most pressing activity of the panes behind it, and each one's entry in the menu has its activity dot. The person doesn't need to do anything with them. That is what tells them apart from a tab they made or a pane they [tucked](../get-started/key-concepts.md#tuck): tucked panes are on the shelf, and folded ones never are.
 
 ## What comes back first
 

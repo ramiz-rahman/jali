@@ -393,18 +393,22 @@
     direction: ltr;
     unicode-bidi: isolate;
   }
-  /* "N folded": the panes the layout folded into this place, not tabs of yours. A dashed outline: there for now. */
+  /*
+   * "N folded": the panes the layout folded into this place, not tabs of yours. A soft, solid pill: they are here,
+   * tucked behind this one, not an empty slot (a dashed outline read as a placeholder or a drop zone).
+   */
   .jali-tab-folded {
     display: inline-flex;
     align-items: center;
-    gap: 0.25rem;
+    gap: 0.3125rem;
     flex: none;
     height: 1.5rem;
     margin-inline: 0.25rem;
-    padding-inline: 0.375rem;
-    border: 1px dashed var(--jali-border-strong);
-    border-radius: var(--jali-radius-control);
-    background: none;
+    padding-inline: 0.5rem 0.5625rem;
+    border: 0;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--jali-text) 7%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--jali-text) 6%, transparent);
     color: var(--jali-text-muted);
     font: inherit;
     font-size: var(--jali-text-xs);
@@ -415,20 +419,56 @@
   }
   .jali-tab-folded:hover,
   .jali-tab-folded[aria-expanded="true"] {
-    background: var(--jali-hover);
+    background: color-mix(in srgb, var(--jali-text) 11%, transparent);
     color: var(--jali-text);
   }
   .jali-tab-folded:focus-visible {
     outline: 2px solid var(--jali-focus-ring);
     outline-offset: 1px;
   }
-  .jali-tab-menu-note {
+  /*
+   * The folded menu: one left edge for its heading, its panes and its foot. A quiet heading names what they are; each
+   * pane says "Show here" while it is the one under the pointer or focus; the foot says nothing needs doing.
+   */
+  .jali-tab-menu-folded {
+    width: 16rem;
+    padding: 0.3125rem;
+  }
+  .jali-tab-menu-heading {
     margin: 0;
-    padding: 0.375rem 0.5rem 0.5rem;
+    padding: 0.375rem 0.5rem 0.3125rem;
+    color: var(--jali-text-muted);
+    font-size: var(--jali-text-xs);
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  .jali-tab-menu-folded .jali-tab-menu-item {
+    height: 2rem;
+    padding-inline: 0.5rem;
+  }
+  .jali-tab-menu-hint {
+    flex: none;
+    color: var(--jali-text-muted);
+    font-size: var(--jali-text-xs);
+    visibility: hidden;
+  }
+  .jali-tab-menu-item:is(:hover, :focus, :focus-visible) .jali-tab-menu-hint {
+    visibility: visible;
+  }
+  .jali-tab-menu-foot {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4375rem;
+    margin: 0.3125rem 0 0;
+    padding: 0.5rem 0.5rem 0.25rem;
+    border-top: 1px solid var(--jali-border);
     color: var(--jali-text-subtle);
+    font-size: var(--jali-text-xs);
     line-height: 1.4;
-    border-bottom: 1px solid var(--jali-border);
-    margin-bottom: 0.25rem;
+  }
+  .jali-tab-menu-foot > svg {
+    flex: none;
+    margin-top: 0.125rem;
   }
   .jali-tab-more:hover,
   .jali-tab-more[aria-expanded="true"] {

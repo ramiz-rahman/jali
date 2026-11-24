@@ -304,8 +304,14 @@ const tabs = {
     return `${count} folded ${count === 1 ? "pane" : "panes"}${word ? `, ${word}` : ""}`;
   },
   foldedChipTip: "Folded: not enough room to show these side by side",
-  /** Atop the folded chip's menu. */
+  /** The folded chip's menu, as assistive technology describes it: why the panes are there, and what picking does. */
   foldedNote: "No room to show these side by side. Widen the window, or pick one to show it here.",
+  /** Atop the folded chip's menu: what the panes listed are. */
+  foldedHeading: "Folded for room",
+  /** On the folded menu's item under the pointer or focus: what picking it does. */
+  foldedShow: "Show here",
+  /** At the foot of the folded chip's menu: nothing needs doing. */
+  foldedFoot: "They come back on their own when there's room.",
   tuckedDescription: "Tucked here. Put back to restore its place.",
   /**
    * A tab's description in a strip: why it is a tab, when it is folded or tucked, then the keys it takes. `putBackKeys`
