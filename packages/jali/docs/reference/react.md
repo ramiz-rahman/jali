@@ -186,7 +186,7 @@ Everything in [`PaneOptions`](core/types.md#paneoptions) (`params`, `title`, `wi
 
 - **`Missing`** (`ComponentType<MissingProps>`): Shown in place of `Component` when the pane's params can't be read: a required one missing, or a value its type can't read. It gets `MissingProps`, so it can explain in the kind's own words and offer a way on. Render it from `Component` too, for params that read but name nothing. Default: Jali's own message, naming the param.
 
-- **`icon`** (`JaliIcon`): The kind's icon in the header, tab and shelf: any component that takes `{ size, className, "aria-hidden" }`, such as Phosphor's `FileTextIcon`, which matches Jali's own. Jali passes `size` and `aria-hidden`, never a weight, so your icon set's default or its context decides it. Without one, the `defaultKind` icon (a square).
+- **`icon`** (`JaliIcon`): The kind's icon in the header, tab and shelf: any component that takes `{ size, className, "aria-hidden" }`, such as Phosphor's `FileTextIcon`, which matches Jali's own. Jali passes `size` and `aria-hidden`, never a weight, so your icon set's default or its context decides it. Without one, the `defaultKind` icon (a pane with its title bar).
 
 **Returns** `Pane<P>`: The kind, callable: `(params) => ObjectRef`.
 
@@ -782,7 +782,7 @@ export function OpenPanes() {
 }
 ```
 
-A kind's icon at `size`, `aria-hidden`; the `defaultKind` icon (a square unless you replaced it) for an unknown kind or one without an icon.
+A kind's icon at `size`, `aria-hidden`; the `defaultKind` icon (a pane with its title bar, unless you replaced it) for an unknown kind or one without an icon.
 
 **Props**
 
@@ -921,7 +921,7 @@ One icon per name Jali draws. `<JaliRoot icons>` takes any part of it; type your
 
 - **`icons.activityError`**, `activityError: JaliIcon`: The cross in an error activity mark (8px). Default: Phosphor's `X, bold`.
 
-- **`icons.defaultKind`**, `defaultKind: JaliIcon`: A kind without an icon. Default: Phosphor's `Square`.
+- **`icons.defaultKind`**, `defaultKind: JaliIcon`: A kind without an icon. Default: Phosphor's `Browser`, a pane with its title bar.
 
 - **`icons.openBeside`**, `openBeside: JaliIcon`: The peek's "Open beside". Default: Phosphor's `SidebarSimple, mirrored`.
 

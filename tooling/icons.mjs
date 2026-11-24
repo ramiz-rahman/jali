@@ -38,7 +38,8 @@ export const SOURCES = {
   pin: "PushPin",
   // The cross in an activity dot is 8px: bold, since regular would be half a pixel.
   activityError: { icon: "X", weight: "bold" },
-  defaultKind: "Square",
+  // A pane, its title bar across the top: a bare square read as a checkbox.
+  defaultKind: "Browser",
   // The peek keeps beside, on the right: the sidebar, mirrored.
   openBeside: { icon: "SidebarSimple", mirrored: true },
   addToTabs: "Stack",
