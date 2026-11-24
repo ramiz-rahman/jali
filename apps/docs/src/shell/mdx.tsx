@@ -31,6 +31,7 @@ import {
 import { langOf, parseRanges, tokenize } from "./highlight";
 import { Collect } from "./collect";
 import { MediaImage } from "./media";
+import { PackageManagerMark } from "./pm-marks";
 
 // ---------- text helpers ----------
 
@@ -426,32 +427,71 @@ const MANAGERS = [
 ];
 
 /**
- * The install command on one line: a menu of package managers (npm, pnpm, yarn, bun, Vite+), the command for the one
- * chosen, and Copy. The choice is the remembered "pm" group (enhance.ts), so every install line and every package
- * manager tab set on the site follows it. Each command is in the HTML; the menu shows one.
+ * The install command on one line: the package manager (its mark and name, a button that opens a menu of all five), the
+ * command for it, and Copy. Every command is in the HTML and the menu shows one; enhance.ts opens the menu, moves
+ * through it from the keyboard, and keeps the choice as the remembered "pm" group, so every install line follows it.
  */
 export function Install({ packages }: { packages: string }) {
   const id = usePlainId();
+  const first = MANAGERS[0]!.label;
   return (
     <figure className="code install" data-install="" data-tabs="pm">
-      <span className="install-pm">
-        <select
-          className="install-select"
+      <div className="install-pm" data-pm="">
+        <button
+          type="button"
+          className="install-trigger"
           id={`${id}-pm`}
-          aria-label="Package manager"
-          data-pm-select=""
-          defaultValue={MANAGERS[0]!.label}
+          aria-haspopup="listbox"
+          aria-expanded="false"
+          aria-controls={`${id}-pm-list`}
+          aria-label={`Package manager: ${first}`}
+          data-pm-trigger=""
         >
           {MANAGERS.map((m) => (
-            <option key={m.label} value={m.label}>
+            <span
+              key={m.label}
+              className="install-current"
+              data-pm-current={m.label}
+              hidden={m.label !== first}
+            >
+              <PackageManagerMark name={m.label} />
               {m.label}
-            </option>
+            </span>
           ))}
-        </select>
-        <CaretDownIcon aria-hidden size={12} weight="bold" className="install-caret" />
-      </span>
-      {MANAGERS.map((m, i) => (
-        <div key={m.label} className="install-command" data-pm-panel={m.label} hidden={i !== 0}>
+          <CaretDownIcon aria-hidden size={11} weight="bold" className="install-caret" />
+        </button>
+        <ul
+          className="install-menu"
+          id={`${id}-pm-list`}
+          role="listbox"
+          aria-label="Package manager"
+          tabIndex={-1}
+          hidden
+          data-pm-menu=""
+        >
+          {MANAGERS.map((m) => (
+            <li
+              key={m.label}
+              id={`${id}-pm-${m.label}`}
+              className="install-option"
+              role="option"
+              aria-selected={m.label === first}
+              data-pm-option={m.label}
+            >
+              <PackageManagerMark name={m.label} />
+              <span className="install-option-name">{m.label}</span>
+              <CheckIcon aria-hidden size={13} weight="bold" className="install-check" />
+            </li>
+          ))}
+        </ul>
+      </div>
+      {MANAGERS.map((m) => (
+        <div
+          key={m.label}
+          className="install-command"
+          data-pm-panel={m.label}
+          hidden={m.label !== first}
+        >
           <CodeBody code={`${m.cmd} ${packages}`} lang="sh" numbers={false} />
         </div>
       ))}

@@ -36,21 +36,48 @@ test.describe("search", () => {
   });
 });
 
-test("the install line: the menu picks the package manager, and the choice is kept", async ({
+test("the install line: the menu picks the package manager, from the pointer or the keys, and the choice is kept", async ({
   page,
 }) => {
   await page.goto("/get-started/quickstart");
   const install = page.locator("[data-install]").first();
-  const menu = install.getByRole("combobox", { name: "Package manager" });
-  await expect(menu.locator("option")).toHaveText(["npm", "pnpm", "yarn", "bun", "vp"]);
-  await expect(install.locator("[data-pm-panel]:visible")).toHaveText("npm install jali");
-  await menu.selectOption("pnpm");
-  await expect(install.locator("[data-pm-panel]:visible")).toHaveText("pnpm add jali");
-  await menu.selectOption("vp");
-  await expect(install.locator("[data-pm-panel]:visible")).toHaveText("vp install jali");
+  const trigger = install.getByRole("button", { name: "Package manager: npm" });
+  const menu = install.getByRole("listbox", { name: "Package manager" });
+  const command = install.locator("[data-pm-panel]:visible");
+  await expect(command).toHaveText("npm install jali");
+  await expect(menu).toBeHidden();
+
+  // The pointer: open, choose pnpm.
+  await trigger.click();
+  await expect(menu).toBeVisible();
+  await expect(trigger).toHaveAttribute("aria-expanded", "true");
+  await expect(menu.getByRole("option")).toHaveText(["npm", "pnpm", "yarn", "bun", "vp"]);
+  await menu.getByRole("option", { name: "pnpm" }).click();
+  await expect(menu).toBeHidden();
+  await expect(command).toHaveText("pnpm add jali");
+  await expect(install.getByRole("button", { name: "Package manager: pnpm" })).toBeFocused();
+
+  // The keys: open on the chosen one, End goes to vp, Enter chooses it; Escape closes without choosing.
+  await page.keyboard.press("ArrowDown");
+  await expect(menu).toBeFocused();
+  await expect(menu.getByRole("option", { name: "pnpm" })).toHaveAttribute("data-active", "");
+  await page.keyboard.press("End");
+  await page.keyboard.press("Enter");
+  await expect(command).toHaveText("vp install jali");
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("y");
+  await page.keyboard.press("Escape");
+  await expect(menu).toBeHidden();
+  await expect(command).toHaveText("vp install jali");
+
+  // A click elsewhere closes it.
+  await install.getByRole("button", { name: "Package manager: vp" }).click();
+  await page.locator("h1").first().click();
+  await expect(menu).toBeHidden();
+
   await page.goto("/");
   const hero = page.locator("[data-install]").first();
-  await expect(hero.getByRole("combobox", { name: "Package manager" })).toHaveValue("vp");
+  await expect(hero.getByRole("button", { name: "Package manager: vp" })).toBeVisible();
   await expect(hero.locator("[data-pm-panel]:visible")).toHaveText("vp install jali");
 });
 

@@ -241,40 +241,121 @@
     height: 48px;
     padding: 0 6px 0 0;
   }
+  /* The menu opens below the line, so the line doesn't clip it. */
+  .code.install {
+    overflow: visible;
+  }
   .install-pm {
     position: relative;
-    display: flex;
-    align-items: center;
     flex: none;
-    height: 100%;
+    align-self: stretch;
     border-right: 1px solid var(--jali-border);
   }
-  .install-select {
-    appearance: none;
+  .install-trigger {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     height: 100%;
-    margin: 0;
-    padding: 0 30px 0 16px;
-    border: 0;
-    border-radius: 0;
-    background: transparent;
+    padding: 0 12px 0 16px;
+    border-radius: calc(var(--d-radius) - 1px) 0 0 calc(var(--d-radius) - 1px);
     font: 500 13px/1 var(--d-font-mono);
     color: var(--jali-text);
-    cursor: pointer;
     transition: background-color 0.15s;
   }
-  .install-select:hover {
+  .install-trigger:hover,
+  .install-trigger[aria-expanded="true"] {
     background: var(--jali-hover);
   }
-  .install-select:focus-visible {
+  .install-trigger:focus-visible {
     outline: 2px solid var(--jali-accent);
-    outline-offset: -4px;
-    border-radius: 8px;
+    outline-offset: -2px;
+  }
+  .install-current {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .install-current[hidden] {
+    display: none;
   }
   .install-caret {
-    position: absolute;
-    right: 12px;
+    margin-left: 2px;
     color: var(--jali-text-subtle);
-    pointer-events: none;
+    transition: transform 0.2s var(--d-ease);
+  }
+  .install-trigger[aria-expanded="true"] .install-caret {
+    transform: rotate(180deg);
+  }
+  .pm-mark {
+    flex: none;
+  }
+
+  /* Doubled, to win over the prose list's margin and indent. */
+  .install-menu.install-menu {
+    position: absolute;
+    z-index: 30;
+    top: calc(100% + 8px);
+    left: -1px;
+    min-width: 176px;
+    margin: 0;
+    padding: 5px;
+    list-style: none;
+    border: 1px solid var(--jali-border-strong);
+    border-radius: 12px;
+    background: var(--jali-surface-raised);
+    box-shadow: var(--jali-shadow-menu);
+    transform-origin: top left;
+    animation: install-menu-in 0.16s var(--d-ease);
+  }
+  .install-menu[hidden] {
+    display: none;
+  }
+  .install-menu:focus {
+    outline: none;
+  }
+  @keyframes install-menu-in {
+    from {
+      opacity: 0;
+      transform: translateY(-4px) scale(0.98);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .install-menu {
+      animation: none;
+    }
+  }
+  .prose .install-option {
+    display: grid;
+    grid-template-columns: 16px minmax(0, 1fr) 14px;
+    align-items: center;
+    gap: 10px;
+    height: 36px;
+    margin: 0;
+    padding: 0 10px;
+    border-radius: 8px;
+    font: 500 13px/1 var(--d-font-mono);
+    color: var(--jali-text-muted);
+    cursor: pointer;
+  }
+  .install-option .pm-mark {
+    color: var(--jali-text-subtle);
+  }
+  .install-option[data-active] {
+    background: color-mix(in srgb, var(--jali-text) 8%, transparent);
+    color: var(--jali-text);
+  }
+  .install-option[data-active] .pm-mark {
+    color: var(--jali-text);
+  }
+  .install-option[aria-selected="true"] {
+    color: var(--jali-text);
+  }
+  .install-check {
+    color: var(--jali-accent);
+    visibility: hidden;
+  }
+  .install-option[aria-selected="true"] .install-check {
+    visibility: visible;
   }
   .install-command {
     flex: 1;
