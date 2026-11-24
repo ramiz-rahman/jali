@@ -41,7 +41,7 @@ Written from the docs site by tooling/agent-docs.mjs; don't edit these files.
 - [jali/react](reference/react.md): Every component, hook and type jali/react exports, with its props, defaults and what it returns.
 - [Features](reference/features.md): What an instance does beyond laying out panes, each a value from its own entry, so an app ships only what it uses.
 - [jali/testing](reference/testing.md): An instance for tests, keys, and what a rendered pane would report, without the adapter's internals.
-- [Tokens](reference/tokens.md): Every public --jali-* token, what reads it, its light and dark values, and how the Tailwind bridge maps it.
+- [Tokens](reference/tokens.md): Every public Jali token, what reads it, its light and dark values, and how the Tailwind bridge maps it.
 - [Parts](reference/parts.md): Every part of Jali you can style, its element, its selector, and the attributes that carry its state.
 - [Commands](reference/commands.md): Every command, its default keys on a Mac and on Windows and Linux, and when it is refused.
 

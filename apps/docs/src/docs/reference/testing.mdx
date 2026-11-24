@@ -7,6 +7,8 @@ import { Entry, Params, Param, Ref } from "../../reference";
 
 What your app's own tests need. See [Test an instance](/guides/testing).
 
+## Make an instance
+
 <Entry name="createTestJali" kind="function" from="jali/testing" signature={`createTestJali(options: TestJaliOptions): { jali: Jali; location: TestLocation }`}>
 
 `createJali`, kept apart from the page and from other tests: its address in memory (`location`), storage in memory, a size of 1440 by 900 unless `size` says otherwise, keys as on a Mac, and no DOM focus moved. `search` opens it on a link. Its features are the ones you give, with the address always in memory.
@@ -18,6 +20,8 @@ What your app's own tests need. See [Test an instance](/guides/testing).
 The same options, for an app that makes its instance in a function of its own: pass `options` to it, and put your own features before its `features` (`[...defaultFeatures(), ...(options.features ?? [])]`), so its memory address takes the place of `urlSync()`.
 
 </Entry>
+
+## Report, read and answer
 
 <Entry name="reportUnsaved" kind="function" from="jali/testing" signature={`reportUnsaved(jali: AnyJali, pane: string, what: string | null): ActionResult`} compact>
 
@@ -60,6 +64,8 @@ What `jali.dialogs.choose` is asking the person now, or `null`. Choose by callin
 The last thing the instance said to assistive technology.
 
 </Entry>
+
+## Types
 
 <Entry name="TestJaliOptions" kind="type" from="jali/testing" signature={`interface TestJaliOptions extends JaliOptions { search?: string }`} compact>
 

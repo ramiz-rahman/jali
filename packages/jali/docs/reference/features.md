@@ -15,6 +15,8 @@ const jali = createJali({ panes, layout, features: [...defaultFeatures(), rename
 
 A feature given again takes the earlier one's place, so `[...defaultFeatures(), urlSync({ location })]` keeps the defaults with the address in a router's hands.
 
+## The features
+
 ### defaultFeatures
 
 *function*, from `jali/features`
@@ -106,6 +108,8 @@ pressed(): Feature
 ```
 
 `data-pressed` on Jali's controls while they are held, by pointer or by Space or Enter, for a theme that draws a key going down. Jali's own styles don't read it.
+
+## Types
 
 ### Feature
 

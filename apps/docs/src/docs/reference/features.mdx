@@ -18,6 +18,8 @@ const jali = createJali({ panes, layout, features: [...defaultFeatures(), rename
 
 A feature given again takes the earlier one's place, so `[...defaultFeatures(), urlSync({ location })]` keeps the defaults with the address in a router's hands.
 
+## The features
+
 <Entry name="defaultFeatures" kind="function" from="jali/features" signature={`defaultFeatures(): Feature[]`}>
 
 Jali's usual set, in one call: the address (`urlSync()`), ⌘K (`palette()`), Settings (`settings()`), the chooser (`chooser()`) and `data-pressed` (`pressed()`). Rename and Pop out need your app's say, so they are not in it.
@@ -75,6 +77,8 @@ The browser's rules apply: Chrome keeps one floating window at a time across all
 `data-pressed` on Jali's controls while they are held, by pointer or by Space or Enter, for a theme that draws a key going down. Jali's own styles don't read it.
 
 </Entry>
+
+## Types
 
 <Entry name="Feature" kind="type" from="jali" signature={`interface Feature { readonly id: FeatureId }`} compact>
 

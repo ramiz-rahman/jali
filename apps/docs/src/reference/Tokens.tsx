@@ -100,11 +100,11 @@ export function TokenTable({ group }: { group?: TokenGroup }) {
           return (
             <div className="ref-token" key={t} id={t.slice(2)}>
               <div>
-                <h4 className="ref-token-name">
+                <h3 className="ref-token-name">
                   <a className="ref-anchor" href={`#${t.slice(2)}`}>
                     <code>{t}</code>
                   </a>
-                </h4>
+                </h3>
                 <p className="ref-token-purpose">{info?.purpose ?? "Not documented."}</p>
                 <p className="ref-token-parts" aria-label="Read by">
                   {parts.length ? (

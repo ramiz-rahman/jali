@@ -4,6 +4,8 @@ An instance for tests, keys, and what a rendered pane would report, without the 
 
 What your app's own tests need. See [Test an instance](../guides/testing.md).
 
+## Make an instance
+
 ### createTestJali
 
 *function*, from `jali/testing`
@@ -23,6 +25,8 @@ testJaliOptions(options?: { search?: string; size?: { width: number; height: num
 ```
 
 The same options, for an app that makes its instance in a function of its own: pass `options` to it, and put your own features before its `features` (`[...defaultFeatures(), ...(options.features ?? [])]`), so its memory address takes the place of `urlSync()`.
+
+## Report, read and answer
 
 ### reportUnsaved
 
@@ -93,6 +97,8 @@ lastAnnouncement(jali: AnyJali): string
 ```
 
 The last thing the instance said to assistive technology.
+
+## Types
 
 ### TestJaliOptions
 
