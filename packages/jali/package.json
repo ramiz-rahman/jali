@@ -16,8 +16,17 @@
     "tiling-window-manager",
     "workspace"
   ],
+  "homepage": "https://jali.ramizrahman.com",
+  "bugs": {
+    "url": "https://github.com/ramiz-rahman/jali/issues"
+  },
   "license": "Apache-2.0",
   "author": "Ramiz Rahman (https://ramizrahman.com/)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ramiz-rahman/jali.git",
+    "directory": "packages/jali"
+  },
   "files": [
     "dist",
     "docs",
