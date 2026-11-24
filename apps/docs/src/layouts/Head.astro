@@ -4,7 +4,7 @@
  * structured data. Each page is its own HTML file, so all of it is right for the page it is in. A page that isn't
  * indexed (the 404, a draft) has no canonical address and no Markdown copy.
  */
-import { SITE_NAME } from "../site/config";
+import { AUTHOR, LICENSE, REPO_URL, SITE_NAME } from "../site/config";
 import { markdownUrl } from "../site/sources";
 
 export interface Props {
@@ -16,28 +16,45 @@ export interface Props {
   path: string;
   noindex?: boolean;
   breadcrumbs?: { name: string; path: string }[];
+  /** When the page last changed (an ISO date, src/site/last-modified.mjs), when known. */
+  modified?: string;
 }
-const { title, headline, description, path, noindex, breadcrumbs } = Astro.props;
+const { title, headline, description, path, noindex, breadcrumbs, modified } = Astro.props;
 const site = Astro.site!;
 const canonical = new URL(path, site).href;
 const image = new URL("/jali-social.png", site).href;
+const home = new URL("/", site).href;
+const author = { "@type": "Person", name: AUTHOR.name, url: AUTHOR.url };
 const ld = [
-  path === "/"
-    ? {
-        "@context": "https://schema.org",
-        "@type": "WebSite",
-        name: SITE_NAME,
-        url: new URL("/", site).href,
-        description,
-      }
-    : {
-        "@context": "https://schema.org",
-        "@type": "TechArticle",
-        headline,
-        description,
-        url: canonical,
-        isPartOf: { "@type": "WebSite", name: SITE_NAME, url: new URL("/", site).href },
-      },
+  ...(path === "/"
+    ? [
+        { "@context": "https://schema.org", "@type": "WebSite", name: SITE_NAME, url: home, description },
+        // What the site is about, for search and answer engines: the library itself, its code and its terms.
+        {
+          "@context": "https://schema.org",
+          "@type": "SoftwareSourceCode",
+          name: SITE_NAME,
+          description,
+          url: home,
+          codeRepository: REPO_URL,
+          programmingLanguage: "TypeScript",
+          runtimePlatform: ["React", "Web browser"],
+          license: LICENSE.url,
+          author,
+        },
+      ]
+    : [
+        {
+          "@context": "https://schema.org",
+          "@type": "TechArticle",
+          headline,
+          description,
+          url: canonical,
+          ...(modified ? { dateModified: modified } : {}),
+          author,
+          isPartOf: { "@type": "WebSite", name: SITE_NAME, url: home },
+        },
+      ]),
   ...(breadcrumbs && breadcrumbs.length > 1
     ? [
         {

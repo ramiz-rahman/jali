@@ -9,6 +9,7 @@ import mdx from "@mdx-js/rollup";
 import remarkGfm from "remark-gfm";
 import remarkFrontmatter from "remark-frontmatter";
 import { SITE_URL } from "./src/site/site-url.mjs";
+import { lastModified, sourceOfPath } from "./src/site/last-modified.mjs";
 
 /**
  * A fenced block's meta (```tsx filename="src/kinds.tsx" highlight="3-5") as data-filename and data-highlight on its
@@ -58,8 +59,18 @@ export default defineConfig({
   build: { format: "file" },
   // Moving between pages is a normal page load; a link's page is fetched while the pointer rests on it.
   prefetch: { prefetchAll: true, defaultStrategy: "hover" },
-  // The sitemap lists what the build made, which never holds a draft page (src/site/pages.ts).
-  integrations: [react(), sitemap()],
+  // The sitemap lists what the build made, which never holds a draft page (src/site/pages.ts), each with when its page
+  // last changed (src/site/last-modified.mjs), so a search engine knows what to fetch again.
+  integrations: [
+    react(),
+    sitemap({
+      serialize(item) {
+        const file = sourceOfPath(new URL(item.url).pathname);
+        const lastmod = file ? lastModified(file) : undefined;
+        return lastmod ? { ...item, lastmod } : item;
+      },
+    }),
+  ],
   vite: {
     // Each dev server gets its own dependency cache (JALI_DOCS_CACHE), so several can run at once.
     cacheDir: process.env.JALI_DOCS_CACHE ?? "node_modules/.vite",

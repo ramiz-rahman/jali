@@ -9,6 +9,7 @@ import { renderPage, renderShell } from "../shell/render";
 import { sectionLink } from "../site/nav";
 import { pageAt, sources } from "../site/sources";
 import { SITE_NAME } from "../site/config";
+import { lastModified } from "../site/last-modified.mjs";
 
 export function getStaticPaths() {
   return Object.values(sources)
@@ -34,6 +35,7 @@ const homeTitle = `${SITE_NAME}: ${page.summary.split(/(?<=\.)\s/)[0]!.replace(/
   description={page.summary}
   path={path}
   noindex={page.draft}
+  modified={page.draft ? undefined : lastModified(page.file)}
   breadcrumbs={home
     ? undefined
     : [
