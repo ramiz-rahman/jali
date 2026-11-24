@@ -195,8 +195,39 @@
   .search-field input::-webkit-search-cancel-button {
     display: none;
   }
-  .search-field .kbd {
+  .search-close {
+    display: inline-flex;
+    align-items: center;
+    flex: none;
+    min-height: 32px;
+    padding: 0 4px;
+    border-radius: 6px;
+    font: 500 14px/1 var(--d-font);
+    color: var(--jali-accent);
     cursor: pointer;
+  }
+  .search-close-word {
+    display: none;
+  }
+  @media (pointer: coarse) {
+    .search-close-key {
+      display: none;
+    }
+    .search-close-word {
+      display: inline;
+    }
+    .search-close {
+      padding: 0 8px;
+      margin-right: -4px;
+    }
+  }
+  /* The words a result matched: the accent's tint behind them, the text as it was. */
+  .search-mark {
+    padding: 0 1px;
+    margin: 0 -1px;
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--jali-accent) 16%, transparent);
+    color: inherit;
   }
   /*
    * One left edge for the field's icon, the heading, the results' icons and the footer (24px in), with room around the

@@ -30,12 +30,15 @@ export interface Hit {
   kind: "page" | "heading" | "entry";
 }
 
+/** The words of a query, as the search matches them (and as the dialog marks them in what it found). */
+export const searchTerms = (q: string): string[] => q.toLowerCase().split(/\s+/).filter(Boolean);
+
 /**
  * What `q` finds, best first: every word must be in the text; a title counts most, then a reference entry's name,
  * a heading, a summary; text that starts with the first word counts double. With no words, the first pages.
  */
 export function searchIndex(data: SearchIndex, q: string): Hit[] {
-  const terms = q.toLowerCase().split(/\s+/).filter(Boolean);
+  const terms = searchTerms(q);
   const page = (p: SearchPage): Hit => ({
     key: p.path,
     href: p.path,

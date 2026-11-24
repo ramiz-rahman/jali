@@ -4,7 +4,7 @@
  * src/pages/search.json.ts), not the pages, and ranks with src/site/search-index.ts. A stand-in until Pagefind
  * searches the built pages (docs/DOCS-PLAN.md).
  */
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import {
   ArrowElbowDownLeftIcon,
@@ -13,7 +13,7 @@ import {
   HashIcon,
   MagnifyingGlassIcon,
 } from "@phosphor-icons/react";
-import { searchIndex, type Hit, type SearchIndex } from "../site/search-index";
+import { searchIndex, searchTerms, type Hit, type SearchIndex } from "../site/search-index";
 
 let index: Promise<SearchIndex> | null = null;
 const loadIndex = () =>
@@ -24,6 +24,33 @@ const loadIndex = () =>
 
 const ICON = { page: FileTextIcon, heading: HashIcon, entry: BracketsCurlyIcon };
 
+/** `text` with each place a query word matched marked, so a reader sees why a result is there. */
+function Marked({ text, terms }: { text: string; terms: string[] }): ReactNode {
+  if (!terms.length) return text;
+  const lower = text.toLowerCase();
+  const on = Array.from({ length: text.length }, () => false);
+  for (const t of terms)
+    for (let i = lower.indexOf(t); i >= 0; i = lower.indexOf(t, i + t.length))
+      on.fill(true, i, i + t.length);
+  const parts: ReactNode[] = [];
+  let start = 0;
+  for (let i = 1; i <= text.length; i++) {
+    if (i < text.length && on[i] === on[start]) continue;
+    const s = text.slice(start, i);
+    parts.push(
+      on[start] ? (
+        <mark key={start} className="search-mark">
+          {s}
+        </mark>
+      ) : (
+        s
+      ),
+    );
+    start = i;
+  }
+  return parts;
+}
+
 function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const ref = useRef<HTMLDialogElement>(null);
   const input = useRef<HTMLInputElement>(null);
@@ -33,6 +60,7 @@ function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void })
   const [q, setQ] = useState("");
   const [active, setActive] = useState(0);
   const hits = useMemo(() => (data ? searchIndex(data, q) : []), [data, q]);
+  const terms = useMemo(() => searchTerms(q), [q]);
 
   useEffect(() => {
     loadIndex().then(setData, () => setFailed(true));
@@ -114,9 +142,16 @@ function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void })
             autoComplete="off"
             spellCheck={false}
           />
-          <kbd className="kbd" onClick={onClose}>
-            Esc
-          </kbd>
+          {/* Esc with a keyboard; on a touch screen, a word to tap. */}
+          <button
+            type="button"
+            className="search-close"
+            aria-label="Close search"
+            onClick={onClose}
+          >
+            <kbd className="kbd search-close-key">Esc</kbd>
+            <span className="search-close-word">Cancel</span>
+          </button>
         </div>
         <ul
           ref={list}
@@ -147,9 +182,15 @@ function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void })
                   <Icon aria-hidden size={15} />
                 </span>
                 <span className="search-hit-text">
-                  <span className="search-hit-title">{h.title}</span>
+                  <span className="search-hit-title">
+                    <Marked text={h.title} terms={terms} />
+                  </span>
                   <span className="search-hit-detail">
-                    {h.kind === "page" ? h.detail : `In ${h.detail}`}
+                    {h.kind === "page" ? (
+                      <Marked text={h.detail} terms={terms} />
+                    ) : (
+                      `In ${h.detail}`
+                    )}
                   </span>
                 </span>
                 {i === active ? (
