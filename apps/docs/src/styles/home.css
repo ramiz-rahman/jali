@@ -740,48 +740,272 @@
     border-radius: 0 0 var(--d-radius) var(--d-radius);
   }
 
-  .prose ul.landing-keys {
-    list-style: none;
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
-    margin: 12px 0 0;
-    padding: 0;
+  /*
+   * The keys: the workspace, and under it, joined to it, the sheet of its keys, as an app shows its shortcuts: the one
+   * keys in a column, the ⌘K chords beside them, and a setting (a command too) across the foot. Each row is a command
+   * and its keycaps; the one that just ran lights (by a click or its keys in the panes), and after ⌘K the rows it starts
+   * wait for their second key, the rest stepping back.
+   */
+  .landing-keys-demo .landing-ws-box {
+    border-radius: var(--d-radius) var(--d-radius) 0 0;
   }
-  .prose .landing-keys li {
+  .landing-sheet {
+    display: grid;
+    border: 1px solid var(--jali-border);
+    border-top: 0;
+    border-radius: 0 0 var(--d-radius) var(--d-radius);
+    background: var(--jali-surface);
+  }
+  .landing-sheet-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: none;
+    height: 44px;
+    padding: 0 14px;
+    border-bottom: 1px solid var(--jali-border);
+    font: 600 14px/1 var(--d-font);
+    color: var(--jali-text);
+  }
+  .landing-sheet-head svg {
+    color: var(--jali-text-subtle);
+  }
+  .landing-sheet-head small {
+    margin-left: auto;
+    font: 400 12px/1 var(--d-font);
+    color: var(--jali-text-subtle);
+    white-space: nowrap;
+  }
+  .landing-sheet[data-armed] .landing-sheet-head small {
+    font-family: var(--d-font-mono);
+    color: var(--jali-accent);
+  }
+  .prose ul.landing-sheet-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(3, auto);
+    grid-auto-flow: column;
+    gap: 1px 12px;
+    margin: 0;
+    padding: 6px 8px;
+    list-style: none;
+  }
+  .prose .landing-sheet-list li {
     margin: 0;
     padding: 0;
   }
-  .landing-key {
+  .landing-sheet-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
+    gap: 12px;
     width: 100%;
-    height: 44px;
-    padding: 0 14px;
-    border-radius: 9px;
-    border: 1px solid var(--jali-border-strong);
-    background: var(--jali-surface);
-    font-size: 15px;
-    font-weight: 500;
+    height: 36px;
+    padding: 0 8px 0 10px;
+    border-radius: 8px;
+    font: 500 14px/1 var(--d-font);
     color: var(--jali-text);
     text-align: left;
     transition:
+      background-color 0.15s,
+      opacity 0.2s;
+  }
+  .landing-sheet-row:hover {
+    background: var(--jali-hover);
+  }
+  .landing-sheet-row:focus-visible {
+    outline: 2px solid var(--jali-focus-ring);
+    outline-offset: -2px;
+  }
+  /* While ⌘K waits for its second key, the rows it doesn't start step back. */
+  .landing-sheet[data-armed] .landing-sheet-row:not([data-waiting]) {
+    opacity: 0.4;
+  }
+
+  /* Keycaps: one per step of a binding, with a little depth; pressed, the cap sinks and takes the accent. */
+  .landing-caps {
+    display: inline-flex;
+    gap: 4px;
+    flex: none;
+  }
+  .landing-caps kbd {
+    display: inline-grid;
+    place-items: center;
+    min-width: 24px;
+    height: 22px;
+    padding: 0 6px;
+    border: 1px solid var(--jali-border-strong);
+    border-bottom-width: 2px;
+    border-radius: 6px;
+    background: var(--d-ground);
+    font: 500 12px/1 var(--d-font-mono);
+    color: var(--jali-text-muted);
+    transition:
+      transform 0.12s var(--d-ease),
       border-color 0.15s,
       color 0.15s,
-      transform 0.12s var(--d-ease);
+      background-color 0.15s;
   }
-  .landing-key:hover {
-    border-color: var(--jali-control);
+  .landing-caps kbd[data-pressed] {
+    transform: translateY(1px);
+    border-bottom-width: 1px;
+    border-color: var(--jali-accent);
+    background: var(--jali-accent-soft);
+    color: var(--jali-accent);
   }
-  .landing-key:active {
-    transform: scale(0.97);
+  .landing-caps kbd[data-next] {
+    border-color: var(--jali-accent);
+    color: var(--jali-text);
+    animation: landing-cap-wait 0.9s ease-in-out infinite alternate;
   }
-  .landing-key kbd {
-    order: 2;
-    font: 500 13px/20px var(--d-font-mono);
+  @keyframes landing-cap-wait {
+    to {
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--jali-accent) 22%, transparent);
+    }
+  }
+
+  /* What just ran: the row's light fades out, and its caps flash the accent. Two names, so a second run restarts it. */
+  [data-ran="a"] {
+    animation: landing-ran-a 1.4s var(--d-ease);
+  }
+  [data-ran="b"] {
+    animation: landing-ran-b 1.4s var(--d-ease);
+  }
+  [data-ran="a"] .landing-caps kbd {
+    animation: landing-cap-ran-a 1.4s var(--d-ease);
+  }
+  [data-ran="b"] .landing-caps kbd {
+    animation: landing-cap-ran-b 1.4s var(--d-ease);
+  }
+  @keyframes landing-ran-a {
+    from {
+      background: color-mix(in srgb, var(--jali-accent) 16%, transparent);
+    }
+  }
+  @keyframes landing-ran-b {
+    from {
+      background: color-mix(in srgb, var(--jali-accent) 16%, transparent);
+    }
+  }
+  @keyframes landing-cap-ran-a {
+    from {
+      border-color: var(--jali-accent);
+      color: var(--jali-accent);
+    }
+  }
+  @keyframes landing-cap-ran-b {
+    from {
+      border-color: var(--jali-accent);
+      color: var(--jali-accent);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    [data-ran],
+    [data-ran] .landing-caps kbd,
+    .landing-caps kbd[data-next] {
+      animation: none;
+    }
+  }
+
+  /* The setting, across the sheet's foot: its name and keys, and what the one in force does; the two ways beside. */
+  .landing-sheet-setting {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 18rem);
+    grid-template-areas:
+      "section switch"
+      "head switch"
+      "hint switch";
+    align-items: center;
+    gap: 2px 28px;
+    padding: 12px 18px 14px;
+    border-top: 1px solid var(--jali-border);
+    border-radius: 0 0 var(--d-radius) var(--d-radius);
+  }
+  .landing-sheet-setting > .landing-sheet-section {
+    grid-area: section;
+  }
+  .landing-sheet-setting > .landing-sheet-setting-head {
+    grid-area: head;
+  }
+  .landing-sheet-setting > .landing-drop-switch {
+    grid-area: switch;
+  }
+  .landing-sheet-setting > .landing-sheet-hint {
+    grid-area: hint;
+  }
+  .prose .landing-sheet-section {
+    margin: 0;
+    font: 500 12px/16px var(--d-font);
     color: var(--jali-text-subtle);
+  }
+  .landing-sheet-setting-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font: 500 14px/20px var(--d-font);
+    color: var(--jali-text);
+  }
+  .prose .landing-sheet-hint {
+    margin: 0;
+    font-size: 12px;
+    line-height: 17px;
+    color: var(--jali-text-muted);
+    text-wrap: pretty;
+  }
+  .landing-drop-switch {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    padding: 3px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--jali-text) 6%, transparent);
+  }
+  .landing-drop-switch button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 34px;
+    padding: 0 10px;
+    border-radius: 7px;
+    font: 500 13px/1 var(--d-font);
+    color: var(--jali-text-muted);
+    white-space: nowrap;
+    transition:
+      background-color 0.15s,
+      color 0.15s,
+      box-shadow 0.15s;
+  }
+  .landing-drop-switch button:hover {
+    color: var(--jali-text);
+  }
+  .landing-drop-switch button[aria-checked="true"] {
+    background: var(--jali-surface);
+    color: var(--jali-text);
+    box-shadow:
+      0 0 0 1px var(--jali-border),
+      0 1px 2px rgb(0 0 0 / 0.06);
+  }
+  .landing-drop-switch button:focus-visible {
+    outline: 2px solid var(--jali-focus-ring);
+    outline-offset: 1px;
+  }
+  .landing-drop-glyph {
+    flex: none;
+    width: 34px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  /* What moved, in the accent while its choice is the one in force. */
+  [aria-checked="true"] > .landing-drop-glyph [data-lit] {
+    stroke: var(--jali-accent);
+  }
+  [aria-checked="true"] > .landing-drop-glyph rect[data-lit] {
+    fill: color-mix(in srgb, var(--jali-accent) 18%, transparent);
   }
 
   /* ---------- the close ---------- */
@@ -1094,9 +1318,6 @@
     .landing-close > :last-child {
       grid-column: 1 / -1;
     }
-    .prose ul.landing-keys {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
   }
   @media (max-width: 1100px) {
     .prose .landing-proof {
@@ -1200,8 +1421,16 @@
     .landing-imports-bar {
       padding-inline: 20px;
     }
-    .prose ul.landing-keys {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+    /* A phone: one column of keys, and the setting's parts one under another. */
+    .prose ul.landing-sheet-list {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: none;
+      grid-auto-flow: row;
+    }
+    .landing-sheet-setting {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas: "section" "head" "switch" "hint";
+      row-gap: 8px;
     }
     .landing-address-count,
     .landing-address-dots,
