@@ -533,7 +533,7 @@
     color: var(--jali-text-subtle);
   }
   :root .ref-table .ref-dash {
-    color: var(--jali-text-faint);
+    color: var(--jali-text-subtle);
   }
   :root .ref-table tr[id] {
     scroll-margin-top: 5rem;

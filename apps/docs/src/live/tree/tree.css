@@ -267,4 +267,10 @@
       margin-left: auto;
     }
   }
+  /* A touch screen: the view switch's options are 24px targets at least, and the switch grows with them. */
+  @media (pointer: coarse) {
+    .live-seg button {
+      min-height: 1.75rem;
+    }
+  }
 }
