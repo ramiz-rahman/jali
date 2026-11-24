@@ -1370,6 +1370,14 @@
     }
   }
   @media (max-width: 767px) {
+    /* A phone: the words take the full width, so the side columns' dividers and lattice would run into them. The
+       opening keeps its bottom divider. */
+    .hero-divider,
+    .hero-split-top,
+    .hero-split-bottom,
+    .hero-tile {
+      display: none;
+    }
     .landing-opening {
       padding-top: 24px;
     }

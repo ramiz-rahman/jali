@@ -73,12 +73,6 @@ export function Hero({ layout, height }: HeroProps) {
         <div className="live-stage" {...stage}>
           <LiveWorkspace jali={store.jali} height={h} wrapRef={wrap} status={false} />
           <span className="live-tour-cursor" ref={cursor} aria-hidden />
-          {open ? null : (
-            <button type="button" className="live-edge-tab" onClick={() => panel.choose("map")}>
-              <TreeStructureIcon size={15} aria-hidden />
-              <span>Show the layout tree</span>
-            </button>
-          )}
         </div>
         {open ? (
           <TreeScope store={store} preview={preview}>
@@ -130,7 +124,13 @@ export function Hero({ layout, height }: HeroProps) {
               </div>
             </section>
           </TreeScope>
-        ) : null}
+        ) : (
+          // Closed, the panel leaves a tab where it opens, beside the workspace rather than over it.
+          <button type="button" className="live-edge-tab" onClick={() => panel.choose("map")}>
+            <TreeStructureIcon size={15} aria-hidden />
+            <span>Show the layout tree</span>
+          </button>
+        )}
       </div>
     </figure>
   );

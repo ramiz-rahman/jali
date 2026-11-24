@@ -56,36 +56,58 @@
       border-left: 1px solid var(--jali-border);
     }
   }
-  /* Brings the closed panel back: a tab on the workspace's right edge. */
+  /*
+   * Brings the closed panel back: a tab where the panel opens, never over the workspace. Under it while the panel opens
+   * below (a narrow figure); beside it, the workspace's full height, once the panel opens beside it, as a side panel
+   * folded to its edge.
+   */
   .live-edge-tab {
-    position: absolute;
-    right: 0;
-    top: 50%;
-    z-index: 40;
-    transform: translateY(-50%);
-    display: inline-flex;
+    display: flex;
     align-items: center;
+    justify-content: center;
     gap: 0.5rem;
-    padding: 0.875rem 0.4375rem;
-    writing-mode: vertical-rl;
-    border: 1px solid var(--jali-border-strong);
-    border-right: 0;
-    border-radius: 0.625rem 0 0 0.625rem;
+    min-height: 2.75rem;
+    padding: 0 1rem;
+    border: 0;
+    border-top: 1px solid var(--jali-border);
     background: var(--jali-surface);
     color: var(--jali-text);
-    box-shadow: var(--jali-shadow-menu);
     font: 500 var(--live-text-label)/1 var(--jali-font);
     cursor: pointer;
+    transition:
+      background-color 120ms ease,
+      color 120ms ease;
   }
   .live-edge-tab svg {
+    flex: none;
     color: var(--jali-accent);
-    transform: rotate(90deg);
   }
   .live-edge-tab:hover {
+    background: var(--jali-hover);
     color: var(--jali-accent);
   }
   .live-edge-tab:focus-visible {
     outline: 2px solid var(--jali-focus-ring);
-    outline-offset: 2px;
+    outline-offset: -2px;
+  }
+  @container live-fig (min-width: 56rem) {
+    .live-tv[data-parts="side"][data-side="closed"] .live-tv-grid {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+    .live-edge-tab {
+      writing-mode: vertical-rl;
+      min-height: 0;
+      padding: 1rem 0.625rem;
+      border-top: 0;
+      border-left: 1px solid var(--jali-border);
+    }
+    .live-edge-tab svg {
+      transform: rotate(90deg);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .live-edge-tab {
+      transition: none;
+    }
   }
 }
