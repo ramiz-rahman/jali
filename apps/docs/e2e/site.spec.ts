@@ -135,13 +135,15 @@ test("the following demo says what the order pane does, and Keep and Follow agai
   await expect(text).toContainText("Order 1048 shows the order selected in Orders");
 
   // Pick another order: the detail follows, in place.
-  await demo.getByText("Jonas Berg").first().click();
+  // Orders by place in the list (1048 at the top, 1045 fourth), not by customer: the demo's names may change.
+  const orders = demo.getByRole("listbox", { name: "Orders" }).getByRole("option");
+  await orders.nth(3).click();
   await expect(text).toContainText("Order 1045 shows the order selected");
 
   // Keep it: it stays, and the next order opened comes beside it.
   await demo.getByRole("button", { name: "Keep Order 1045" }).click();
   await expect(state).toHaveText("Kept");
-  await demo.getByText("Priya Nair").first().click();
+  await orders.nth(5).click();
   await page.keyboard.press("Alt+Enter");
   await expect(state).toHaveText("Kept and following");
   await expect(text).toContainText("Order 1045 is kept. Order 1043 follows the list");
