@@ -196,8 +196,14 @@
     max-width: 66rem;
   }
   /* A wide page widens its figures, tables and code, never its lines of text: those keep the measure. */
-  .layout[data-wide] :is(.page-summary, .prose > p, .prose > ul, .prose > ol, .prose > .callout),
-  .layout[data-wide] .example > :is(p, ol) {
+  .layout[data-wide]
+    :is(
+      .page-summary,
+      .prose > p,
+      .prose > ul:not([class]),
+      .prose > ol:not([class]),
+      .prose > .callout
+    ) {
     max-width: var(--d-measure);
   }
   .layout[data-wide] .toc-disclosure {

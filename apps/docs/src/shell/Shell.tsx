@@ -26,8 +26,8 @@ export function Shell(props: ShellProps) {
   const path = props.kind === "page" ? props.path : "/404";
   const isHome = path === "/";
   // API reference entries use two columns (prose and options, then signature and example), so they take the TOC's room.
-  // Wide: the reference for the two entries (signatures beside examples) and the Examples page (large screenshots).
-  const isWide = /^\/reference\/(core|react)(\/|$)/.test(path) || path === "/examples";
+  // Wide: the reference for the two entries (signatures beside examples) and the Examples pages (large screenshots).
+  const isWide = /^\/(reference\/(core|react)|examples)(\/|$)/.test(path);
   const entries = props.kind === "page" && !isHome ? props.headings : [];
 
   return (
@@ -57,7 +57,10 @@ export function Shell(props: ShellProps) {
               {isHome ? null : (
                 <PageHeader path={path} title={props.title} summary={props.summary} />
               )}
-              {!isHome ? <TocDisclosure entries={entries} /> : null}
+              {/* The Examples pages are short, and open on their picture: no list of their few sections first. */}
+              {!isHome && !path.startsWith("/examples") ? (
+                <TocDisclosure entries={entries} />
+              ) : null}
               <div
                 className="prose"
                 data-home={isHome || undefined}

@@ -5,7 +5,13 @@
 import { PALETTE_ID, createKeymap, formatKeys } from "jali/adapter";
 import { ADORNMENTS, parts } from "../../../../packages/react/src/parts";
 import { COMMANDS, REFUSED, displayId } from "../reference/command-data";
-import { exampleListMarkdown, exampleMarkdown } from "../examples/markdown";
+import {
+  exampleDataMarkdown,
+  exampleListMarkdown,
+  exampleRunMarkdown,
+  exampleShotMarkdown,
+  exampleShowsMarkdown,
+} from "../examples/markdown";
 import {
   BRIDGE,
   PUBLIC_TOKENS,
@@ -30,7 +36,11 @@ const keys = (id: string, platform: "mac" | "other") => {
 };
 
 export const MARKDOWN_TABLES: Record<string, (attrs: Record<string, string | true>) => string> = {
-  ExampleApp: (a) => exampleMarkdown(String(a.id)),
+  ExampleIndex: () => exampleListMarkdown(),
+  ExampleShot: (a) => exampleShotMarkdown(String(a.id)),
+  ExampleShows: (a) => exampleShowsMarkdown(String(a.id)),
+  ExampleData: (a) => exampleDataMarkdown(String(a.id)),
+  ExampleRun: (a) => exampleRunMarkdown(String(a.id)),
   ExampleShowcase: () => exampleListMarkdown(),
   PartsTable: (a) =>
     table(

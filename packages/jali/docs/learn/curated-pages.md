@@ -6,7 +6,7 @@ A free layout starts empty, or from a preset, and the person builds it. That sui
 
 Much work is about one item at a time: a customer, a case, a loan application. For that, a page someone designed is better. It shows the right views in the right order, and the person can still lay them out their own way. Jali calls this a curated page. Both run on the same instance. The difference is where the person controls the layout: from the panes in a free layout, from a tab strip on a curated page.
 
-> **Note: See one working.** The [Loan review example](../examples.md#loan-review) is a curated page: a queue of applications at the left, then Overview, Application, Borrower, Loan history, Group and Field officer as tabs.
+> **Note: See one working.** The [Loan review example](../examples/loan-review.md) is a curated page: a queue of applications at the left, then Overview, Application, Borrower, Loan history, Group and Field officer as tabs.
 
 ## `definePage` describes the page
 

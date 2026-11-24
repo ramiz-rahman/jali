@@ -5,7 +5,7 @@
  */
 import { readFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
-import { EXAMPLES, appPath } from "../../apps/docs/src/examples/data";
+import { EXAMPLES, appPage, appPath } from "../../apps/docs/src/examples/data";
 
 const site = JSON.parse(readFileSync(new URL("../../site/site.json", import.meta.url), "utf8")) as {
   examples: { name: string }[];
@@ -35,4 +35,17 @@ for (const app of EXAMPLES)
 test('every "How it works" page on the Examples page is there', async ({ request }) => {
   const pages = [...new Set(EXAMPLES.flatMap((a) => a.shows.map((s) => s.learn).filter(Boolean)))];
   for (const path of pages) expect((await request.get(path!)).status(), path).toBe(200);
+});
+
+test("each app has its page, and the overview still answers the old one-page addresses (/examples#trips)", async ({
+  page,
+}) => {
+  for (const app of EXAMPLES) {
+    await page.goto(appPage(app.id));
+    await expect(page.getByRole("heading", { level: 1, name: app.name })).toBeVisible();
+    await expect(page.getByRole("link", { name: `Open ${app.name}` }).first()).toBeVisible();
+  }
+  await page.goto("/examples");
+  for (const app of EXAMPLES)
+    await expect(page.locator(`[id="${app.id}"] a[href="${appPage(app.id)}"]`)).toHaveCount(1);
 });

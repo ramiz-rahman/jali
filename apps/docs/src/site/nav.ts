@@ -61,5 +61,16 @@ export const NAV: NavSection[] = [
       { path: "/reference/commands" },
     ],
   },
-  { title: "Examples", items: [{ path: "/examples" }] },
+  {
+    title: "Examples",
+    items: [
+      { path: "/examples", title: "Overview" },
+      { path: "/examples/data-studio" },
+      { path: "/examples/loan-review" },
+      { path: "/examples/markets" },
+      { path: "/examples/studio" },
+      { path: "/examples/trips" },
+      { path: "/examples/handshake" },
+    ],
+  },
 ];

@@ -47,4 +47,10 @@ Written from the docs site by tooling/agent-docs.mjs; don't edit these files.
 
 ## Examples
 
-- [Examples](examples.md): Six real apps built on Jali, each running here: a database browser, a loan review, a market terminal, an audio editor, a trip planner and a network lab.
+- [Overview](examples.md): Six real apps built on Jali, each running here: a database browser, a loan review, a market terminal, an audio editor, a trip planner and a network lab.
+- [Data Studio](examples/data-studio.md): A database browser where the person builds the layout: tables, records, related records, SQL queries and charts, each in a pane.
+- [Loan review](examples/loan-review.md): An underwriter works through a queue of mortgage applications, one curated page per application.
+- [Markets](examples/markets.md): A market terminal for shares, bonds, currencies, indices and crypto, laid out as desks.
+- [Studio](examples/studio.md): An audio session editor: a transcript that lights up word by word, a timeline, a mixer and markers, all following one playhead.
+- [Trips](examples/trips.md): A map-first planner for a week in Thailand: the days, each day's stops and travel, hotels to compare, and the budget, around a big map.
+- [Handshake](examples/handshake.md): A network lab with the course beside the tools: read packets layer by layer, measure your connection, and learn how it all works.

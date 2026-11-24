@@ -1,24 +1,23 @@
 /** An example app for the Markdown copies (llms.txt, the .md pages, the docs in the package): full addresses throughout. */
 import { SITE_URL } from "../site/site-url.mjs";
-import { EXAMPLES, appOf, appPath, sourceUrl } from "./data";
+import { EXAMPLES, appOf, appPage, appPath, sourceUrl } from "./data";
 
-export function exampleMarkdown(id: string): string {
+/** The parts of an app's page, as Markdown: the links that open it, what it shows, its data, how to run it. */
+export const exampleShotMarkdown = (id: string) => {
   const app = appOf(id);
-  const abs = (link: string) => `${SITE_URL}${appPath(id, link)}`;
-  const learn = (path?: string) => (path ? ` ([how it works](${SITE_URL}${path}))` : "");
-  return [
-    app.summary,
-    "",
-    `[Open ${app.name}](${abs(app.shows[0].link)}) · [Source](${sourceUrl(id)})`,
-    "",
-    ...app.shows.map((s) => `- **[${s.title}](${abs(s.link)})**: ${s.text}${learn(s.learn)}`),
-    "",
-    app.data,
-    "",
-    `Run it yourself: \`pnpm ${id}\` at the repository's root, then http://localhost:${app.port}.`,
-  ].join("\n");
-}
+  return `[Open ${app.name}](${SITE_URL}${appPath(id, app.shows[0].link)}) · [Source](${sourceUrl(id)})`;
+};
+export const exampleShowsMarkdown = (id: string) =>
+  appOf(id)
+    .shows.map(
+      (s) =>
+        `- **[${s.title}](${SITE_URL}${appPath(id, s.link)})**: ${s.text}${s.learn ? ` ([how it works](${SITE_URL}${s.learn}))` : ""}`,
+    )
+    .join("\n");
+export const exampleDataMarkdown = (id: string) => appOf(id).data;
+export const exampleRunMarkdown = (id: string) =>
+  `Run \`pnpm ${id}\` at the repository's root, then open http://localhost:${appOf(id).port}.`;
 
-/** The six apps as a list, for the home page's Markdown copy. */
+/** The six apps as a list, for the home page's and the overview's Markdown copies. */
 export const exampleListMarkdown = () =>
-  EXAMPLES.map((a) => `- [${a.name}](${SITE_URL}/examples#${a.id}): ${a.summary}`).join("\n");
+  EXAMPLES.map((a) => `- [${a.name}](${SITE_URL}${appPage(a.id)}): ${a.summary}`).join("\n");

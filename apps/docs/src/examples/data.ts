@@ -1,7 +1,7 @@
 /**
  * The example apps, in one place: what each is, how to run it, and three things it shows about Jali, each a link
- * into the hosted app (jali.ramizrahman.com/apps/<id>/) in the state that shows it. The Examples page draws from
- * this (`<ExampleApp id>`), so do its Markdown copies, and the public site's check opens every link
+ * into the hosted app (jali.ramizrahman.com/apps/<id>/) in the state that shows it. The Examples pages draw from
+ * this (src/docs/examples, one per app), so do their Markdown copies, and the public site's check opens every link
  * (e2e/site/showcase.spec.ts). The apps themselves are built by tooling/build-site.mjs, whose HOSTED list must match.
  */
 import { REPO_BRANCH, REPO_URL } from "../site/config.ts";
@@ -217,4 +217,7 @@ export function appOf(id: string): ExampleApp {
 }
 
 /** The app's folder in the repository. */
+/** The app's own page on this site: /examples/<id>. */
+export const appPage = (id: string) => `/examples/${id}`;
+
 export const sourceUrl = (id: string) => `${REPO_URL}/tree/${REPO_BRANCH}/examples/${id}`;
