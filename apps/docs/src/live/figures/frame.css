@@ -127,7 +127,7 @@
     left: 0;
     transform: translateX(-50%);
     font: normal var(--live-text-tiny)/1 var(--jali-font-mono);
-    color: var(--jali-text-faint);
+    color: var(--jali-text-subtle);
   }
   .live-ruler-tick[data-crossed] {
     opacity: 0;
