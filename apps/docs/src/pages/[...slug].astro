@@ -23,10 +23,13 @@ const body = renderShell({ page, html, headings });
 
 const home = path === "/";
 const section = sectionLink(path);
+// The landing's title is the name and the summary's first sentence ("Jali: A new layout primitive for React apps"):
+// short enough for a search result to show whole; the rest of the summary is the description.
+const homeTitle = `${SITE_NAME}: ${page.summary.split(/(?<=\.)\s/)[0]!.replace(/\.$/, "")}`;
 ---
 
 <Document
-  title={home ? `${SITE_NAME}: ${page.summary}` : `${page.title} · ${SITE_NAME}`}
+  title={home ? homeTitle : `${page.title} · ${SITE_NAME}`}
   headline={page.title}
   description={page.summary}
   path={path}
