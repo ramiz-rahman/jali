@@ -154,6 +154,30 @@ test("the following demo says what the order pane does, and Keep and Follow agai
   await expect(text).toContainText("Order 1043 shows the order selected");
 });
 
+test("with reduced motion, the folded chip's menu opens from the keys with focus on its first pane", async ({
+  page,
+}) => {
+  // This site's reduced-motion reset (every transition 0.01ms) once kept focus out of a menu still being placed.
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  await page.locator("#quickstart").scrollIntoViewIfNeeded();
+  await expect(page.locator('[data-island="QuickstartApp"]')).toHaveAttribute("data-hydrated", "", {
+    timeout: 15_000,
+  });
+  const notes = page.locator(".landing-split");
+  // Open notes until some fold behind a chip.
+  for (let i = 0; i < 4; i++) await notes.locator(".note button:visible").last().click();
+  const chip = notes.locator(".jali-tab-folded:visible").first();
+  await chip.focus();
+  await page.keyboard.press("ArrowDown");
+  const menu = page.getByRole("menu", { name: "Folded panes" });
+  await expect(menu.getByRole("menuitem").first()).toBeFocused();
+  await expect(menu).toContainText("Folded for room");
+  const shown = await menu.getByRole("menuitem").first().getAttribute("data-item");
+  await page.keyboard.press("Enter");
+  await expect(notes.locator(`[role="tab"][data-tab="${shown}"]`)).toBeFocused();
+});
+
 test("copy buttons copy the code as written", async ({ page }) => {
   // What the buttons write, captured as it is written: WebKit lets a click write the clipboard but has no permission
   // to grant for a script to read it back.

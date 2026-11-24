@@ -79,7 +79,10 @@ export function Menu({ at, onClose, initial, trigger, style, children, ...rest }
       ref={ref}
       role="menu"
       dir={dir}
-      style={at ? (pos ?? { left: at.x, top: at.y, visibility: "hidden" }) : style}
+      // Measured unseen before it is placed: transparent, not `visibility: hidden`. An app's reduced-motion reset
+      // (`* { transition-duration: 0.01ms }`) makes visibility change a frame late, and focus can't go into a hidden
+      // menu, so it would stay on the button that opened it.
+      style={at ? (pos ?? { left: at.x, top: at.y, opacity: 0, pointerEvents: "none" }) : style}
       onPointerDown={stop}
       onMouseDown={stop}
       onClick={stop}
