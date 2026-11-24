@@ -12,6 +12,7 @@ const REGISTRY = {
   Spotlight: () => import("../live/Spotlight").then((m) => m.Spotlight),
   QuickstartApp: () => import("../live/Quickstart").then((m) => m.QuickstartApp),
   LinkDemo: () => import("../shell/landing/demos").then((m) => m.LinkDemo),
+  FollowDemo: () => import("../shell/landing/demos").then((m) => m.FollowDemo),
   KeysDemo: () => import("../shell/landing/demos").then((m) => m.KeysDemo),
 } satisfies Record<IslandName, () => Promise<ComponentType<never>>>;
 

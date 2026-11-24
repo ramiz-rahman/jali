@@ -3,9 +3,9 @@ title: Jali
 summary: A new layout primitive for React apps. Split any part of your app into adaptive tiling panes; your users arrange them the way they work, on any screen.
 ---
 
-import { TreeView, Frame, Spotlight } from "../live";
+import { TreeView, Frame } from "../live";
 import { ExampleShowcase } from "../examples/ExampleApp";
-import { Opening, Stage, Section, MinimalApp, Path, Proof, LinkDemo, KeysDemo, Close, Imports, Import, SiteFooter } from "../shell/landing";
+import { Opening, Stage, Section, MinimalApp, Path, Proof, LinkDemo, FollowDemo, KeysDemo, Close, Imports, Import, SiteFooter } from "../shell/landing";
 
 <Opening title="A new layout primitive for React apps" lead="Split any part of your app into adaptive tiling panes, from two side by side to over a dozen in rows, columns and tabs. You describe each pane once; your users arrange them the way they work, on any screen.">
 </Opening>
@@ -23,8 +23,8 @@ import { Opening, Stage, Section, MinimalApp, Path, Proof, LinkDemo, KeysDemo, C
     <Proof id="fold" title="Panes fold when room runs out" href="/learn/fitting" more="How a layout fits" demo={<Frame layout="crowded" height={340} />}>
       Each kind of pane declares the narrowest width it works at. Drag the frame's edge: below that width a pane folds into a tab, and it comes back when there is room.
     </Proof>
-    <Proof id="follow" title="The detail follows the list" href="/learn/following" more="Following a list" demo={<Spotlight layout="chain" target="follow" height={340} />}>
-      Open a record from a list, and its pane shows whichever row is selected. Keep it to stay on one record.
+    <Proof id="follow" title="The detail follows the list" href="/learn/following" more="Following a list" demo={<FollowDemo />}>
+      A detail opened from a list **follows** it: pick another row, and the detail shows that one in the same place. **Keep** the detail to hold it on one record, and the next row you open appears beside it, to compare.
     </Proof>
     <Proof id="link" title="The link reopens the layout" href="/guides/url-and-routers" more="Keep the layout in the URL" demo={<LinkDemo />}>
       With `urlSync()`, every change is written into the address. Open, close or resize a pane and watch it change. Share the link, and the same panes open in the same places.

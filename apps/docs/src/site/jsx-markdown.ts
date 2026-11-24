@@ -71,6 +71,7 @@ const DEMOS = new Set([
   "TreeView",
   "KeysDemo",
   "LinkDemo",
+  "FollowDemo",
   "MinimalApp",
   "QuickstartApp",
   "Proof",

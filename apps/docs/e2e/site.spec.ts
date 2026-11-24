@@ -120,6 +120,38 @@ test("a docs page's text takes the width it has at every window width", async ({
   }
 });
 
+test("the following demo says what the order pane does, and Keep and Follow again change it", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const demo = page.locator(".landing-follow-demo");
+  await demo.scrollIntoViewIfNeeded();
+  await expect(page.locator('[data-island="FollowDemo"]')).toHaveAttribute("data-hydrated", "", {
+    timeout: 15_000,
+  });
+  const state = demo.locator(".landing-follow-state");
+  const text = demo.locator(".landing-follow-text");
+  await expect(state).toHaveText("Following");
+  await expect(text).toContainText("Order 1048 shows the order selected in Orders");
+
+  // Pick another order: the detail follows, in place.
+  await demo.getByText("Jonas Berg").first().click();
+  await expect(text).toContainText("Order 1045 shows the order selected");
+
+  // Keep it: it stays, and the next order opened comes beside it.
+  await demo.getByRole("button", { name: "Keep Order 1045" }).click();
+  await expect(state).toHaveText("Kept");
+  await demo.getByText("Priya Nair").first().click();
+  await page.keyboard.press("Alt+Enter");
+  await expect(state).toHaveText("Kept and following");
+  await expect(text).toContainText("Order 1045 is kept. Order 1043 follows the list");
+
+  // Follow again: one detail, following once more, and it catches up with the list.
+  await demo.getByRole("button", { name: "Follow again" }).click();
+  await expect(state).toHaveText("Following");
+  await expect(text).toContainText("Order 1043 shows the order selected");
+});
+
 test("copy buttons copy the code as written", async ({ page }) => {
   // What the buttons write, captured as it is written: WebKit lets a click write the clipboard but has no permission
   // to grant for a script to read it back.

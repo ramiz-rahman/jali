@@ -8,6 +8,7 @@ export type IslandName =
   | "Spotlight"
   | "QuickstartApp"
   | "LinkDemo"
+  | "FollowDemo"
   | "KeysDemo";
 
 /** "visible": when it is about to scroll into view (the default). "load": at once. */

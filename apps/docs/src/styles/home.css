@@ -442,6 +442,76 @@
     margin: 0;
   }
 
+  /* Following: a line over the workspace that says what the order pane does, and the button that changes it. */
+  .landing-follow-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px 14px;
+    min-height: 52px;
+    padding: 8px 8px 8px 14px;
+    border: 1px solid var(--jali-border);
+    border-bottom: 0;
+    border-radius: var(--d-radius) var(--d-radius) 0 0;
+    background: var(--d-code-head);
+  }
+  .landing-follow-state {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    flex: none;
+    height: 26px;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: var(--jali-accent-soft);
+    font: 600 13px/1 var(--d-font);
+    color: var(--jali-accent);
+  }
+  .landing-follow-state[data-mode="kept"],
+  .landing-follow-state[data-mode="both"] {
+    background: color-mix(in srgb, var(--jali-text) 8%, transparent);
+    color: var(--jali-text);
+  }
+  .prose .landing-follow-text {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--jali-text-muted);
+  }
+  .landing-follow-action {
+    flex: none;
+    height: 34px;
+    padding: 0 14px;
+    border: 1px solid var(--jali-border-strong);
+    border-radius: 8px;
+    background: var(--jali-surface);
+    font: 500 14px/1 var(--d-font);
+    color: var(--jali-text);
+    transition:
+      background-color 0.15s,
+      border-color 0.15s;
+  }
+  .landing-follow-action:hover {
+    background: var(--jali-hover);
+  }
+  .landing-follow-demo .landing-ws-box {
+    border-radius: 0 0 var(--d-radius) var(--d-radius);
+  }
+  @media (max-width: 767px) {
+    .landing-follow-bar {
+      flex-wrap: wrap;
+      padding: 12px;
+    }
+    .prose .landing-follow-text {
+      flex-basis: 100%;
+      order: 2;
+    }
+    .landing-follow-action {
+      margin-left: auto;
+    }
+  }
+
   .landing-address {
     display: flex;
     align-items: center;

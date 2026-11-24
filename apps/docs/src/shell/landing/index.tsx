@@ -12,7 +12,11 @@ import { QuickstartApp } from "../../live";
 import { REPO_URL } from "../../site/config";
 import { island } from "../island";
 import { Code, CodeBody, Install, Tab, Tabs } from "../mdx";
-import { KeysDemo as KeysDemoPart, LinkDemo as LinkDemoPart } from "./demos";
+import {
+  FollowDemo as FollowDemoPart,
+  KeysDemo as KeysDemoPart,
+  LinkDemo as LinkDemoPart,
+} from "./demos";
 import noteCode from "../../samples/concepts/quickstart/note-open-beside.tsx?raw";
 import jaliCode from "../../samples/concepts/quickstart/jali.ts?raw";
 import mainCode from "../../samples/concepts/quickstart/main.tsx?raw";
@@ -164,6 +168,8 @@ export function Proof({
 
 /** The link: a customer beside their notes, under the address the workspace writes. An island. */
 export const LinkDemo = island("LinkDemo", LinkDemoPart);
+/** Following: a list, its following detail, and a line that says whether it follows or is kept. An island. */
+export const FollowDemo = island("FollowDemo", FollowDemoPart);
 /** The keys: a customer beside a stack of tabs, with the keys read from its keymap. An island. */
 export const KeysDemo = island("KeysDemo", KeysDemoPart);
 
