@@ -221,7 +221,7 @@ export function Imports({ children }: { children?: ReactNode }) {
     <div className="landing-imports">
       <div className="landing-imports-bar">
         <span className="landing-imports-name">jali</span>
-        <span className="landing-imports-note">No dependencies. jali/react needs React 18.3+.</span>
+        <span className="landing-imports-note">No dependencies. jali/react needs React 18.2+.</span>
       </div>
       <ul className="landing-imports-list">{children}</ul>
     </div>
