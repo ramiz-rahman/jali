@@ -3,6 +3,13 @@
  */
 @layer live {
   /* ---------- Spotlight: everything dimmed but one part ---------- */
+  /*
+   * The folded chip is there only where panes fold, so that scene is at most a column of text wide, on a wide page
+   * too: wider, every pane of the crowded layout fits and there is no chip to light.
+   */
+  .live-spot[data-target="folded"] {
+    max-width: var(--d-measure, 39rem);
+  }
   .live-spot-stage {
     position: relative;
     border: 1px solid var(--jali-border);
