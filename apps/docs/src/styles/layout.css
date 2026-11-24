@@ -407,8 +407,8 @@
     }
   }
   @media (max-width: 1023px) {
-    .layout,
-    .layout[data-home] {
+    /* The docs keep their sidebar; the landing has none, so it keeps its one column (.layout[data-home]). */
+    .layout:not([data-home]) {
       grid-template-columns: var(--d-nav-w) minmax(0, 1fr);
     }
     .toc-column {

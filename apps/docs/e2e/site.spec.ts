@@ -81,6 +81,28 @@ test("the install line: the menu picks the package manager, from the pointer or 
   await expect(hero.locator("[data-pm-panel]:visible")).toHaveText("vp install jali");
 });
 
+test("the landing takes the page's width at every window width, with nothing past the edge", async ({
+  page,
+}) => {
+  for (const width of [360, 600, 768, 780, 900, 1023, 1024, 1280, 1440, 1920]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+    const opening = await page.locator(".landing-opening").boundingBox();
+    // The opening spans the page between its gutters (at most 40px each side), whatever the width.
+    expect(opening!.width, `opening at ${width}px`).toBeGreaterThan(
+      Math.min(width, 1840) - 2 * 40 - 1,
+    );
+    const footer = await page.locator(".site-footer").boundingBox();
+    expect(footer!.width, `footer at ${width}px`).toBeGreaterThan(
+      Math.min(width, 1840) - 2 * 40 - 1,
+    );
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth),
+      `page width at ${width}px`,
+    ).toBe(width);
+  }
+});
+
 test("copy buttons copy the code as written", async ({ page }) => {
   // What the buttons write, captured as it is written: WebKit lets a click write the clipboard but has no permission
   // to grant for a script to read it back.
