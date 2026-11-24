@@ -13,6 +13,7 @@ import { initCopyPage } from "../shell/page.client";
 import { initSearch } from "../shell/search.client";
 import { initTheme } from "../shell/theme.client";
 import { initToc } from "../shell/toc.client";
+import { initShowcase } from "../examples/showcase.client";
 import { hydrateIslands } from "./islands";
 
 initTheme();
@@ -25,4 +26,5 @@ initNavDrawer();
 initSearch();
 initVideos();
 initNotFound();
+initShowcase();
 hydrateIslands();

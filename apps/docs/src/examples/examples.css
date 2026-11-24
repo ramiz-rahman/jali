@@ -157,49 +157,184 @@
   }
 }
 
-/* The home page's apps (ExampleShowcase): a tab per app over one large screenshot. */
+/*
+ * The home page's apps (ExampleShowcase): six leaves in a row, one open and five folded to a spine, as a pane folds
+ * when its row runs out of room. The open leaf's screenshot keeps the width it has open, so a leaf opening uncovers it
+ * rather than stretching it, and a spine shows the screenshot's left edge under its name.
+ */
 @layer docs {
-  .showcase > .tab-strip {
-    margin: 0 0 16px -10px;
-    gap: 4px;
+  .shelf {
+    --spine: 60px;
+    --leaf-gap: 8px;
+    --tour: 7s;
+    container-type: inline-size;
   }
-  .showcase .tab {
-    height: 44px;
-    font-size: 15px;
+  .shelf-row {
+    --open-width: calc(100cqw - 5 * (var(--spine) + var(--leaf-gap)));
+    display: flex;
+    gap: var(--leaf-gap);
+    height: calc(var(--open-width) * 900 / 1440 + 2px);
   }
-  .showcase-shot {
-    display: block;
+  .leaf {
+    position: relative;
+    flex: 0 0 var(--spine);
+    min-width: 0;
     overflow: hidden;
     border: 1px solid var(--jali-border);
     border-radius: 12px;
     background: var(--jali-canvas);
+    transition:
+      flex-grow 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+      flex-basis 0.25s ease,
+      border-color 0.15s;
+  }
+  .leaf[data-open] {
+    flex-grow: 1;
+    border-color: var(--jali-border-strong);
     box-shadow:
       0 1px 2px rgb(0 0 0 / 0.04),
-      0 24px 48px -24px rgb(0 0 0 / 0.18);
-    transition: border-color 0.15s;
+      0 24px 48px -24px rgb(0 0 0 / 0.22);
   }
-  .showcase-shot:hover {
-    border-color: var(--jali-border-strong);
+  .leaf-shot {
+    position: absolute;
+    inset: 0 auto 0 0;
+    display: block;
+    width: var(--open-width);
   }
-  .showcase-shot img {
+  .leaf-shot img {
     display: block;
     width: 100%;
     height: auto;
     aspect-ratio: 1440 / 900;
   }
-  :root[data-theme="dark"] .showcase-shot img[data-shot="light"],
-  :root:not([data-theme="dark"]) .showcase-shot img[data-shot="dark"] {
+  :root[data-theme="dark"] .leaf-shot img[data-shot="light"],
+  :root:not([data-theme="dark"]) .leaf-shot img[data-shot="dark"] {
     display: none;
   }
-  /* No fade between apps: the tabs switch from the arrow keys too, and what a key does happens at once. */
-  .showcase-caption {
+  .leaf:not([data-open]) .leaf-shot {
+    pointer-events: none;
+  }
+
+  /* The spine: the folded leaf's face, its number and name over a veil on the screenshot's edge. */
+  .leaf-spine {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 0;
+    border: 0;
+    border-radius: inherit;
+    background: linear-gradient(
+      to bottom,
+      var(--jali-surface) 0,
+      var(--jali-surface) 55%,
+      color-mix(in oklab, var(--jali-surface) 80%, transparent) 100%
+    );
+    color: var(--jali-text-muted);
+    font: inherit;
+    cursor: pointer;
+    transition:
+      opacity 0.3s ease,
+      background-color 0.2s,
+      color 0.2s;
+  }
+  .leaf[data-open] .leaf-spine {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .leaf-spine:focus-visible {
+    outline: none;
+  }
+  .leaf:has(.leaf-spine:focus-visible) {
+    outline: 2px solid var(--jali-focus-ring);
+    outline-offset: 2px;
+  }
+  .leaf-number {
+    font-family: var(--jali-font-mono);
+    font-size: 12px;
+    color: var(--jali-text-faint);
+  }
+  .leaf-name {
+    writing-mode: vertical-rl;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .leaf:not([data-open]):hover {
+      flex-basis: calc(var(--spine) + 16px);
+      border-color: var(--jali-border-strong);
+    }
+    .leaf:not([data-open]):hover .leaf-spine {
+      background: color-mix(in oklab, var(--jali-surface) 72%, transparent);
+      color: var(--jali-text);
+    }
+    .leaf[data-open]:hover {
+      border-color: var(--jali-accent);
+    }
+  }
+
+  /* The tour's clock: a line along the open leaf's foot. Its end opens the next leaf (./showcase.client.ts). */
+  .leaf-progress {
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 2px;
+    background: var(--jali-accent);
+    transform-origin: left;
+    transform: scaleX(0);
+    pointer-events: none;
+  }
+  .shelf[data-auto="on"] .leaf[data-open] .leaf-progress {
+    animation: leaf-progress var(--tour) linear both;
+    animation-play-state: paused;
+  }
+  .shelf[data-auto="on"][data-seen]:not([data-held]) .leaf[data-open] .leaf-progress {
+    animation-play-state: running;
+  }
+  @keyframes leaf-progress {
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  .shelf-caption {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
     gap: 16px 32px;
     margin-top: 20px;
   }
-  .prose .showcase-summary {
+  .shelf-caption[hidden] {
+    display: none;
+  }
+  .shelf-caption:not([hidden]) {
+    animation: shelf-caption 0.4s ease both;
+  }
+  @keyframes shelf-caption {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+  }
+  .prose .shelf-name {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin: 0 0 4px;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--jali-text);
+  }
+  .shelf-count {
+    font-family: var(--jali-font-mono);
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--jali-text-faint);
+  }
+  .prose .shelf-summary {
     margin: 0;
     max-width: 38rem;
     font-size: 18px;
@@ -211,12 +346,81 @@
     flex: none;
     gap: 10px;
   }
+  .prose .shelf-keys {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 20px 0 0;
+    font-size: 13px;
+    color: var(--jali-text-faint);
+  }
+  .shelf-tour {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    margin-right: -8px;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--jali-text-subtle);
+    font: inherit;
+    cursor: pointer;
+  }
+  .shelf-tour[hidden] {
+    display: none;
+  }
+  .shelf-tour:hover {
+    background: var(--jali-hover);
+    color: var(--jali-text);
+  }
+  .shelf[data-auto="on"] .shelf-tour [data-when="off"],
+  .shelf:not([data-auto="on"]) .shelf-tour [data-when="on"] {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .leaf,
+    .leaf-spine,
+    .shelf-caption:not([hidden]) {
+      transition: none;
+      animation: none;
+    }
+  }
+
+  /* Narrow: the leaves stack, each spine a bar with its name across, and the open one shows its screenshot. */
   @media (max-width: 720px) {
-    .showcase-caption {
+    .shelf-row {
+      --open-width: 100cqw;
+      flex-direction: column;
+      height: auto;
+    }
+    .leaf {
+      flex: none;
+      height: 48px;
+      transition:
+        height 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+        border-color 0.15s;
+    }
+    .leaf[data-open] {
+      height: calc(100cqw * 900 / 1440);
+    }
+    .leaf-spine {
+      flex-direction: row;
+      padding: 0 16px;
+    }
+    .leaf-name {
+      writing-mode: horizontal-tb;
+    }
+    .shelf-caption {
       flex-direction: column;
     }
     .showcase-actions {
       flex-wrap: wrap;
+    }
+    .shelf-keys > span:first-child {
+      display: none;
     }
   }
 }

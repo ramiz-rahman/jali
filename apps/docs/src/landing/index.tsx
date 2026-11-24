@@ -11,6 +11,7 @@ import { Children, isValidElement, type ReactNode } from "react";
 import { ArrowRightIcon, GithubLogoIcon } from "@phosphor-icons/react";
 import { QuickstartApp } from "../live";
 import { REPO_URL } from "../site/config";
+import { withCode } from "../ui/lib/with-code";
 import { island } from "../shell/island";
 import { Code, CodeBody, Install, Tab, Tabs } from "../shell/mdx";
 import { FollowDemo as FollowDemoPart } from "./demos/FollowDemo";
@@ -70,22 +71,26 @@ export function Section({
   label,
   title,
   lead,
+  align,
   children,
 }: {
   id: string;
   label: string;
   title: string;
+  /** The lead; `backticks` set a word as code. */
   lead?: string;
+  /** "center" sets the head on the page's middle, for a section that opens onto something wide. */
+  align?: "center";
   children?: ReactNode;
 }) {
   return (
     <section className="landing-section" id={id} aria-labelledby={`${id}-title`}>
-      <header className="landing-section-head">
+      <header className="landing-section-head" data-align={align}>
         <p className="landing-label">{label}</p>
         <h2 className="landing-section-title" id={`${id}-title`}>
           {title}
         </h2>
-        {lead ? <p className="landing-lead">{lead}</p> : null}
+        {lead ? <p className="landing-lead">{withCode(lead)}</p> : null}
       </header>
       {children}
     </section>
