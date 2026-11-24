@@ -633,12 +633,16 @@
     }
   }
 
+  /*
+   * The address bar, as a browser draws it: Back and Forward, then the address on one line (where the app is, quiet;
+   * the layout the link holds, in the accent, lit for a moment as each new one arrives), and where it is in the history.
+   */
   .landing-address {
     display: flex;
     align-items: center;
-    gap: 12px;
-    min-height: 44px;
-    padding: 8px 14px;
+    gap: 10px;
+    height: 50px;
+    padding: 0 12px 0 14px;
     border: 1px solid var(--jali-border);
     border-bottom: 0;
     border-radius: var(--d-radius) var(--d-radius) 0 0;
@@ -648,6 +652,7 @@
     display: inline-flex;
     gap: 5px;
     flex: none;
+    margin-right: 4px;
   }
   .landing-address-dots i {
     width: 8px;
@@ -655,25 +660,80 @@
     border-radius: 999px;
     background: var(--jali-border-strong);
   }
+  .landing-address-nav {
+    display: inline-flex;
+    gap: 2px;
+    flex: none;
+  }
+  .landing-address-nav button {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    color: var(--jali-text-muted);
+    transition:
+      background-color 0.15s,
+      color 0.15s;
+  }
+  .landing-address-nav button:hover:not(:disabled) {
+    background: var(--jali-hover);
+    color: var(--jali-text);
+  }
+  .landing-address-nav button:disabled {
+    color: var(--jali-text-faint);
+    cursor: default;
+  }
+  .landing-address-nav button:focus-visible {
+    outline: 2px solid var(--jali-focus-ring);
+    outline-offset: 1px;
+  }
   .landing-address-url {
+    display: flex;
+    align-items: center;
     flex: 1;
     min-width: 0;
-    padding: 4px 10px;
-    border-radius: 6px;
+    height: 32px;
+    padding: 0 12px;
+    border-radius: 8px;
     background: var(--jali-surface);
     box-shadow: inset 0 0 0 1px var(--jali-border);
-    font-size: 13px;
-    line-height: 20px;
-    color: var(--jali-accent);
-    overflow-wrap: anywhere;
+    font: 400 13px/20px var(--d-font-mono);
+    white-space: nowrap;
+    overflow: hidden;
   }
-  .landing-address-url span {
+  .landing-address-where {
+    flex: none;
+    color: var(--jali-text-subtle);
+  }
+  .landing-address-key {
+    flex: none;
     color: var(--jali-text-muted);
+  }
+  .landing-address-value {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-radius: 4px;
+    color: var(--jali-accent);
+    animation: landing-address-arrives 1.1s var(--d-ease);
+  }
+  @keyframes landing-address-arrives {
+    from {
+      background: color-mix(in srgb, var(--jali-accent) 22%, transparent);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .landing-address-value {
+      animation: none;
+    }
   }
   .landing-address-count {
     flex: none;
-    font-size: 13px;
+    min-width: 3.5em;
+    font: 500 12px/1 var(--d-font-mono);
     color: var(--jali-text-subtle);
+    text-align: right;
     font-variant-numeric: tabular-nums;
   }
   .landing-link-demo .landing-ws-box {
@@ -1143,8 +1203,13 @@
     .prose ul.landing-keys {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
-    .landing-address-count {
+    .landing-address-count,
+    .landing-address-dots,
+    .landing-address-host {
       display: none;
+    }
+    .landing-address {
+      padding-left: 8px;
     }
     .site-footer-nav {
       grid-template-columns: repeat(2, minmax(0, 1fr));

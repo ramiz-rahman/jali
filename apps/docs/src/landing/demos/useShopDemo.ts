@@ -1,9 +1,10 @@
 /**
  * A shop workspace for one of the landing's demos, embedded as every workspace on the site is, writing its layout
- * into an address kept in memory (so this page's own address stays as it is).
+ * into an address that is not the page's (memory by default), with any keys the demo binds of its own.
  */
 import { useState } from "react";
-import { createJali, memoryLocation, type Jali } from "jali";
+import { createJali, memoryLocation, type Jali, type LocationPort } from "jali";
+import type { KeyboardOptions } from "jali/adapter";
 import { chooser } from "jali/chooser";
 import { palette } from "jali/palette";
 import { urlSync } from "jali/url";
@@ -16,18 +17,23 @@ import {
   type DemoLayoutId,
 } from "../../live/embed";
 
-export interface ShopDemo {
+export interface ShopDemo<L extends LocationPort> {
   jali: Jali;
-  /** The address the workspace writes, in memory. */
-  location: ReturnType<typeof memoryLocation>;
+  /** The address the workspace writes. */
+  location: L;
 }
 
-export function useShopDemo(layout: DemoLayoutId): ShopDemo {
+export function useShopDemo<L extends LocationPort = ReturnType<typeof memoryLocation>>(
+  layout: DemoLayoutId,
+  options: { location?: () => L; keymap?: KeyboardOptions["keymap"] } = {},
+): ShopDemo<L> {
   const id = useEmbeddedId("landing");
   const [demo] = useState(() => {
-    const location = memoryLocation();
+    const location = (options.location ?? memoryLocation)() as L;
+    const base = embedded(id);
     const jali = createJali({
-      ...embedded(id),
+      ...base,
+      keyboard: { ...base.keyboard, keymap: options.keymap },
       features: [urlSync({ location }), palette(), chooser()],
       panes: shopKinds,
       layout: buildDemoLayout(layout),
