@@ -12,7 +12,7 @@
     "preview:site": "node tooling/serve-site.mjs",
     "typecheck": "tsc -b --noEmit && tsc --noEmit -p apps/docs && tsc --noEmit -p packages/react/type-tests && tsc --noEmit -p packages/jali/type-tests",
     "verify": "node tooling/verify.mjs",
-    "test": "vp test run && vp test run --config apps/docs/src/reference/vitest.config.ts && node tooling/docs-check.mjs && node tooling/agent-docs.mjs --check",
+    "test": "vp test run && vp test run --config apps/docs/vitest.config.ts && node tooling/docs-check.mjs && node tooling/agent-docs.mjs --check",
     "e2e": "playwright test",
     "test:e2e": "playwright test",
     "test:react18": "tooling/test-react18.sh",

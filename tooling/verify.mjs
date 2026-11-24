@@ -117,15 +117,7 @@ const GATES = [
   },
   {
     name: "docs-reference",
-    cmd: [
-      "pnpm",
-      "exec",
-      "vp",
-      "test",
-      "run",
-      "--config",
-      "apps/docs/src/reference/vitest.config.ts",
-    ],
+    cmd: ["pnpm", "exec", "vp", "test", "run", "--config", "apps/docs/vitest.config.ts"],
     detail: (log) => lastMatch(log, /^\s*Tests\s/),
   },
   {
