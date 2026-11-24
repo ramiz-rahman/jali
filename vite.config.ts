@@ -24,6 +24,8 @@ export default defineConfig({
       "examples/studio/scripts/audio/checks/**",
       // CyberSpec's source, kept as its shadcn registry writes it, so an update from the registry diffs cleanly.
       "examples/handshake/src/vendor/**",
+      // A search engine's site-verification file: its content is checked exactly as the engine issued it.
+      "apps/docs/public/google*.html",
     ],
   },
   // Docs samples show a value on its own line ("keymap.label(id); // \"⌘K ⌘↵\""), on purpose.
