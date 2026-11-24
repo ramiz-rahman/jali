@@ -218,6 +218,46 @@
     overflow-x: auto;
     scrollbar-width: none;
   }
+  /*
+   * More tabs than fit: the strip scrolls, and an edge with tabs beyond it fades, so a cut tab reads as "more this
+   * way". The fades follow the strip's own scroll (a scroll timeline); where there is none, the strip is as before.
+   */
+  @supports (animation-timeline: scroll()) {
+    .tab-strip {
+      -webkit-mask-image: linear-gradient(
+        to right,
+        transparent,
+        #000 var(--strip-fade-l),
+        #000 calc(100% - var(--strip-fade-r)),
+        transparent
+      );
+      mask-image: linear-gradient(
+        to right,
+        transparent,
+        #000 var(--strip-fade-l),
+        #000 calc(100% - var(--strip-fade-r)),
+        transparent
+      );
+      animation: tab-strip-fade linear both;
+      animation-timeline: scroll(self inline);
+    }
+  }
+  @keyframes tab-strip-fade {
+    0% {
+      --strip-fade-l: 0px;
+      --strip-fade-r: 40px;
+    }
+    6% {
+      --strip-fade-l: 40px;
+    }
+    94% {
+      --strip-fade-r: 40px;
+    }
+    100% {
+      --strip-fade-l: 40px;
+      --strip-fade-r: 0px;
+    }
+  }
   .tab {
     position: relative;
     display: inline-flex;
@@ -465,4 +505,16 @@
       min-width: 44px;
     }
   }
+}
+
+/* The tab strip's fades (above): lengths, so they animate; none until the strip can scroll. */
+@property --strip-fade-l {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --strip-fade-r {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
 }
