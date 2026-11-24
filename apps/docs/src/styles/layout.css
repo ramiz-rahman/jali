@@ -51,7 +51,6 @@
   .brand-docs {
     font: 500 15px/1 var(--d-font-display);
     color: var(--jali-text-subtle);
-    letter-spacing: 0.005em;
     padding-top: 1px;
   }
   .topbar-actions {
@@ -219,9 +218,8 @@
   }
   .nav-heading {
     margin: 0 0 8px;
-    font: 600 13.5px/20px var(--d-font-display);
+    font: 600 13px/20px var(--d-font-display);
     color: var(--jali-text);
-    letter-spacing: 0.005em;
   }
   .nav-list {
     list-style: none;
@@ -233,8 +231,8 @@
     margin-left: -1px;
     padding: 5px 12px 5px 15px;
     border-left: 1px solid transparent;
-    font-size: 14.5px;
-    line-height: 21px;
+    font-size: 14px;
+    line-height: 20px;
     color: var(--jali-text-muted);
     transition:
       color 0.15s,
@@ -274,7 +272,7 @@
     margin-left: -1px;
     padding: 4px 0 4px 14px;
     border-left: 1px solid transparent;
-    font-size: 13.5px;
+    font-size: 13px;
     line-height: 20px;
     color: var(--jali-text-subtle);
     transition:
@@ -419,8 +417,8 @@
     }
   }
   @media (max-width: 767px) {
-    .layout,
-    .layout[data-home] {
+    /* As heavy as the tablet rule's selector, so it wins below 768px. */
+    .layout:not([data-home]) {
       grid-template-columns: minmax(0, 1fr);
     }
     .sidebar {
@@ -479,7 +477,7 @@
     border-radius: 8px;
     color: var(--jali-text-muted);
     text-decoration: none;
-    font: 500 0.9375rem/1.25rem var(--d-font);
+    font: 500 15px/20px var(--d-font);
   }
   .topbar-section:hover {
     color: var(--jali-text);

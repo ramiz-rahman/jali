@@ -103,6 +103,23 @@ test("the landing takes the page's width at every window width, with nothing pas
   }
 });
 
+test("a docs page's text takes the width it has at every window width", async ({ page }) => {
+  for (const width of [360, 600, 767, 768, 900, 1023, 1024, 1280, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/guides/layouts");
+    const text = await page.locator(".prose").first().boundingBox();
+    // Below 768px the page is one column: the text spans the window less its 16px gutters, up to its measure. Above, the sidebar takes
+    // its column and the text has at least half of what is left, up to its 624px measure.
+    if (width < 768) expect(text!.width, `text at ${width}px`).toBe(Math.min(624, width - 32));
+    else
+      expect(text!.width, `text at ${width}px`).toBeGreaterThan(Math.min(624, (width - 300) / 2));
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth),
+      `page width at ${width}px`,
+    ).toBe(width);
+  }
+});
+
 test("copy buttons copy the code as written", async ({ page }) => {
   // What the buttons write, captured as it is written: WebKit lets a click write the clipboard but has no permission
   // to grant for a script to read it back.
