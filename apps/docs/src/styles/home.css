@@ -619,62 +619,67 @@
     margin: 0;
   }
 
-  /* ---------- the site footer ---------- */
+  /* ---------- the site footer: the opening's bookend ---------- */
   .site-footer {
+    /* The opening's grid: the same dividers, the same hairlines and hatching. */
+    --footer-half: min(31rem, 50%);
+    --footer-line: color-mix(in srgb, var(--jali-text) 13%, transparent);
+    --footer-hatch: color-mix(in srgb, var(--jali-text) 10%, transparent);
+    --footer-bleed: calc(50% - 50vw);
     position: relative;
-    margin-top: 176px;
-    padding: 0 0 40px;
+    margin-top: 144px;
   }
-  .site-footer-screen {
-    display: flex;
-    justify-content: center;
-    gap: 14px;
-    overflow: hidden;
-    height: 92px;
-    margin-bottom: 0;
-    color: var(--d-lattice);
-    opacity: calc(var(--d-lattice-opacity) * 1.2);
-    -webkit-mask-image: linear-gradient(to right, transparent, #000 18%, #000 82%, transparent);
-    mask-image: linear-gradient(to right, transparent, #000 18%, #000 82%, transparent);
-    border-bottom: 1px solid var(--jali-border);
+  /* A hairline the full width of the window. */
+  .site-footer-cells::before,
+  .site-footer-cells::after,
+  .site-footer-signoff::after {
+    content: "";
+    position: absolute;
+    left: var(--footer-bleed);
+    width: 100vw;
+    height: 1px;
+    background: var(--footer-line);
   }
-  .site-footer-arch {
-    flex: none;
-    width: 76px;
-    height: 92px;
-    fill: currentColor;
-  }
-  .site-footer-inner {
+
+  /* What Jali is, then a cell per column of links, split as panes are. */
+  .site-footer-cells {
+    position: relative;
     display: grid;
-    grid-template-columns: minmax(16rem, 1.1fr) minmax(0, 3fr);
-    gap: 40px 64px;
-    padding-top: 48px;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 4fr);
   }
-  .site-footer-lockup {
-    height: 28px;
-    width: auto;
+  .site-footer-cells::before {
+    top: 0;
   }
-  .site-footer-home {
-    display: inline-flex;
-    border-radius: 6px;
-  }
-  .site-footer-line {
-    margin: 16px 0 0;
-    max-width: 22rem;
-    font-size: 15px;
-    line-height: 24px;
-    color: var(--jali-text-muted);
+  .site-footer-cells::after {
+    bottom: 0;
   }
   .site-footer-nav {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 32px;
   }
+  .site-footer-cell {
+    padding: 36px 28px 44px;
+  }
+  .site-footer-about {
+    padding-left: 0;
+  }
+  .site-footer-col {
+    border-left: 1px solid var(--footer-line);
+  }
+  .prose .site-footer-line,
+  .site-footer-line {
+    margin: 0;
+    max-width: 19rem;
+    font-size: 15px;
+    line-height: 24px;
+    color: var(--jali-text-muted);
+    text-wrap: pretty;
+  }
+  .prose .site-footer-heading,
   .site-footer-heading {
     margin: 0 0 14px;
     font: 600 14px/20px var(--d-font-display);
     color: var(--jali-text);
-    letter-spacing: 0;
   }
   .site-footer-col ul {
     list-style: none;
@@ -693,39 +698,105 @@
     font-size: 14.5px;
     line-height: 22px;
     color: var(--jali-text-muted);
+    text-decoration: none;
     transition: color 0.15s;
   }
   .site-footer-col a:hover {
-    color: var(--jali-accent);
+    color: var(--jali-text);
   }
-  /* Under docs pages the footer is outside the landing's frame: it takes the layout's width and gutters. */
-  .docs-footer .site-footer {
-    margin-top: 96px;
+  .site-footer-col a svg {
+    color: var(--jali-text-faint);
   }
-  .docs-footer .site-footer-inner {
-    max-width: 1520px;
-    margin-inline: auto;
-    padding-inline: 28px;
+
+  /* The sign-off: the lockup in the opening's clear centre, a hatched tile either side. */
+  .site-footer-signoff {
+    position: relative;
+    display: grid;
+    place-items: center;
+    height: clamp(176px, 18vw, 264px);
   }
-  .site-footer-legal {
-    grid-column: 1 / -1;
-    margin: 8px 0 0;
-    padding-top: 20px;
-    border-top: 1px solid var(--jali-border);
-    font-size: 13px;
-    color: var(--jali-text-subtle);
+  .site-footer-signoff::before {
+    content: "";
+    position: absolute;
+    inset: 0 calc(50% - var(--footer-half));
+    border-inline: 1px solid var(--footer-line);
+    pointer-events: none;
+  }
+  .site-footer-signoff::after {
+    bottom: -1px;
+  }
+  .site-footer-tile,
+  .site-footer-split {
+    position: absolute;
+    width: calc(50vw - var(--footer-half) - 1px);
+  }
+  .site-footer-tile {
+    background: repeating-linear-gradient(-45deg, var(--footer-hatch) 0 1px, transparent 1px 11px);
+  }
+  .site-footer-tile-left {
+    top: 0;
+    bottom: 0;
+    left: var(--footer-bleed);
+  }
+  .site-footer-tile-right {
+    top: calc(50% + 1px);
+    bottom: 0;
+    left: calc(50% + var(--footer-half) + 1px);
+  }
+  .site-footer-split {
+    top: 50%;
+    left: calc(50% + var(--footer-half) + 1px);
+    height: 1px;
+    background: repeating-linear-gradient(to right, var(--footer-line) 0 6px, transparent 6px 12px);
+  }
+  .site-footer-home {
+    position: relative;
+    display: inline-flex;
+    padding: 8px;
+    border-radius: 12px;
+  }
+  .site-footer-lockup {
+    height: clamp(56px, 7vw, 104px);
+    width: auto;
   }
 
   .site-footer-legal {
+    position: relative;
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
     gap: 8px 24px;
+    margin: 0;
+    padding: 22px 0 40px;
+    font-size: 13px;
+    color: var(--jali-text-subtle);
+  }
+  .prose .site-footer-legal a,
+  .site-footer-legal a {
+    color: var(--jali-text-subtle);
+    text-decoration: none;
+  }
+  .prose .site-footer-legal a:hover,
+  .site-footer-legal a:hover {
+    color: var(--jali-text);
   }
   .site-footer-legal .maker {
     margin-left: 0.3em;
     color: var(--jali-text);
     vertical-align: -0.15em;
+  }
+
+  /* Under docs pages the footer is outside the landing's frame: it takes the layout's width and gutters. */
+  .docs-footer {
+    overflow-x: clip;
+  }
+  .docs-footer .site-footer {
+    max-width: 1520px;
+    margin: 96px auto 0;
+    padding-inline: 28px;
+  }
+  .docs-footer .site-footer-signoff::before {
+    inset-inline: max(0px, calc(50% - var(--footer-half)));
   }
 
   /* ---------- narrower ---------- */
@@ -777,8 +848,27 @@
     .landing-result {
       height: 360px;
     }
-    .site-footer-inner {
+    .site-footer-cells {
       grid-template-columns: minmax(0, 1fr);
+    }
+    .site-footer-about {
+      padding: 32px 0;
+    }
+    .site-footer-about {
+      position: relative;
+    }
+    .site-footer-about::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: var(--footer-bleed);
+      width: 100vw;
+      height: 1px;
+      background: var(--footer-line);
+    }
+    .site-footer-col:first-child {
+      border-left: 0;
+      padding-left: 0;
     }
   }
   @media (max-width: 767px) {
@@ -836,12 +926,17 @@
     .site-footer-nav {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
-    .site-footer-screen {
-      height: 64px;
+    .site-footer-cell {
+      padding: 28px 0 32px;
     }
-    .site-footer-arch {
-      width: 53px;
-      height: 64px;
+    .site-footer-col:nth-child(even) {
+      padding-left: 20px;
+    }
+    .site-footer-col:nth-child(odd) {
+      border-left: 0;
+    }
+    .site-footer-col:nth-child(n + 3) {
+      border-top: 1px solid var(--footer-line);
     }
   }
 }

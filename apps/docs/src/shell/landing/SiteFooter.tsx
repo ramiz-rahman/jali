@@ -1,12 +1,13 @@
 /**
- * The site footer: a lattice screen along its top edge, the brand and one line on what Jali is, and four columns
- * (Docs, Learn, Reference, Project). Titles come from the pages, so a renamed page renames its link here.
- * Written for the landing; it can sit under the docs pages as well.
+ * The site footer, the opening's bookend: a row of cells (what Jali is, then Docs, Learn, Reference and Project) split
+ * by dividers as panes are, then the lockup, large, in the centre of the opening's grid with a hatched tile either
+ * side, then who made it and the licence. Titles come from the pages, so a renamed page renames its link here. Ends
+ * the landing, and every docs page.
  */
 import { ArrowUpRightIcon } from "@phosphor-icons/react";
 import { REPO_URL } from "../../site/config";
 import { resolvedNav } from "../../site/sources";
-import { Lattice, Lockup } from "../brand";
+import { Lockup } from "../brand";
 import { Maker } from "../../../../../examples/shared/src/maker/maker";
 
 const titleOf = (path: string, fallback: string) =>
@@ -51,16 +52,8 @@ function columns(): { title: string; links: Link[] }[] {
 export function SiteFooter() {
   return (
     <footer className="site-footer" data-toc-skip="">
-      <div className="site-footer-screen" aria-hidden>
-        {Array.from({ length: 24 }, (_, i) => (
-          <Lattice key={i} className="site-footer-arch" />
-        ))}
-      </div>
-      <div className="site-footer-inner">
-        <div className="site-footer-brand">
-          <a href="/" className="site-footer-home" aria-label="Jali, home">
-            <Lockup className="site-footer-lockup" />
-          </a>
+      <div className="site-footer-cells">
+        <div className="site-footer-cell site-footer-about">
           <p className="site-footer-line">
             A new layout primitive for React apps: adaptive tiling panes your users arrange the way
             they work, on any screen.
@@ -68,7 +61,7 @@ export function SiteFooter() {
         </div>
         <nav className="site-footer-nav" aria-label="Footer">
           {columns().map((c) => (
-            <div key={c.title} className="site-footer-col">
+            <div key={c.title} className="site-footer-cell site-footer-col">
               <p className="site-footer-heading" id={`footer-${c.title.toLowerCase()}`}>
                 {c.title}
               </p>
@@ -89,15 +82,23 @@ export function SiteFooter() {
             </div>
           ))}
         </nav>
-        <p className="site-footer-legal">
-          <span>
-            Designed and built by <Maker />
-          </span>
-          <span>
-            <a href={`${REPO_URL}/blob/master/LICENSE`}>Apache-2.0</a>
-          </span>
-        </p>
       </div>
+      <div className="site-footer-signoff">
+        <span className="site-footer-tile site-footer-tile-left" aria-hidden />
+        <span className="site-footer-tile site-footer-tile-right" aria-hidden />
+        <span className="site-footer-split" aria-hidden />
+        <a href="/" className="site-footer-home" aria-label="Jali, home">
+          <Lockup className="site-footer-lockup" />
+        </a>
+      </div>
+      <p className="site-footer-legal">
+        <span>
+          Designed and built by <Maker />
+        </span>
+        <span>
+          <a href={`${REPO_URL}/blob/master/LICENSE`}>Apache-2.0</a>
+        </span>
+      </p>
     </footer>
   );
 }
