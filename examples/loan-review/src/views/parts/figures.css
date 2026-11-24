@@ -94,26 +94,30 @@
   letter-spacing: var(--lr-track-title);
   font-variant-numeric: tabular-nums;
 }
+.rv-gauge:is([data-tone="warn"], [data-tone="risk"]) .rv-gauge-fill {
+  background: var(--tone);
+}
 .rv-gauge[data-tone="risk"] .rv-gauge-value,
 .rv-gauge[data-tone="warn"] .rv-gauge-value {
   color: var(--tone);
 }
 .rv-gauge-track {
   position: relative;
-  height: 6px;
-  margin: 8px 0 6px;
+  height: 4px;
+  margin: 10px 0 8px;
   background: var(--hover);
 }
+/* A ratio inside its limit fills in ink; only one outside the program's comfort takes its tone. */
 .rv-gauge-fill {
   position: absolute;
   inset: 0 auto 0 0;
-  background: var(--tone);
+  background: var(--text-3);
   transform-origin: left;
 }
 .rv-gauge-limit {
   position: absolute;
-  top: -4px;
-  bottom: -4px;
+  top: -5px;
+  bottom: -5px;
   width: 2px;
   margin-left: -1px;
   background: var(--text);
@@ -131,22 +135,23 @@
 
 /* The payment: one stacked bar, then its lines with a swatch each. */
 .rv-pay {
-  --pay-1: #1f3a5f;
-  --pay-2: #5b7fa8;
-  --pay-3: #9db6d3;
-  --pay-4: #c9a227;
-  --pay-5: #d97757;
-  --pay-6: #8a8f98;
+  /* An ink ramp for what every payment has; hues only for the lines some loans add. */
+  --pay-1: #1c1c1c;
+  --pay-2: #6e6e6e;
+  --pay-3: #b4b4b4;
+  --pay-4: #0b4f36;
+  --pay-5: #b45309;
+  --pay-6: #476a8c;
   display: grid;
   gap: 12px;
 }
 :is(.dark, [data-theme="dark"]) .rv-pay {
-  --pay-1: #8fb3e0;
-  --pay-2: #5f87b8;
-  --pay-3: #3d5f88;
-  --pay-4: #d9b443;
-  --pay-5: #e58c6c;
-  --pay-6: #8a8f98;
+  --pay-1: #e4e4e4;
+  --pay-2: #8f8f8f;
+  --pay-3: #4c4c4c;
+  --pay-4: #c5df58;
+  --pay-5: #ffbd3d;
+  --pay-6: #7fa3c7;
 }
 .rv-pay [data-line="principalInterest"] {
   --swatch: var(--pay-1);
@@ -169,7 +174,7 @@
 .rv-pay-bar {
   display: flex;
   gap: 2px;
-  height: 12px;
+  height: 10px;
   overflow: hidden;
   transform-origin: left;
 }

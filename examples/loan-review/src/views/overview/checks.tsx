@@ -35,7 +35,8 @@ export function Checks({ signals, tally }: Pick<Assessment, "signals" | "tally">
 function Area({ label, items }: { label: string; items: Signal[] }) {
   if (!items.length) return null;
   return (
-    <div className="ov-area">
+    // The area's worst signal (they come worst first) colours its rule, so a reader sees which C to look at.
+    <div className="ov-area" data-tone={items[0]?.tone}>
       <h4>{label}</h4>
       <ul>
         {items.map((s) => (

@@ -4,7 +4,7 @@
    sit apart on the pane's ground, so the eye takes them one at a time rather than as one ruled sheet. */
 .rv:has(> .ov) {
   --rv-max: 1360px;
-  background: var(--lr-paper-2);
+  background: var(--lr-ground);
 }
 .ov {
   display: grid;
@@ -41,7 +41,7 @@
   min-width: 0;
   background: var(--island);
   border: 1px solid var(--line);
-  padding: 18px 20px 20px;
+  padding: 20px 22px 22px;
 }
 
 /* What to check: a title with the tally, then one column per area (credit, capacity, collateral, loan). */
@@ -83,24 +83,34 @@
 }
 .ov-areas {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px 28px;
-  margin-top: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 20px 24px;
+  margin-top: 16px;
+}
+/* Each area hangs from a rule: neutral while it passes, in its tone when something in it needs a look. */
+.ov-area {
+  --tone: var(--line-strong);
+  padding-top: 12px;
+  border-top: 2px solid var(--tone);
+}
+.ov-area[data-tone="warn"] {
+  --tone: var(--warn);
+}
+.ov-area[data-tone="risk"] {
+  --tone: var(--risk);
 }
 .ov-area h4 {
-  margin: 0 0 8px;
-  font-size: var(--type-caption);
+  margin: 0 0 12px;
+  font-size: var(--type-meta);
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-3);
+  color: var(--text-2);
 }
 .ov-area ul {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 10px;
+  gap: 14px;
 }
 .ov-area li {
   display: flex;
@@ -140,10 +150,7 @@
   gap: 8px;
 }
 .ov-sec .ov-head h3 {
-  font-size: var(--type-caption);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-3);
+  color: var(--text-2);
 }
 /* "Open ›": a quiet text link until hovered. */
 .ov-go {
@@ -181,7 +188,7 @@
 }
 .ov-lead {
   margin: 0;
-  font-size: 24px;
+  font-size: 21px;
   line-height: 1.2;
   font-weight: 600;
   letter-spacing: var(--lr-track-display);

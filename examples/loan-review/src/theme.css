@@ -44,6 +44,8 @@
 [data-theme="light"] {
   --lr-link: #0b4f36;
   --lr-paper-2: #fafafa;
+  /* The ground Overview's cards sit on: a step under them, in both themes, so a card reads as lifted. */
+  --lr-ground: #f4f4f4;
   --lr-request-edge: #000000;
 
   --jali-canvas: #eeeeee;
@@ -90,6 +92,7 @@
 [data-theme="dark"] {
   --lr-link: #c5df58;
   --lr-paper-2: #15181e;
+  --lr-ground: #0b0d10;
   --lr-request-edge: var(--lr-volt);
 
   --jali-canvas: #0b0d10;

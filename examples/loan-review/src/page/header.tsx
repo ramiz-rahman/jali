@@ -16,7 +16,6 @@ import {
   cityLine,
   day,
   household,
-  initials,
   product,
   rate,
   rateKind,
@@ -79,9 +78,6 @@ export function ApplicationHeader({ item }: { item: number }) {
       aria-label={`Application ${item}`}
     >
       <div className="item-id">
-        <span className="item-avatar" aria-hidden>
-          {initials(name)}
-        </span>
         <div className="item-name" key={item}>
           <div className="item-kicker">
             <span className="pk-mono">#{item}</span>
@@ -108,13 +104,13 @@ export function ApplicationHeader({ item }: { item: number }) {
           </div>
         </div>
         <QueueSheet item={item} />
-        <RoleSwitch />
         {app ? (
           <div className="item-state">
             <span className="item-status" data-status={app.status}>
               {APPLICATION_STATUS[app.status].label}
             </span>
             <span className="item-submitted">Submitted {day(app.submitted_at)}</span>
+            <RoleSwitch />
           </div>
         ) : null}
         <CollapseToggle part="header" collapsed={collapsed} className="item-toggle" />

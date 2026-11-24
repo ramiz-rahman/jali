@@ -1,10 +1,10 @@
-/* The application's header: who is asking, for what and on which home, then five figures as tiles. No rules between
-   them: the tiles' own ground sets them apart, and a figure outside the program's limits is coloured. One markup
+/* The application's header: who is asking, for what and on which home, then five figures on one ruled line, set
+   apart by hairlines rather than boxes. A figure outside the program's comfort carries a short rule in its tone. One markup
    (header.tsx) in two layouts: the card, and, with `data-compact`, one line. */
 .item-head {
   display: grid;
-  gap: 18px;
-  padding: 20px 24px 18px;
+  gap: 20px;
+  padding: 22px 28px 18px;
   background: var(--island);
   border-bottom: 1px solid var(--line);
 }
@@ -13,18 +13,6 @@
   align-items: center;
   gap: 14px;
   min-width: 0;
-}
-.item-avatar {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 48px;
-  height: 48px;
-  background: var(--text);
-  color: var(--island);
-  font-weight: 600;
-  font-size: var(--type-name);
-  letter-spacing: 0.02em;
 }
 .item-name {
   min-width: 0;
@@ -35,9 +23,9 @@
   color: var(--text-3);
 }
 .item-name h1 {
-  margin: 3px 0 2px;
-  font-size: var(--type-page);
-  line-height: 1.15;
+  margin: 4px 0 4px;
+  font-size: 30px;
+  line-height: 1.1;
   font-weight: 600;
   letter-spacing: var(--lr-track-display);
   white-space: nowrap;
@@ -56,9 +44,11 @@
 }
 .item-state {
   flex: none;
+  align-self: flex-start;
   display: grid;
   justify-items: end;
-  gap: 4px;
+  gap: 6px;
+  margin-top: 2px;
 }
 .item-submitted {
   font-size: var(--type-meta);
@@ -106,18 +96,21 @@
 
 .item-facts {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 1px;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0;
   margin: 0;
-  background: var(--line);
-  border: 1px solid var(--line);
+  border-top: 1px solid var(--line);
 }
 .item-facts > div {
   --tone: var(--text-4);
   position: relative;
   min-width: 0;
-  padding: 11px 16px 12px;
-  background: var(--island);
+  padding: 14px 20px 0;
+  border-left: 1px solid var(--line);
+}
+.item-facts > div:first-child {
+  padding-left: 0;
+  border-left: 0;
 }
 .item-facts > div[data-tone="warn"] {
   --tone: var(--amber);
@@ -138,8 +131,8 @@
   color: var(--text-3);
 }
 .item-facts dd {
-  margin: 3px 0 0;
-  font-size: 24px;
+  margin: 4px 0 0;
+  font-size: 26px;
   line-height: 1.2;
   font-weight: 600;
   letter-spacing: var(--lr-track-display);
@@ -214,13 +207,8 @@
 .item-head[data-compact] :is(.item-id, .item-name) {
   display: contents;
 }
-.item-head[data-compact] :is(.item-where, .item-purpose, .item-submitted) {
+.item-head[data-compact] :is(.item-where, .item-purpose, .item-submitted, .item-role) {
   display: none;
-}
-.item-head[data-compact] .item-avatar {
-  width: 28px;
-  height: 28px;
-  font-size: var(--type-caption);
 }
 .item-head[data-compact] h1 {
   order: 1;
@@ -251,6 +239,7 @@
   align-items: baseline;
   gap: 6px;
   padding: 0;
+  border-left: 0;
   background: none;
   white-space: nowrap;
 }
@@ -306,15 +295,15 @@
    the card's top right corner, so the status line keeps the width for itself. */
 /* The demo's persona switch (role.tsx). */
 .item-role {
-  flex: none;
   display: inline-flex;
-  gap: 8px;
+  gap: 6px;
   align-items: baseline;
-  font-size: var(--type-meta);
-  color: var(--text-2);
+  font-size: var(--type-caption);
+  color: var(--text-3);
 }
 .item-role a {
-  color: inherit;
+  color: var(--lr-link);
+  text-underline-offset: 3px;
 }
 
 @media (max-width: 767px) {
@@ -330,13 +319,8 @@
   .item-head:not([data-compact]) .item-id {
     flex-wrap: wrap;
   }
-  .item-head:not([data-compact]) .item-avatar {
-    width: 36px;
-    height: 36px;
-    font-size: var(--type-body);
-  }
   .item-head:not([data-compact]) .item-name {
-    flex: 1 1 calc(100% - 52px);
+    flex: 1 1 100%;
     padding-right: 28px;
   }
   .item-head:not([data-compact]) h1 {
@@ -370,8 +354,17 @@
   .item-head:not([data-compact]) .item-facts > div:first-child {
     grid-column: 1 / -1;
   }
+  .item-head:not([data-compact]) .item-facts {
+    border-top: 0;
+  }
   .item-head:not([data-compact]) .item-facts > div {
-    padding: 9px 12px 10px;
+    padding: 10px 0 2px;
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+  .item-head:not([data-compact]) .item-facts > div:nth-child(odd):not(:first-child) {
+    padding-left: 14px;
+    border-left: 1px solid var(--line);
   }
   .item-head:not([data-compact]) .item-facts dd:not(.pk-meta) {
     font-size: 20px;
