@@ -56,14 +56,20 @@
     flex: none;
     transition: transform 0.2s var(--d-ease);
   }
-  .button:hover {
-    transform: translateY(-1px);
-  }
+  /* A press gives a little (0.97); the lift on hover is for a mouse only, where hover means something. */
   .button:active {
-    transform: translateY(1px);
+    transform: scale(0.97);
   }
-  .button-primary:hover svg {
-    transform: translateX(2px);
+  @media (hover: hover) and (pointer: fine) {
+    .button:hover {
+      transform: translateY(-1px);
+    }
+    .button:hover:active {
+      transform: scale(0.97);
+    }
+    .button-primary:hover svg {
+      transform: translateX(2px);
+    }
   }
   .button-primary {
     background: var(--jali-accent);
@@ -593,10 +599,9 @@
   }
   .landing-key:hover {
     border-color: var(--jali-control);
-    transform: translateY(-1px);
   }
   .landing-key:active {
-    transform: translateY(1px);
+    transform: scale(0.97);
   }
   .landing-key kbd {
     order: 2;

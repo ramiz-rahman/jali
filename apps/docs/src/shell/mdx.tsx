@@ -253,8 +253,11 @@ function Pre(props: ComponentPropsWithoutRef<"pre"> & Record<string, unknown>) {
   );
 }
 
+/** Inline code. A short token with no spaces (`[data-theme="dark"]`) never breaks inside itself, at a hyphen or not. */
 function InlineCode(props: ComponentPropsWithoutRef<"code">) {
-  return <code className="inline-code" {...props} />;
+  const text = typeof props.children === "string" ? props.children : "";
+  const whole = text.length > 0 && text.length <= 32 && !/\s/.test(text);
+  return <code className="inline-code" data-whole={whole || undefined} {...props} />;
 }
 
 // ---------- headings ----------

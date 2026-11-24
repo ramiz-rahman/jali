@@ -1,55 +1,70 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 520" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="14">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 520" font-size="14">
   <title>Auto layout in four steps: order, a row, a second row, tabs</title>
+  <!--
+    Drawn with the docs' tokens, so it follows the site's light and dark when the site places it inline
+    (src/shell/media.tsx); the fallbacks are the light theme, for the Markdown copies and anywhere else.
+    Classes and ids start al- so nothing collides with the page once inline.
+  -->
   <style>
-    .t { fill: #6b7280; font-size: 13px; font-weight: 600; }
-    .h { fill: #374151; font-size: 15px; font-weight: 700; }
-    .p { fill: #eef2ff; stroke: #6366f1; stroke-width: 1.5; }
-    .q { fill: #f0fdf4; stroke: #16a34a; stroke-width: 1.5; }
-    .r { fill: #fff7ed; stroke: #ea580c; stroke-width: 1.5; }
-    .w { fill: none; stroke: #9ca3af; stroke-width: 1.5; stroke-dasharray: 5 4; }
-    .l { fill: none; stroke: #6366f1; stroke-width: 1.5; marker-end: url(#a); }
-    .n { fill: #1f2937; font-size: 13px; font-weight: 600; }
+    .al-root { font-family: var(--d-font, "Atkinson Hyperlegible Next", system-ui, sans-serif); }
+    .al-step { fill: var(--jali-text, #1f1d1a); font-size: 15px; font-weight: 600; }
+    .al-note { fill: var(--jali-text-muted, #5c574f); font-size: 13px; }
+    .al-chain { fill: var(--jali-accent-soft, #e8ebfb); stroke: var(--jali-accent, #4456c7); stroke-width: 1.5; }
+    .al-pane { fill: var(--jali-surface, #fdfcfa); stroke: var(--jali-border-strong, #c9c3b8); stroke-width: 1.5; }
+    .al-tab { fill: none; stroke: var(--jali-border-strong, #c9c3b8); stroke-width: 1.5; stroke-dasharray: 3 3; }
+    .al-room { fill: none; stroke: var(--jali-border-strong, #c9c3b8); stroke-width: 1.2; stroke-dasharray: 5 4; }
+    .al-link { fill: none; stroke: var(--jali-accent, #4456c7); stroke-width: 1.5; marker-end: url(#al-arrow); }
+    .al-arrow { fill: var(--jali-accent, #4456c7); }
+    .al-name { fill: var(--jali-text, #1f1d1a); font-size: 13px; font-weight: 500; }
+    .al-faint { fill: var(--jali-text-subtle, #7a746a); font-size: 13px; }
   </style>
-  <defs><marker id="a" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 8 4 0 8z" fill="#6366f1"/></marker></defs>
+  <defs>
+    <marker id="al-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+      <path class="al-arrow" d="M0 0 8 4 0 8z" />
+    </marker>
+  </defs>
 
-  <text x="20" y="34" class="h">1. Order</text>
-  <text x="20" y="54" class="t">Reading order; each pane's linked panes right after it</text>
-  <g transform="translate(20 70)">
-    <rect class="p" width="110" height="40" rx="8"/><text x="55" y="25" text-anchor="middle" class="n">Orders</text>
-    <rect class="p" x="122" width="110" height="40" rx="8"/><text x="177" y="25" text-anchor="middle" class="n">Order 1042</text>
-    <rect class="p" x="244" width="110" height="40" rx="8"/><text x="299" y="25" text-anchor="middle" class="n">Customer 7</text>
-    <rect class="q" x="366" width="110" height="40" rx="8"/><text x="421" y="25" text-anchor="middle" class="n">Notes</text>
-    <rect class="q" x="488" width="110" height="40" rx="8"/><text x="543" y="25" text-anchor="middle" class="n">Activity</text>
-    <rect class="r" x="610" width="110" height="40" rx="8"/><text x="665" y="25" text-anchor="middle" class="n">Report A</text>
-    <rect class="r" x="732" width="110" height="40" rx="8"/><text x="787" y="25" text-anchor="middle" class="n">Report B</text>
-    <path class="l" d="M55 44 C 90 64, 140 64, 172 46"/><path class="l" d="M177 44 C 212 64, 262 64, 294 46"/>
-  </g>
+  <g class="al-root">
+    <text x="20" y="34" class="al-step">1. Order</text>
+    <text x="20" y="56" class="al-note">Reading order, each pane's linked panes right after it</text>
+    <g transform="translate(20 72)">
+      <rect class="al-chain" width="110" height="40" rx="8" /><text x="55" y="25" text-anchor="middle" class="al-name">Orders</text>
+      <rect class="al-chain" x="122" width="110" height="40" rx="8" /><text x="177" y="25" text-anchor="middle" class="al-name">Order 1042</text>
+      <rect class="al-chain" x="244" width="110" height="40" rx="8" /><text x="299" y="25" text-anchor="middle" class="al-name">Customer 7</text>
+      <rect class="al-pane" x="366" width="110" height="40" rx="8" /><text x="421" y="25" text-anchor="middle" class="al-name">Notes</text>
+      <rect class="al-pane" x="488" width="110" height="40" rx="8" /><text x="543" y="25" text-anchor="middle" class="al-name">Activity</text>
+      <rect class="al-pane" x="610" width="110" height="40" rx="8" /><text x="665" y="25" text-anchor="middle" class="al-name">Report A</text>
+      <rect class="al-pane" x="732" width="110" height="40" rx="8" /><text x="787" y="25" text-anchor="middle" class="al-name">Report B</text>
+      <path class="al-link" d="M55 44 C 90 64, 140 64, 172 46" />
+      <path class="al-link" d="M177 44 C 212 64, 262 64, 294 46" />
+    </g>
 
-  <text x="20" y="166" class="h">2. One row</text>
-  <text x="20" y="186" class="t">As many as fit across at their minimum widths, in order: side by side</text>
-  <g transform="translate(20 200)">
-    <rect class="w" width="920" height="58" rx="10"/>
-    <rect class="p" x="8" y="8" width="210" height="42" rx="8"/><text x="113" y="34" text-anchor="middle" class="n">Orders</text>
-    <rect class="p" x="226" y="8" width="230" height="42" rx="8"/><text x="341" y="34" text-anchor="middle" class="n">Order 1042</text>
-    <rect class="p" x="464" y="8" width="210" height="42" rx="8"/><text x="569" y="34" text-anchor="middle" class="n">Customer 7</text>
-    <rect class="q" x="682" y="8" width="230" height="42" rx="8"/><text x="797" y="34" text-anchor="middle" class="n">Notes</text>
-  </g>
+    <text x="20" y="166" class="al-step">2. One row</text>
+    <text x="20" y="188" class="al-note">As many as fit across at their minimum widths, in order, side by side</text>
+    <g transform="translate(20 202)">
+      <rect class="al-room" width="920" height="58" rx="10" />
+      <rect class="al-chain" x="8" y="8" width="210" height="42" rx="8" /><text x="113" y="34" text-anchor="middle" class="al-name">Orders</text>
+      <rect class="al-chain" x="226" y="8" width="230" height="42" rx="8" /><text x="341" y="34" text-anchor="middle" class="al-name">Order 1042</text>
+      <rect class="al-chain" x="464" y="8" width="210" height="42" rx="8" /><text x="569" y="34" text-anchor="middle" class="al-name">Customer 7</text>
+      <rect class="al-pane" x="682" y="8" width="230" height="42" rx="8" /><text x="797" y="34" text-anchor="middle" class="al-name">Notes</text>
+    </g>
 
-  <text x="20" y="300" class="h">3. A second row</text>
-  <text x="20" y="320" class="t">Only for what didn't fit across, and only when the height has room for both rows</text>
-  <g transform="translate(20 334)">
-    <rect class="w" width="920" height="58" rx="10"/>
-    <rect class="q" x="8" y="8" width="300" height="42" rx="8"/><text x="158" y="34" text-anchor="middle" class="n">Activity</text>
-    <rect class="r" x="316" y="8" width="300" height="42" rx="8"/><text x="466" y="34" text-anchor="middle" class="n">Report A</text>
-    <text x="760" y="34" text-anchor="middle" class="t">no room for Report B</text>
-  </g>
+    <text x="20" y="300" class="al-step">3. A second row</text>
+    <text x="20" y="322" class="al-note">Only for what didn't fit across, and only when the height has room for both rows</text>
+    <g transform="translate(20 336)">
+      <rect class="al-room" width="920" height="58" rx="10" />
+      <rect class="al-pane" x="8" y="8" width="300" height="42" rx="8" /><text x="158" y="34" text-anchor="middle" class="al-name">Activity</text>
+      <rect class="al-pane" x="316" y="8" width="300" height="42" rx="8" /><text x="466" y="34" text-anchor="middle" class="al-name">Report A</text>
+      <text x="760" y="34" text-anchor="middle" class="al-faint">No room for Report B</text>
+    </g>
 
-  <text x="20" y="434" class="h">4. Tabs</text>
-  <text x="20" y="454" class="t">The rest join the pane they were opened from, else the pane before them</text>
-  <g transform="translate(336 466)">
-    <rect class="w" width="300" height="46" rx="8"/>
-    <rect class="r" x="6" y="6" width="120" height="30" rx="6"/><text x="66" y="26" text-anchor="middle" class="n">Report A</text>
-    <rect x="132" y="6" width="120" height="30" rx="6" fill="none" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="3 3"/><text x="192" y="26" text-anchor="middle" class="t">Report B</text>
-    <text x="320" y="28" class="t">two tabs in Report A's place</text>
+    <text x="20" y="434" class="al-step">4. Tabs</text>
+    <text x="20" y="456" class="al-note">The rest join the pane they were opened from, else the pane before them</text>
+    <g transform="translate(336 468)">
+      <rect class="al-room" width="300" height="46" rx="8" />
+      <rect class="al-pane" x="6" y="6" width="120" height="30" rx="6" /><text x="66" y="26" text-anchor="middle" class="al-name">Report A</text>
+      <rect class="al-tab" x="132" y="6" width="120" height="30" rx="6" /><text x="192" y="26" text-anchor="middle" class="al-faint">Report B</text>
+      <text x="320" y="28" class="al-faint">Two tabs in Report A's place</text>
+    </g>
   </g>
 </svg>

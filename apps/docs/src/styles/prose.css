@@ -190,7 +190,13 @@
     font-size: 0.875em;
     font-weight: 400;
     color: var(--jali-text);
-    overflow-wrap: anywhere;
+    /* Breaks between words, and inside one only when it can't fit a line; each piece keeps its own pill. */
+    overflow-wrap: break-word;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+  .inline-code[data-whole] {
+    white-space: nowrap;
   }
   .prose a:not([class]) .inline-code {
     color: var(--jali-accent);
@@ -324,15 +330,46 @@
   .not-found .page-title {
     max-width: 24rem;
   }
-  .not-found-lattice {
+  .not-found-pane {
     position: absolute;
     right: 0;
-    top: 24px;
-    width: 150px;
-    height: auto;
-    fill: var(--d-lattice);
-    opacity: var(--d-lattice-opacity);
+    top: 32px;
+    display: flex;
+    flex-direction: column;
+    width: 168px;
+    height: 196px;
+    border: 1px dashed var(--jali-border-strong);
+    border-radius: 12px;
+    overflow: hidden;
     pointer-events: none;
+  }
+  .not-found-pane-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 34px;
+    padding: 0 12px;
+    border-bottom: 1px dashed var(--jali-border-strong);
+  }
+  .not-found-pane-bar i {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--jali-border);
+  }
+  .not-found-pane-bar i:first-child {
+    width: 56px;
+  }
+  .not-found-pane-bar i:last-child {
+    width: 12px;
+    margin-left: auto;
+  }
+  .not-found-pane-body {
+    flex: 1;
+    background: repeating-linear-gradient(
+      -45deg,
+      color-mix(in srgb, var(--jali-text) 10%, transparent) 0 1px,
+      transparent 1px 11px
+    );
   }
   .not-found-links {
     list-style: none;
@@ -397,8 +434,9 @@
     .pager-link[data-dir="next"] {
       grid-column: 1;
     }
-    .not-found-lattice {
-      width: 84px;
+    .not-found-pane {
+      width: 96px;
+      height: 112px;
       top: 8px;
     }
   }

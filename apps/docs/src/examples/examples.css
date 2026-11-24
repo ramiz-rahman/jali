@@ -15,10 +15,12 @@
       box-shadow 0.2s var(--d-ease),
       transform 0.2s var(--d-ease);
   }
-  .example-shot:hover {
-    border-color: var(--jali-border-strong);
-    box-shadow: 0 6px 24px rgb(0 0 0 / 0.08);
-    transform: translateY(-1px);
+  @media (hover: hover) and (pointer: fine) {
+    .example-shot:hover {
+      border-color: var(--jali-border-strong);
+      box-shadow: 0 6px 24px rgb(0 0 0 / 0.08);
+      transform: translateY(-1px);
+    }
   }
   .example-shot img {
     display: block;
@@ -140,19 +142,7 @@
   :root:not([data-theme="dark"]) .showcase-shot img[data-shot="dark"] {
     display: none;
   }
-  .showcase-panel:not([hidden]) {
-    animation: showcase-in 0.25s var(--d-ease);
-  }
-  @keyframes showcase-in {
-    from {
-      opacity: 0;
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .showcase-panel:not([hidden]) {
-      animation: none;
-    }
-  }
+  /* No fade between apps: the tabs switch from the arrow keys too, and what a key does happens at once. */
   .showcase-caption {
     display: flex;
     align-items: flex-start;

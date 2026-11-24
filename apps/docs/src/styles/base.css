@@ -104,6 +104,17 @@
   .prose :is(img, video) {
     height: auto;
   }
+  /* An inline diagram (media.tsx): the page's width, its own shape, drawn in the site's tokens. */
+  .media-svg {
+    display: block;
+    width: 100%;
+    margin: 28px 0;
+  }
+  .media-svg > svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
   /* An island's wrapper (src/shell/island.tsx) adds no box of its own. */
   [data-island] {
     display: contents;

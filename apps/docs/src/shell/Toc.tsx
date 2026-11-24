@@ -7,10 +7,14 @@ import type { TocEntry } from "./collect";
 export type { TocEntry };
 
 function TocList({ entries }: { entries: TocEntry[] }) {
+  // An h3 before the page's first h2 (a page of steps) has no section to sit under: it shows at the top level.
+  const firstH2 = entries.findIndex((e) => e.level === 2);
+  const levelOf = (e: TocEntry, i: number) =>
+    e.level === 3 && (firstH2 < 0 || i < firstH2) ? 2 : e.level;
   return (
     <ul className="toc-list">
-      {entries.map((e) => (
-        <li key={e.id} data-level={e.level}>
+      {entries.map((e, i) => (
+        <li key={e.id} data-level={levelOf(e, i)}>
           <a className="toc-link" href={`#${e.id}`}>
             {e.text}
           </a>

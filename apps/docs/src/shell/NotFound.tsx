@@ -1,11 +1,17 @@
 /** The page for an address with no page: the 404 file hosts serve for any unknown address. */
 import { ArrowRightIcon } from "@phosphor-icons/react";
-import { Lattice } from "./brand";
 
 export function NotFound() {
   return (
     <section className="not-found" aria-labelledby="not-found-title">
-      <Lattice className="not-found-lattice" />
+      {/* A pane with nothing in it: the site's hatching, in a dashed outline with a title bar. */}
+      <div className="not-found-pane" aria-hidden>
+        <span className="not-found-pane-bar">
+          <i />
+          <i />
+        </span>
+        <span className="not-found-pane-body" />
+      </div>
       <p className="page-eyebrow">404</p>
       <h1 className="page-title" id="not-found-title">
         There is no page here
