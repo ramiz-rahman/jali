@@ -1,0 +1,91 @@
+/*
+ * The landing's hero: the workspace with one panel beside it for the layout tree, which closes to a tab on the
+ * workspace's edge.
+ */
+@layer live {
+  /* ---------- Side (a hero): the workspace, and one panel beside it with the map, the JSON or both ---------- */
+  .live-tv[data-parts="side"] .live-tv-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+  }
+  .live-tv[data-parts="side"] .live-stage {
+    position: relative;
+  }
+  .live-side {
+    min-height: 0;
+  }
+  .live-side .live-panel-head {
+    min-height: 2.75rem;
+  }
+  .live-side-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    max-height: 34rem;
+  }
+  .live-side-body > .live-panel-body {
+    flex: 1 1 0;
+    min-height: 12rem;
+  }
+  .live-side-body[data-view="both"] > .live-panel-body + .live-panel-body {
+    border-top: 1px solid var(--jali-border);
+  }
+  @container live-fig (min-width: 56rem) {
+    .live-tv[data-parts="side"]:not([data-side="closed"]) .live-tv-grid {
+      grid-template-columns: minmax(38rem, 2.1fr) minmax(17rem, 1fr);
+      grid-template-rows: var(--live-ws-h);
+    }
+    .live-tv[data-parts="side"] .live-tv-grid {
+      grid-template-rows: var(--live-ws-h);
+    }
+    .live-side {
+      border-top: 0;
+      border-left: 1px solid var(--jali-border);
+    }
+    .live-side-body {
+      max-height: none;
+    }
+  }
+  @container live-panel (min-width: 40rem) {
+    .live-side-body[data-view="both"] {
+      flex-direction: row;
+    }
+    .live-side-body[data-view="both"] > .live-panel-body + .live-panel-body {
+      border-top: 0;
+      border-left: 1px solid var(--jali-border);
+    }
+  }
+  /* Brings the closed panel back: a tab on the workspace's right edge. */
+  .live-edge-tab {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    z-index: 40;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 0.4375rem;
+    writing-mode: vertical-rl;
+    border: 1px solid var(--jali-border-strong);
+    border-right: 0;
+    border-radius: 0.625rem 0 0 0.625rem;
+    background: var(--jali-surface);
+    color: var(--jali-text);
+    box-shadow: var(--jali-shadow-menu);
+    font: 500 var(--live-text-label)/1 var(--jali-font);
+    cursor: pointer;
+  }
+  .live-edge-tab svg {
+    color: var(--jali-accent);
+    transform: rotate(90deg);
+  }
+  .live-edge-tab:hover {
+    color: var(--jali-accent);
+  }
+  .live-edge-tab:focus-visible {
+    outline: 2px solid var(--jali-focus-ring);
+    outline-offset: 2px;
+  }
+}

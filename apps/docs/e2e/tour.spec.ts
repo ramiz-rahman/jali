@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-/** The landing hero's tour (src/live/Tour.tsx). */
+/** The landing hero's tour (src/live/hero/tour). */
 const hero = (page: Page) => page.locator('.landing-stage figure[data-live="tree-view"]');
 const ws = (page: Page) => hero(page).locator(".live-ws");
 const caption = (page: Page) => hero(page).locator(".live-tour-text");
@@ -31,9 +31,9 @@ const tabs = (page: Page) =>
 test("a click mid-drag stops it for good and leaves the workspace as it was", async ({ page }) => {
   await page.goto("/");
   await expect(hero(page)).toHaveAttribute("data-tour", "playing", { timeout: 10_000 });
-  // The first drag: the customer's pane over the order's, with the drop's outcome in words.
-  await expect(caption(page)).toHaveText(/^Drop one pane on another/, { timeout: 15_000 });
-  await expect(ws(page).locator(".jali-drop-label")).toHaveText(/^Add as tab to Order/, {
+  // The drag: Huda's earlier order carried to the right of the kept one, with the drop's outcome in words.
+  await expect(caption(page)).toHaveText(/^Drag it next to the first/, { timeout: 25_000 });
+  await expect(ws(page).locator(".jali-drop-label")).toHaveText(/^Place right of Order 1048/, {
     timeout: 4_000,
   });
   await expect(ws(page).locator(".jali-drag-chip")).toBeVisible();
@@ -41,9 +41,15 @@ test("a click mid-drag stops it for good and leaves the workspace as it was", as
 
   await hero(page).locator('[data-pane="orders"] .live-k-toolbar').click();
   await expect(hero(page)).toHaveAttribute("data-tour", "stopped");
-  // The drag is put away without dropping: no preview, no chip, no tabs made.
+  // The drag is put away without dropping: no preview, no chip, and the two orders are still apart.
   await expect(ws(page).locator(".jali-drop-label, .jali-drag-chip")).toHaveCount(0);
   expect(await tabs(page)).toEqual([]);
+  const order = (id: number) =>
+    ws(page)
+      .locator(".jali-pane")
+      .filter({ has: page.getByRole("heading", { name: `Order ${id}` }) });
+  const [kept, earlier] = [await order(1048).boundingBox(), await order(1044).boundingBox()];
+  expect(earlier!.x).toBeLessThan(kept!.x);
   const at = await snapshot(page);
   await page.waitForTimeout(2500);
   expect(await snapshot(page)).toEqual(at);
@@ -109,10 +115,11 @@ test("with reduced motion it doesn't play by itself, and Play cuts between steps
   // A drag is shown as its drop, held still: the preview, no cursor moving to it.
   await expect(ws(page).locator(".jali-drop-label")).toBeVisible({ timeout: 10_000 });
   await expect(hero(page).locator(".live-tour-cursor[data-on]")).toHaveCount(0);
-  await expect(caption(page)).toHaveText(/^Less room/, { timeout: 25_000 });
-  // Cut, not animated: no cursor, and the width changes without a transition.
+  await expect(caption(page)).toHaveText(/^All of it is one layout tree: plain data/, {
+    timeout: 25_000,
+  });
+  // Cut, not animated: no cursor.
   await expect(hero(page).locator(".live-tour-cursor[data-on]")).toHaveCount(0);
-  await expect(ws(page)).not.toHaveAttribute("data-tour-anim", /.*/);
   await context.close();
 });
 
@@ -134,7 +141,7 @@ test("leaving the page mid-tour leaves nothing running", async ({ page }) => {
   // The tour holds focus through the workspace, not by patching the browser.
   expect(await page.evaluate(() => HTMLElement.prototype.focus.name)).toBe("focus");
   // Mid-drag: what it scheduled for the drop never runs.
-  await expect(ws(page).locator(".jali-drop-label")).toBeVisible({ timeout: 15_000 });
+  await expect(ws(page).locator(".jali-drop-label")).toBeVisible({ timeout: 30_000 });
   await page.getByRole("link", { name: "Docs", exact: true }).first().click();
   await expect(hero(page)).toHaveCount(0);
   // Nothing the tour scheduled runs later.
@@ -142,38 +149,37 @@ test("leaving the page mid-tour leaves nothing running", async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
-test("each tab move happens without taking keyboard focus, and a stop mid-fold holds the width", async ({
+test("the story's moves happen without taking keyboard focus, and end on the layout tree", async ({
   page,
 }) => {
   await page.goto("/");
-  // Dropped on the order: the two panes are one group of tabs, the customer's shown.
-  await expect(caption(page)).toHaveText(/^Drag a tab along its strip/, { timeout: 20_000 });
-  expect(await tabs(page)).toEqual(["order", "customer"]);
+  const pane = (name: string) =>
+    ws(page)
+      .locator(".jali-pane")
+      .filter({ has: page.getByRole("heading", { name, exact: true }) });
+  // Huda's order: his notes open beside him.
+  await expect(caption(page)).toHaveText(/^Big order/, { timeout: 15_000 });
+  await expect(pane("Notes on Huda")).toBeVisible({ timeout: 5_000 });
   expect(await onBody(page)).toBe(true);
-  // Along the strip: a line before the order's tab, then the customer's tab is first.
-  await expect(
-    ws(page).locator('.jali-tab-item[data-drop="before"] [data-tab="order"]'),
-  ).toHaveCount(1, { timeout: 5_000 });
-  await expect(caption(page)).toHaveText(/^Pin a tab/, { timeout: 6_000 });
-  expect(await tabs(page)).toEqual(["customer", "order"]);
-  // Pinned: the order's tab goes to the front, with its pin.
-  await expect.poll(() => tabs(page), { timeout: 4_000 }).toEqual(["order*", "customer"]);
+  // Kept, and his earlier order opened beside: two orders on screen, the first kept.
+  await expect(caption(page)).toHaveText(/^Keep this order/, { timeout: 8_000 });
+  await expect(pane("Order 1044")).toBeVisible({ timeout: 6_000 });
+  await expect(pane("Order 1048").getByRole("button", { name: /Kept|Follow again/ })).toHaveCount(
+    1,
+  );
   expect(await onBody(page)).toBe(true);
-  // To the orders' bottom edge: the customer splits out under the list, and the group is gone.
-  await expect(caption(page)).toHaveText(/^Drag a tab to the edge/, { timeout: 6_000 });
-  await expect(ws(page).locator(".jali-drop-label")).toHaveText(/^Place below Orders/, {
-    timeout: 5_000,
+  // Dragged to the right of the kept one: the two line up, side by side.
+  await expect(caption(page)).toHaveText(/^Drag it next to the first/, { timeout: 8_000 });
+  await expect(caption(page)).toHaveText(/^All of it is one layout tree: plain data/, {
+    timeout: 10_000,
   });
-  await expect(caption(page)).toHaveText(/^Less room/, { timeout: 8_000 });
-  expect(await tabs(page)).not.toContain("customer");
+  const [kept, earlier] = [
+    await pane("Order 1048").boundingBox(),
+    await pane("Order 1044").boundingBox(),
+  ];
+  expect(earlier!.x).toBeGreaterThan(kept!.x);
+  expect(Math.abs(earlier!.y - kept!.y)).toBeLessThan(2);
+  // The tree beside the workspace, and nothing took focus on the way.
+  await expect(hero(page).locator(".live-json")).toBeVisible();
   expect(await onBody(page)).toBe(true);
-
-  await page.waitForTimeout(600); // mid-way through the narrowing
-  // The list has folded by now: press on the pane that's showing, near its start.
-  await ws(page).click({ position: { x: 40, y: 200 } });
-  await expect(hero(page)).toHaveAttribute("data-tour", "stopped");
-  const at = await snapshot(page);
-  expect(at.width).toBeLessThan(800);
-  await page.waitForTimeout(2500);
-  expect(await snapshot(page)).toEqual(at);
 });

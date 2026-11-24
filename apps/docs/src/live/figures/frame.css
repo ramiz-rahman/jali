@@ -1,0 +1,198 @@
+/*
+ * Frame: a workspace the reader narrows by its edge, with a ruler of where panes fold.
+ */
+@layer live {
+  /* ---------- Frame: a workspace the reader narrows by its edge ---------- */
+  .live-frame-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    min-height: 2rem;
+    margin-bottom: 0.5rem;
+  }
+  .live-frame-width {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.3125rem;
+    flex: none;
+    min-width: 6.5rem;
+  }
+  .live-frame-width b {
+    font: 500 var(--live-text-stat)/1 var(--jali-font-mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--jali-text);
+  }
+  .live-frame-width span {
+    font-size: var(--live-text-caption);
+    color: var(--jali-text-subtle);
+  }
+  .live-frame-folds {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.3125rem;
+    flex: 1;
+    min-width: 0;
+    font-size: var(--live-text-caption);
+  }
+  .live-frame-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3125rem;
+    color: var(--jali-text-muted);
+    margin-right: 0.125rem;
+  }
+  .live-frame-chip {
+    display: inline-flex;
+    align-items: center;
+    height: 1.375rem;
+    padding: 0 0.5rem;
+    border-radius: 999px;
+    background: var(--jali-accent-weak);
+    color: var(--jali-accent);
+    white-space: nowrap;
+    animation: live-pop 200ms cubic-bezier(0.2, 0, 0, 1);
+  }
+  .live-frame-note {
+    color: var(--jali-text-subtle);
+  }
+  .live-frame-track {
+    position: relative;
+  }
+  .live-ruler {
+    position: relative;
+    height: 1.375rem;
+    margin: 0 0 0.375rem;
+    border-bottom: 1px solid var(--jali-border);
+  }
+  .live-ruler-tick {
+    position: absolute;
+    bottom: 0;
+    height: 0.3125rem;
+    border-left: 1px solid var(--jali-border-strong);
+  }
+  .live-ruler-tick i {
+    position: absolute;
+    bottom: 0.4375rem;
+    left: 0;
+    transform: translateX(-50%);
+    font: normal var(--live-text-tiny)/1 var(--jali-font-mono);
+    color: var(--jali-text-faint);
+  }
+  .live-ruler-mark {
+    position: absolute;
+    bottom: -0.3125rem;
+    width: 0.5625rem;
+    height: 0.5625rem;
+    margin-left: -0.28125rem;
+    transform: rotate(45deg);
+    border: 1.5px solid var(--jali-accent);
+    background: var(--jali-surface);
+    border-radius: 1px;
+  }
+  .live-ruler-mark[data-passed] {
+    background: var(--jali-accent);
+  }
+  .live-ruler-mark[data-one-pane] {
+    border-radius: 50%;
+    transform: none;
+  }
+  .live-ruler-cursor {
+    position: absolute;
+    top: 0.25rem;
+    bottom: -1px;
+    margin-left: -1px;
+    border-left: 2px solid var(--jali-accent);
+  }
+  .live-frame-room {
+    position: relative;
+    border-radius: var(--live-radius);
+    background: repeating-linear-gradient(
+      135deg,
+      transparent 0 7px,
+      color-mix(in srgb, var(--jali-border-strong) 70%, transparent) 7px 8px
+    );
+  }
+  .live-frame-box {
+    position: relative;
+    max-width: 100%;
+    border: 1px solid var(--jali-border-strong);
+    border-radius: var(--live-radius);
+    background: var(--jali-canvas);
+    box-shadow: var(--jali-shadow-raised);
+  }
+  .live-frame-box > .live-ws {
+    border-radius: calc(var(--live-radius) - 1px);
+  }
+  .live-frame-handle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: -0.6875rem;
+    width: 1.375rem;
+    display: grid;
+    place-items: center;
+    cursor: ew-resize;
+    touch-action: none;
+    outline: none;
+    z-index: 8;
+  }
+  .live-frame-handle span {
+    width: 0.3125rem;
+    height: 3rem;
+    border-radius: 999px;
+    background: var(--jali-surface);
+    box-shadow:
+      0 0 0 1px var(--jali-border-strong),
+      var(--jali-shadow-raised);
+    transition:
+      background-color 120ms ease,
+      height 160ms ease;
+  }
+  .live-frame-handle:hover span,
+  .live-frame[data-dragging] .live-frame-handle span {
+    background: var(--jali-accent);
+    box-shadow: 0 0 0 1px var(--jali-accent);
+    height: 4rem;
+  }
+  .live-frame-handle:focus-visible span {
+    background: var(--jali-accent);
+    box-shadow:
+      0 0 0 2px var(--jali-surface),
+      0 0 0 4px var(--jali-focus-ring);
+  }
+  .live-frame-hint {
+    margin: 0.5rem 0.125rem 0;
+    font-size: var(--live-text-caption);
+    line-height: 1.5;
+    color: var(--jali-text-subtle);
+  }
+  body.live-frame-resizing,
+  body.live-frame-resizing * {
+    cursor: ew-resize !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .live-frame-chip {
+      animation: none;
+    }
+    .live-frame-handle span {
+      transition: none;
+    }
+  }
+
+  @container live-fig (max-width: 32rem) {
+    .live-frame-bar {
+      flex-wrap: wrap;
+      row-gap: 0.375rem;
+    }
+    .live-frame-bar > .live-icon-btn {
+      margin-left: auto;
+    }
+    .live-frame-folds {
+      order: 3;
+      flex-basis: 100%;
+    }
+  }
+}

@@ -1,40 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import { layout as jl, type Edge, type JaliStore } from "jali/adapter";
-import type { DemoLayoutId } from "./demo";
-import { demoLayouts } from "./demo";
-import { LiveWorkspace, useLiveStore } from "./LiveWorkspace";
+import { demoLayouts, type DemoLayoutId } from "../shop/layouts";
+import { LiveWorkspace } from "../workspace/LiveWorkspace";
+import { useLiveStore } from "../workspace/useLiveStore";
 
 /** A live workspace dimmed except one part. */
 export interface SpotlightProps {
   layout: DemoLayoutId;
-  /** What to light: a CSS selector inside the workspace, or a named part. */
-  target: "shelf" | "follow" | "drop-zones" | "tabs" | "divider" | (string & {});
+  /** What to light: a named part (./Spotlight.tsx's NAMED), or any CSS selector inside the workspace. */
+  target: NamedTarget | (string & {});
   height?: number;
   caption?: string;
   /** The short label beside the lit part. Default: one for each named part; none for a selector. */
   label?: string;
 }
-
-const NAMED: Record<string, { selector: string; all?: boolean; label: string }> = {
-  shelf: {
-    selector: "[data-shelf]",
-    label: "The shelf: panes you tucked away, one click from coming back",
-  },
-  folded: {
-    selector: ".jali-tab-folded",
-    label: "Folded: the panes there wasn't room for, one click from showing",
-  },
-  follow: {
-    selector: ".jali-follow-toggle",
-    label: "Following: this pane shows whatever is selected in the list",
-  },
-  "drop-zones": {
-    selector: ".jali-drop-indicator",
-    label: "Drop zone: where the pane lands when you let go",
-  },
-  tabs: { selector: ".jali-tabbar", label: "Tabs: panes that share one place" },
-  divider: { selector: ".jali-divider", label: "A divider: drag it to share the room differently" },
-};
 
 interface Box {
   x: number;
@@ -132,6 +111,71 @@ function stageDrop(store: JaliStore, step: number) {
   });
 }
 
+/** Runs `fn` once the workspace has its size (at once, if it has): returns what stops waiting. */
+function whenSized(store: JaliStore, fn: () => void): () => void {
+  if (store.get().area.width > 0) {
+    fn();
+    return () => {};
+  }
+  const off = store.subscribe(() => {
+    if (store.get().area.width === 0) return;
+    off();
+    fn();
+  });
+  return off;
+}
+
+/** The drag held over a pane, moving from zone to zone (still, with reduced motion): returns what puts it away. */
+function cycleDrops(store: JaliStore): () => void {
+  let step = 0;
+  const run = () => {
+    if (store.get().area.width > 0) stageDrop(store, step++);
+  };
+  const first = setTimeout(run, 50);
+  const loop = reducedMotion() ? undefined : setInterval(run, 2200);
+  return () => {
+    clearTimeout(first);
+    clearInterval(loop);
+    store.set({ dnd: null });
+  };
+}
+
+/**
+ * A part a page can light by name: where it is in Jali's DOM, the label beside it, and, when the part isn't there
+ * by itself, the scene that shows it (set once the workspace has its size; it returns what undoes it). `inside` is
+ * whether the reader's pointer is in the figure: the drag stops for them.
+ */
+interface NamedPart {
+  selector: string;
+  label: string;
+  stage?(store: JaliStore, inside: boolean): (() => void) | undefined;
+}
+
+const NAMED = {
+  shelf: {
+    selector: "[data-shelf]",
+    label: "The shelf: panes you tucked away, one click from coming back",
+    stage: (store) => whenSized(store, () => stageShelf(store)),
+  },
+  folded: {
+    selector: ".jali-tab-folded",
+    label: "Folded: the panes there wasn't room for, one click from showing",
+  },
+  follow: {
+    selector: ".jali-follow-toggle",
+    label: "Following: this pane shows whatever is selected in the list",
+  },
+  "drop-zones": {
+    selector: ".jali-drop-indicator",
+    label: "Drop zone: where the pane lands when you let go",
+    stage: (store, inside) => (inside ? undefined : cycleDrops(store)),
+  },
+  tabs: { selector: ".jali-tabbar", label: "Tabs: panes that share one place" },
+  divider: { selector: ".jali-divider", label: "A divider: drag it to share the room differently" },
+} satisfies Record<string, NamedPart>;
+
+export type NamedTarget = keyof typeof NAMED;
+
 export function Spotlight({ layout, target, height = 320, caption, label }: SpotlightProps) {
   const store = useLiveStore(layout, caption ?? demoLayouts[layout]);
   const stage = useRef<HTMLDivElement>(null);
@@ -139,38 +183,14 @@ export function Spotlight({ layout, target, height = 320, caption, label }: Spot
   const [at, setAt] = useState<Place | null>(null);
   const labelEl = useRef<HTMLDivElement>(null);
   const [inside, setInside] = useState(false);
-  const named = NAMED[target];
+  const named: NamedPart | undefined = Object.hasOwn(NAMED, target)
+    ? NAMED[target as NamedTarget]
+    : undefined;
   const selector = named?.selector ?? target;
   const text = label ?? named?.label;
 
-  // Set the scene once the workspace has its size: something on the shelf, a drag held over a pane.
-  useEffect(() => {
-    if (target === "shelf") {
-      const off = store.subscribe(() => {
-        if (store.get().area.width > 0) {
-          off();
-          stageShelf(store);
-        }
-      });
-      if (store.get().area.width > 0) {
-        off();
-        stageShelf(store);
-      }
-      return off;
-    }
-    if (target !== "drop-zones" || inside) return;
-    let step = 0;
-    const run = () => {
-      if (store.get().area.width > 0) stageDrop(store, step++);
-    };
-    const first = setTimeout(run, 50);
-    const loop = reducedMotion() ? undefined : setInterval(run, 2200);
-    return () => {
-      clearTimeout(first);
-      clearInterval(loop);
-      store.set({ dnd: null });
-    };
-  }, [store, target, inside]);
+  // The part's scene, when it needs one: something on the shelf, a drag held over a pane.
+  useEffect(() => named?.stage?.(store, inside), [store, named, inside]);
 
   // Follow the part as it moves (a reshape slides it, a drag carries it): measured each frame while on screen.
   useEffect(() => {
@@ -222,7 +242,7 @@ export function Spotlight({ layout, target, height = 320, caption, label }: Spot
         onPointerEnter={() => setInside(true)}
         onPointerLeave={() => setInside(false)}
       >
-        <LiveWorkspace store={store} height={height} />
+        <LiveWorkspace jali={store.jali} height={height} />
         <div className="live-spot-layer" aria-hidden data-on={box ? "" : undefined}>
           {box ? (
             <div

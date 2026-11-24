@@ -3,12 +3,19 @@
  * a box with its tabs on top. Each box takes the share of room its pane has now, so the map has the workspace's shape
  * and the tree's structure at once. A folded or tucked pane is a dashed box inside the pane it went into.
  */
-import { useContext, type CSSProperties, type ReactNode } from "react";
+import {
+  useContext,
+  useLayoutEffect,
+  useRef,
+  type CSSProperties,
+  type ReactNode,
+  type RefObject,
+} from "react";
 import { RowsIcon, SquareSplitHorizontalIcon, StackIcon } from "@phosphor-icons/react";
 import type { LayoutNode, PaneNode, StackNode, Model as JaliModel } from "jali/adapter";
 import { KindIcon } from "jali/react";
-import { useEngineModel } from "./engine";
-import { PreviewRects, extentOf, panesUnder, sizeText, type Hover } from "./LayoutTree";
+import { useEngineModel } from "../workspace/engine";
+import { PreviewRects, extentOf, panesUnder, sizeText, type Hover } from "./nodes";
 import { colourOf } from "./colours";
 
 interface Ctx {
@@ -19,6 +26,50 @@ interface Ctx {
 }
 
 const px = (v: number) => `${Math.round(v)} px`;
+
+/** The smallest the map draws itself to fit: below it, words get too small to read, so the panel scrolls instead. */
+const MIN_ZOOM = 0.6;
+
+/**
+ * Fit the map to the room its panel gives it, like a minimap: measure its natural height at the panel's width, and
+ * zoom it out until it fits. Zoom reflows, so a smaller map is also a wider one and its words wrap less; a few passes
+ * settle it. Run when what it draws changes (`drawn`) and when the panel resizes, never for a hover.
+ */
+function useFitToPanel(ref: RefObject<HTMLDivElement | null>, drawn: readonly unknown[]) {
+  useLayoutEffect(() => {
+    const el = ref.current;
+    const host = el?.parentElement;
+    if (!el || !host) return;
+    const fit = () => {
+      const cs = getComputedStyle(host);
+      const W = host.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+      const H = host.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      if (W <= 0 || H <= 0) return;
+      el.style.minHeight = "0";
+      el.style.flex = "none";
+      let z = 1;
+      for (let i = 0; i < 4; i++) {
+        el.style.zoom = String(z);
+        el.style.width = `${W / z}px`;
+        const h = el.getBoundingClientRect().height;
+        const next = Math.max(MIN_ZOOM, Math.min(1, (z * H) / h));
+        if (Math.abs(next - z) < 0.01) break;
+        z = next;
+      }
+      el.style.minHeight = "";
+      el.style.flex = "";
+      if (z >= 0.995) {
+        el.style.zoom = "";
+        el.style.width = "";
+      }
+    };
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(host);
+    return () => ro.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `drawn` is the list of what the map draws
+  }, drawn);
+}
 
 /** Panes not on screen, drawn inside the pane they went into, with how they got there. */
 function guestsOf(host: string, m: JaliModel): { node: PaneNode; how: string }[] {
@@ -202,12 +253,15 @@ export function LayoutMap({
   sizes: boolean;
 }) {
   const m = useEngineModel();
+  const ref = useRef<HTMLDivElement>(null);
+  useFitToPanel(ref, [m.layout, m.resolved, sizes]);
   const pick = (e: { target: EventTarget }) => {
     const id = (e.target as Element).closest<HTMLElement>("[data-node]")?.dataset.node;
     if (id && id !== hover?.id) setHover({ id, from: "tree" });
   };
   return (
     <div
+      ref={ref}
       className="live-map"
       data-sizes={sizes || undefined}
       onPointerOver={pick}

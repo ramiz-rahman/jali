@@ -1,50 +1,13 @@
-/**
- * Shared pieces of the tree view: which panes sit under a node, the box a node fills now, sizes as text, and the
- * overlay card (what fitting and the person did on top of the tree, without changing it).
- */
-import { createContext, type CSSProperties } from "react";
+/** The overlay: kept beside the tree, so folding and tucking never rewrite the layout the person made. */
+import type { CSSProperties } from "react";
 import {
   ArchiveIcon,
   ArrowsInLineHorizontalIcon,
   EyeSlashIcon,
   StackIcon,
 } from "@phosphor-icons/react";
-import type { LayoutNode, Rect, Size } from "jali";
 import type { Model as JaliModel } from "jali/adapter";
 import { colourOf } from "./colours";
-
-export interface Hover {
-  id: string;
-  from: "tree" | "ws";
-}
-
-export const panesUnder = (n: LayoutNode): string[] =>
-  n.type === "pane" ? [n.id] : n.children.flatMap(panesUnder);
-
-const fmt = (v: number) => (Math.round(v * 100) / 100).toString();
-export const sizeText = (s: Size) =>
-  "px" in s ? `${fmt(s.px)} px fixed` : `weight ${fmt(s.weight)}`;
-
-/** Pane rects while a divider is being dragged (Jali moves the panes without a store change until release). */
-export const PreviewRects = createContext<Record<string, Rect> | null>(null);
-
-/** The box a node fills on screen: the union of its panes that are showing. */
-export function extentOf(
-  n: LayoutNode,
-  m: JaliModel,
-  preview?: Record<string, Rect> | null,
-): Rect | null {
-  const ids = new Set(panesUnder(n));
-  const boxes = m.resolved.panes
-    .filter((b) => ids.has(b.id) && !b.hidden)
-    .map((b) => preview?.[b.id] ?? b.rect);
-  if (!boxes.length) return null;
-  const x = Math.min(...boxes.map((r) => r.x)),
-    y = Math.min(...boxes.map((r) => r.y));
-  const r = Math.max(...boxes.map((b) => b.x + b.width)),
-    btm = Math.max(...boxes.map((b) => b.y + b.height));
-  return { x, y, width: r - x, height: btm - y };
-}
 
 function Chips({
   ids,
@@ -73,7 +36,6 @@ function Chips({
   );
 }
 
-/** The overlay: kept beside the tree, so folding and tucking never rewrite the layout the person made. */
 export function OverlayCard({ m }: { m: JaliModel }) {
   const ov = m.layout.overlay;
   const tucks = (ov?.tucks ?? []).map((t) => ({ id: t.pane, note: `behind ${m.title(t.home)}` }));

@@ -1,0 +1,479 @@
+/*
+ * The shop's panes: set to be read at arm's length, like a real app. The pane's header names the record, so the
+ * content never repeats it: it opens on what the header can't say. Kind icons in their pane's colour, and the
+ * narrow forms of each pane beside it.
+ */
+@layer live {
+  /* A pane's colour: its kind icon in a circle tinted with it, the same in its header, tab, shelf chip and map box.
+   The stroke is the colour pulled toward the text colour, so it keeps 3:1 or better on the tint in light and dark. */
+  .live-figure .live-kind {
+    --k: var(--live-id, var(--jali-text-subtle));
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--k) 18%, var(--jali-surface));
+    color: color-mix(in srgb, var(--k) 68%, var(--jali-text));
+  }
+  .live-figure .live-kind svg {
+    display: block;
+  }
+
+  /* ---------- the demo panes' content ----------
+     Set to be read at arm's length, like a real app: 15px text, 13px labels, room between rows. The pane's header names
+     the record, so the content never repeats it: it opens on what the header can't say. */
+  .live-k {
+    font-size: var(--live-text-body);
+    line-height: 1.45;
+    color: var(--jali-text);
+  }
+  .live-k-empty {
+    padding: 1rem;
+    color: var(--jali-text-subtle);
+  }
+  .live-k-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: flex;
+    justify-content: space-between;
+    padding: 0.625rem 1rem;
+    font-size: var(--live-text-label);
+    color: var(--jali-text-subtle);
+    background: var(--jali-surface);
+    border-bottom: 1px solid var(--jali-border);
+  }
+  .live-orders ul {
+    list-style: none;
+    margin: 0;
+    padding: 0.375rem;
+    outline: none;
+  }
+  .live-orders li {
+    position: relative;
+    display: grid;
+    grid-template-columns: 2.75rem minmax(0, 1fr) auto;
+    gap: 0.5rem;
+    align-items: center;
+    height: 2.75rem;
+    padding: 0 0.625rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+  }
+  .live-orders li:hover,
+  .live-orders li[data-menu-open] {
+    background: var(--jali-hover);
+  }
+  .live-orders li[aria-selected="true"] {
+    background: var(--jali-accent-weak);
+  }
+  .live-orders li[aria-selected="true"]::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.625rem;
+    bottom: 0.625rem;
+    width: 3px;
+    border-radius: 3px;
+    background: var(--jali-accent);
+  }
+  .live-orders-id {
+    font: var(--live-text-label) var(--jali-font-mono);
+    color: var(--jali-text-subtle);
+  }
+  .live-orders li[aria-selected="true"] .live-orders-id {
+    color: var(--jali-accent);
+  }
+  .live-orders-name {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    min-width: 0;
+    font-weight: 500;
+  }
+  .live-orders-name > span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .live-orders-name .live-avatar {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+  .live-orders-total {
+    font-variant-numeric: tabular-nums;
+    color: var(--jali-text-muted);
+  }
+  .live-order,
+  .live-customer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+    padding: 1rem 1.25rem;
+  }
+
+  /* An order opens on its amount, and the line under it says where the order is. */
+  .live-k-amount {
+    font-size: var(--live-text-amount);
+    line-height: 1.2;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .live-k-amount + .live-k-sub {
+    margin-top: -0.75rem;
+  }
+  /* The order's customer: one quiet row, the way a mail app shows who a message is from. */
+  .live-k-person {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: calc(100% + 1rem);
+    min-width: 0;
+    margin: 0 -0.5rem;
+    padding: 0.375rem 0.5rem;
+    border: 0;
+    border-radius: 0.5rem;
+    background: none;
+    color: var(--jali-text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .live-k-person:hover {
+    background: var(--jali-hover);
+  }
+  .live-k-person:focus-visible {
+    outline: 2px solid var(--jali-focus-ring);
+    outline-offset: -2px;
+  }
+  .live-k-person .live-avatar {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+  .live-k-person .live-k-row-sub {
+    flex: 1;
+    font-size: var(--live-text-small);
+  }
+  .live-k-status {
+    font-weight: 500;
+    color: var(--jali-text);
+  }
+  .live-k-status[data-status="refunded"] {
+    color: var(--jali-blocked);
+  }
+  .live-k-sub {
+    font-size: var(--live-text-small);
+    color: var(--jali-text-subtle);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* A row that opens something beside: the order's customer, the customer's notes. */
+  .live-k-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    min-height: 2.75rem;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid var(--jali-border);
+    border-radius: 0.625rem;
+    background: var(--jali-surface);
+    color: var(--jali-text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition:
+      border-color 120ms ease,
+      background-color 120ms ease;
+  }
+  .live-k-row:hover {
+    border-color: var(--jali-border-strong);
+    background: var(--jali-hover);
+  }
+  .live-k-row:focus-visible {
+    outline: 2px solid var(--jali-focus-ring);
+    outline-offset: 1px;
+  }
+  .live-k-row-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .live-k-row-title {
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .live-k-row-sub {
+    font-size: var(--live-text-label);
+    color: var(--jali-text-subtle);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .live-k-row-icon {
+    flex: none;
+    color: var(--jali-text-subtle);
+  }
+  .live-k-row-caret {
+    flex: none;
+    color: var(--jali-text-faint);
+  }
+  .live-k-count {
+    font-variant-numeric: tabular-nums;
+    color: var(--jali-text-subtle);
+  }
+
+  .live-k-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .live-k-label {
+    margin: 0;
+    font-size: var(--live-text-label);
+    font-weight: 500;
+    color: var(--jali-text-subtle);
+  }
+  .live-k-lines {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .live-k-lines li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 0.75rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--jali-border);
+  }
+  .live-k-line-item {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .live-k-line-qty {
+    font-size: var(--live-text-small);
+    color: var(--jali-text-subtle);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .live-k-lines li:last-child {
+    border-bottom: 0;
+  }
+  .live-k-num {
+    flex: none;
+    min-width: 4.5rem;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* A customer opens on their face and who they are to the shop. */
+  .live-k-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+  }
+  .live-k-profile .live-avatar {
+    width: 3rem;
+    height: 3rem;
+  }
+  .live-k-profile-text .live-k-sub {
+    white-space: normal;
+  }
+  .live-k-profile-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.125rem;
+    min-width: 0;
+  }
+  .live-k-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(5.25rem, 1fr));
+    gap: 0.5rem;
+    margin: 0;
+  }
+  .live-k-stats > div {
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--jali-border);
+  }
+  .live-k-stats dt {
+    font-size: var(--live-text-label);
+    color: var(--jali-text-subtle);
+  }
+  .live-k-stats dd {
+    margin: 0.125rem 0 0;
+    font-size: var(--live-text-stat);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+  }
+  .live-k-fact {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    color: var(--jali-text-muted);
+  }
+  .live-k-fact svg {
+    flex: none;
+    color: var(--jali-text-subtle);
+  }
+  .live-k-fact span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .live-avatar {
+    flex: none;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--jali-accent-weak);
+  }
+  .live-notes {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+    padding: 1rem;
+  }
+  /* Focusable so a keyboard can scroll them; the pane's own ring already says where focus is. */
+  .live-notes:focus-visible,
+  .live-activity:focus-visible {
+    outline: none;
+  }
+  .live-notes article {
+    padding: 0.75rem 0.875rem;
+    border-radius: 0.625rem;
+    background: var(--jali-canvas);
+  }
+  .live-notes header {
+    display: flex;
+    justify-content: space-between;
+    font-size: var(--live-text-label);
+    color: var(--jali-text-subtle);
+    margin-bottom: 0.25rem;
+  }
+  .live-notes header b {
+    font-weight: 500;
+    color: var(--jali-text-muted);
+  }
+  .live-notes p {
+    margin: 0;
+    font-size: var(--live-text-body);
+    line-height: 1.5;
+  }
+  /* ol.: outranks the figure's list reset (figures/figure.css), which otherwise takes the feed's padding. */
+  ol.live-activity {
+    list-style: none;
+    margin: 0;
+    padding: 1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+  }
+  /* A timeline: each event's dot on one line down the left, its time under its words. */
+  .live-activity li {
+    position: relative;
+    display: grid;
+    grid-template-columns: 0.5rem minmax(0, 1fr);
+    column-gap: 0.875rem;
+    padding: 0 0 1rem;
+  }
+  .live-activity li:last-child {
+    padding-bottom: 0;
+  }
+  .live-activity li:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    left: calc(0.25rem - 0.5px);
+    top: 1.125rem;
+    bottom: 0.125rem;
+    border-left: 1px solid var(--jali-border);
+  }
+  .live-activity-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    margin-top: 0.4375rem;
+    border-radius: 50%;
+    background: var(--jali-text-faint);
+  }
+  .live-activity li[data-tone="accent"] .live-activity-dot {
+    background: var(--jali-accent);
+  }
+  .live-activity li[data-tone="done"] .live-activity-dot {
+    background: var(--jali-done);
+  }
+  .live-activity li[data-tone="warn"] .live-activity-dot {
+    background: var(--jali-blocked);
+  }
+  .live-activity-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-width: 0;
+  }
+  .live-activity-text > span {
+    font-size: var(--live-text-body);
+    line-height: 1.4;
+    color: var(--jali-text);
+  }
+  .live-activity time {
+    font-size: var(--live-text-label);
+    color: var(--jali-text-subtle);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* A narrow pane gives its words the room: the list drops its faces before it cuts a name, and the detail panes
+     tighten their margins and their headline. */
+  /* A narrow order: each line's quantity goes under its name, so the amount keeps its line. */
+  @container (max-width: 24rem) {
+    .live-k-lines li {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 0 0.75rem;
+    }
+    .live-k-line-qty {
+      grid-row: 2;
+    }
+    .live-k-num {
+      grid-column: 2;
+      grid-row: 1;
+    }
+  }
+  @container (max-width: 22rem) {
+    .live-orders li {
+      grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+    }
+    .live-orders-name .live-avatar {
+      display: none;
+    }
+  }
+  @container (max-width: 18rem) {
+    .live-order,
+    .live-customer {
+      gap: 0.875rem;
+      padding: 1rem;
+    }
+    .live-k-amount + .live-k-sub {
+      margin-top: -0.625rem;
+    }
+    .live-k-amount {
+      font-size: var(--live-text-amount-tight);
+    }
+    .live-k-profile {
+      gap: 0.75rem;
+    }
+    .live-k-profile .live-avatar {
+      width: 2.5rem;
+      height: 2.5rem;
+    }
+  }
+}

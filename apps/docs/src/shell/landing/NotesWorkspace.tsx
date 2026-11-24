@@ -9,9 +9,9 @@ import { useId, useState, useSyncExternalStore } from "react";
 import { createJali, memoryLocation, memoryStorage, type Jali } from "jali";
 import { JaliRoot } from "jali/react";
 import { note } from "../../samples/concepts/quickstart/note-open-beside";
-import { demoKinds } from "../../live/kinds";
-import { buildDemoLayout, demoLayouts, type DemoLayoutId } from "../../live/demo";
-import { ClientOnly } from "../../live/ClientOnly";
+import { shopKinds } from "../../live/shop/kinds";
+import { buildDemoLayout, demoLayouts, type DemoLayoutId } from "../../live/shop/layouts";
+import { ClientOnly } from "../../live/workspace/ClientOnly";
 import { chooser } from "jali/chooser";
 import { palette } from "jali/palette";
 import { urlSync } from "jali/url";
@@ -48,7 +48,7 @@ function makeApp(source: Source, id: string): LandingApp {
         })
       : createJali({
           ...embedded,
-          panes: demoKinds,
+          panes: shopKinds,
           layout: buildDemoLayout(source.layout),
           name: "Shop",
           label: demoLayouts[source.layout],

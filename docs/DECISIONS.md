@@ -2434,3 +2434,25 @@ who has read one example finds their way in another, and can tell what a part ma
 - **The app's keys win over Jali's defaults.** Before, a default was placed first and the app's binding on the same keys was refused, so a default added in a release could silently take keys an app already used. Now the host's bindings (`keyboard.keymap` and its commands' `keys`) are placed first: a default on the same keys gives up that binding, and the warning (`onInvalid`, a console warning by default) names both ("⌘K ⌘F runs app.find, which the app bound"). Between two of the host's own bindings, the first still wins and the second is refused. The keys list in the table's order as before.
 - **Reviewed and kept:** every other default, against VS Code, Zed, iTerm2, kitty, tmux and the browser and OS keys (docs/research/keyboard-shortcuts.md): each matches a key people know from one of those, or stands in for one the browser takes (⌘W, ⇧⌘T). One caveat is recorded there as an open question: moving a tab needs Page keys, which a Mac laptop reaches with Fn.
 - **Tests:** `keyboard.test.ts` presses ⌘K ⌘F (full screen, and back) and checks that an app's binding takes a default's keys; `e2e/fullscreen.spec.ts` presses it in real browsers. The reserved-key test covers it, as it covers every default.
+
+## 24 Nov 2026 · The shop demo: a Singapore shop, a story for the hero, and the live parts by what they are
+
+- **Why:** the home page's demo is the first Jali code people see, so it should read like the examples: one shape,
+  public API only, and no code nothing calls. The tour was a list of features (tabs, pin, split, fold) rather than
+  something a person would do.
+- **The shop:** customers and goods of a multicultural city (Singapore), in US dollars, with a portrait each
+  (`public/media/people/`). The panes open on what their header can't say (an order's amount and state, a customer's
+  plan and spend) and are set at 15px, on the live parts' type scale (`src/live/type.css`).
+- **The hero's story** (`src/live/hero/tour/story.ts`): pick an order, and its detail and customer follow; open the
+  customer's notes beside him; keep his order and open his earlier, refunded one; drag it beside the first; the
+  layout tree, which is also the link. It starts from `desk`, a list beside its order with the customer under it. The
+  tour clicks through the same code as a reader (`shop/open.ts`). The hero is its own island, `<Hero>`; `TreeView`
+  is only the docs' figure, and lost `panels="side"`, `tour` and `json`.
+- **The order list** opens an order beside when nothing follows it, so "keep, then click the next" compares; its row
+  menu (right-click, Shift+F10) lists Open, Open beside (when it differs) and the customer. "Open as a tab" was tried
+  and left out: a follower behind a tab kept changing out of sight.
+- **The structure:** `src/live/{shop, workspace, tree, figures, hero}`, one file per pane with its kind, one layout
+  registry, CSS beside each part. Everything Jali's public API doesn't give yet is in `workspace/jali-gaps.ts`, each
+  piece a finding in `src/live/FINDINGS.md`. The customer and notes panes still follow the pane before them (order →
+  customer → notes) rather than the list, so the tree shows the chain; a kind's `follow` would skip a link of it.
+- **Tests:** `e2e/tour.spec.ts` follows the story; the axe scans cover the new panes.

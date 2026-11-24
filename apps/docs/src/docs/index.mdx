@@ -3,7 +3,7 @@ title: Jali
 summary: A new layout primitive for React apps. Split any part of your app into adaptive tiling panes; your users arrange them the way they work, on any screen.
 ---
 
-import { TreeView, Frame } from "../live";
+import { Hero, Frame } from "../live";
 import { ExampleShowcase } from "../examples/ExampleApp";
 import { Opening, Stage, Section, MinimalApp, Path, Proof, LinkDemo, FollowDemo, KeysDemo, Close, Imports, Import, SiteFooter } from "../shell/landing";
 
@@ -11,7 +11,7 @@ import { Opening, Stage, Section, MinimalApp, Path, Proof, LinkDemo, FollowDemo,
 </Opening>
 
 <Stage>
-  <TreeView layout="chain" panels="side" height="min(70vh, 720px)" tour />
+  <Hero layout="desk" height="min(70vh, 720px)" />
 </Stage>
 
 <Section id="quickstart" label="Quickstart" title="The quickstart app, in three files" lead="One kind of pane, the note it opens on, and the view. The panes beside the code are that code, running: click a note's button to open the next.">

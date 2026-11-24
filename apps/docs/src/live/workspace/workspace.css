@@ -1,0 +1,61 @@
+/*
+ * The workspace in its box: Jali's root at the box's size, the status line under the panes, and a narrow pane's
+ * follow control.
+ */
+@layer live {
+  /* ---------- the workspace in its box ---------- */
+  .live-ws {
+    position: relative;
+    overflow: hidden;
+    background: var(--jali-canvas);
+  }
+  .live-jali {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    font-family: var(--jali-font);
+    font-size: var(--live-text-small);
+    line-height: 1.4;
+  }
+  .live-jali > .jali-layout {
+    flex: 1 1 0;
+  }
+  .live-statusbar {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    height: 1.75rem;
+    padding: 0 0.625rem;
+    border-top: 1px solid var(--jali-border);
+    background: var(--jali-surface);
+    font-size: var(--live-text-caption);
+    color: var(--jali-text-subtle);
+  }
+  .live-statusbar .jali-shelf {
+    min-width: 0;
+  }
+  .live-statusbar[data-one-pane] .jali-shelf {
+    display: none;
+  }
+  .live-statusbar-count {
+    margin-left: auto;
+    flex: none;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .live-jali .jali-shelf-fade-l {
+    background: linear-gradient(to right, var(--jali-surface), transparent);
+  }
+
+  /* A narrow pane keeps its title: the follow control drops its word and keeps its icon. */
+  .live-ws .jali-pane {
+    container-type: inline-size;
+  }
+  @container (max-width: 250px) {
+    .live-ws .jali-follow-toggle > span {
+      display: none;
+    }
+  }
+}

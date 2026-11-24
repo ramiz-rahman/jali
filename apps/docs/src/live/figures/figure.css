@@ -1,0 +1,101 @@
+/*
+ * Every live figure: the page's prose styles kept off the workspace inside it, its caption, and text for screen
+ * readers only.
+ */
+@layer live {
+  .live-figure {
+    /* A figure's layers (the spotlight's ring and label, the workspace) stack inside it, under the site's top bar. */
+    isolation: isolate;
+    --live-radius: 0.875rem;
+    --live-guide: var(--jali-border-strong);
+    --live-scrim: color-mix(in srgb, var(--jali-canvas) 70%, transparent);
+    container: live-fig / inline-size;
+    margin: 2rem 0;
+    padding: 0;
+    font-family: var(--jali-font);
+    color: var(--jali-text);
+    -webkit-font-smoothing: antialiased;
+  }
+  .live-figure *,
+  .live-figure *::before,
+  .live-figure *::after {
+    box-sizing: border-box;
+  }
+  /* The page's prose styles (headings, lists, paragraphs, tables) are for the text around a figure, not the
+   workspace inside it: undone here, then Jali's own values restored where prose would have beaten them. */
+  .live-figure :is(h1, h2, h3, h4) {
+    margin: 0;
+    letter-spacing: normal;
+    scroll-margin-top: 0;
+  }
+  .live-figure :is(p, blockquote) {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    text-wrap: wrap;
+  }
+  .live-figure :is(ul, ol) {
+    margin: 0;
+    padding: 0;
+  }
+  .live-figure li {
+    margin: 0;
+    padding: 0;
+  }
+  .live-figure :is(td, th) {
+    padding: 0;
+    border-bottom: 0;
+    vertical-align: middle;
+    font: inherit;
+  }
+  .live-figure table {
+    font-size: inherit;
+    line-height: inherit;
+  }
+  .live-figure .jali-pane-title h2 {
+    font: 500 var(--live-text-label)/normal var(--jali-font);
+    color: var(--jali-text);
+  }
+  .live-figure .jali-confirm h2 {
+    font: 600 var(--live-text-small)/normal var(--jali-font);
+    margin: 0 0 0.5rem;
+  }
+  .live-figure .jali-confirm p {
+    margin: 0 0 0.5rem;
+  }
+  .live-figure .jali-confirm ul {
+    margin: 0 0 1rem;
+    padding-left: 1.125rem;
+  }
+  .live-figure .jali-confirm li {
+    margin: 0;
+  }
+  .live-figure .jali-palette-list {
+    padding: 0.375rem;
+  }
+  /* The site's reset makes every svg a block; Jali's icons sit in lines of text and expect the default. */
+  .live-figure svg {
+    display: inline;
+    max-width: none;
+  }
+  .live-figure .jali-shelf-home {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  .live-caption {
+    margin: 0.625rem 0.125rem 0;
+    font-size: var(--live-text-label);
+    line-height: 1.5;
+    color: var(--jali-text-subtle);
+  }
+  .live-sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+}

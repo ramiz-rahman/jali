@@ -1,6 +1,5 @@
 import {
   useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -10,9 +9,10 @@ import {
 } from "react";
 import { ArrowCounterClockwiseIcon, ArrowsInLineHorizontalIcon } from "@phosphor-icons/react";
 import { GAP as JALI_GAP, layout as jl, type Layout, type JaliStore } from "jali/adapter";
-import type { DemoLayoutId } from "./demo";
-import { demoLayouts } from "./demo";
-import { LiveWorkspace, resetLive, useLiveStore } from "./LiveWorkspace";
+import { demoLayouts, type DemoLayoutId } from "../shop/layouts";
+import { LiveWorkspace } from "../workspace/LiveWorkspace";
+import { resetLive, useLiveStore } from "../workspace/useLiveStore";
+import { useWidth } from "./useWidth";
 
 /** A live workspace in a frame the reader can resize, to watch panes fold and return. */
 export interface FrameProps {
@@ -70,20 +70,10 @@ export function Frame({ layout, width, minWidth = 260, height = 320, caption }: 
   const m = useSyncExternalStore(store.subscribe, store.model, store.model);
   const track = useRef<HTMLDivElement>(null);
   const box = useRef<HTMLDivElement>(null);
-  const [max, setMax] = useState(0);
+  // The most the frame can be: the column it sits in.
+  const max = useWidth(track);
   const [w, setW] = useState<number | null>(width ?? null);
   const [dragging, setDragging] = useState(false);
-
-  // The most the frame can be: the column it sits in.
-  useLayoutEffect(() => {
-    const el = track.current;
-    if (!el) return;
-    const measure = () => setMax(Math.floor(el.clientWidth));
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
   const lo = Math.min(minWidth, max || minWidth);
   const cur = max ? Math.max(lo, Math.min(max, w ?? max)) : (w ?? 0);
 
@@ -219,7 +209,7 @@ export function Frame({ layout, width, minWidth = 260, height = 320, caption }: 
         </div>
         <div className="live-frame-room">
           <div className="live-frame-box" ref={box} style={{ width: cur || "100%" }}>
-            <LiveWorkspace store={store} height={height} />
+            <LiveWorkspace jali={store.jali} height={height} />
             <div
               className="live-frame-handle"
               role="separator"

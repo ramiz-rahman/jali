@@ -6,7 +6,7 @@
  */
 import { useLayoutEffect, useMemo, useRef, type CSSProperties, type ReactNode } from "react";
 import { colourOf } from "./colours";
-import type { Hover } from "./LayoutTree";
+import type { Hover } from "./nodes";
 
 type Json = null | boolean | number | string | Json[] | { [k: string]: Json };
 type Obj = { [k: string]: Json };

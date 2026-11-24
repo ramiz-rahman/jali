@@ -1,0 +1,101 @@
+/*
+ * The layout tree as JSON: lines with numbers, a node's lines lit in its pane's colour, changed lines flashing.
+ */
+@layer live {
+  /* JSON, drawn as lines: a highlight is a square band across the whole line, gutter and number included. */
+  .live-json {
+    margin: 0;
+    padding: 0.625rem 0 0.875rem;
+    overflow: auto;
+    outline: none;
+    background: none;
+    border: 0;
+    scrollbar-width: thin;
+    font: var(--live-text-label)/1.6 var(--jali-font-mono);
+    color: var(--jali-text-subtle);
+    white-space: pre;
+    tab-size: 2;
+  }
+  .live-json:focus-visible {
+    box-shadow: inset 0 0 0 2px var(--jali-focus-ring);
+  }
+  .live-json code {
+    display: block;
+    min-width: max-content;
+    font: inherit;
+    background: none;
+    padding: 0;
+    color: inherit;
+  }
+  .live-json .j-row {
+    display: flex;
+    padding-right: 0.875rem;
+  }
+  /* Line numbers: quiet, never selected or copied, kept in view when the JSON scrolls sideways. */
+  .live-json .j-ln {
+    position: sticky;
+    left: 0;
+    flex: none;
+    width: var(--gutter);
+    padding: 0 0.75rem 0 0.5rem;
+    box-sizing: content-box;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    color: var(--jali-text-faint);
+    background: var(--jali-surface);
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .live-json .j-text {
+    flex: 1;
+  }
+  .live-json .j-key {
+    color: var(--jali-text);
+  }
+  .live-json .j-str {
+    color: var(--jali-accent);
+  }
+  .live-json .j-num {
+    color: var(--jali-text);
+    font-weight: 500;
+  }
+  .live-json .j-bool {
+    color: var(--jali-text-muted);
+    font-style: italic;
+  }
+  /* Hover: the node's run of lines in its pane's colour. */
+  .live-json .j-row[data-lit],
+  .live-json .j-row[data-lit] .j-ln {
+    background: color-mix(in srgb, var(--c) 11%, var(--jali-surface));
+  }
+  .live-json .j-row[data-lit] .j-ln {
+    color: var(--c);
+  }
+  /* Changed: a Nil band that fades. Animated on the row and its number together, so they read as one band. */
+  .live-json .j-row[data-changed],
+  .live-json .j-row[data-changed] .j-ln {
+    animation: live-json-flash 1.8s cubic-bezier(0.2, 0, 0, 1);
+  }
+  .live-json .j-row[data-changed] .j-ln {
+    animation-name: live-json-flash-ln;
+  }
+  @keyframes live-json-flash {
+    0%,
+    25% {
+      background-color: color-mix(in srgb, var(--jali-accent) 20%, var(--jali-surface));
+    }
+  }
+  @keyframes live-json-flash-ln {
+    0%,
+    25% {
+      background-color: color-mix(in srgb, var(--jali-accent) 20%, var(--jali-surface));
+      color: var(--jali-accent);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .live-json .j-row[data-changed],
+    .live-json .j-row[data-changed] .j-ln {
+      animation: none;
+    }
+  }
+}

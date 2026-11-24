@@ -4,6 +4,7 @@
  */
 export type IslandName =
   | "TreeView"
+  | "Hero"
   | "Frame"
   | "Spotlight"
   | "QuickstartApp"

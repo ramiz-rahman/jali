@@ -1,0 +1,13 @@
+/* One type scale for the live parts: whole pixels on the site's scale, named for what the text is. */
+@layer live {
+  :root {
+    --live-text-tiny: 11px; /* ruler marks, sizes on map boxes */
+    --live-text-caption: 12px; /* metadata, JSON, map labels */
+    --live-text-label: 13px; /* labels, secondary lines, controls */
+    --live-text-small: 14px; /* hints, captions, sub-lines */
+    --live-text-body: 15px; /* the panes' text */
+    --live-text-stat: 18px; /* a figure in a stat */
+    --live-text-amount-tight: 22px; /* an order's amount in a narrow pane */
+    --live-text-amount: 24px; /* an order's amount */
+  }
+}

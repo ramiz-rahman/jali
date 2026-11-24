@@ -7,14 +7,34 @@ import { islandPrefix, type IslandName } from "./island-id";
 
 /** Every island, and where its code is. Each loads on its own, the first time a page needs it. */
 const REGISTRY = {
-  TreeView: () => import("../live/TreeView").then((m) => m.TreeView),
-  Frame: () => import("../live/Frame").then((m) => m.Frame),
-  Spotlight: () => import("../live/Spotlight").then((m) => m.Spotlight),
-  QuickstartApp: () => import("../live/Quickstart").then((m) => m.QuickstartApp),
+  TreeView: () => import("../live/figures/TreeView").then((m) => m.TreeView),
+  Hero: () => import("../live/hero/Hero").then((m) => m.Hero),
+  Frame: () => import("../live/figures/Frame").then((m) => m.Frame),
+  Spotlight: () => import("../live/figures/Spotlight").then((m) => m.Spotlight),
+  QuickstartApp: () => import("../live/figures/Quickstart").then((m) => m.QuickstartApp),
   LinkDemo: () => import("../shell/landing/demos").then((m) => m.LinkDemo),
   FollowDemo: () => import("../shell/landing/demos").then((m) => m.FollowDemo),
   KeysDemo: () => import("../shell/landing/demos").then((m) => m.KeysDemo),
 } satisfies Record<IslandName, () => Promise<ComponentType<never>>>;
+
+/**
+ * In `astro dev`, every React module checks that React Refresh's preamble ran first, and throws if it didn't. Astro
+ * adds the preamble only to pages with `client:` components; ours hydrate here instead, so they install it themselves.
+ * Dev only: the build has no Refresh.
+ */
+let preamble: Promise<void> | undefined;
+function installRefreshPreamble() {
+  const w = window as unknown as Record<string, unknown>;
+  if (w.__vite_plugin_react_preamble_installed__) return Promise.resolve();
+  return (preamble ??= import(/* @vite-ignore */ "/@react-refresh" as string).then(
+    ({ default: Refresh }) => {
+      Refresh.injectIntoGlobalHook(window);
+      w.$RefreshReg$ = () => {};
+      w.$RefreshSig$ = () => (type: unknown) => type;
+      w.__vite_plugin_react_preamble_installed__ = true;
+    },
+  ));
+}
 
 /** Islands whose code is loading now, so a second ask (Try again pressed twice) doesn't load it twice. */
 const loading = new WeakSet<HTMLElement>();
@@ -30,6 +50,7 @@ async function hydrate(el: HTMLElement) {
   loading.add(el);
   let modules;
   try {
+    if (import.meta.env.DEV) await installRefreshPreamble();
     modules = await Promise.all([
       import("react"),
       import("react-dom/client"),

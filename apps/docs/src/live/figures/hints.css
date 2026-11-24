@@ -1,0 +1,35 @@
+/*
+ * The row of things to try: one line of hints with their icons. A hint that needs panes side by side is left out
+ * where a phone shows one pane at a time.
+ */
+@layer live {
+  /* The prompt row: what to try, in a line under the figure. */
+  .live-tries {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
+    list-style: none;
+    margin: 0 0 0.75rem !important;
+    padding: 0 !important;
+  }
+  .live-tries li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4375rem;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: var(--live-text-small);
+    line-height: 1.4;
+    color: var(--jali-text-muted);
+  }
+  .live-tries svg {
+    flex: none;
+    color: var(--jali-accent);
+  }
+
+  @media (max-width: 767px) {
+    .live-tries li[data-side-by-side] {
+      display: none;
+    }
+  }
+}

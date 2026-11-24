@@ -7,7 +7,7 @@ import { AnchorSimpleIcon, LinkSimpleHorizontalIcon } from "@phosphor-icons/reac
 import type { Jali } from "jali";
 import { formatKeys } from "jali/adapter";
 import { PALETTE_ID, runCommand } from "jali/adapter";
-import { useHydrated } from "../../live/ClientOnly";
+import { useHydrated } from "../../live/workspace/ClientOnly";
 import { LandingWorkspace, useAddress, useLandingApp } from "./NotesWorkspace";
 
 /** What the order details of the list are doing, as one string, so React re-renders only when it changes. */

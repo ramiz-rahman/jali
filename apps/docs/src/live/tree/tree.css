@@ -1,0 +1,270 @@
+/*
+ * A workspace beside its tree: the panes lit from the tree, the panel controls, each pane's identity colour, the
+ * grid the workspace and its panels share, and the panels' chrome.
+ */
+@layer live {
+  /* Lit from the tree: the pane rings in indigo, the rest step back. */
+  .live-ws .jali-pane {
+    transition:
+      opacity 160ms ease,
+      box-shadow 160ms ease,
+      border-color 160ms ease;
+  }
+  .live-ws .jali-pane[data-live-lit] {
+    border-color: var(--jali-accent);
+    box-shadow:
+      0 0 0 1px var(--jali-accent),
+      0 0 0 5px var(--jali-accent-mid);
+    z-index: 6;
+  }
+  .live-ws .jali-pane[data-live-dim] {
+    opacity: 0.38;
+  }
+  .live-ws [data-tab][data-live-lit] {
+    background: var(--jali-accent-mid);
+    color: var(--jali-text);
+    box-shadow: inset 0 -2px 0 var(--jali-accent);
+  }
+  .live-ws [data-chip][data-live-lit] {
+    border-color: var(--jali-accent);
+    background: var(--jali-accent-weak);
+    color: var(--jali-text);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .live-ws .jali-pane {
+      transition: none;
+    }
+  }
+
+  /* ---------- small controls ---------- */
+  .live-icon-btn {
+    display: inline-grid;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    padding: 0;
+    flex: none;
+    border: 0;
+    border-radius: var(--jali-radius-control);
+    background: none;
+    color: var(--jali-text-subtle);
+    cursor: pointer;
+  }
+  .live-icon-btn:hover {
+    background: var(--jali-hover);
+    color: var(--jali-text);
+  }
+  .live-icon-btn:focus-visible,
+  .live-seg button:focus-visible {
+    outline: 2px solid var(--jali-focus-ring);
+    outline-offset: 1px;
+  }
+  .live-seg {
+    display: inline-flex;
+    padding: 2px;
+    gap: 2px;
+    border-radius: 0.4375rem;
+    background: var(--jali-canvas);
+    border: 1px solid var(--jali-border);
+  }
+  .live-seg button {
+    height: 1.375rem;
+    padding: 0 0.5625rem;
+    border: 0;
+    border-radius: 0.3125rem;
+    background: none;
+    cursor: pointer;
+    font: 500 var(--live-text-tiny)/1 var(--jali-font);
+    letter-spacing: 0.01em;
+    color: var(--jali-text-subtle);
+  }
+  .live-seg button:hover {
+    color: var(--jali-text);
+  }
+  .live-seg button[aria-pressed="true"] {
+    background: var(--jali-surface);
+    color: var(--jali-text);
+    box-shadow:
+      var(--jali-shadow-raised),
+      0 0 0 1px var(--jali-border);
+  }
+
+  /* ---------- Tree view: the workspace, and its layout tree drawn as a map ---------- */
+  /* Identity colours: one per pane, on its map box and its header in the workspace. Nil indigo in three depths,
+   a warm sand and a stone; never a rainbow. */
+  .live-figure {
+    --live-id-1: #4456c7;
+    --live-id-2: #c08a2e;
+    --live-id-3: #8c9bea;
+    --live-id-4: #8a8178;
+    --live-id-5: #2b3990;
+  }
+  :root[data-theme="dark"] .live-figure,
+  .dark .live-figure {
+    --live-id-1: #8c9bea;
+    --live-id-2: #d9a648;
+    --live-id-3: #5d6fd6;
+    --live-id-4: #a8a29e;
+    --live-id-5: #c3cbf5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .live-figure {
+      --live-id-1: #8c9bea;
+      --live-id-2: #d9a648;
+      --live-id-3: #5d6fd6;
+      --live-id-4: #a8a29e;
+      --live-id-5: #c3cbf5;
+    }
+  }
+
+  .live-tv-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    border: 1px solid var(--jali-border);
+    border-radius: var(--live-radius);
+    background: var(--jali-surface);
+    overflow: hidden;
+  }
+  .live-tv .live-stage {
+    position: relative;
+    min-width: 0;
+  }
+  .live-panel {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    border-top: 1px solid var(--jali-border);
+    background: var(--jali-surface);
+  }
+  .live-panels {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+  }
+  .live-panels > .live-panel {
+    flex: 1 1 0;
+  }
+  .live-panel-head {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    min-height: 3rem;
+    padding: 0.375rem 0.5rem 0.375rem 1rem;
+    border-bottom: 1px solid var(--jali-border);
+  }
+  .live-panel-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 0.5rem;
+    min-width: 0;
+  }
+  .live-panel-title b {
+    font-size: var(--live-text-body);
+    font-weight: 600;
+    color: var(--jali-text);
+  }
+  .live-panel-title span {
+    font-size: var(--live-text-label);
+    color: var(--jali-text-subtle);
+  }
+  .live-panel-tools {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    flex: none;
+  }
+  .live-toggle {
+    height: 1.75rem;
+    padding: 0 0.625rem;
+    border-radius: 0.4375rem;
+    border: 1px solid var(--jali-border-strong);
+    background: var(--jali-surface);
+    font: 500 var(--live-text-label)/1 var(--jali-font);
+    color: var(--jali-text-muted);
+    cursor: pointer;
+  }
+  .live-toggle:hover {
+    color: var(--jali-text);
+    border-color: var(--jali-control);
+  }
+  .live-toggle[aria-pressed="true"] {
+    background: var(--jali-accent-weak);
+    border-color: var(--jali-accent-mid);
+    color: var(--jali-accent);
+  }
+  .live-toggle:focus-visible {
+    outline: 2px solid var(--jali-focus-ring);
+    outline-offset: 1px;
+  }
+  .live-panel-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+    min-height: 0;
+    padding: 1rem;
+    overflow: auto;
+  }
+  .live-panel-body.is-json {
+    padding: 0;
+    overflow: hidden;
+  }
+  .live-panel-body.is-json .live-json {
+    flex: 1;
+    min-height: 0;
+    max-height: 28rem;
+  }
+  /* Beside the workspace: the panels are as tall as it, and grow with the figure. */
+  @container live-fig (min-width: 56rem) {
+    .live-tv-grid {
+      grid-template-columns: minmax(0, 2fr) minmax(18.5rem, 1fr);
+      grid-template-rows: var(--live-ws-h);
+    }
+    .live-tv[data-parts="3"] .live-tv-grid {
+      grid-template-columns: minmax(38rem, 2fr) minmax(16rem, 1fr) minmax(17rem, 1fr);
+    }
+    .live-tv-grid > .live-panel,
+    .live-panels {
+      border-top: 0;
+      border-left: 1px solid var(--jali-border);
+    }
+    .live-panels > .live-panel + .live-panel {
+      border-top: 1px solid var(--jali-border);
+    }
+    .live-panels > .live-panel {
+      border-top: 0;
+    }
+    .live-panel-body.is-json .live-json {
+      max-height: none;
+    }
+  }
+
+  .live-tv .live-caption {
+    font-size: var(--live-text-small);
+  }
+
+  /* Lit from the map: the pane rings in its own colour, the same as its box. */
+  .live-ws .jali-pane[data-live-lit][data-live-id] {
+    border-color: var(--live-id);
+    box-shadow:
+      0 0 0 1px var(--live-id),
+      0 0 0 5px color-mix(in srgb, var(--live-id) 24%, transparent);
+  }
+
+  @container live-panel (max-width: 24rem) {
+    .live-panel-head {
+      flex-wrap: wrap;
+      row-gap: 0.25rem;
+      padding-top: 0.5rem;
+      padding-bottom: 0.5rem;
+    }
+    .live-panel-tools {
+      margin-left: auto;
+    }
+  }
+}

@@ -1,0 +1,86 @@
+/*
+ * Spotlight: a workspace dimmed but one part, with a label beside it.
+ */
+@layer live {
+  /* ---------- Spotlight: everything dimmed but one part ---------- */
+  .live-spot-stage {
+    position: relative;
+    border: 1px solid var(--jali-border);
+    border-radius: var(--live-radius);
+    overflow: hidden;
+    background: var(--jali-canvas);
+  }
+  .live-spot-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 40;
+  }
+  .live-spot-hole {
+    position: absolute;
+    border-radius: 0.625rem;
+    box-shadow:
+      0 0 0 1.5px var(--jali-accent),
+      0 0 0 6px var(--jali-accent-mid),
+      0 0 0 200vmax var(--live-scrim);
+    transition:
+      left 360ms cubic-bezier(0.2, 0, 0, 1),
+      top 360ms cubic-bezier(0.2, 0, 0, 1),
+      width 360ms cubic-bezier(0.2, 0, 0, 1),
+      height 360ms cubic-bezier(0.2, 0, 0, 1),
+      box-shadow 240ms ease;
+    animation: live-fade 420ms ease both;
+  }
+  .live-spot-stage[data-inside] .live-spot-hole {
+    box-shadow:
+      0 0 0 1.5px var(--jali-accent),
+      0 0 0 6px var(--jali-accent-weak),
+      0 0 0 200vmax color-mix(in srgb, var(--jali-canvas) 30%, transparent);
+  }
+  .live-spot-label {
+    position: absolute;
+    max-width: min(19rem, calc(100% - 1rem));
+    padding: 0.375rem 0.625rem;
+    border-radius: 0.5rem;
+    background: var(--jali-accent);
+    color: var(--jali-on-accent);
+    font-size: var(--live-text-caption);
+    line-height: 1.35;
+    font-weight: 500;
+    box-shadow: var(--jali-shadow-chip);
+    transition:
+      left 360ms cubic-bezier(0.2, 0, 0, 1),
+      top 360ms cubic-bezier(0.2, 0, 0, 1),
+      opacity 200ms;
+    animation: live-fade 420ms 120ms ease both;
+  }
+  .live-spot-stage[data-inside] .live-spot-label {
+    opacity: 0.25;
+  }
+  @keyframes live-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes live-pop {
+    from {
+      opacity: 0;
+      transform: scale(0.92);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .live-spot-hole,
+    .live-spot-label {
+      transition: none;
+      animation: none;
+    }
+  }
+}
