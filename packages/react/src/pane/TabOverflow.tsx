@@ -99,7 +99,11 @@ export function TabOverflow({
         {folded ? (
           <>
             <icon.fold {...ICON.tabSmall} aria-hidden />
-            <span>{tw.foldedChip(tabs.length)}</span>
+            <span className="jali-tab-folded-words">{tw.foldedChip(tabs.length)}</span>
+            {/* A narrow header shows the count alone (styles/tabs.css); the chip's name still says it in full. */}
+            <span className="jali-tab-folded-count" aria-hidden>
+              {tabs.length}
+            </span>
             <Activity activity={behind} shape />
           </>
         ) : (

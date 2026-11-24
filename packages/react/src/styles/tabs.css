@@ -66,10 +66,10 @@
   }
   /* Edge fades: a mask, so it works on any header background. */
   .jali-tabs[data-fade-r] {
-    --fade-r: 24px;
+    --fade-r: 2rem;
   }
   .jali-tabs[data-fade-l] {
-    --fade-l: 24px;
+    --fade-l: 2rem;
   }
   .jali-tabs[data-fade-l],
   .jali-tabs[data-fade-r] {
@@ -416,6 +416,34 @@
     line-height: 1;
     white-space: nowrap;
     cursor: pointer;
+  }
+  .jali-tab-folded-count {
+    display: none;
+  }
+  /*
+   * A narrow header (as the follow toggle does below about 250px): the folded chip is its icon and count, and a lone
+   * tab gives up its × (the pane's own × is beside it; middle-click, Delete and the tab menu still close it), so the
+   * tab's title keeps the room ("Notes…", not an icon with two ×s beside it).
+   */
+  @container jali-header (max-width: 15.5rem) {
+    .jali-tab-folded {
+      padding-inline: 0.4375rem 0.5rem;
+    }
+    .jali-tab-folded-words {
+      display: none;
+    }
+    .jali-tab-folded-count {
+      display: inline;
+    }
+    .jali-tabs:not(:has(> .jali-tab-item ~ .jali-tab-item)) > .jali-tab-item {
+      & > .jali-tab-actions,
+      & > .jali-tab-space {
+        display: none;
+      }
+      & > .jali-tab {
+        padding-inline-end: 0.375rem;
+      }
+    }
   }
   .jali-tab-folded:hover,
   .jali-tab-folded[aria-expanded="true"] {
