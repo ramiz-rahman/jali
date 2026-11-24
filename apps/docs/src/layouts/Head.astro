@@ -4,16 +4,20 @@
  * structured data. Each page is its own HTML file, so all of it is right for the page it is in. A page that isn't
  * indexed (the 404, a draft) has no canonical address and no Markdown copy.
  */
+import { SITE_NAME } from "../site/config";
 import { markdownUrl } from "../site/sources";
 
-interface Props {
+export interface Props {
+  /** The document's title, the site's name in it. */
   title: string;
+  /** What the page is called on its own: an article's headline. */
+  headline: string;
   description: string;
   path: string;
   noindex?: boolean;
   breadcrumbs?: { name: string; path: string }[];
 }
-const { title, description, path, noindex, breadcrumbs } = Astro.props;
+const { title, headline, description, path, noindex, breadcrumbs } = Astro.props;
 const site = Astro.site!;
 const canonical = new URL(path, site).href;
 const image = new URL("/jali-social.png", site).href;
@@ -22,17 +26,17 @@ const ld = [
     ? {
         "@context": "https://schema.org",
         "@type": "WebSite",
-        name: "Jali",
+        name: SITE_NAME,
         url: new URL("/", site).href,
         description,
       }
     : {
         "@context": "https://schema.org",
         "@type": "TechArticle",
-        headline: title.replace(/ · Jali$/, ""),
+        headline,
         description,
         url: canonical,
-        isPartOf: { "@type": "WebSite", name: "Jali", url: new URL("/", site).href },
+        isPartOf: { "@type": "WebSite", name: SITE_NAME, url: new URL("/", site).href },
       },
   ...(breadcrumbs && breadcrumbs.length > 1
     ? [
@@ -60,7 +64,7 @@ const ld = [
 <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <meta property="og:type" content={path === "/" ? "website" : "article"} />
-<meta property="og:site_name" content="Jali" />
+<meta property="og:site_name" content={SITE_NAME} />
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
 <meta property="og:url" content={canonical} />

@@ -5,31 +5,31 @@
  */
 @layer docs {
   /* ---------- the frame ---------- */
-  .layout[data-home] .main {
-    padding: 0;
+  .landing-main {
     overflow-x: clip;
   }
-  .layout[data-home] .article {
-    max-width: none;
+  .landing-main:focus {
+    outline: none;
   }
-  .prose[data-home] {
+  /* The page's blocks and the footer after it (src/shell/Shell.tsx): each the same width, between the same gutters. */
+  .landing-frame {
     --l-gutter: clamp(16px, 2.5vw, 40px);
     --l-width: min(1840px, calc(100% - 2 * var(--l-gutter)));
   }
-  .prose[data-home] > * {
+  .landing-frame > * {
     width: var(--l-width);
     margin-left: auto;
     margin-right: auto;
   }
 
   /* The top bar on the landing shares the page's edges. */
-  body:has(.layout[data-home]) .topbar-inner {
+  .topbar[data-frame="full"] .topbar-inner {
     max-width: none;
     padding-left: clamp(16px, 2.5vw, 40px);
     padding-right: clamp(16px, 2.5vw, 40px);
   }
   @media (min-width: 768px) {
-    body:has(.layout[data-home]) .brand {
+    .topbar[data-frame="full"] .brand {
       margin-left: -6px;
     }
   }
@@ -852,7 +852,6 @@
   .site-footer-col {
     border-left: 1px solid var(--footer-line);
   }
-  .prose .site-footer-line,
   .site-footer-line {
     margin: 0;
     max-width: 19rem;
@@ -861,7 +860,6 @@
     color: var(--jali-text-muted);
     text-wrap: pretty;
   }
-  .prose .site-footer-heading,
   .site-footer-heading {
     margin: 0 0 14px;
     font: 600 14px/20px var(--d-font-display);
@@ -957,12 +955,10 @@
     font-size: 13px;
     color: var(--jali-text-subtle);
   }
-  .prose .site-footer-legal a,
   .site-footer-legal a {
     color: var(--jali-text-subtle);
     text-decoration: none;
   }
-  .prose .site-footer-legal a:hover,
   .site-footer-legal a:hover {
     color: var(--jali-text);
   }

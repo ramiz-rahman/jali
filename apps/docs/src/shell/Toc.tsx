@@ -1,6 +1,6 @@
 /**
  * "On this page": the page's h2 and h3, collected while the page is built (src/shell/render.tsx), so the list is in
- * the HTML and takes its room from the first paint. src/client/enhance.ts marks the section being read.
+ * the HTML and takes its room from the first paint. ./toc.client.ts marks the section being read.
  */
 import type { TocEntry } from "./collect";
 

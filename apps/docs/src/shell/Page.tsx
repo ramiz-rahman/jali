@@ -10,17 +10,17 @@ import {
   WarningCircleIcon,
 } from "@phosphor-icons/react";
 import { editUrl, issueUrl } from "../site/config";
-import { markdownUrl, neighbours, sectionOf, sources } from "../site/sources";
+import { neighbours, sectionOf } from "../site/nav";
+import { markdownUrl, type PageSource } from "../site/sources";
 
 function PageActions({ path, title }: { path: string; title: string }) {
-  if (!sources[path]) return null;
   const md = markdownUrl(path);
   // The site's public address, fixed at build time (astro.config.mjs `site`), so Claude gets an address it can fetch.
   const abs = new URL(md, import.meta.env.SITE).href;
   const prompt = `Read the Jali docs page "${title}" at ${abs} and help me with it. Jali is a layout library of panes for React apps. Answer from that page and the rest of the Jali docs.`;
   return (
     <div className="page-actions" role="group" aria-label="Page actions">
-      {/* Copies the page's Markdown copy (src/client/enhance.ts). */}
+      {/* Copies the page's Markdown copy (./page.client.ts). */}
       <button type="button" className="page-action" data-copy-page={md}>
         <CopyIcon aria-hidden size={15} className="icon-idle" />
         <CheckIcon aria-hidden size={15} className="icon-done" />
@@ -43,15 +43,7 @@ function PageActions({ path, title }: { path: string; title: string }) {
   );
 }
 
-export function PageHeader({
-  path,
-  title,
-  summary,
-}: {
-  path: string;
-  title: string;
-  summary: string;
-}) {
+export function PageHeader({ page: { path, title, summary } }: { page: PageSource }) {
   const section = sectionOf(path);
   return (
     <header className="page-header">
@@ -63,9 +55,8 @@ export function PageHeader({
   );
 }
 
-export function PageFooter({ path }: { path: string }) {
+export function PageFooter({ page: { path, title, file } }: { page: PageSource }) {
   const { prev, next } = neighbours(path);
-  const file = sources[path]?.file;
   return (
     <footer className="page-footer">
       {prev || next ? (
@@ -93,18 +84,14 @@ export function PageFooter({ path }: { path: string }) {
         </nav>
       ) : null}
       <div className="page-meta">
-        {file ? (
-          <a href={editUrl(file)} target="_blank" rel="noreferrer">
-            <PencilSimpleIcon aria-hidden size={13} />
-            Edit this page
-          </a>
-        ) : null}
-        {file ? (
-          <a href={issueUrl(path, sources[path]!.title)} target="_blank" rel="noreferrer">
-            <WarningCircleIcon aria-hidden size={13} />
-            Report an issue
-          </a>
-        ) : null}
+        <a href={editUrl(file)} target="_blank" rel="noreferrer">
+          <PencilSimpleIcon aria-hidden size={13} />
+          Edit this page
+        </a>
+        <a href={issueUrl(path, title)} target="_blank" rel="noreferrer">
+          <WarningCircleIcon aria-hidden size={13} />
+          Report an issue
+        </a>
       </div>
     </footer>
   );

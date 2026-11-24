@@ -1,25 +1,17 @@
 /**
  * Images in pages (`![alt](/media/…)`), rendered at build time with their size, so nothing moves when they load,
- * and loaded lazily. An SVG diagram is placed inline instead, so it can draw with the site's tokens. A GIF with a video beside it (`x.mp4`, and `x.webp` as its first frame) is shown as that video:
- * about a sixth of the bytes, nothing loaded until it plays, and a pause button (src/client/enhance.ts plays it while
- * it is on screen, unless the reader prefers reduced motion). The GIF stays for the Markdown copies.
+ * and loaded lazily. An SVG diagram is placed inline instead, so it can draw with the site's tokens. A GIF with a
+ * video beside it (`x.mp4`, and `x.webp` as its first frame) is shown as that video: about a sixth of the bytes,
+ * nothing loaded until it plays, and a pause button (./media.client.ts plays it while it is on screen, unless the
+ * reader prefers reduced motion). The GIF stays for the Markdown copies.
  * Make the video with `ffmpeg -i x.gif -movflags +faststart -pix_fmt yuv420p -c:v libx264 -crf 26 -an x.mp4`.
  */
-import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { readFileSync } from "node:fs";
 import type { ComponentPropsWithoutRef } from "react";
-
-/** apps/docs/public: the build runs in apps/docs (pnpm --filter, Playwright's webServer, `astro build`). */
-const PUBLIC = [join(process.cwd(), "public"), join(process.cwd(), "apps/docs/public")].find(
-  existsSync,
-);
-
-const fileOf = (src: string) =>
-  PUBLIC && src.startsWith("/") && !src.includes("..") ? join(PUBLIC, src) : undefined;
+import { publicFile } from "../../ui/lib/public-files";
 
 /** Width and height from a GIF's, PNG's or SVG's own header. */
 function sizeOf(file: string): { width: number; height: number } | undefined {
-  if (!existsSync(file)) return undefined;
   const b = readFileSync(file);
   if (b.toString("ascii", 0, 3) === "GIF")
     return { width: b.readUInt16LE(6), height: b.readUInt16LE(8) };
@@ -33,16 +25,15 @@ function sizeOf(file: string): { width: number; height: number } | undefined {
 }
 
 export function MediaImage({ src = "", alt = "", ...rest }: ComponentPropsWithoutRef<"img">) {
-  const file = fileOf(src);
+  const file = publicFile(src);
   const size = file ? sizeOf(file) : undefined;
   const base = src.replace(/\.gif$/, "");
-  const video = file && src.endsWith(".gif") && existsSync(file.replace(/\.gif$/, ".mp4"));
-  if (video)
+  if (file && src.endsWith(".gif") && publicFile(`${base}.mp4`))
     return (
       <video
         className="media-video"
         src={`${base}.mp4`}
-        poster={existsSync(file.replace(/\.gif$/, ".webp")) ? `${base}.webp` : undefined}
+        poster={publicFile(`${base}.webp`) ? `${base}.webp` : undefined}
         width={size?.width}
         height={size?.height}
         aria-label={alt}
@@ -58,7 +49,7 @@ export function MediaImage({ src = "", alt = "", ...rest }: ComponentPropsWithou
     );
   // A diagram is placed inline, so it draws with the site's tokens and follows light and dark. It is one image to
   // assistive technology: the wrapper is named by the alt text, and the drawing inside is hidden.
-  if (file && src.endsWith(".svg") && existsSync(file)) {
+  if (file && src.endsWith(".svg")) {
     const svg = readFileSync(file, "utf8")
       .replace(/<!--[\s\S]*?-->/g, "")
       .replace(/<title>[\s\S]*?<\/title>/, "")

@@ -100,7 +100,7 @@
 }
 
 @layer docs {
-  /* Images and videos in pages carry their width and height (src/shell/media.tsx), to hold their room as they load. */
+  /* Images and videos in pages carry their width and height (src/shell/mdx/media.tsx), to hold their room as they load. */
   .prose :is(img, video) {
     height: auto;
   }

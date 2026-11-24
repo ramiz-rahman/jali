@@ -155,10 +155,6 @@
     margin: 0 auto;
     min-height: calc(100vh - var(--d-topbar));
   }
-  .layout[data-home] {
-    grid-template-columns: minmax(0, 1fr);
-    max-width: none;
-  }
 
   .sidebar {
     border-right: 1px solid var(--jali-border);
@@ -185,9 +181,6 @@
   .article {
     max-width: var(--d-measure);
     margin: 0 auto;
-  }
-  .layout[data-home] .article {
-    max-width: 58rem;
   }
   .layout[data-wide] {
     grid-template-columns: var(--d-nav-w) minmax(0, 1fr);
@@ -258,10 +251,6 @@
     font-weight: 500;
     border-left: 2px solid var(--jali-accent);
     padding-left: 14px;
-  }
-  .nav-link[data-pending] {
-    color: var(--jali-text-faint);
-    cursor: default;
   }
   .nav-link:focus-visible {
     outline-offset: -2px;
@@ -416,8 +405,9 @@
     }
   }
   @media (max-width: 1023px) {
-    /* The docs keep their sidebar; the landing has none, so it keeps its one column (.layout[data-home]). */
-    .layout:not([data-home]) {
+    /* Every form of the docs layout keeps its sidebar, and gives up the column beside the page. */
+    .layout,
+    .layout[data-wide] {
       grid-template-columns: var(--d-nav-w) minmax(0, 1fr);
     }
     .toc-column {
@@ -428,8 +418,9 @@
     }
   }
   @media (max-width: 767px) {
-    /* As heavy as the tablet rule's selector, so it wins below 768px. */
-    .layout:not([data-home]) {
+    /* As heavy as the tablet rule's selectors, so it wins below 768px: one column, the nav in the drawer. */
+    .layout,
+    .layout[data-wide] {
       grid-template-columns: minmax(0, 1fr);
     }
     .sidebar {

@@ -6,9 +6,9 @@
  * The coverage test (coverage.test.ts) reads `name="…"` from <Entry> and <Member> in the MDX sources, so every
  * exported name needs one of the two.
  */
-import { Children as ReactChildren, isValidElement, useContext, type ReactNode } from "react";
-import { useMDXComponents } from "@mdx-js/react";
-import { Collect } from "../shell/collect";
+import { Children as ReactChildren, isValidElement, type ReactNode } from "react";
+import { useTocEntry } from "../shell/collect";
+import { Code } from "../shell/mdx";
 
 export type EntryKind =
   | "function"
@@ -33,22 +33,6 @@ const KIND_LABEL: Record<EntryKind, string> = {
 
 /** The anchor for a name: `layout.open` stays `layout.open`, `<JaliRoot>` is `JaliRoot`. */
 export const anchorOf = (name: string) => name.replace(/[<>/\s]/g, "");
-
-type CodeProps = { code: string; lang?: string; filename?: string; highlight?: string };
-
-/** The shell's <Code>, so samples look the same everywhere; a plain <pre> when no provider gives one. */
-function useCode() {
-  const components = useMDXComponents() as Record<string, unknown>;
-  const Code = components.Code as ((p: CodeProps) => ReactNode) | undefined;
-  return (
-    Code ??
-    (({ code }: CodeProps) => (
-      <pre>
-        <code>{code}</code>
-      </pre>
-    ))
-  );
-}
 
 export interface EntryProps {
   /** The exported name, exactly as imported (`createJali`, `layout.open`, `JaliRoot`). */
@@ -81,11 +65,9 @@ export function Entry({
   note,
   children,
 }: EntryProps) {
-  const Code = useCode();
   const id = anchorOf(name);
   const shown = kind === "component" ? `<${name}>` : name;
-  // For "On this page" and search, while the page is built.
-  useContext(Collect)?.headings.push({ id, text: shown, level: 3, entry: true });
+  useTocEntry({ id, text: shown, level: 3, entry: true });
   const aside = signature || example;
   // The first paragraph is the one line on what it does: it sits under the title, before the example.
   const [lead, ...rest] = ReactChildren.toArray(children);
@@ -215,26 +197,6 @@ export function Returns({ type, children }: { type: string; children?: ReactNode
         <code>{type}</code>
       </p>
       {children ? <div className="ref-param-body">{children}</div> : null}
-    </div>
-  );
-}
-
-/** The values of a union, each with what it means (Stripe's "Possible enum values"). */
-export function Values({ title = "Values", children }: { title?: string; children?: ReactNode }) {
-  return (
-    <div className="ref-values">
-      <p className="ref-values-title">{title}</p>
-      <dl>{children}</dl>
-    </div>
-  );
-}
-export function Value({ name, children }: { name: string; children?: ReactNode }) {
-  return (
-    <div className="ref-value">
-      <dt>
-        <code>{name}</code>
-      </dt>
-      <dd>{children}</dd>
     </div>
   );
 }

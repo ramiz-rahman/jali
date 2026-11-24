@@ -102,7 +102,7 @@
     margin-top: 20px;
   }
 
-  /* A heading and its permalink (src/shell/mdx.tsx): the link comes after the heading, outside it, and shows in the
+  /* A heading and its permalink (src/shell/mdx/Heading.tsx): the link comes after the heading, outside it, and shows in the
      margin on hover and on focus. The heading's margins pass through the wrapper, which draws nothing itself. */
   .heading-wrap {
     position: relative;

@@ -1,5 +1,5 @@
 // The docs site: Astro prerenders every page to static HTML (title, description, canonical, sitemap), code already
-// highlighted. The browser runs one small script (src/client/enhance.ts) and hydrates only the live workspaces, as
+// highlighted. The browser runs one small script (src/client/enhance.ts) and hydrates only the live parts, as
 // islands (src/client/islands.ts).
 import { defineConfig } from "astro/config";
 import react from "@astrojs/react";
@@ -12,7 +12,7 @@ import { SITE_URL } from "./src/site/site-url.mjs";
 
 /**
  * A fenced block's meta (```tsx filename="src/kinds.tsx" highlight="3-5") as data-filename and data-highlight on its
- * <pre>, where the docs' `pre` component reads them (src/shell/mdx.tsx highlights the code, at build time).
+ * <pre>, where the docs' `pre` component reads them (src/shell/mdx/Code.tsx highlights the code, at build time).
  */
 function rehypeCodeMeta() {
   const visit = (node) => {
@@ -29,7 +29,7 @@ function rehypeCodeMeta() {
 
 // The pages under src/docs are React MDX (rendered by src/shell/render.tsx through MDXProvider), not Astro MDX, so
 // they are compiled here with @mdx-js/rollup. It compiles any .mdx id, even `?raw` ones; those must stay plain text
-// (the page's source, for the Markdown copies).
+// (the page's source: src/site/sources.ts reads it, and src/site/markdown parses it again for the Markdown copies).
 const mdxPlugin = mdx({
   providerImportSource: "@mdx-js/react",
   // remark-frontmatter only strips the block: src/site/sources.ts is the one parser of titles and summaries.
@@ -58,7 +58,8 @@ export default defineConfig({
   build: { format: "file" },
   // Moving between pages is a normal page load; a link's page is fetched while the pointer rests on it.
   prefetch: { prefetchAll: true, defaultStrategy: "hover" },
-  integrations: [react(), sitemap({ filter: (page) => !/\/_[^/]*$/.test(new URL(page).pathname) })],
+  // The sitemap lists what the build made, which never holds a draft page (src/site/pages.ts).
+  integrations: [react(), sitemap()],
   vite: {
     // Each dev server gets its own dependency cache (JALI_DOCS_CACHE), so several can run at once.
     cacheDir: process.env.JALI_DOCS_CACHE ?? "node_modules/.vite",

@@ -5,8 +5,6 @@ export {
   Param,
   ChildParams,
   Returns,
-  Values,
-  Value,
   Members,
   Member,
   Ref,

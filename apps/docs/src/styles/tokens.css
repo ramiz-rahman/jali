@@ -31,7 +31,7 @@
     --d-lattice: var(--jali-brand);
     --d-lattice-opacity: 0.075;
 
-    /* Code: one Shiki theme of CSS variables (shell/highlight.ts). Nil for keywords, Cha for constants. */
+    /* Code: one Shiki theme of CSS variables (shell/mdx/highlight.ts). Nil for keywords, Cha for constants. */
     --shiki-foreground: #2b2721;
     --shiki-background: transparent;
     --shiki-token-keyword: #3a4bb5;

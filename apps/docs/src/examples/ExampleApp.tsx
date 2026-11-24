@@ -3,38 +3,20 @@
  * (`<ExampleIndex />`), and on each app's own page its screenshot and the buttons that open it (`<ExampleShot>`),
  * the three things it shows, each a link into the app in that state (`<ExampleShows>`), what its data is
  * (`<ExampleData>`) and how to run it (`<ExampleRun>`), each under the page's own heading. The home page has the
- * showcase (`<ExampleShowcase />`). Rendered at build time; the Markdown copies get the same from markdown.ts.
+ * showcase (`<ExampleShowcase />`). Rendered at build time; the Markdown copies get the same from ./markdown.ts.
  */
-import { existsSync } from "node:fs";
-import { join } from "node:path";
 import { ArrowRightIcon, ArrowUpRightIcon, GithubLogoIcon } from "@phosphor-icons/react";
-import { Fragment, type ReactNode } from "react";
 import { TabSet } from "../shell/mdx";
+import { publicFile } from "../ui/lib/public-files";
+import { withCode } from "../ui/lib/with-code";
 import { EXAMPLES, appPage, appPath, appOf, sourceUrl } from "./data";
 
-const PUBLIC = [join(process.cwd(), "public"), join(process.cwd(), "apps/docs/public")].find(
-  existsSync,
-);
 const shot = (id: string, theme: "light" | "dark") => `/media/examples/${id}-${theme}.webp`;
-const hasShot = (src: string) => !!PUBLIC && existsSync(join(PUBLIC, src));
-
-/** Text with `code` spans, as the data writes them. */
-function Inline({ text }: { text: string }): ReactNode {
-  return text
-    .split(/(`[^`]+`)/)
-    .map((part, i) =>
-      part.startsWith("`") ? (
-        <code key={i}>{part.slice(1, -1)}</code>
-      ) : (
-        <Fragment key={i}>{part}</Fragment>
-      ),
-    );
-}
 
 /** The app's screenshot, in the site's theme where it has both, as an image. */
 function Shot({ id, alt }: { id: string; alt: string }) {
   const app = appOf(id);
-  const both = app.opens !== "dark" && hasShot(shot(id, "dark"));
+  const both = app.opens !== "dark" && !!publicFile(shot(id, "dark"));
   return (
     <>
       <img
@@ -119,7 +101,7 @@ export function ExampleShows({ id }: { id: string }) {
             <ArrowUpRightIcon aria-hidden size={14} />
           </a>
           <span className="example-show-text">
-            <Inline text={s.text} />
+            {withCode(s.text)}
             {s.learn ? (
               <>
                 {" "}
@@ -151,40 +133,23 @@ export function ExampleRun({ id }: { id: string }) {
 
 /**
  * The six apps on the home page: a tab per app over one large screenshot, and under it what the app is, Open and its
- * part of the Examples page. The site's tabs (enhance.ts) switch them, so it needs no React in the browser.
+ * part of the Examples page. A choice group (src/shell/mdx/choice.client.ts) switches them, so it needs no React in
+ * the browser.
  */
 export function ExampleShowcase() {
   return (
     <TabSet
       label="Example apps"
+      className="showcase"
+      panelClass="showcase-panel"
       tabs={EXAMPLES.map((app) => {
-        const both = app.opens !== "dark" && hasShot(shot(app.id, "dark"));
         const open = appPath(app.id, app.shows[0].link);
         return {
           label: app.name,
           panel: (
             <>
               <a className="showcase-shot" href={open} aria-label={`Open ${app.name}`}>
-                <img
-                  src={shot(app.id, "light")}
-                  alt={`${app.name}, running`}
-                  width={1440}
-                  height={900}
-                  loading="lazy"
-                  decoding="async"
-                  data-shot={both ? "light" : undefined}
-                />
-                {both ? (
-                  <img
-                    src={shot(app.id, "dark")}
-                    alt={`${app.name}, running`}
-                    width={1440}
-                    height={900}
-                    loading="lazy"
-                    decoding="async"
-                    data-shot="dark"
-                  />
-                ) : null}
+                <Shot id={app.id} alt={`${app.name}, running`} />
               </a>
               <div className="showcase-caption">
                 <p className="showcase-summary">{app.summary}</p>
@@ -202,13 +167,6 @@ export function ExampleShowcase() {
           ),
         };
       })}
-      panelClass="showcase-panel"
-      render={(strip, panels) => (
-        <div className="showcase" data-tabs="">
-          {strip}
-          {panels}
-        </div>
-      )}
     />
   );
 }

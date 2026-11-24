@@ -2,41 +2,36 @@
 /**
  * One static HTML file per page under src/docs: the site and the page rendered at build time
  * (src/shell/render.tsx). Only the page's islands hydrate (src/client/islands.ts).
- * Pages whose file starts with "_" (test pages) exist in dev only and are never indexed.
+ * Pages whose file starts with "_" (drafts) exist in dev only and are never indexed.
  */
 import Document from "../layouts/Document.astro";
 import { renderPage, renderShell } from "../shell/render";
-import { isDraft, sectionLink, sources } from "../site/sources";
+import { sectionLink } from "../site/nav";
+import { pageAt, sources } from "../site/sources";
 import { SITE_NAME } from "../site/config";
 
 export function getStaticPaths() {
   return Object.values(sources)
-    .filter((p) => import.meta.env.DEV || !isDraft(p))
+    .filter((p) => import.meta.env.DEV || !p.draft)
     .map((p) => ({ params: { slug: p.path === "/" ? undefined : p.path.slice(1) } }));
 }
 
 const path = Astro.params.slug ? `/${Astro.params.slug}` : "/";
-const page = sources[path]!;
+const page = pageAt(path);
 const { html, headings } = await renderPage(path);
-const body = renderShell({
-  kind: "page",
-  path,
-  title: page.title,
-  summary: page.summary,
-  html,
-  headings,
-});
+const body = renderShell({ page, html, headings });
 
-const title = path === "/" ? `${SITE_NAME}: ${page.summary}` : `${page.title} · ${SITE_NAME}`;
+const home = path === "/";
 const section = sectionLink(path);
 ---
 
 <Document
-  title={title}
+  title={home ? `${SITE_NAME}: ${page.summary}` : `${page.title} · ${SITE_NAME}`}
+  headline={page.title}
   description={page.summary}
   path={path}
-  noindex={isDraft(page)}
-  breadcrumbs={path === "/"
+  noindex={page.draft}
+  breadcrumbs={home
     ? undefined
     : [
         { name: SITE_NAME, path: "/" },

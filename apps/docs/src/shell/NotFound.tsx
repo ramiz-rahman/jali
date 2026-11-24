@@ -17,7 +17,7 @@ export function NotFound() {
         There is no page here
       </h1>
       <p className="page-summary">
-        {/* The file doesn't know which address it is served for: the browser names it (src/client/enhance.ts). */}
+        {/* The file doesn't know which address it is served for: the browser names it (./not-found.client.ts). */}
         Nothing lives at <span data-not-found-path="">this address</span>. It may have moved, or it
         may not be written yet.
       </p>

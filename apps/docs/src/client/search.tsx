@@ -1,7 +1,8 @@
 /**
  * Search over page titles, summaries, headings and reference entries, in a modal dialog. ⌘K, Ctrl+K or "/" opens it
- * (./enhance.ts). Loaded the first time it is wanted; it reads the index the build wrote (/search.json,
- * src/pages/search.json.ts), not the pages. A stand-in until Pagefind searches the built pages (docs/DOCS-PLAN.md).
+ * (src/shell/search.client.ts). Loaded the first time it is wanted; it reads the index the build wrote (/search.json,
+ * src/pages/search.json.ts), not the pages, and ranks with src/site/search-index.ts. A stand-in until Pagefind
+ * searches the built pages (docs/DOCS-PLAN.md).
  */
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { createRoot, type Root } from "react-dom/client";
@@ -12,15 +13,7 @@ import {
   HashIcon,
   MagnifyingGlassIcon,
 } from "@phosphor-icons/react";
-import type { SearchIndex } from "../site/search-index";
-
-interface Hit {
-  key: string;
-  href: string;
-  title: string;
-  detail: string;
-  kind: "page" | "heading" | "entry";
-}
+import { searchIndex, type Hit, type SearchIndex } from "../site/search-index";
 
 let index: Promise<SearchIndex> | null = null;
 const loadIndex = () =>
@@ -28,50 +21,6 @@ const loadIndex = () =>
     if (!r.ok) throw new Error(`search.json: ${r.status}`);
     return r.json() as Promise<SearchIndex>;
   }));
-
-function search(data: SearchIndex, q: string): Hit[] {
-  const terms = q.toLowerCase().split(/\s+/).filter(Boolean);
-  if (!terms.length)
-    return data.pages.slice(0, 8).map((p) => ({
-      key: p.path,
-      href: p.path,
-      title: p.title,
-      detail: p.summary,
-      kind: "page",
-    }));
-  const hits: (Hit & { score: number })[] = [];
-  const score = (text: string, w: number) => {
-    const t = text.toLowerCase();
-    if (!terms.every((x) => t.includes(x))) return 0;
-    return w * (t.startsWith(terms[0]!) ? 2 : 1);
-  };
-  for (const p of data.pages) {
-    const s = score(p.title, 6) + score(p.summary, 2) + score(`${p.title} ${p.summary}`, 1);
-    if (s)
-      hits.push({
-        key: p.path,
-        href: p.path,
-        title: p.title,
-        detail: p.summary,
-        kind: "page",
-        score: s,
-      });
-    for (const h of p.headings) {
-      // A reference entry is looked up by its exact name, so a name that starts with the words ranks first.
-      const hs = score(h.text, h.entry ? 4 : 3);
-      if (hs)
-        hits.push({
-          key: `${p.path}#${h.id}`,
-          href: `${p.path}#${h.id}`,
-          title: h.text,
-          detail: p.title,
-          kind: h.entry ? "entry" : "heading",
-          score: hs,
-        });
-    }
-  }
-  return hits.sort((a, b) => b.score - a.score).slice(0, 12);
-}
 
 const ICON = { page: FileTextIcon, heading: HashIcon, entry: BracketsCurlyIcon };
 
@@ -83,7 +32,7 @@ function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void })
   const [failed, setFailed] = useState(false);
   const [q, setQ] = useState("");
   const [active, setActive] = useState(0);
-  const hits = useMemo(() => (data ? search(data, q) : []), [data, q]);
+  const hits = useMemo(() => (data ? searchIndex(data, q) : []), [data, q]);
 
   useEffect(() => {
     loadIndex().then(setData, () => setFailed(true));
@@ -234,25 +183,21 @@ function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void })
 }
 
 let root: Root | null = null;
-let setOpen: ((open: boolean) => void) | null = null;
 
-function SearchApp() {
-  const [open, set] = useState(true);
-  useEffect(() => {
-    setOpen = set;
-  }, []);
-  return <SearchDialog open={open} onClose={() => set(false)} />;
+/** Draws the dialog, open or closed: the same root each time, so it keeps what it has loaded. */
+function render(open: boolean) {
+  root?.render(<SearchDialog open={open} onClose={() => render(false)} />);
 }
 
 /** Opens the dialog, rendering it the first time. */
 export function openSearch() {
-  if (setOpen) return setOpen(true);
-  if (root) return;
-  const host = document.createElement("div");
-  host.id = "search-root";
-  document.body.append(host);
-  root = createRoot(host);
-  root.render(<SearchApp />);
+  if (!root) {
+    const host = document.createElement("div");
+    host.id = "search-root";
+    document.body.append(host);
+    root = createRoot(host);
+  }
+  render(true);
 }
 
 void loadIndex().catch(() => {});

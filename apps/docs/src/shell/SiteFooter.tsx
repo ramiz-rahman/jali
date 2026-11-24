@@ -5,15 +5,13 @@
  * the landing, and every docs page.
  */
 import { ArrowUpRightIcon } from "@phosphor-icons/react";
-import { REPO_URL } from "../../site/config";
-import { resolvedNav } from "../../site/sources";
-import { Lockup } from "../brand";
-import { Maker } from "../../../../../examples/shared/src/maker/maker";
-
-const titleOf = (path: string, fallback: string) =>
-  resolvedNav()
-    .flatMap((s) => s.items)
-    .find((i) => i.path === path)?.title ?? fallback;
+import { REPO_BRANCH, REPO_URL } from "../site/config";
+import { nav } from "../site/nav";
+import { pageAt } from "../site/sources";
+import { Lockup } from "./brand";
+// The maker's mark and name, the same as in every example app's status line. The examples' shared code isn't a
+// dependency of the docs, so it is read from its folder.
+import { Maker } from "../../../../examples/shared/src/maker/maker";
 
 interface Link {
   href: string;
@@ -22,7 +20,6 @@ interface Link {
 }
 
 function columns(): { title: string; links: Link[] }[] {
-  const nav = resolvedNav();
   const section = (name: string) =>
     nav.find((s) => s.title === name)?.items.map((i) => ({ href: i.path, title: i.title })) ?? [];
   return [
@@ -33,8 +30,8 @@ function columns(): { title: string; links: Link[] }[] {
       links: [
         { href: "/reference/core", title: "jali" },
         { href: "/reference/react", title: "jali/react" },
-        { href: "/reference/tokens", title: titleOf("/reference/tokens", "Tokens") },
-        { href: "/reference/commands", title: titleOf("/reference/commands", "Commands") },
+        { href: "/reference/tokens", title: pageAt("/reference/tokens").title },
+        { href: "/reference/commands", title: pageAt("/reference/commands").title },
       ],
     },
     {
@@ -51,7 +48,7 @@ function columns(): { title: string; links: Link[] }[] {
 
 export function SiteFooter() {
   return (
-    <footer className="site-footer" data-toc-skip="">
+    <footer className="site-footer">
       <div className="site-footer-cells">
         <div className="site-footer-cell site-footer-about">
           <p className="site-footer-line">
@@ -96,7 +93,7 @@ export function SiteFooter() {
           Designed and built by <Maker />
         </span>
         <span>
-          <a href={`${REPO_URL}/blob/master/LICENSE`}>Apache-2.0</a>
+          <a href={`${REPO_URL}/blob/${REPO_BRANCH}/LICENSE`}>Apache-2.0</a>
         </span>
       </p>
     </footer>

@@ -2456,3 +2456,37 @@ who has read one example finds their way in another, and can tell what a part ma
   piece a finding in `src/live/FINDINGS.md`. The customer and notes panes still follow the pane before them (order →
   customer → notes) rather than the list, so the tree shows the chain; a kind's `follow` would skip a link of it.
 - **Tests:** `e2e/tour.spec.ts` follows the story; the axe scans cover the new panes.
+
+## 24 Nov 2026 · The docs site's code: each part owns its HTML, its behaviour and its Markdown
+
+- **Why:** a structural review of apps/docs found one concept spread over several places: what each component means
+  as Markdown was in a hand-written tag scanner and a table registry far from the components; the landing was a
+  page forced through the docs layout (`isHome` checks in the shell, CSS undoing the docs grid); the browser
+  behaviours were one 500-line file joined to the components by attribute strings, with an Install special case in
+  the tabs code; and `src/live` and the landing imported each other.
+- **Markdown** (`src/site/markdown`): each page is parsed by the site's own MDX compiler (`@mdx-js/mdx`, now a direct
+  dependency) and each component is replaced in place by the Markdown its area writes (`shell/mdx/markdown.ts`,
+  `reference/markdown.ts`, `examples/markdown.ts`, `landing/markdown.ts`); every island says what it shows. The
+  page's text is otherwise kept byte for byte: the build's Markdown, llms files and search index came out identical,
+  but for one fix (a template-literal signature lost its backslashes). The generated tables draw their rows from one
+  place for the page and its Markdown (`COMMAND_ROWS`, `tokensIn`, `partsIn`). `link` rewrites every site link, so
+  callers no longer post-process.
+- **Layouts:** a page's frontmatter names its layout (`wide`, `showcase`, `landing`; `docs` by default), and
+  `src/shell/Shell.tsx` is one chrome around one layout per kind. The path regexes and `data-home` rules are gone;
+  the landing has its own frame and the footer after it. `title` and `summary` are required, and a nav path without
+  a page fails the build (the "not written yet" handling went).
+- **Behaviours:** each sits beside its component as a `.client.ts`; `client/enhance.ts` only runs them. Tabs, install
+  lines and the home page's showcase are one model, a choice group (`data-choice-group`, `-option`, `-panel`). The
+  install trigger's name ("Package manager: npm") is now its own text, so no script keeps a label in step. Every
+  key the site stores is in `ui/lib/storage.ts`, the inline pre-paint script's too.
+- **Live parts and the landing:** the landing is `src/landing` (its sections and its three demos); the quickstart app
+  makes its own instance, so `src/live` no longer imports the landing; every embedded instance shares
+  `live/workspace/embedded.ts`; the landing builds from `live/embed.ts`. Spotlight's named parts carry their own
+  scene. The tour's teardown is one `release()`.
+- **Removed:** `site/theme.ts` (unused), `Values`/`Value`, `DEFAULT_IDS`, `LiveWorkspace`'s `overlay`, `ClientOnly`'s
+  `fallback`, the sitemap's draft filter (drafts are never built), and the never-read `data-toc-skip`, `data-cards`,
+  `data-card`, `data-steps`, `data-path` and `data-toc` attributes. One vitest config for the docs
+  (`apps/docs/vitest.config.ts`).
+- **Kept:** the footer still reads the examples' Maker from its folder (`examples/shared`), as adding it as a workspace
+  dependency needs a network install; the landing demos' styles stay in `styles/home.css` (moving them into the
+  `live` layer would change which rules win).

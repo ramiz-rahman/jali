@@ -4,38 +4,27 @@
  *   the whole quickstart app beside what it renders;
  *   the four reasons, each live, on one numbered path;
  *   the close (install, next steps, and the package's entries as a pane); the site footer.
- * Words stay in pages/index.mdx; the parts here are layout and the small live pieces only the landing needs.
+ * Words stay in src/docs/index.mdx; the parts here are its layout, and its three live demos (./demos), each an island.
+ * The page around it (its frame and the site footer) is the landing layout (src/shell/Shell.tsx).
  */
 import { Children, isValidElement, type ReactNode } from "react";
 import { ArrowRightIcon, GithubLogoIcon } from "@phosphor-icons/react";
-import { QuickstartApp } from "../../live";
-import { REPO_URL } from "../../site/config";
-import { island } from "../island";
-import { Code, CodeBody, Install, Tab, Tabs } from "../mdx";
-import {
-  FollowDemo as FollowDemoPart,
-  KeysDemo as KeysDemoPart,
-  LinkDemo as LinkDemoPart,
-} from "./demos";
-import noteCode from "../../samples/concepts/quickstart/note-open-beside.tsx?raw";
-import jaliCode from "../../samples/concepts/quickstart/jali.ts?raw";
-import mainCode from "../../samples/concepts/quickstart/main.tsx?raw";
-
-export { SiteFooter } from "./SiteFooter";
+import { QuickstartApp } from "../live";
+import { REPO_URL } from "../site/config";
+import { island } from "../shell/island";
+import { Code, CodeBody, Install, Tab, Tabs } from "../shell/mdx";
+import { FollowDemo as FollowDemoPart } from "./demos/FollowDemo";
+import { KeysDemo as KeysDemoPart } from "./demos/KeysDemo";
+import { LinkDemo as LinkDemoPart } from "./demos/LinkDemo";
+import noteCode from "../samples/concepts/quickstart/note-open-beside.tsx?raw";
+import jaliCode from "../samples/concepts/quickstart/jali.ts?raw";
+import mainCode from "../samples/concepts/quickstart/main.tsx?raw";
 
 // ---------- the opening ----------
 
-export function Opening({
-  title,
-  lead,
-  children,
-}: {
-  title: string;
-  lead: string;
-  children?: ReactNode;
-}) {
+export function Opening({ title, lead }: { title: string; lead: string }) {
   return (
-    <header className="landing-opening" data-toc-skip="" data-enter="">
+    <header className="landing-opening" data-enter="">
       {/* A layout's dividers behind the opening: the centre is clear for the words, the sides split into tiles. */}
       <div className="landing-backdrop" aria-hidden>
         <span className="hero-tile hero-tile-top" />
@@ -65,7 +54,6 @@ export function Opening({
           </a>
         </div>
       </div>
-      {children}
     </header>
   );
 }
@@ -91,7 +79,7 @@ export function Section({
   children?: ReactNode;
 }) {
   return (
-    <section className="landing-section" id={id} aria-labelledby={`${id}-title`} data-toc-skip="">
+    <section className="landing-section" id={id} aria-labelledby={`${id}-title`}>
       <header className="landing-section-head">
         <p className="landing-label">{label}</p>
         <h2 className="landing-section-title" id={`${id}-title`}>
@@ -185,12 +173,7 @@ export function Close({
   children?: ReactNode;
 }) {
   return (
-    <section
-      className="landing-close"
-      id="install"
-      aria-labelledby="install-title"
-      data-toc-skip=""
-    >
+    <section className="landing-close" id="install" aria-labelledby="install-title">
       <div className="landing-close-head">
         <h2 className="landing-close-title" id="install-title">
           {title}

@@ -1,9 +1,11 @@
 ---
 /**
  * Every page's document: the head, the reader's theme and code-wrap choice applied before the first paint, the
- * site's one stylesheet, and the one small script that makes the static page work (src/client/enhance.ts).
+ * site's one stylesheet, and the one small script that makes the static page work (src/client/enhance.ts, which
+ * runs each component's own `.client.ts`).
  */
 import Head from "./Head.astro";
+import { STORAGE_KEYS } from "../ui/lib/storage";
 import "jali/styles.css";
 import "../styles/site.css";
 import "../live/live.css";
@@ -30,25 +32,23 @@ const props = Astro.props;
       @layer docs-base, jali, docs;
     </style>
     <!--
-      Before the first paint: data-theme is the resolved theme, as jali sets it (src/client/enhance.ts keeps it
+      Before the first paint: data-theme is the resolved theme, as jali sets it (src/shell/theme.client.ts keeps it
       current); data-theme-choice lights the toggle's button; data-code-wrap wraps long code lines.
     -->
-    <script is:inline>
-      (function () {
-        var c = "system",
-          w = null;
-        try {
-          c = localStorage.getItem("jali-docs-theme") || "system";
-          w = localStorage.getItem("jali-docs-code-wrap");
-        } catch (e) {}
-        var dark =
-          c === "dark" ||
-          (c !== "light" && window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches);
-        var root = document.documentElement;
-        root.setAttribute("data-theme", dark ? "dark" : "light");
-        root.setAttribute("data-theme-choice", c === "light" || c === "dark" ? c : "system");
-        if (w === "1") root.setAttribute("data-code-wrap", "");
-      })();
+    <script is:inline define:vars={{ themeKey: STORAGE_KEYS.theme, wrapKey: STORAGE_KEYS.codeWrap }}>
+      var c = "system",
+        w = null;
+      try {
+        c = localStorage.getItem(themeKey) || "system";
+        w = localStorage.getItem(wrapKey);
+      } catch (e) {}
+      var dark =
+        c === "dark" ||
+        (c !== "light" && window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches);
+      var root = document.documentElement;
+      root.setAttribute("data-theme", dark ? "dark" : "light");
+      root.setAttribute("data-theme-choice", c === "light" || c === "dark" ? c : "system");
+      if (w === "1") root.setAttribute("data-code-wrap", "");
     </script>
     <Head {...props} />
     {fonts.map((href) => <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />)}

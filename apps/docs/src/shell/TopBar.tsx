@@ -1,6 +1,7 @@
 /**
  * The bar across the top: lockup, search, theme, GitHub; on a phone, the menu button that opens the nav drawer.
- * Static HTML: src/client/enhance.ts makes the search button, the theme toggle and the drawer work.
+ * Static HTML: ./search.client.ts, ./theme.client.ts and ./nav-drawer.client.ts make the search button, the theme
+ * toggle and the drawer work.
  */
 import {
   GithubLogoIcon,
@@ -58,9 +59,10 @@ const SECTIONS = [
   { title: "Examples", href: "/examples", match: (p: string) => p.startsWith("/examples") },
 ];
 
-export function TopBar({ path, landing }: { path: string; landing?: boolean }) {
+/** `frame`: the edges the bar keeps to, the docs' columns or (on the landing) the full window. */
+export function TopBar({ path, frame }: { path: string; frame: "docs" | "full" }) {
   return (
-    <header className="topbar">
+    <header className="topbar" data-frame={frame === "full" ? "full" : undefined}>
       <div className="topbar-inner">
         <button
           type="button"
@@ -82,7 +84,7 @@ export function TopBar({ path, landing }: { path: string; landing?: boolean }) {
               key={s.href}
               className="topbar-section"
               href={s.href}
-              aria-current={!landing && s.match(path) ? "page" : undefined}
+              aria-current={s.match(path) ? "page" : undefined}
             >
               {s.title}
             </a>

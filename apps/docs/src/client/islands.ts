@@ -12,9 +12,9 @@ const REGISTRY = {
   Frame: () => import("../live/figures/Frame").then((m) => m.Frame),
   Spotlight: () => import("../live/figures/Spotlight").then((m) => m.Spotlight),
   QuickstartApp: () => import("../live/figures/Quickstart").then((m) => m.QuickstartApp),
-  LinkDemo: () => import("../shell/landing/demos").then((m) => m.LinkDemo),
-  FollowDemo: () => import("../shell/landing/demos").then((m) => m.FollowDemo),
-  KeysDemo: () => import("../shell/landing/demos").then((m) => m.KeysDemo),
+  LinkDemo: () => import("../landing/demos/LinkDemo").then((m) => m.LinkDemo),
+  FollowDemo: () => import("../landing/demos/FollowDemo").then((m) => m.FollowDemo),
+  KeysDemo: () => import("../landing/demos/KeysDemo").then((m) => m.KeysDemo),
 } satisfies Record<IslandName, () => Promise<ComponentType<never>>>;
 
 /**

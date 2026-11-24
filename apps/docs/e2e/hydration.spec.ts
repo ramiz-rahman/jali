@@ -48,7 +48,8 @@ for (const platform of PLATFORMS) {
         expect(await hydrateAll(page)).toBeGreaterThan(0);
         expect(await sameNodes(page)).toBe(true);
         await expect(page.locator(".search-button-kbd")).toHaveText(mac ? "⌘K" : "Ctrl K");
-        await expect(page.locator("#content > article.article")).toBeVisible();
+        // The page's content: a docs page's article, or the landing's frame.
+        await expect(page.locator("#content > :is(article.article, .landing-frame)")).toBeVisible();
         expect(errors).toEqual([]);
       });
     }

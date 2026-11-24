@@ -259,42 +259,6 @@
     border-radius: var(--jali-radius-control);
   }
 
-  /* Values of a union */
-  :root .ref-values {
-    margin: 0.75rem 0 0;
-    border: 1px solid var(--jali-border);
-    border-radius: var(--jali-radius-control);
-  }
-  :root .ref-values-title {
-    margin: 0;
-    padding: 0.5rem 0.875rem;
-    border-bottom: 1px solid var(--jali-border);
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: var(--jali-text-muted);
-  }
-  :root .ref-values dl {
-    margin: 0;
-  }
-  :root .ref-value {
-    padding: 0.625rem 0.875rem;
-    border-bottom: 1px solid var(--jali-border);
-  }
-  :root .ref-value:last-child {
-    border-bottom: 0;
-  }
-  :root .ref-value dt code {
-    font-family: var(--jali-font-mono);
-    font-size: 0.8125rem;
-    color: var(--jali-text);
-  }
-  :root .ref-value dd {
-    margin: 0.25rem 0 0;
-    font-size: 0.875rem;
-    line-height: 1.375rem;
-    color: var(--jali-text-muted);
-  }
-
   /* Member tables */
   :root .ref-members {
     margin-top: 1.25rem;

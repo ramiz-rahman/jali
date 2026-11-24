@@ -6,13 +6,13 @@
 import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { MDXProvider } from "@mdx-js/react";
-import { pages } from "../site/pages";
+import { pageModules } from "../site/pages";
 import { islandPrefix } from "../client/island-id";
 import { Collect, type Collected, type TocEntry } from "./collect";
 import { IslandBoundary } from "./ErrorBoundary";
 import { islandMarker } from "./island";
 import { mdxComponents } from "./mdx";
-import { Shell, type ShellProps } from "./Shell";
+import { NotFoundShell, PageShell, type PageShellProps } from "./Shell";
 
 export interface RenderedPage {
   html: string;
@@ -31,7 +31,7 @@ export function renderPage(path: string): Promise<RenderedPage> {
 }
 
 async function render(path: string): Promise<RenderedPage> {
-  const load = pages[path];
+  const load = pageModules[path];
   if (!load) throw new Error(`No page at ${path}`);
   const { default: Page } = await load();
   const collected: Collected = { headings: [], islands: [] };
@@ -54,6 +54,9 @@ async function render(path: string): Promise<RenderedPage> {
   return { html, headings: collected.headings };
 }
 
-/** The site around a page, or the 404 page, as HTML. */
-export const renderShell = (props: ShellProps) =>
-  renderToString(<Shell {...props} />, { identifierPrefix: "s-" });
+/** The site around a page, as HTML. */
+export const renderShell = (props: PageShellProps) =>
+  renderToString(<PageShell {...props} />, { identifierPrefix: "s-" });
+
+/** The site around "There is no page here", as HTML. */
+export const renderNotFound = () => renderToString(<NotFoundShell />, { identifierPrefix: "s-" });

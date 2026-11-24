@@ -40,10 +40,10 @@ test("the install line: the menu picks the package manager, from the pointer or 
   page,
 }) => {
   await page.goto("/get-started/quickstart");
-  const install = page.locator("[data-install]").first();
+  const install = page.locator("figure.install").first();
   const trigger = install.getByRole("button", { name: "Package manager: npm" });
   const menu = install.getByRole("listbox", { name: "Package manager" });
-  const command = install.locator("[data-pm-panel]:visible");
+  const command = install.locator(".install-command:visible");
   await expect(command).toHaveText("npm install jali");
   await expect(menu).toBeHidden();
 
@@ -76,9 +76,9 @@ test("the install line: the menu picks the package manager, from the pointer or 
   await expect(menu).toBeHidden();
 
   await page.goto("/");
-  const hero = page.locator("[data-install]").first();
+  const hero = page.locator("figure.install").first();
   await expect(hero.getByRole("button", { name: "Package manager: vp" })).toBeVisible();
-  await expect(hero.locator("[data-pm-panel]:visible")).toHaveText("vp install jali");
+  await expect(hero.locator(".install-command:visible")).toHaveText("vp install jali");
 });
 
 test("the landing takes the page's width at every window width, with nothing past the edge", async ({

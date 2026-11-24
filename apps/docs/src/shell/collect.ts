@@ -3,7 +3,7 @@
  * its islands (the live parts the browser hydrates). Only the prerender provides it (src/shell/render.tsx); in the
  * browser the context is null and components render as usual.
  */
-import { createContext, type ComponentType } from "react";
+import { createContext, useContext, type ComponentType } from "react";
 
 export interface TocEntry {
   id: string;
@@ -25,3 +25,12 @@ export interface Collected {
 }
 
 export const Collect = createContext<Collected | null>(null);
+
+/**
+ * Lists a heading for "On this page" and search, while the page is built (null: this one isn't listed). The prerender
+ * renders each page once, so the list gets each heading once, in order.
+ */
+export function useTocEntry(entry: TocEntry | null) {
+  const collect = useContext(Collect);
+  if (entry) collect?.headings.push(entry);
+}
