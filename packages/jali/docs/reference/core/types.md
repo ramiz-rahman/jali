@@ -1,6 +1,6 @@
 # jali types
 
-Every type jali exports, with its fields, and every instance action.
+Every type jali exports, with its fields, and every instance action: the layout tree, kinds and pages, the instance, the address, commands, keys and words.
 
 Import any of these with `import type { … } from "jali";`. Functions that use them are on [jali](../core.md).
 

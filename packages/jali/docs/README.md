@@ -6,8 +6,8 @@ Written from the docs site by tooling/agent-docs.mjs; don't edit these files.
 
 ## Get started
 
-- [Introduction](get-started/introduction.md): What Jali is, the problem it solves, and when not to use it.
-- [Why Jali](get-started/why-jali.md): How Jali compares with dockview, FlexLayout, react-mosaic, Golden Layout and react-resizable-panels, when one of them is the better choice, and what Jali costs and works with.
+- [Introduction](get-started/introduction.md): What Jali is, the problem it solves for apps where people work on several things at once, and when not to use it.
+- [Why Jali](get-started/why-jali.md): Jali beside dockview, FlexLayout, react-mosaic, Golden Layout and react-resizable-panels: when each is the better choice, and what Jali costs and works with.
 - [Installation](get-started/installation.md): Add Jali to a React app with Vite, Next.js or another bundler, render it on the server, and set up TypeScript.
 - [Quickstart](get-started/quickstart.md): Build the smallest Jali app, a note whose button opens the next note beside it.
 - [Key concepts](get-started/key-concepts.md): Every word Jali uses, defined in a sentence or two, most with an example or a picture.
@@ -37,7 +37,7 @@ Written from the docs site by tooling/agent-docs.mjs; don't edit these files.
 ## Reference
 
 - [jali](reference/core.md): Every function and constant jali exports, with its options, defaults and what it returns.
-- [jali types](reference/core/types.md): Every type jali exports, with its fields, and every instance action.
+- [jali types](reference/core/types.md): Every type jali exports, with its fields, and every instance action: the layout tree, kinds and pages, the instance, the address, commands, keys and words.
 - [jali/react](reference/react.md): Every component, hook and type jali/react exports, with its props, defaults and what it returns.
 - [Features](reference/features.md): What an instance does beyond laying out panes, each a value from its own entry, so an app ships only what it uses.
 - [jali/testing](reference/testing.md): An instance for tests, keys, and what a rendered pane would report, without the adapter's internals.

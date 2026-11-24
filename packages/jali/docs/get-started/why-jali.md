@@ -1,6 +1,6 @@
 # Why Jali
 
-How Jali compares with dockview, FlexLayout, react-mosaic, Golden Layout and react-resizable-panels, when one of them is the better choice, and what Jali costs and works with.
+Jali beside dockview, FlexLayout, react-mosaic, Golden Layout and react-resizable-panels: when each is the better choice, and what Jali costs and works with.
 
 Several good libraries lay out panes on the web. They solve different problems. This page says what Jali does differently, and where another library fits better. Every claim about another library comes from its own README or site (read on 22 Nov 2026); where its docs don't say, the table says "not stated", not "no".
 
