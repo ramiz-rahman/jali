@@ -56,3 +56,30 @@ test("⌘K runs Full screen, and running it again exits", async ({ app, page }) 
   await run();
   await expect(page.locator("section[data-full-screen]")).toHaveCount(0);
 });
+
+test("⌘K ⌘F puts the focused pane on the browser's full screen; again, or Escape, puts it back", async ({
+  app,
+  page,
+}) => {
+  await app.open();
+  const before = await app.snap();
+  const pane = page.locator("section[data-pane]").first();
+  await pane.click({ position: { x: 120, y: 200 } });
+  const chord = async () => {
+    await page.keyboard.press("ControlOrMeta+k");
+    await page.keyboard.press("ControlOrMeta+f");
+  };
+  await chord();
+  await expect(pane).toHaveAttribute("data-full-screen", "true");
+  await expect.poll(() => page.evaluate(() => !!document.fullscreenElement)).toBe(true);
+  // The palette the first step opened closes with the second: nothing is left over the full-screen pane.
+  await expect(page.getByRole("dialog", { name: "Commands" })).toHaveCount(0);
+  await chord();
+  await expect.poll(() => page.evaluate(() => !!document.fullscreenElement)).toBe(false);
+  await expect(page.locator("section[data-full-screen]")).toHaveCount(0);
+  await chord();
+  await expect(pane).toHaveAttribute("data-full-screen", "true");
+  await page.keyboard.press("Escape");
+  await expect(page.locator("section[data-full-screen]")).toHaveCount(0);
+  await app.expectSnap(before, "after leaving full screen");
+});

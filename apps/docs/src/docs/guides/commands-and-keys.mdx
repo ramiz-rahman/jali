@@ -27,6 +27,7 @@ Every key option lives in one group, `createJali({ keyboard })`: `scope`, `keyma
 | Focus the pane left, right, up, down | ⌘K ⌘←, ⌘→, ⌘↑, ⌘↓ | Ctrl+K Ctrl+Left, … |
 | Move the pane | ⌘K ⇧⌘← and so on | Ctrl+K Ctrl+Shift+Left, … |
 | Maximise or restore | ⇧⌘↵, or ⌘K ⌘M | Ctrl+Shift+Enter, or Ctrl+K Ctrl+M |
+| Full screen, or leave it | ⌘K ⌘F (Esc leaves too) | Ctrl+K Ctrl+F |
 | Close pane | ⌘K ⌘⌫ | Ctrl+K Ctrl+Backspace |
 | Undo last close or tuck | ⌘K ⌘Z | Ctrl+K Ctrl+Z |
 | Split right / down | ⌘\\ / ⌘K ⌘\\ | Ctrl+\\ / Ctrl+K Ctrl+\\ |
@@ -114,7 +115,7 @@ Commands that belong to your app rather than to one pane, such as "Refresh order
 
 <Code code={hostCommands} filename="src/jali.ts" />
 
-Give them ids of your own (`orders.refresh`), not one of Jali's prefixes. If an id repeats one of Jali's, Jali's wins, and the app command's keys are dropped with it. A key that already runs another command stays with that command, and the second binding is reported to `keyboard.onInvalid`.
+Give them ids of your own (`orders.refresh`), not one of Jali's prefixes. If an id repeats one of Jali's, Jali's wins, and the app command's keys are dropped with it. Your keys win over Jali's defaults: a command of yours on ⌘\\ takes it from Split right, which then has no key, and `keyboard.onInvalid` hears about it (by default, a console warning). Between two of your own commands on the same keys, the first keeps them and the second is reported.
 
 ### Commands that ask for something
 

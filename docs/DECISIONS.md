@@ -2425,3 +2425,12 @@ who has read one example finds their way in another, and can tell what a part ma
   the layout and the preset. A preset this instance doesn't have is no link it can open: the instance starts as it
   would without one.
 - **Tests:** `packages/core/tests/preset-link.test.ts`, `e2e/site/showcase.spec.ts`.
+
+## 24 Nov 2026 · A key for full screen; the app's keys win over Jali's defaults
+
+- **Why:** full screen had no key, so it was palette or menu only, and people reach for it from the keyboard.
+- **Now:** `pane.fullscreen` is ⌘K ⌘F (Ctrl+K Ctrl+F): maximise's bigger step, F beside maximise's M. The keys people know (⌃⌘F, F11) are the OS's and the browser's, and put the whole window on the screen, not a pane; they keep doing that. ⌘F on its own stays the browser's find. Like every two-step default, it moves with the prefix.
+- **Pop out keeps no default key.** ⌘K ⌘O (after VS Code's ⌘K O) was tried and taken back: two of the six example apps already bind ⌘K ⌘O for their own "open" (Markets' chart, Trips' optimise). "O for open" is a letter apps want, so a library default there would take it from them.
+- **The app's keys win over Jali's defaults.** Before, a default was placed first and the app's binding on the same keys was refused, so a default added in a release could silently take keys an app already used. Now the host's bindings (`keyboard.keymap` and its commands' `keys`) are placed first: a default on the same keys gives up that binding, and the warning (`onInvalid`, a console warning by default) names both ("⌘K ⌘F runs app.find, which the app bound"). Between two of the host's own bindings, the first still wins and the second is refused. The keys list in the table's order as before.
+- **Reviewed and kept:** every other default, against VS Code, Zed, iTerm2, kitty, tmux and the browser and OS keys (docs/research/keyboard-shortcuts.md): each matches a key people know from one of those, or stands in for one the browser takes (⌘W, ⇧⌘T). One caveat is recorded there as an open question: moving a tab needs Page keys, which a Mac laptop reaches with Fn.
+- **Tests:** `keyboard.test.ts` presses ⌘K ⌘F (full screen, and back) and checks that an app's binding takes a default's keys; `e2e/fullscreen.spec.ts` presses it in real browsers. The reserved-key test covers it, as it covers every default.

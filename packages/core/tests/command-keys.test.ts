@@ -70,16 +70,16 @@ describe("an app command's keys", () => {
     expect(ranWith).not.toHaveBeenCalled();
   });
 
-  it("that Jali already uses are refused and reported, and Jali's command keeps them", () => {
+  it("that a Jali default uses take them from it: the app's choice wins, and the warning names both", () => {
     const onInvalid = vi.fn();
     const store = setup([queue({ keys: "Mod+\\" })], { onInvalid });
     expect(onInvalid).toHaveBeenCalledWith(
-      "app.queue",
+      "pane.split.right",
       "Mod+\\",
-      "⌘\\ already runs pane.split.right",
+      "⌘\\ runs app.queue, which the app bound",
     );
-    expect(listed(store, "app.queue").keys).toBe("");
-    expect(listed(store, "pane.split.right").keys).toBe("⌘\\");
+    expect(listed(store, "app.queue").keys).toBe("⌘\\");
+    expect(listed(store, "pane.split.right").keys).toBe("");
   });
 
   it("go with the command: one that repeats a Jali id is dropped, keys and all", () => {

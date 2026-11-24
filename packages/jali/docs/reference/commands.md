@@ -35,7 +35,7 @@ The titles below are for an instance with no curated page. With a curated page, 
 | `pane.focus.8` | Focus pane 8 | none | none | Never refused. Does nothing when there are fewer panes on screen. |
 | `pane.focus.9` | Focus pane 9 | none | none | Never refused. Does nothing when there are fewer panes on screen. |
 | `pane.zoom` | Maximise or restore pane | ⇧⌘↵ or ⌘K ⌘M | Ctrl+Shift+Enter or Ctrl+K Ctrl+M | In a curated page in Single, with "Single shows one view: choose it from the tabs…". Silent when no pane is focused, or when only one pane is open and nothing is maximised. |
-| `pane.fullscreen` | Full screen pane, or exit full screen | none | none | On a curated page in Single view. Puts the focused pane on the whole screen, or takes it off. |
+| `pane.fullscreen` | Full screen pane, or exit full screen | ⌘K ⌘F | Ctrl+K Ctrl+F | On a curated page in Single view. Puts the focused pane on the whole screen, or takes it off. |
 | `pane.pop_out` | Pop out pane | none | none | Only with the popOut() feature (jali/pop-out). Silent when no pane is focused, or the browser can't pop out (Document Picture-in-Picture: Chrome and Edge on desktop). When the focused pane doesn't allow it, says so. Opens it in a floating window that stays on top. |
 | `pane.tuck` | Tuck pane into its neighbour | ⌘K ⌘[ | Ctrl+K Ctrl+[ | In Single, as for maximise. With no pane focused or recently focused: "No pane focused". A pane in a tab group, already tucked, or a tuck's home: "… is already a tab of …". Not on screen: "… is not on screen". The only pane open or on screen, or no neighbour to tuck into: "… can't be tucked". |
 | `pane.putBack` | Put back tucked pane | ⌘K ⌘] | Ctrl+K Ctrl+] | "Nothing is tucked" when no pane is tucked. |

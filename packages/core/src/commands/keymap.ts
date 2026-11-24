@@ -44,6 +44,10 @@ export const DEFAULT_KEYMAP = {
   "pane.move.down": ["Mod+K Shift+Mod+ArrowDown"],
   // Maximise is the most used pane command: one direct chord (iTerm2, Warp), with the ⌘K form as a second binding.
   "pane.zoom": ["Mod+Shift+Enter", "Mod+K Mod+M"],
+  // Full screen, maximise's bigger step: F for full screen, beside maximise's M. The keys people know for it (⌃⌘F on a
+  // Mac, F11 elsewhere) are the browser's and the OS's, and put the whole window on the screen, not a pane. ⌘F on its
+  // own stays the browser's find; as a second step it is ours (VS Code on the web ships ⌘K ⌘F too).
+  "pane.fullscreen": ["Mod+K Mod+F"],
   "pane.tuck": ["Mod+K Mod+["],
   "pane.putBack": ["Mod+K Mod+]"],
   "pane.resize_mode": ["Mod+K Mod+R"],
@@ -75,6 +79,7 @@ export type DefaultKeymapId =
   | "pane.move.up"
   | "pane.move.down"
   | "pane.zoom"
+  | "pane.fullscreen"
   | "pane.tuck"
   | "pane.putBack"
   | "pane.resize_mode"
@@ -209,11 +214,21 @@ export function createKeymap(overrides: KeymapOverrides = {}, opts: KeymapOption
     else merged.set(id, typeof v === "string" ? [v] : v);
   }
   const entries: [string, KeySequence[]][] = [];
-  // A key runs one command: the first bound to it. A second binding of the same keys could never run, so it is
-  // refused and reported.
+  // A key runs one command. The host's bindings (its overrides and its commands' keys) are placed first, so one on the
+  // same keys as a default of Jali's wins: the default gives up that binding, and the warning names both. Between two
+  // of the host's own, the first bound wins, and the second, which could never run, is refused and reported.
   const owner = (seq: KeySequence) =>
     entries.find(([, seqs]) => seqs.some((s) => sameSequence(s, seq)))?.[0];
-  for (const [id, list] of merged) {
+  const fromHost = new Set(
+    Object.entries(overrides)
+      .filter(([, v]) => v !== undefined && v !== null)
+      .map(([id]) => id),
+  );
+  const order = [...merged.keys()];
+  const hostFirst = [...merged].sort(
+    ([a], [b]) => Number(fromHost.has(b)) - Number(fromHost.has(a)),
+  );
+  for (const [id, list] of hostFirst) {
     const seqs: KeySequence[] = [];
     for (const b of list) {
       let seq: KeySequence;
@@ -230,11 +245,20 @@ export function createKeymap(overrides: KeymapOverrides = {}, opts: KeymapOption
         warn(id, b, "a single character key belongs to the focused content (WCAG 2.1.4)");
       else if (taken)
         warn(id, b, `the host reserves ${formatKeys(taken, platform)} (keyboard.reserved)`);
-      else if (bound) warn(id, b, `${formatKeys(seq, platform)} already runs ${bound}`);
+      else if (bound)
+        warn(
+          id,
+          b,
+          fromHost.has(id)
+            ? `${formatKeys(seq, platform)} already runs ${bound}`
+            : `${formatKeys(seq, platform)} runs ${bound}, which the app bound`,
+        );
       else seqs.push(seq);
     }
     if (seqs.length) entries.push([id, seqs]);
   }
+  // Back in the table's order, so the keys list as they always did.
+  entries.sort(([a], [b]) => order.indexOf(a) - order.indexOf(b));
   const byId = new Map(entries);
   const others = new Map<Platform, Keymap>();
   const keymap: Keymap = {

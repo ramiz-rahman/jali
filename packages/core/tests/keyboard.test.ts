@@ -173,6 +173,18 @@ describe("chords", () => {
     expect(store.get().view.zoomed).toBe(id);
   });
 
+  it("⌘K ⌘F puts the focused pane on the full screen, and again puts it back", () => {
+    const id = store.get().view.focused!;
+    expect(store.keymap.label("pane.fullscreen")).toBe(
+      store.keymap.platform === "mac" ? "⌘K ⌘F" : "Ctrl+K Ctrl+F",
+    );
+    chord(content, "Mod+K Mod+F");
+    expect(store.get().fullScreen).toBe(id);
+    expect(store.get().paletteOpen).toBe(false);
+    chord(content, "Mod+K Mod+F");
+    expect(store.get().fullScreen).toBeUndefined();
+  });
+
   it("any other key ends the wait: typing in the palette is typing", () => {
     chord(content, "Mod+K");
     keydown(content, { key: "m", code: "KeyM" });
@@ -239,6 +251,29 @@ describe("the keymap", () => {
   });
 
   const norm = (c: Chord) => [c.key, !!c.mod, !!c.ctrl, !!c.alt, !!c.shift].join();
+  it("an app's binding on a default's keys wins: the default gives them up, and the warning names both", () => {
+    const warned: string[] = [];
+    const km = createKeymap(
+      { "app.find": "Mod+K Mod+F", "app.other": "Mod+K Mod+F" },
+      { platform: "mac", onInvalid: (id, b, why) => warned.push(`${id} ${b}: ${why}`) },
+    );
+    expect(km.label("app.find")).toBe("⌘K ⌘F");
+    expect(km.sequences("pane.fullscreen")).toEqual([]);
+    expect(warned).toContain(
+      "pane.fullscreen Mod+K Mod+F: ⌘K ⌘F runs app.find, which the app bound",
+    );
+    // Two of the app's own on the same keys: the first wins, and the second could never run.
+    expect(km.sequences("app.other")).toEqual([]);
+    expect(warned).toContain("app.other Mod+K Mod+F: ⌘K ⌘F already runs app.find");
+    // A default's other bindings stay: maximise keeps ⌘K ⌘M when an app takes ⇧⌘↵.
+    const zoom = createKeymap(
+      { "app.send": "Mod+Shift+Enter" },
+      { platform: "mac", onInvalid: () => {} },
+    );
+    expect(zoom.label("pane.zoom")).toBe("⌘K ⌘M");
+    expect(zoom.label("app.send")).toBe("⇧⌘↵");
+  });
+
   it("no default uses a browser-reserved or OS-taken key", () => {
     // Browser-reserved (the browser acts before the page) or claimed by the OS / assistive tech: see the research doc.
     const banned = [

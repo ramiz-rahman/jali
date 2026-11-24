@@ -30,6 +30,7 @@ The defaults, as on a Mac (Ctrl in place of ⌘ on Windows and Linux). Every bin
 | ⌘K ⌘← ⌘→ ⌘↑ ⌘↓ | Focus the pane in that direction |
 | ⌘K ⇧⌘← (and the other arrows) | Move the focused pane |
 | ⇧⌘↵, or ⌘K ⌘M | Maximise or restore |
+| ⌘K ⌘F | Full screen, or leave it (Esc leaves too) |
 | ⌘K ⌘⌫ | Close the pane (asks first about unsaved work) |
 | ⌘K ⌘Z | Undo the last close or tuck |
 | ⌘K ⌘[ / ⌘K ⌘] | Tuck / put back |
