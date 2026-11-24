@@ -1132,7 +1132,7 @@
   .site-footer-cells {
     position: relative;
     display: grid;
-    grid-template-columns: minmax(0, 1.35fr) minmax(0, 4fr);
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 5fr);
   }
   .site-footer-cells::before {
     top: 0;
@@ -1142,7 +1142,7 @@
   }
   .site-footer-nav {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
   .site-footer-cell {
     padding: 36px 28px 44px;
@@ -1179,6 +1179,8 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
+    /* A short title ("jali") is still a 24px target. */
+    min-width: 24px;
     padding: 5px 0;
     font-size: 14px;
     line-height: 22px;

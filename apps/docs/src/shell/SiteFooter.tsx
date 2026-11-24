@@ -1,13 +1,12 @@
 /**
- * The site footer, the opening's bookend: a row of cells (what Jali is, then Docs, Learn, Reference and Project) split
- * by dividers as panes are, then the lockup, large, in the centre of the opening's grid with a hatched tile either
- * side, then who made it and the licence. Titles come from the pages, so a renamed page renames its link here. Ends
- * the landing, and every docs page.
+ * The site footer, the opening's bookend: a row of cells (what Jali is, then Docs, Learn, Guides, Reference and
+ * Project) split by dividers as panes are, then the lockup, large, in the centre of the opening's grid with a hatched
+ * tile either side, then who made it and the licence. The docs' columns are the sidebar's sections, so a page added,
+ * moved or renamed there is here too. Ends the landing, and every docs page.
  */
 import { ArrowUpRightIcon } from "@phosphor-icons/react";
 import { REPO_BRANCH, REPO_URL } from "../site/config";
 import { nav } from "../site/nav";
-import { pageAt } from "../site/sources";
 import { Lockup } from "./brand";
 // The maker's mark and name, the same as in every example app's status line. The examples' shared code isn't a
 // dependency of the docs, so it is read from its folder.
@@ -25,15 +24,8 @@ function columns(): { title: string; links: Link[] }[] {
   return [
     { title: "Docs", links: section("Get started") },
     { title: "Learn", links: section("Learn") },
-    {
-      title: "Reference",
-      links: [
-        { href: "/reference/core", title: "jali" },
-        { href: "/reference/react", title: "jali/react" },
-        { href: "/reference/tokens", title: pageAt("/reference/tokens").title },
-        { href: "/reference/commands", title: pageAt("/reference/commands").title },
-      ],
-    },
+    { title: "Guides", links: section("Guides") },
+    { title: "Reference", links: section("Reference") },
     {
       title: "Project",
       links: [
