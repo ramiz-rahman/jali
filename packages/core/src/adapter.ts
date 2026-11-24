@@ -241,6 +241,7 @@ export {
 export { noDom, type DividerLine, type DomPort, type DragKind } from "./dom/port";
 export {
   activeTabId,
+  flashPane,
   flashTab,
   focusInShelf,
   focusPane,

@@ -97,6 +97,18 @@ export function focusShelfChip(dom: JaliDom): boolean {
   return !!chip;
 }
 
+/**
+ * A highlight on a pane, so a link that finds its object already open visibly lands somewhere instead of seeming to
+ * do nothing. Skipped under reduced motion; the announcement ("Already open: …") is there either way.
+ */
+export function flashPane(dom: JaliDom, paneId: NodeId) {
+  if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+  requestAnimationFrame(() => {
+    const el = dom.pane(paneId);
+    if (el) dom.port.flash(el);
+  });
+}
+
 /** A highlight on a tab, so the eye finds where a revealed pane went. Skipped under reduced motion. */
 export function flashTab(dom: JaliDom, paneId: NodeId) {
   if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;

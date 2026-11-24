@@ -57,8 +57,8 @@ export interface DomPort {
   shelfChip(shelf: HTMLElement): HTMLElement | null;
   /** A drag starts (`what`, and the divider dragged) or ends (`null`). */
   dragging(what: DragKind | null, divider?: HTMLElement): void;
-  /** A brief highlight on a tab, so the eye finds where a pane went. */
-  flash(tab: HTMLElement): void;
+  /** A brief highlight on a tab or a pane, so the eye finds where a pane went or what a link landed on. */
+  flash(el: HTMLElement): void;
 }
 
 /** The port before an adapter gives one: nothing found, nothing marked. */

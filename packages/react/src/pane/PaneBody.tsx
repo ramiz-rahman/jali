@@ -1,7 +1,7 @@
 import type { NodeId, ObjectRef, PaneNode } from "@jali/core";
 import { memo, useMemo } from "react";
 import type { ActionResult, JaliStore } from "@jali/core/adapter";
-import { parseKeys, sameNode, sameRef } from "@jali/core/adapter";
+import { flashPane, parseKeys, sameNode, sameRef } from "@jali/core/adapter";
 import type { PaneProps } from "../define";
 import { PaneContext, type PaneHost } from "./context";
 import { useEnv, useKept, useMessages, useStore } from "../state/react";
@@ -17,7 +17,16 @@ export function paneHost(store: JaliStore, id: NodeId): PaneHost {
   const { actions } = store,
     app = store.jali.actions;
   return {
-    openBeside: (ref, options) => app.openBeside(id, ref, options),
+    openBeside: (ref, options) => {
+      const before = store.jali.model();
+      const result = app.openBeside(id, ref, options);
+      // A link from the pane's content to an object already open beside it opens nothing: Jali shows that pane and
+      // says "Already open". Light the pane up too, so the click visibly lands. Only when it was already showing that
+      // object: a detail that follows its list changes what it shows, which is answer enough.
+      const was = result.ok && result.pane ? before.pane(result.pane) : undefined;
+      if (was && sameRef(was.ref, ref)) flashPane(store.dom, was.id);
+      return result;
+    },
     peek: (ref) => (ref ? app.peek(id, ref) : app.closePeek()),
     select: (ref, opts) => app.select(id, ref, opts),
     openHere: (ref) => app.openHere(id, ref),

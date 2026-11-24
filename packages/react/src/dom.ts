@@ -96,10 +96,10 @@ export const reactDom: DomPort = {
     body.toggle("jali-resizing-column", what === "column");
     divider?.classList.toggle("is-dragging", !!what);
   },
-  flash(tab) {
-    tab.classList.remove("is-flash");
-    void tab.offsetWidth;
-    tab.classList.add("is-flash");
-    setTimeout(() => tab.classList.remove("is-flash"), FLASH_MS);
+  flash(el) {
+    el.classList.remove("is-flash");
+    void el.offsetWidth;
+    el.classList.add("is-flash");
+    setTimeout(() => el.classList.remove("is-flash"), FLASH_MS);
   },
 };
