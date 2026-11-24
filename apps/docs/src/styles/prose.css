@@ -55,6 +55,21 @@
   .page-action:hover svg {
     color: var(--jali-accent);
   }
+  /* A phone: the three on one line, the longest one shortened. */
+  @media (max-width: 479px) {
+    .page-actions {
+      gap: 2px;
+      margin-left: -8px;
+    }
+    .page-action {
+      gap: 6px;
+      padding: 0 8px;
+      white-space: nowrap;
+    }
+    .page-action-more {
+      display: none;
+    }
+  }
 
   /* ---------- prose ---------- */
   .prose {

@@ -26,9 +26,18 @@ function PageActions({ path, title }: { path: string; title: string }) {
         <CheckIcon aria-hidden size={15} className="icon-done" />
         <span aria-live="polite">Copy page</span>
       </button>
-      <a className="page-action" href={md} target="_blank" rel="noreferrer">
+      <a
+        className="page-action"
+        href={md}
+        target="_blank"
+        rel="noreferrer"
+        aria-label="View as Markdown"
+      >
         <FileTextIcon aria-hidden size={15} />
-        View as Markdown
+        {/* On a phone the three fit one line: "Copy page", "Markdown", "Open in Claude". */}
+        <span>
+          <span className="page-action-more">View as </span>Markdown
+        </span>
       </a>
       <a
         className="page-action"
