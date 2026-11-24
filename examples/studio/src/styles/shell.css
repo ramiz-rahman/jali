@@ -429,7 +429,7 @@
    */
   .status {
     --maker-ink: var(--ink);
-    --maker-lockup: 21px;
+    --maker-lockup: 16px;
     --maker-mark: 18px;
     position: relative;
     display: flex;

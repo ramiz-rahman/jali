@@ -942,7 +942,7 @@
     border-radius: 12px;
   }
   .site-footer-lockup {
-    height: clamp(56px, 7vw, 104px);
+    height: clamp(50px, 6.2vw, 92px);
     width: auto;
   }
 

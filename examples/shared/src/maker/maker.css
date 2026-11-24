@@ -34,7 +34,7 @@
 /* Jali's lockup at the size of the words beside it. */
 .built-with .brand-lockup {
   display: block;
-  height: var(--maker-lockup, 1.5em);
+  height: var(--maker-lockup, 1.1em);
   width: auto;
   color: var(--maker-ink, inherit);
 }

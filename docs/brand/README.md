@@ -1,15 +1,16 @@
 # Chakni and Jali: logos
 
-Two sibling libraries, one bar system. `final/preview.png` shows every piece in light and dark; `final/preview-small.png` the small marks and app icons.
+Two sibling libraries, one bar system. `final/preview.png` shows every piece in light and dark; `final/preview-small.png` the small marks and app icons. (Both predate Jali's window mark of November 2026; re-render them before relying on them.)
 
 - **Chakni** (ছাঁকনি, the tea strainer): a round disc of bars cut flat across; below the cut, finer bars taper into one stream that lets go of a single drop. Pour in everything, keep what you came for. The outline stays round: an earlier V-shaped lower edge read as a swimsuit.
-- **Jali** (জালি, the lattice screen): an arch of bars in three panels: five tall bars; on the right, four bars above a stack of flat bars. The mullion and transom are gutters three times the bar gap, so the panels read apart.
+- **Jali** (জালি, the lattice screen): an arched window. Its frame (the arch, the sill, a mullion and, on the right, a transom) holds three panes: one tall, two stacked, the layout Jali makes. A finer lattice fills them: upright bars above the transom, flat bars below it. The frame is about the wordmark's stem weight, the lattice under half of it. The small mark keeps the frame, heavier, with one upright bar in the tall pane and one flat bar below the transom. The mark is one even-odd path: the arch, the panes cut from it, the bars filled back in.
 
 ## The system
 
 - Bars 5.54 wide on an 8.03 pitch, a 72-unit-wide silhouette; both marks share one 76 × 96 box, so they size alike.
 - Small versions (`*-mark-small`) for 16–48px: fewer, heavier bars on the same plan. The small Chakni is the disc and one drop, with no stream: at icon sizes a thick bar over a dot reads as "!".
 - Wordmark: Atkinson Hyperlegible Next SemiBold (OFL), outlined, tracked −2.5%; the j's descender is shortened to 82% so "jali" sits level. SemiBold, not Bold: the bars carry the weight, the type carries the voice.
+- Jali's lockup: the word stands on the arch's sill and the dots of its j and i sit level with the arch's crown, so mark and word share a top and a baseline; the mark is about 88% of the word's height (the word is 119.5 units against an arch 88 tall, 22.7 units from the arch to the j's stem, 28 in the small lockup, which needs more air at nav sizes). The j's descender hangs below the sill, its hook under the arch's corner. Inline on a page, the lockup's box is the mark's and the descender overflows it, so a height in CSS sizes the arch and the arch centres on the text beside it.
 - Colour: the marks ship in ink `#111111` or white; each library also has a signature colour, used on its own ground. The two are near-complementary, and both are Bengali stories: tea and indigo.
 
 ## Signature colours

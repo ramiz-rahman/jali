@@ -88,7 +88,7 @@ export function SiteFooter() {
         <span className="site-footer-tile site-footer-tile-right" aria-hidden />
         <span className="site-footer-split" aria-hidden />
         <a href="/" className="site-footer-home" aria-label="Jali, home">
-          <Lockup className="site-footer-lockup" />
+          <Lockup className="site-footer-lockup" full />
         </a>
       </div>
       <p className="site-footer-legal">
