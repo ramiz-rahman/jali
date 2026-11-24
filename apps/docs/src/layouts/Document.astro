@@ -33,7 +33,8 @@ const props = Astro.props;
     </style>
     <!--
       Before the first paint: data-theme is the resolved theme, as jali sets it (src/shell/theme.client.ts keeps it
-      current); data-theme-choice lights the toggle's button; data-code-wrap wraps long code lines.
+      current); data-theme-choice lights the toggle's button; data-code-wrap wraps long code lines: the reader's
+      choice, or, until they make one, on a phone (a line cut off there is most of the line).
     -->
     <script is:inline define:vars={{ themeKey: STORAGE_KEYS.theme, wrapKey: STORAGE_KEYS.codeWrap }}>
       var c = "system",
@@ -48,7 +49,8 @@ const props = Astro.props;
       var root = document.documentElement;
       root.setAttribute("data-theme", dark ? "dark" : "light");
       root.setAttribute("data-theme-choice", c === "light" || c === "dark" ? c : "system");
-      if (w === "1") root.setAttribute("data-code-wrap", "");
+      var phone = window.matchMedia && matchMedia("(max-width: 767px)").matches;
+      if (w === "1" || (w === null && phone)) root.setAttribute("data-code-wrap", "");
     </script>
     <Head {...props} />
     {fonts.map((href) => <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />)}

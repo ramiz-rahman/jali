@@ -47,9 +47,24 @@
     }
   }
 
+  /*
+   * A line that runs past the block's edge: a soft shadow on that edge, gone once the line is scrolled to its end. The
+   * covers move with the code (local) and hide the shadows (scroll) at the code's own ends.
+   */
+  .code {
+    --code-edge: rgb(0 0 0 / 0.13);
+  }
+  :root[data-theme="dark"] .code {
+    --code-edge: rgb(0 0 0 / 0.5);
+  }
   .code-pre {
     padding: 15px 0;
     overflow-x: auto;
+    background:
+      linear-gradient(to right, var(--d-code-bg) 40%, transparent) left / 24px 100% no-repeat local,
+      linear-gradient(to left, var(--d-code-bg) 40%, transparent) right / 24px 100% no-repeat local,
+      linear-gradient(to right, var(--code-edge), transparent) left / 16px 100% no-repeat scroll,
+      linear-gradient(to left, var(--code-edge), transparent) right / 16px 100% no-repeat scroll;
     font: 400 14px/22px var(--d-font-mono);
     color: var(--shiki-foreground);
     tab-size: 2;
@@ -110,14 +125,15 @@
     box-shadow: inset 2px 0 0 var(--jali-accent);
   }
 
-  /* Wrapped: long lines break, and their rest hangs two columns in from the line's own indent. */
-  :root[data-code-wrap] .code .code-pre > code {
+  /* Wrapped: long lines break, and their rest hangs two columns in from the line's own indent. An install line never
+     wraps: it is one command, and it scrolls. */
+  :root[data-code-wrap] .code:not(.install) .code-pre > code {
     display: block;
   }
-  :root[data-code-wrap] .code .code-line {
+  :root[data-code-wrap] .code:not(.install) .code-line {
     white-space: normal;
   }
-  :root[data-code-wrap] .code .code-text {
+  :root[data-code-wrap] .code:not(.install) .code-text {
     --code-hang: min(calc(var(--code-indent, 0ch) + 2ch), 24ch);
     display: block;
     white-space: pre-wrap;
@@ -396,6 +412,9 @@
   .install .code-pre:focus-visible {
     outline-offset: -4px;
     border-radius: 8px;
+  }
+  .install .code-pre {
+    background: none;
   }
   .install .code-line {
     padding: 0 12px 0 20px;
