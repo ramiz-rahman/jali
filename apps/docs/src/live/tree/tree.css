@@ -59,34 +59,44 @@
     outline: 2px solid var(--jali-focus-ring);
     outline-offset: 1px;
   }
+  /* One surface with a thumb on it, no outlines: the track is a faint tint of the text (lifted from the panel, not a
+     hole in it), the chosen option a lighter tile that sits on it. As tall as the icon buttons beside it. */
   .live-seg {
     display: inline-flex;
-    padding: 2px;
+    padding: 3px;
     gap: 2px;
-    border-radius: 0.4375rem;
-    background: var(--jali-canvas);
-    border: 1px solid var(--jali-border);
+    border-radius: calc(var(--jali-radius-control) + 3px);
+    background: color-mix(in oklab, var(--jali-text) 7%, transparent);
   }
   .live-seg button {
     height: 1.375rem;
-    padding: 0 0.5625rem;
+    padding: 0 0.625rem;
     border: 0;
-    border-radius: 0.3125rem;
+    border-radius: var(--jali-radius-control);
     background: none;
     cursor: pointer;
-    font: 500 var(--live-text-tiny)/1 var(--jali-font);
-    letter-spacing: 0.01em;
+    font: 500 var(--live-text-caption) / 1 var(--jali-font);
     color: var(--jali-text-subtle);
+    transition:
+      background-color 120ms,
+      color 120ms;
   }
   .live-seg button:hover {
     color: var(--jali-text);
   }
   .live-seg button[aria-pressed="true"] {
-    background: var(--jali-surface);
     color: var(--jali-text);
-    box-shadow:
-      var(--jali-shadow-raised),
-      0 0 0 1px var(--jali-border);
+    /* Light: a white tile with a soft shadow. Dark: shadows don't read, so the tile is lighter instead. */
+    background: light-dark(
+      var(--jali-surface-raised),
+      color-mix(in oklab, var(--jali-text) 16%, var(--jali-surface))
+    );
+    box-shadow: light-dark(0 1px 2px rgb(0 0 0 / 0.1), 0 1px 2px rgb(0 0 0 / 0.4));
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .live-seg button {
+      transition: none;
+    }
   }
 
   /* ---------- Tree view: the workspace, and its layout tree drawn as a map ---------- */

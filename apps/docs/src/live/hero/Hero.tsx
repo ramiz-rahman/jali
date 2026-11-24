@@ -2,13 +2,13 @@
  * The landing's hero: a live workspace with one panel beside it showing its layout tree (the map, the JSON or both),
  * which the reader can close and bring back, and a short scripted tour above it (./tour).
  */
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { TreeStructureIcon, XIcon } from "@phosphor-icons/react";
 import { hintsFor, Tries } from "../figures/hints";
 import { demoLayouts, type DemoLayoutId } from "../shop/layouts";
 import { JsonView } from "../tree/JsonView";
 import { LayoutMap } from "../tree/LayoutMap";
-import { ResetButton, Segmented, SizesToggle } from "../tree/controls";
+import { ResetButton, Segmented } from "../tree/controls";
 import { TreeScope } from "../tree/TreeScope";
 import { useTreeHover } from "../tree/useTreeHover";
 import { LiveWorkspace } from "../workspace/LiveWorkspace";
@@ -38,7 +38,6 @@ export function Hero({ layout, height }: HeroProps) {
   const cursor = useRef<HTMLSpanElement | null>(null);
   const { m, hover, setHover, preview, stage } = useTreeHover(store, wrap);
   const panel = useSidePanel();
-  const [sizes, setSizes] = useState(false);
   const reset = () => {
     setHover(null);
     resetLive(store, layout);
@@ -82,7 +81,6 @@ export function Hero({ layout, height }: HeroProps) {
                   <b>Layout tree</b>
                 </span>
                 <span className="live-panel-tools">
-                  {view !== "json" ? <SizesToggle on={sizes} onChange={setSizes} /> : null}
                   <Segmented
                     label="Show the layout tree as"
                     options={VIEWS}
@@ -107,7 +105,7 @@ export function Hero({ layout, height }: HeroProps) {
               <div className="live-side-body" data-view={view}>
                 {view !== "json" ? (
                   <div className="live-panel-body">
-                    <LayoutMap hover={hover} setHover={setHover} sizes={sizes} />
+                    <LayoutMap hover={hover} setHover={setHover} sizes={false} />
                   </div>
                 ) : null}
                 {view !== "map" ? (
