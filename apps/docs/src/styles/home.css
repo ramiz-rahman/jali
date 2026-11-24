@@ -371,30 +371,82 @@
     border: 1px solid var(--jali-border);
     border-radius: var(--d-radius);
   }
+  /*
+   * The quickstart's note, as a sheet you could pick up: the code beside it is the whole component (a heading and a
+   * button), so the sheet is all in this CSS. A heading set like a title, ruled lines where the note's text would
+   * go (drawn, not written), and the action at the foot, made like the site's quiet button, its arrow pointing on.
+   */
   .landing-ws .note {
-    padding: 16px 18px;
+    --note-rule: color-mix(in srgb, var(--jali-text) 9%, transparent);
+    --note-top: 76px;
+    --note-foot: 72px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 24px 24px 20px;
+    background: repeating-linear-gradient(to bottom, transparent 0 31px, var(--note-rule) 31px 32px)
+      24px var(--note-top) / calc(100% - 48px) calc(100% - var(--note-top) - var(--note-foot))
+      no-repeat;
   }
   .landing-ws .note h3 {
-    font: 600 15px/22px var(--d-font-display);
-    margin: 0 0 12px;
+    margin: 0;
+    font: 600 22px/28px var(--d-font-display);
+    letter-spacing: -0.016em;
     color: var(--jali-text);
   }
   .landing-ws .note button {
-    height: 32px;
-    padding: 0 12px;
-    border-radius: 7px;
-    border: 1px solid var(--jali-border-strong);
+    --button-ease: cubic-bezier(0.23, 1, 0.32, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    align-self: flex-start;
+    margin-top: auto;
+    min-height: 36px;
+    padding: 7px 14px;
+    border: 0;
+    border-radius: 9px;
     background: var(--jali-surface-raised);
-    font-size: 14px;
-    font-weight: 500;
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.5),
+      0 0 0 1px var(--jali-border),
+      0 1px 2px rgb(0 0 0 / 0.05);
+    font: 500 14px/20px var(--d-font);
     color: var(--jali-text);
+    text-align: left;
     transition:
-      border-color 0.15s,
-      color 0.15s;
+      background-color 0.18s var(--button-ease),
+      box-shadow 0.18s var(--button-ease),
+      transform 0.18s var(--button-ease);
   }
-  .landing-ws .note button:hover {
-    border-color: var(--jali-accent);
-    color: var(--jali-accent);
+  :root[data-theme="dark"] .landing-ws .note button {
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.04),
+      0 0 0 1px var(--jali-border),
+      0 1px 2px rgb(0 0 0 / 0.3);
+  }
+  .landing-ws .note button::after {
+    content: "→";
+    color: var(--jali-text-subtle);
+    transition:
+      transform 0.24s var(--button-ease),
+      color 0.18s var(--button-ease);
+  }
+  .landing-ws .note button:active {
+    transform: scale(0.98);
+    transition-duration: 0.09s;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .landing-ws .note button:hover {
+      background: color-mix(in srgb, var(--jali-surface-raised) 96%, var(--jali-text));
+      box-shadow:
+        inset 0 1px 0 rgb(255 255 255 / 0.5),
+        0 0 0 1px var(--jali-border-strong),
+        0 1px 2px rgb(0 0 0 / 0.06);
+    }
+    .landing-ws .note button:hover::after {
+      transform: translateX(3px);
+      color: var(--jali-accent);
+    }
   }
 
   /* ---------- the four reasons, on one numbered path ---------- */
