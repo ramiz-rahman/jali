@@ -1,0 +1,113 @@
+# A release: push a tag `v<version>` on a commit of master whose packages/jali/package.json says that version and whose
+# CHANGELOG.md has a `## <version>` section. This runs every gate, packs `jali-layout`, then waits in the `npm`
+# environment for the owner's approval. Approved, it publishes the very tarball it verified to npm, by trusted
+# publishing (npm trusts this workflow: no token is stored here) with provenance, and makes the GitHub Release from the
+# changelog's section. A version with a hyphen (0.2.0-rc.1) goes to npm's `next` tag, not `latest`.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+# One release at a time, never cancelled half way.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  verify:
+    name: verify and pack
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: The tag, the package's version, master and the changelog agree
+        id: version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          version=$(node -p 'require("./packages/jali/package.json").version')
+          [ "$TAG" = "v$version" ] || { echo "::error::tag $TAG, but packages/jali is $version"; exit 1; }
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/master || { echo "::error::$TAG is not on master"; exit 1; }
+          grep -q "^## $version\b" CHANGELOG.md || { echo "::error::CHANGELOG.md has no '## $version' section"; exit 1; }
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      # No cache in a release: a cache a pull request wrote can't reach what gets published. setup-node 4 caches only
+      # when asked (it warns that it doesn't know `package-manager-cache`); from 5 it caches unless told not to.
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 26
+          package-manager-cache: false
+      - run: pnpm install --frozen-lockfile
+      # Chrome is on the runner; WebKit is Playwright's build.
+      - run: pnpm exec playwright install --with-deps webkit
+      - run: pnpm verify --jobs=2
+      - name: Each failing gate's log
+        if: failure()
+        run: tail -n 60 node_modules/.verify/*.log
+      - name: Pack jali-layout and its release notes
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          pnpm build:packages
+          mkdir -p release
+          pnpm --filter jali-layout pack --pack-destination "$PWD/release"
+          # The notes: the changelog's section for this version, without its heading.
+          awk -v v="$VERSION" '$0 ~ "^## " v "( |$)" {on=1; next} /^## / {on=0} on' CHANGELOG.md > release/notes.md
+          ls -l release
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: release
+          path: release/
+          if-no-files-found: error
+          retention-days: 30
+
+  publish:
+    name: publish to npm
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Its protection rule waits for the owner's approval, and only v* tags may deploy to it.
+    environment:
+      name: npm
+      url: https://www.npmjs.com/package/jali-layout/v/${{ needs.verify.outputs.version }}
+    permissions:
+      contents: write # the GitHub Release
+      id-token: write # npm's trusted publishing, and the provenance it signs
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: release
+          path: release
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 26
+          package-manager-cache: false
+          registry-url: https://registry.npmjs.org
+      - name: Publish to npm
+        env:
+          VERSION: ${{ needs.verify.outputs.version }}
+        run: |
+          npm --version
+          tag=latest
+          case "$VERSION" in *-*) tag=next ;; esac
+          npm publish "release/jali-layout-$VERSION.tgz" --access public --tag "$tag"
+      - name: The GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          VERSION: ${{ needs.verify.outputs.version }}
+        run: |
+          pre=()
+          case "$VERSION" in *-*) pre=(--prerelease) ;; esac
+          gh release create "$TAG" "release/jali-layout-$VERSION.tgz" --repo "$GITHUB_REPOSITORY" \
+            --title "$VERSION" --notes-file release/notes.md --verify-tag "${pre[@]}"
