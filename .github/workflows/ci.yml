@@ -1,5 +1,7 @@
 # The gates that need no browser, on Linux: a disk where case matters, so a name that only works on a Mac fails here
 # too. The browser suites (Chrome and WebKit) and the React 18 check still run with `pnpm verify` before a commit.
+#
+# Every action is pinned to a commit (a tag can be moved; a commit can't), with its version beside it for Dependabot.
 name: CI
 
 on:
@@ -16,13 +18,16 @@ permissions:
 
 jobs:
   verify:
+    name: verify --quick
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
       # The version is package.json's packageManager.
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 26
           cache: pnpm
@@ -31,3 +36,37 @@ jobs:
       - name: Each failing gate's log
         if: failure()
         run: tail -n 60 node_modules/.verify/*.log
+
+  # The workflows themselves: actionlint for mistakes, zizmor for the security ones (a script built from a PR's title,
+  # a token left in the checkout, an action not pinned to a commit).
+  workflows:
+    name: workflows
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: docker://rhysd/actionlint@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667 # 1.7.12
+        with:
+          args: -color
+      - uses: zizmorcore/zizmor-action@1b4550e929643b8b26a62303c6bd64814271a4f1 # v0.9.2
+        with:
+          version: 1.33.1
+          advanced-security: false
+          persona: pedantic
+
+  # The one check master's ruleset requires: it passes when every job above passed. A job added above goes in `needs`,
+  # and the ruleset never has to change.
+  ci:
+    name: CI passed
+    if: always()
+    needs: [verify, workflows]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "jobs: $RESULTS"
+          for r in $RESULTS; do [ "$r" = success ] || exit 1; done
