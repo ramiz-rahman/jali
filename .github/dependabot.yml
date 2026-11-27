@@ -1,0 +1,35 @@
+# Weekly updates, a few to a pull request: the workspace's npm packages (the lockfile at the root covers every
+# package), and the actions the workflows pin. A version waits a week after it is published before it is offered,
+# so a release that is pulled or hijacked is usually caught first. Security updates come as soon as an alert does.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directories: ["/", "/packages/*", "/apps/*", "/examples/*", "/tooling"]
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
+    open-pull-requests-limit: 5
+    labels: [dependencies]
+    commit-message:
+      prefix: "Deps:"
+    groups:
+      # Minor and patch updates in one pull request; each major on its own, since it may need changes.
+      minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 7
+    labels: [dependencies]
+    commit-message:
+      prefix: "CI:"
+    groups:
+      actions:
+        patterns: ["*"]
