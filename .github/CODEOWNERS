@@ -1,0 +1,5 @@
+# Who reviews what. One maintainer for now; a line per area makes room for more.
+*                   @ramiz-rahman
+/packages/          @ramiz-rahman
+/.github/           @ramiz-rahman
+/tooling/           @ramiz-rahman

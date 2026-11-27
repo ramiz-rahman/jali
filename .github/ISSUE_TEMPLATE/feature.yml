@@ -1,0 +1,16 @@
+name: Idea
+description: Something Jali should do that it doesn't.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: What you're trying to do
+      description: The app and what its users need, before any API. What do you do today instead?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would help
+      description: An API, a behaviour, a change to the docs. Optional.

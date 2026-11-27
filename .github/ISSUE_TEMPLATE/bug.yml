@@ -1,0 +1,42 @@
+name: Bug
+description: Something in Jali doesn't work as the docs say.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: How to see it
+      description: |
+        The smallest steps or code that show it. A link to a repository or a StackBlitz is best; an example app at
+        jali.ramizrahman.com/apps/ works too, if it happens there.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: jali-layout version
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: input
+    id: where
+    attributes:
+      label: Browser, OS and React version
+      placeholder: Safari 26 on macOS, React 19.2
+    validations:
+      required: true
+  - type: checkboxes
+    id: kind
+    attributes:
+      label: It's about
+      options:
+        - label: Keyboard or screen reader use
+        - label: Touch or a small screen
+        - label: Server rendering
