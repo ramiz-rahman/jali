@@ -60,7 +60,7 @@ The repo is a pnpm workspace:
 
 The public site, jali.ramizrahman.com, is the docs with every example app under `/apps/<name>/`, built into `site/` by `pnpm build:site` from one commit. `pnpm preview:site` serves it as Netlify does (port 5480). Netlify builds it from `netlify.toml` on every push, and every pull request gets a Deploy Preview.
 
-CI (`.github/workflows/ci.yml`) runs the gates that need no browser on Linux, where case matters, on every push and pull request. It starts once the repository is on GitHub.
+CI (`.github/workflows/ci.yml`) runs the gates that need no browser on Linux, where case matters, and checks the workflows themselves (actionlint and zizmor), on every push and pull request. Its last job, **CI passed**, passes when every other job did; it is the check master's ruleset requires.
 
 On their own: `pnpm test`, `pnpm e2e`, `pnpm exec playwright test -c examples/<name>` or `-c apps/docs`, `pnpm typecheck`, `pnpm size`, `pnpm docs-check`, `pnpm test:react18`, `pnpm pack-check`.
 
@@ -72,6 +72,24 @@ On their own: `pnpm test`, `pnpm e2e`, `pnpm exec playwright test -c examples/<n
 - **Every public name has a consumer.** A value, an option or a type an app can reach is used for real by one of the examples (their tests count; the docs and the packages' own tests don't), or the `consumers` gate fails. A new name lands with its use in the example it belongs to; a name no example would ever use is a proposal to cut it, never an allowlist entry.
 - **Decisions are written down.** A choice someone would otherwise ask about goes in [docs/DECISIONS.md](docs/DECISIONS.md), dated, with the reason. A change to the public API also updates [docs/MIGRATION.md](docs/MIGRATION.md).
 - **Breaking changes are announced** to the apps that use Jali before they merge.
+
+## How changes land
+
+- **master only changes by pull request.** Its ruleset requires one, with **CI passed** green, and refuses force-pushes, deletion and merge commits. Every push to master deploys the site, so nothing reaches it unreviewed.
+- **Pull requests merge by rebase**, so each small commit lands on master as it was written, and the history stays a straight line. A stack of pull requests (each based on the one before) is rebased onto master after the one below it merges: `git rebase --onto origin/master <old base> <branch>`.
+- **A change people will notice adds a line to [CHANGELOG.md](CHANGELOG.md)** under "Unreleased", in the same pull request.
+- **Dependabot** opens a pull request each Monday for npm packages (minor and patch updates together; each major on its own) and for the actions the workflows use, and at once for a security alert. Each goes through CI like any other.
+- **Actions are pinned to a commit**, with the version in a comment (`uses: actions/checkout@<sha> # v4.4.0`); the repository refuses a workflow that uses an action by tag. Dependabot keeps the pins current.
+- **A security problem is reported privately**, as [SECURITY.md](SECURITY.md) says, never in an issue.
+
+## Releases
+
+1. On a branch, set the version in `packages/jali/package.json`, turn CHANGELOG.md's "Unreleased" into `## <version> · <date>` (with an empty "Unreleased" above it), and merge it.
+2. Tag master's commit and push the tag: `git tag v<version> && git push origin v<version>`.
+3. The Release workflow (`.github/workflows/release.yml`) checks that the tag, the package's version, master and the changelog agree, runs every gate, and packs `jali-layout`. It then waits in the `npm` environment for the owner's approval.
+4. Approved, it publishes that tarball to npm by trusted publishing, with provenance (no npm token exists anywhere), and makes the GitHub Release from the changelog's section. A version with a hyphen (`0.2.0-rc.1`) goes to npm's `next` tag.
+
+Tags `v*` can't be moved or deleted once pushed: a mistake is fixed by the next version, never by retagging.
 
 ## Docs
 
