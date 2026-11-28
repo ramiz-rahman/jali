@@ -323,8 +323,8 @@ importers:
         specifier: 0.1.0-beta.5
         version: 0.1.0-beta.5
       '@ui-sdk/react':
-        specifier: 0.1.0-beta.5
-        version: 0.1.0-beta.5(@types/react@19.3.0)(@ui-sdk/core@0.1.0-beta.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+        specifier: 0.1.0-beta.14
+        version: 0.1.0-beta.14(@types/react@19.3.0)(@ui-sdk/core@0.1.0-beta.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       jali-layout:
         specifier: workspace:*
         version: link:../../packages/jali
@@ -2806,11 +2806,11 @@ packages:
   '@ui-sdk/core@0.1.0-beta.5':
     resolution: {integrity: sha512-dmunrxWrZ+vwldKJ6THQNYyyfbLFY6K82hBvIZSnuGwpEQmXKmM0iuANgGXtaqw8unSB2p9E5s3y7zfE9rgP6Q==}
 
-  '@ui-sdk/react@0.1.0-beta.5':
-    resolution: {integrity: sha512-Zfvl94ulACX511lQKQDnK7wVjhYUYsR5LLnCZ800NzQ3983TxZasHxXyC+KYNlvppkYfpELPlAbVslsSIGQ9/A==}
+  '@ui-sdk/react@0.1.0-beta.14':
+    resolution: {integrity: sha512-qfriaLQEd+Iy7+PhAK6d2j3e1Hs6A4lh50+d+6rSAADoBwkQ/jf11SGzfXV5pCuYFGps3Ekz2W4RwtiR6yryjg==}
     peerDependencies:
       '@types/react': '>=19.2.10'
-      '@ui-sdk/core': ^0.1.0-beta.5
+      '@ui-sdk/core': ^0.1.0-beta.14
       react: '>=19'
       react-dom: '>=19'
     peerDependenciesMeta:
@@ -6457,7 +6457,7 @@ snapshots:
 
   '@ui-sdk/core@0.1.0-beta.5': {}
 
-  '@ui-sdk/react@0.1.0-beta.5(@types/react@19.3.0)(@ui-sdk/core@0.1.0-beta.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
+  '@ui-sdk/react@0.1.0-beta.14(@types/react@19.3.0)(@ui-sdk/core@0.1.0-beta.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
     dependencies:
       '@ui-sdk/core': 0.1.0-beta.5
       react: 19.3.1
