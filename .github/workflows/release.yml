@@ -38,7 +38,10 @@ jobs:
           version=$(node -p 'require("./packages/jali/package.json").version')
           [ "$TAG" = "v$version" ] || { echo "::error::tag $TAG, but packages/jali is $version"; exit 1; }
           git merge-base --is-ancestor "$GITHUB_SHA" origin/master || { echo "::error::$TAG is not on master"; exit 1; }
-          grep -q "^## $version\b" CHANGELOG.md || { echo "::error::CHANGELOG.md has no '## $version' section"; exit 1; }
+          # The heading is matched as text, as the notes step reads it: `## 0.2.0` alone or followed by a space, so
+          # `## 0.2.0-rc.1` is not 0.2.0's section and a version's dots are not patterns.
+          awk -v h="## $version" '$0 == h || index($0, h " ") == 1 {found=1} END {exit !found}' CHANGELOG.md ||
+            { echo "::error::CHANGELOG.md has no '## $version' section"; exit 1; }
           echo "version=$version" >> "$GITHUB_OUTPUT"
       # No cache in a release: a cache a pull request wrote can't reach what gets published. setup-node 4 caches only
       # when asked (it warns that it doesn't know `package-manager-cache`); from 5 it caches unless told not to.
@@ -62,7 +65,8 @@ jobs:
           mkdir -p release
           pnpm --filter jali-layout pack --pack-destination "$PWD/release"
           # The notes: the changelog's section for this version, without its heading.
-          awk -v v="$VERSION" '$0 ~ "^## " v "( |$)" {on=1; next} /^## / {on=0} on' CHANGELOG.md > release/notes.md
+          awk -v h="## $VERSION" '$0 == h || index($0, h " ") == 1 {on=1; next} /^## / {on=0} on' CHANGELOG.md > release/notes.md
+          grep -q '[^[:space:]]' release/notes.md || { echo "::error::CHANGELOG.md's '## $VERSION' section is empty"; exit 1; }
           ls -l release
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
