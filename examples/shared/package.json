@@ -32,11 +32,11 @@
     "./theme": "./src/theme.ts"
   },
   "dependencies": {
-    "@electric-sql/pglite": "^0.5.16",
+    "@electric-sql/pglite": "^0.5.17",
     "@fontsource/atkinson-hyperlegible-mono": "^5.3.0",
     "@fontsource/atkinson-hyperlegible-next": "^5.3.0",
     "@phosphor-icons/react": "^2.1.10",
-    "@tanstack/react-query": "^5.107.1",
+    "@tanstack/react-query": "^5.108.2",
     "jali-layout": "workspace:*",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
